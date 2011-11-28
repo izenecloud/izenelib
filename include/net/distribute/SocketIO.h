@@ -64,7 +64,7 @@ public:
 
     int syncSend(const char *buf, int bufLen);
 
-    int syncRecv(char *buf, int bufLen, struct timeval &timeout);
+    int syncRecv(char *buf, int bufLen, struct timeval &timeout, bool fillUpBuff=false);
 
 
     int Send(const char *buf, int bufLen);
@@ -73,7 +73,7 @@ public:
 
     void Close();
 
-    /// shutdown receptions or transmissions
+    /// shutdown send and/or receive operations
     void Shutdown();
 
     int getSockFd()

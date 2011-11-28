@@ -18,8 +18,9 @@ class kv2string
     typedef map_t::iterator map_iter_t;
     map_t kvMap_;
 
+    // xxx, use as escape sequence for key,value
     static const char DEFAULT_KV_KV_DELIMITER = '$';
-    static const char DEFAULT_K_V_DELIMITER = ':';
+    static const char DEFAULT_K_V_DELIMITER = '#';
 
     char kv_kvDelim_;
     char k_vDelim_;

@@ -2,6 +2,7 @@
 #define DATA_TRANSFER_H_
 
 #include "SocketIO.h"
+#include "Msg.h"
 
 namespace net{
 namespace distribute {
@@ -23,7 +24,7 @@ public:
      * @param curDir  directory name which should contain the file(s) to be sent,
      *                if src is a dir, it will be renamed to curDir.
      * @param isRecursively  whether send recursively, only available when src is a directory.
-     * @return
+     * @return 0 on success, -n on failure (n indicates the file number of failure).
      */
     int syncSend(const std::string& src, const std::string& curDirName, bool isRecursively=false);
 
@@ -49,7 +50,7 @@ private:
      * Synchronously send file
      * @param fileName  full file name
      * @param curDir  directory to save file (relatively)
-     * @return
+     * @return 0 on success, -1 on failure
      */
     int syncSendFile(const std::string& fileName, const std::string& curDir);
 

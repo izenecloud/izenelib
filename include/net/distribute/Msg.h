@@ -37,6 +37,11 @@ struct MsgHead
         return msgpack_;
     }
 
+    void clear()
+    {
+        msgpack_.clear();
+    }
+
     std::string toString()
     {
         return msgpack_.serialize();
@@ -63,6 +68,17 @@ struct MsgHead
         len = strlen(s_eoh);
     }
 
+    void setErrorInfo(const std::string& err)
+    {
+        msgpack_.setValue(MSG_KEY_ERRORINFO, err);
+    }
+
+    std::string getErrorInfo()
+    {
+        return msgpack_.getStrValue(MSG_KEY_ERRORINFO);
+    }
+
+protected:
     kv2string msgpack_;
 };
 

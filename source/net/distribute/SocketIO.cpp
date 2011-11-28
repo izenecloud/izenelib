@@ -167,7 +167,7 @@ int SocketIO::syncSend(const char *buf, int bufLen)
     return numSent;
 }
 
-int SocketIO::syncRecv(char *buf, int bufLen, struct timeval &timeout)
+int SocketIO::syncRecv(char *buf, int bufLen, struct timeval &timeout, bool fillUpBuff)
 {
     int numRecd = 0;
     int res = 0, nfds;
@@ -200,13 +200,20 @@ int SocketIO::syncRecv(char *buf, int bufLen, struct timeval &timeout)
         res = Recv(buf + numRecd, bufLen - numRecd);
 
         if (res == 0)
-            break; //return 0; xxx
+            break; //return 0;
         if ((res < 0) &&
             ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)))
             continue;
         if (res < 0)
             break;
         numRecd += res;
+
+        if (!fillUpBuff)
+        {
+            // return once received data,
+            // not wait for buffer to be filled up
+            break;
+        }
     }
 
     return numRecd;

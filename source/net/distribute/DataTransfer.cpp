@@ -17,8 +17,9 @@ DataTransfer::DataTransfer(const std::string& hostname, unsigned int port, buf_s
 {
     buf_ = new char[bufSize];
     assert(buf_);
-
     memset(buf_, 0, bufSize);
+
+    socketIO_.Connect(hostname, port);
 }
 
 DataTransfer::~DataTransfer()
@@ -60,15 +61,13 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
         {
             //std::cout<<iter->path().filename()<<std::endl;
             sent = syncSendFile(iter->path().string(), curFileDir);
-            if (sent > 0)
-                ret += sent;
+            ret += sent;
         }
         else if (isRecursively && bfs::is_directory(iter->path()))
         {
             std::string subDir = iter->path().string();
             sent = syncSendDirRecur(subDir, curFileDir);
-            if (sent > 0)
-                ret += sent;
+            ret += sent;
         }
     }
 
@@ -97,17 +96,15 @@ DataTransfer::syncSendDirRecur(const std::string& curDir, const std::string& par
     {
         if (bfs::is_regular_file(iter->path()))
         {
-            std::cout<<iter->path().filename()<<std::endl;//xxx
+            //std::cout<<iter->path().filename()<<std::endl;//xxx
             sent = syncSendFile(iter->path().string(), curFileDir);
-            if (sent > 0)
-                ret += sent;
+            ret += sent;
         }
         else if (bfs::is_directory(iter->path()))
         {
             std::string subDir = iter->path().string();
             sent = syncSendDirRecur(subDir, curFileDir);
-            if (sent > 0)
-                ret += sent;
+            ret += sent;
         }
     }
 
@@ -133,45 +130,91 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
-    // new connection to simplify data control
-    if (socketIO_.Connect(serverAddr_.host_, serverAddr_.port_) < 0)
+    if (!socketIO_.isGood())
+    {
+        LOG(ERROR)<<"socket error";
         return -1;
+    }
 
     // don't terminate when server broken, xxx check error
     signal(SIGPIPE, SIG_IGN);
 
-    // send head
+    struct timeval timeout = {180,0};
+
+    /// send head
+    SendFileReqMsg msg;
     bfs::path path(fileName);
-    MessageHeader head;
-    head.addFileName(curDir+"/"+path.filename());
+    msg.setFileType(SendFileReqMsg::FTYPE_SCD);
+    msg.setFileName(curDir+"/"+path.filename());
+    msg.setFileSize(bfs::file_size(fileName));
 
-    int nsend = socketIO_.syncSend(head.getHead(), head.getHeadLen());
-    if (nsend < head.getHeadLen())
-        LOG(INFO)<<"Sent header size "<<nsend<<" - "<<head.getHead();
+    std::string msg_head = msg.toString();
+    int nsend = socketIO_.syncSend(msg_head.c_str(), msg_head.size());
+    LOG(INFO)<<"Sent header size "<<nsend<<" - "<<msg_head;
 
-    // send data
+    if (nsend < msg_head.size())
+    {
+        LOG(ERROR)<<"Failed to send file header info";
+        return -1;
+    }
+
+    /// check if ready to receive
+    int nrecv;
+    ResponseMsg resMsg;
+    nrecv = socketIO_.syncRecv(buf_, bufSize_, timeout);
+    resMsg.loadMsg(std::string(buf_, nrecv));
+    //LOG(INFO)<<"Ready? "<<std::string(buf_, nrecv);
+    if (nrecv >0 && resMsg.getStatus() != "success")
+    {
+        LOG(ERROR)<<"Receiver not ready";
+        return -1;
+    }
+    LOG(INFO)<<"Ready to send file data";
+
+    /// send data
     std::streamsize readLen, sendLen, totalLen = 0;
-
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
-        sendLen = socketIO_.syncSend(buf_, readLen);
-        if (sendLen != readLen)
+        if ((sendLen = socketIO_.syncSend(buf_, readLen)) < readLen)
         {
-            ; // xxx
+            ifs.close();
+            LOG(ERROR)<<"Failed to send file data";
+            return -1;
         }
         //std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
         totalLen += sendLen;
-
         ifs.read(buf_, bufSize_);
     }
-
     ifs.close();
     LOG(INFO)<<"Sent data size "<<totalLen;
 
-    // xxx check server receiver status
+    /// check receive status
+    nrecv = socketIO_.syncRecv(buf_, bufSize_, timeout);
+    if (nrecv > 0)
+    {
+        resMsg.loadMsg(std::string(buf_, nrecv));
+        //LOG(INFO)<<"receiver status? "<<std::string(buf_, nrecv);
+        // error info?
+        unsigned int nrecved = resMsg.getReceivedSize();
 
-    return totalLen;
+        if (nrecved < totalLen)
+        {
+            // xxx, retry?
+            LOG(ERROR)<<"Receiver received incompleted data, received"
+                      <<nrecved<<", total"<<totalLen;
+            return -1;
+        }
+
+        // transfer succeeded
+        LOG(INFO)<<"Transfer succeed!";
+        return 0;
+    }
+    else
+    {
+        LOG(ERROR)<<"Failed to get Receiver status";
+        return -1;
+    }
 }
 
 //int

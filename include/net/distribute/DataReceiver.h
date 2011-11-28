@@ -2,7 +2,9 @@
 #define DATA_RECEIVER_H_
 
 #include "SocketIO.h"
+#include "Msg.h"
 
+#include <fstream>
 #include <queue>
 #include <boost/thread.hpp>
 
@@ -37,6 +39,12 @@ private:
     void receive();
 
     void doReceive(SocketIO* sock);
+
+    bool receiveHeader(SocketIO* sock, char* buf, buf_size_t bufSize, SendFileReqMsg& fileMsg);
+
+    bool createFile(SendFileReqMsg& fileMsg, std::ofstream& ofs);
+
+    bool receiveData(SocketIO* sock, SendFileReqMsg& fileMsg, std::ofstream& ofs, char* buf, buf_size_t bufSize);
 
 private:
     unsigned int port_;

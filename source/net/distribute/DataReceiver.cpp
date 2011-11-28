@@ -1,9 +1,8 @@
 #include <net/distribute/DataReceiver.h>
-#include <net/distribute/SocketIO.h>
 
 #include <string.h>
 #include <assert.h>
-#include <fstream>
+#include <signal.h>
 
 #include <boost/filesystem.hpp>
 
@@ -46,8 +45,8 @@ void DataReceiver::start()
 {
     while (true)
     {
-        //std::cout<<"--> accept"<<std::endl;
         SocketIO* accSock = sockIO_.Accept();
+        std::cout<<"--> accepted"<<std::endl;
 
         if (accSock != NULL)
         {
@@ -115,9 +114,10 @@ void DataReceiver::receive()
         }
         catch (std::exception& e)
         {
-            delete accSock;
             std::cout<<e.what()<<std::endl;
         }
+
+        delete accSock;
     }
 }
 
@@ -128,46 +128,134 @@ void DataReceiver::doReceive(SocketIO* sock)
     assert(buf);
     memset(buf, 0, bufSize_);
 
+    // ignore
+    signal(SIGPIPE, SIG_IGN);
+
+    SendFileReqMsg fileMsg;
+    if (receiveHeader(sock, buf, bufSize_, fileMsg))
+    {
+        // received header
+        bool readyToReceive = true;
+        std::string errorInfo;
+
+        std::ofstream ofs; // xxx overwrite
+        if (!createFile(fileMsg, ofs))
+        {
+            readyToReceive = false;
+            errorInfo = "Failed to create file.";
+        }
+
+        // response on ready
+        ResponseMsg msg;
+        msg.setStatus((readyToReceive ? "success" : "failed"));
+        msg.setErrorInfo(errorInfo);
+        sock->syncSend(msg.toString().c_str(), msg.toString().size());
+
+        // receive data & response
+        if (readyToReceive)
+        {
+            receiveData(sock, fileMsg, ofs,  buf, bufSize_);
+        }
+    }
+
+    delete[] buf;
+}
+
+bool DataReceiver::receiveHeader(SocketIO* sock, char* buf, buf_size_t bufSize, SendFileReqMsg& fileMsg)
+{
     struct timeval timeout = {180,0};
 
-    // read head
-    int nread=0;
-    nread = sock->syncRecv(buf, MessageHeader::getHeadLen(), timeout);
-    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()<<", Received header "<<nread <<" - "<<buf;
+    // assume that bufSize is larger than header length
+    // xxx use msg end flag
+    int nread = sock->syncRecv(buf, bufSize_, timeout);
 
-    std::string fileName(buf, nread);
-    fileName = baseDataDir_+"/"+fileName;
-    //std::cout<<fileName<<std::endl;
+    if (nread <= 0)
+    {
+        LOG(ERROR)<<"Failed to receive file info header: "<<nread;
+        return false;
+    }
 
-    // create dir for file to receive
+    try
+    {
+        fileMsg.loadMsg(std::string(buf, nread));
+    }
+    catch(std::exception& e)
+    {
+        LOG(ERROR)<<"Failed to parse file info header: "<<e.what();
+        return false;
+    }
+
+    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
+             <<", Received header "<<nread;//<<" - "<<std::string(buf, nread);
+    return true;
+}
+
+bool DataReceiver::createFile(SendFileReqMsg& fileMsg, std::ofstream& ofs)
+{
+    std::string fileName = fileMsg.getFileName(); // relative path
+    fileName = baseDataDir_+"/"+fileName;         // to local path
+    std::cout<<fileName<<std::endl;
+
     bfs::path path(fileName);
     std::string parent = path.parent_path().string();
-    if (!parent.empty())
+    if (!parent.empty() && !bfs::exists(parent))
+    {
         bfs::create_directories(parent);
+    }
 
-    // create file
-    std::ofstream ofs;
     ofs.open(fileName.c_str());
     if (!ofs.is_open())
     {
         std::cout<<"failed to open : "<<fileName<<std::endl;
+        return false;
     }
 
-    // receive data
-    int totalread=0;
-    //std::cout <<sock->getSockFd()<< "[DataReceiver] receive data "<<std::endl;
-    while ((nread = sock->syncRecv(buf, bufSize_, timeout)) > 0)
+    return true;
+}
+
+bool DataReceiver::receiveData(SocketIO* sock, SendFileReqMsg& fileMsg, std::ofstream& ofs, char* buf, buf_size_t bufSize)
+{
+    struct timeval timeout = {180,0};
+
+    size_t fileSize = fileMsg.getFileSize();
+
+    // receive file data
+    int nrecv, totalRecv=0;
+    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
+             << ", receiving data (size: "<<fileSize<<")";
+    while ((nrecv = sock->syncRecv(buf, bufSize_, timeout)) > 0)
     {
-        //std::cout <<sock->getSockFd()<< "[DataReceiver] received "<<nread/*<<", \t["<<buf<<"]"*/<<std::endl;
-        totalread+=nread;
-        ofs.write(buf, nread);
+        totalRecv += nrecv;
+        //std::cout <<sock->getSockFd()<< "[DataReceiver] received "<<nrecv/*<<", \t["<<buf<<"]"*/
+        //          <<", total "<<totalread<<std::endl;
+        ofs.write(buf, nrecv);
+
+        if (totalRecv >= fileSize)
+            break;
     }
-    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()<<", Received data size "<<totalread;
-
-    // response, xxx check filezie, checksum?
-
     ofs.close();
-    delete sock;
+
+    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
+             <<", Received data size "<<totalRecv;
+
+    // response on receive finished
+    std::string status = "success";
+    std::string errorInfo = "ok";
+    if (totalRecv < fileSize)
+    {
+        status = "failed";
+        std::ostringstream oss;
+        oss<<"Received incompleted data, received "<<totalRecv<<", excepted "<<fileSize;
+        errorInfo = oss.str();
+    }
+
+    ResponseMsg msg;
+    msg.setStatus(status);
+    msg.setErrorInfo(errorInfo);
+    msg.setReceivedSize(totalRecv);
+    sock->syncSend(msg.toString().c_str(), msg.toString().size()); //xxx
+
+    return true;
 }
 
 }}
