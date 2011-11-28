@@ -220,18 +220,29 @@ bool DataReceiver::receiveData(SocketIO* sock, SendFileReqMsg& fileMsg, std::ofs
     size_t fileSize = fileMsg.getFileSize();
 
     // receive file data
-    int nrecv, totalRecv=0;
+    size_t nrecv, totalRecv=0;
     LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
              << ", receiving data (size: "<<fileSize<<")";
+    int progress, progress_step = 0;
     while ((nrecv = sock->syncRecv(buf, bufSize_, timeout)) > 0)
     {
         totalRecv += nrecv;
         //std::cout <<sock->getSockFd()<< "[DataReceiver] received "<<nrecv/*<<", \t["<<buf<<"]"*/
-        //          <<", total "<<totalread<<std::endl;
+        //          <<", total "<<totalRecv<<std::endl;
         ofs.write(buf, nrecv);
 
+        if (((progress_step++) % 100) == 0)
+        {
+            progress = totalRecv*100/fileSize;
+            std::cout<<"\r progress "<<progress<<"%"<<std::flush;
+        }
+
         if (totalRecv >= fileSize)
+        {
+            std::cout<<"\r progress 100%"<<std::flush;
+            std::cout<<std::endl;
             break;
+        }
     }
     ofs.close();
 

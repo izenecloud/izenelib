@@ -146,7 +146,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     bfs::path path(fileName);
     msg.setFileType(SendFileReqMsg::FTYPE_SCD);
     msg.setFileName(curDir+"/"+path.filename());
-    msg.setFileSize(bfs::file_size(fileName));
+    size_t fileSize = bfs::file_size(fileName);
+    msg.setFileSize(fileSize);
 
     std::string msg_head = msg.toString();
     int nsend = socketIO_.syncSend(msg_head.c_str(), msg_head.size());
@@ -173,6 +174,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     /// send data
     std::streamsize readLen, sendLen, totalLen = 0;
+    int progress, progress_step = 0;
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
@@ -184,9 +186,22 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         }
         //std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
         totalLen += sendLen;
+
+        if (((progress_step++) % 10) == 0)
+        {
+            progress = totalLen*100/fileSize;
+            std::cout<<"\r progress "<<progress<<"%"<<std::flush;
+        }
+
         ifs.read(buf_, bufSize_);
     }
     ifs.close();
+
+    if (totalLen >= fileSize)
+    {
+        std::cout<<"\r progress 100%"<<std::flush;
+        std::cout<<std::endl;
+    }
     LOG(INFO)<<"Sent data size "<<totalLen;
 
     /// check receive status
