@@ -33,20 +33,25 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     boost::filesystem::remove_all(db_dir);
     bfs::create_directories(db_dir);
     std::string db_dir_str = db_dir.string();
-    typedef BTree<std::string,std::string> BTreeType;
+    typedef std::vector<std::pair<int, std::string> > ValueType;
+    typedef BTree<std::string, ValueType> BTreeType;
     BTreeType h(db_dir_str+"/BTreeIterator_test");
     BOOST_CHECK(h.open());
 
     {
         std::string key("1");
-        std::string value("a");
+        ValueType value;
+        value.push_back(std::make_pair(1, "a"));
+
         BOOST_CHECK(h.insert(key, value));
         BOOST_CHECK(h.size() == 1);
     }
 
     {
         std::string key("2");
-        std::string value("b");
+        ValueType value;
+        value.push_back(std::make_pair(1, "a"));
+        value.push_back(std::make_pair(2, "b"));
 
         BOOST_CHECK(h.insert(key, value));
         BOOST_CHECK(h.size() == 2);
@@ -54,28 +59,42 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
 
     {
         std::string key("3");
-        std::string value("c");
+        ValueType value;
+        value.push_back(std::make_pair(1, "a"));
+        value.push_back(std::make_pair(2, "b"));
+        value.push_back(std::make_pair(3, "c"));
+
         BOOST_CHECK(h.insert(key, value));
         BOOST_CHECK(h.size() == 3);
     }
     std::cout<<"Forward Iterator for TC from beginning"<<std::endl;
-    typedef AMIterator<BTreeType > AMIteratorType;
+    typedef AMIterator<BTreeType> AMIteratorType;
     AMIteratorType iter(h);
     AMIteratorType end;
     for(; iter != end; ++iter)
     {
         const std::string& k = iter->first;
-        const std::string& v = iter->second;
-        std::cout<<k<<" "<<v<<std::endl;
+        const ValueType& v = iter->second;
+
+        for (ValueType::const_iterator vit = v.begin();
+                vit != v.end(); ++vit)
+        {
+            std::cout << k << " " << vit->first << " " << vit->second << std::endl;
+        }
     }
 
     std::cout<<"Forward Iterator for TC with start"<<std::endl;
-    AMIteratorType iter2(h,std::string("2"));
+    AMIteratorType iter2(h, std::string("2"));
     for(; iter2 != end; ++iter2)
     {
         const std::string& k = iter2->first;
-        const std::string& v = iter2->second;
-        std::cout<<k<<" "<<v<<std::endl;
+        const ValueType& v = iter2->second;
+
+        for (ValueType::const_iterator vit = v.begin();
+                vit != v.end(); ++vit)
+        {
+            std::cout << k << " " << vit->first << " " << vit->second << std::endl;
+        }
     }
 
     typedef AMReverseIterator<BTreeType > AMRIteratorType;
@@ -85,8 +104,13 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     for(; iter3 != end2; ++iter3)
     {
         const std::string& k = iter3->first;
-        const std::string& v = iter3->second;
-        std::cout<<k<<" "<<v<<std::endl;
+        const ValueType& v = iter3->second;
+
+        for (ValueType::const_iterator vit = v.begin();
+                vit != v.end(); ++vit)
+        {
+            std::cout << k << " " << vit->first << " " << vit->second << std::endl;
+        }
     }
 
     AMRIteratorType iter4(h);
@@ -94,8 +118,13 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     for(; iter4 != end2; ++iter4)
     {
         const std::string& k = iter4->first;
-        const std::string& v = iter4->second;
-        std::cout<<k<<" "<<v<<std::endl;
+        const ValueType& v = iter4->second;
+
+        for (ValueType::const_iterator vit = v.begin();
+                vit != v.end(); ++vit)
+        {
+            std::cout << k << " " << vit->first << " " << vit->second << std::endl;
+        }
     }
 
 }
