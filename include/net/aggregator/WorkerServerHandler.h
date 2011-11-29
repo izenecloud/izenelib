@@ -4,8 +4,8 @@
  * @date Jun 27, 2011
  * @brief 
  */
-#ifndef WORKER_HANDLER_H_
-#define WORKER_HANDLER_H_
+#ifndef IZENE_NET_AGGREGATOR_WORKER_HANDLER_H_
+#define IZENE_NET_AGGREGATOR_WORKER_HANDLER_H_
 
 namespace net{
 namespace aggregator{
@@ -13,9 +13,7 @@ namespace aggregator{
 template <typename ConcreteWorker>
 struct WorkerHandler
 {
-    typedef bool (ConcreteWorker::*callback_type) (
-                JobRequest&
-            );
+    typedef void (ConcreteWorker::*callback_type)(request_t&);
 
     callback_type callback_;
 
@@ -23,7 +21,6 @@ struct WorkerHandler
     : callback_(callback)
     {}
 };
-
 
 
 /// Help macros for adding handlers to Worker
@@ -41,7 +38,6 @@ struct WorkerHandler
 #define ADD_WORKER_HANDLER_LIST_END()                      \
 
 
-
 /// Help macros for handling request, xxx
 
 #define WORKER_HANDLE_1_1(request, ParamT1, FUNCTION, ResultT1)  \
@@ -54,27 +50,17 @@ struct WorkerHandler
         req.result(result);                                      \
 }
 
-#define WORKER_HANDLE_REQUEST_1_1(request, ParamT1, ResultT1, SERVICE, FUNCTION)  \
+#define WORKER_HANDLE_1_1_RE(request, ParamT1, FUNCTION, ResultT1)  \
 {                                                                \
         msgpack::type::tuple<ParamT1, ResultT1> params;          \
         req.params().convert(&params);                           \
         ParamT1 param = params.get<0>();                         \
         ResultT1 result = params.get<1>();                       \
-        SERVICE->FUNCTION(param, result);                        \
+        result = FUNCTION(param);                                \
         req.result(result);                                      \
 }
 
-#define WORKER_HANDLE_REQUEST_1_1_(request, ParamT1, FUNCTION, ResultT1)  \
-{                                                                \
-        msgpack::type::tuple<ParamT1, ResultT1> params;          \
-        req.params().convert(&params);                           \
-        ParamT1 param = params.get<0>();                         \
-        ResultT1 result = params.get<1>();                       \
-        FUNCTION(param, result);                                 \
-        req.result(result);                                      \
-}
-
-#define WORKER_HANDLE_REQUEST_2_1(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
+#define WORKER_HANDLE_2_1(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
 {                                                                \
         msgpack::type::tuple<ParamT1, ParamT2, ResultT1> params; \
         req.params().convert(&params);                           \
@@ -85,19 +71,27 @@ struct WorkerHandler
         req.result(result);                                      \
 }
 
-/*
-#define WORKER_HANDLE_2_1(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
+#define WORKER_HANDLE_2_1_RE(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
 {                                                                \
-        msgpack::type::tuple<ParamT1, ParamT2> params;           \
+        msgpack::type::tuple<ParamT1, ParamT2, ResultT1> params; \
         req.params().convert(&params);                           \
         ParamT1 param1 = params.get<0>();                        \
         ParamT2 param2 = params.get<1>();                        \
-        ResultT1 result;                                         \
-        FUNCTION(param1, param2, result);                        \
+        ResultT1 result = params.get<2>();                       \
+        result = FUNCTION(param1, param2);                       \
         req.result(result);                                      \
 }
-*/
+
+#define WORKER_HANDLE_1_1_(request, ParamT1, ResultT1, SERVICE, FUNCTION)  \
+{                                                                \
+        msgpack::type::tuple<ParamT1, ResultT1> params;          \
+        req.params().convert(&params);                           \
+        ParamT1 param = params.get<0>();                         \
+        ResultT1 result = params.get<1>();                       \
+        SERVICE->FUNCTION(param, result);                        \
+        req.result(result);                                      \
+}
 
 }} // end - namespace
 
-#endif /* WORKER_HANDLER_H_ */
+#endif /* IZENE_NET_AGGREGATOR_WORKER_HANDLER_H_ */

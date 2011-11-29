@@ -12,7 +12,7 @@
 #include <vector>
 #include <sstream>
 
-#include "JobInfo.h"
+#include "Typedef.h"
 
 namespace net{
 namespace aggregator{

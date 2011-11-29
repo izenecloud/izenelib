@@ -2,9 +2,9 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
 
-#include <net/aggregator/JobInfo.h>
-#include <net/aggregator/JobAggregator.h>
+#include <net/aggregator/Aggregator.h>
 #include <net/aggregator/AggregatorConfig.h>
+#include <net/aggregator/Typedef.h>
 
 #include "worker_service.h"
 #include "worker_server.h"
@@ -17,16 +17,18 @@ using namespace net::aggregator;
 
 typedef WorkerCaller<SearchService> LocalWorkerCaller;
 
-class SearchAggregator : public JobAggregator<SearchAggregator, LocalWorkerCaller>
+class SearchAggregator : public Aggregator<SearchAggregator, LocalWorkerCaller>
 {
 public:
-
-    void initLocalWorkerCaller(boost::shared_ptr<SearchService> searchService)
+    SearchAggregator()
     {
-        localWorkerCaller_.reset(new LocalWorkerCaller);
-        localWorkerCaller_->setInvoker(searchService.get());
+    }
 
-        ADD_WORKER_CALLER_METHOD(LocalWorkerCaller, localWorkerCaller_, SearchService, getKeywordSearchResult);
+    SearchAggregator(SearchService* searchService)
+    {
+        localWorkerCaller_.reset(new LocalWorkerCaller(searchService));
+
+        ADD_FUNC_TO_WORKER_CALLER(LocalWorkerCaller, localWorkerCaller_, SearchService, getKeywordSearchResult);
     }
 
     bool aggregate(const std::string& func, SearchResult& res, const std::vector<std::pair<workerid_t, SearchResult> >& resList)
@@ -138,10 +140,9 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
     config.addWorker("0.0.0.0", 18110, 1, true); // is local
     config.addWorker("0.0.0.0", 18111, 2);
 
-    SearchAggregator ag;
+    SearchAggregator ag(localWorkerService.get());
     ag.debug_ = true;
     ag.setAggregatorConfig(config);
-    ag.initLocalWorkerCaller(localWorkerService);
 
     SearchRequest req;
     req.keyword = TERM_ABC;
@@ -168,10 +169,9 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     config.addWorker("0.0.0.0", 18111, 2);
     config.addWorker("0.0.0.0", 18112, 3);
 
-    SearchAggregator aggregator;
+    SearchAggregator aggregator(localWorkerService.get());
     aggregator.debug_ = true;
     aggregator.setAggregatorConfig(config);
-    aggregator.initLocalWorkerCaller(localWorkerService);
 
     SearchRequest req0;
     req0.keyword = TERM_ABC;

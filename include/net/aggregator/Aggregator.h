@@ -1,63 +1,75 @@
 /**
- * @file JobAggregator.h
+ * @file Aggregator.h
  * @author Zhongxia Li
  * @date Jun 23, 2011
- * @brief JobAggregator distribute Job to multiple Workers and gather results.
+ * @brief Aggregator distribute requests to multiple Workers and gather results.
  */
-#ifndef JOB_AGGREGATOR_H_
-#define JOB_AGGREGATOR_H_
+#ifndef IZENE_NET_AGGREGATOR_H_
+#define IZENE_NET_AGGREGATOR_H_
+
+#include "AggregatorConfig.h"
+#include "Typedef.h"
+#include "WorkerCaller.h"
 
 #include <boost/shared_ptr.hpp>
 #include <3rdparty/msgpack/rpc/client.h>
-
-#include "AggregatorConfig.h"
-#include "JobInfo.h"
 
 
 namespace net{
 namespace aggregator{
 
 /**
- * Job Aggregator base class
- * @brief Implement a concrete aggregator using inheritance, the \b aggregate function should be defined
- * and implemented (overload) with concrete types, for aggregating results in distrbuted requests:
- * aggregate(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
+ * Base class for Aggregator
+ * @brief Aggregator can distribute requests to Workers & gather results returned by Workers. <br>
+ * To send requests, we can ues \b distributeRequest to broadcast, and use \b singleRequest to a specified Worker. <br>
  *
- * To support calling local worker, we can define a LocalWorkerCaller with suitable Invoker(typically WorkerService),
- * and initialize it in derived Aggregator.
+ * To gather and merge results (optional), we can implement multiple \b aggregate methods in a Concrete Aggregator, <br>
+ * the parameters for a \a aggregate method will be a list of results in concrete type, and a ref to a result object <br>
+ * where to save merged result. The prototype of \b aggregate method is: <br>
+ *     aggregate(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);             <br>
+ *
+ * For sending requests, rpc (remote procedure call) will be performed to call remote Workers,                       <br>
+ * to support directly call (in-process) to local Worker, we can pass a WorkerCaller<WorkerT> in constructor to      <br>
+ * initialize localWorkerCaller_ for Aggregator.
  *
  * @example
-typedef WorkerCaller<WorkerService> LocalWorkerCaller;
-class SearchAggregator : public JobAggregator<SearchAggregator, LocalWorkerCaller>
+
+typedef WorkerCaller<WorkerT> LocalWorkerCaller;
+
+class SearchAggregator : public Aggregator<SearchAggregator, LocalWorkerCaller>
 {
 public:
-    void initLocalWorkerCaller(WorkerService* localWorkerService)
+    SearchAggregator()
     {
-        localWorkerCaller_.reset(new LocalWorkerCaller);
-        localWorkerCaller_->setInvoker(localWorkerService);
+    }
 
-        ADD_WORKER_CALLER_METHOD(LocalWorkerCaller, localWorkerCaller_, WorkerService, getDistSearchResult);
-        ...
+    SearchAggregator(SearchService* searchService)
+    {
+        localWorkerCaller_.reset(new LocalWorkerCaller(searchService));
+
+        // add functions to worker caller
+        ADD_FUNC_TO_WORKER_CALLER(LocalWorkerCaller, localWorkerCaller_, SearchService, getKeywordSearchResult);
     }
 
 public:
     void aggregate(const std::string& func, ResultType1& result, const std::vector<std::pair<workerid_t, ResultType1> >& resultList)
     {
-        // merge resultList to result
+        // merge results of resultList to result
     }
 
     void aggregate(const std::string& func, ResultType2& result, const std::vector<std::pair<workerid_t, ResultType2> >& resultList)
     {
-        // merge resultList to result
+        // merge results of resultList to result
     }
 };
+
  *
  */
 template <typename ConcreteAggregator, typename LocalWorkerCaller = MockWorkerCaller>
-class JobAggregator
+class Aggregator
 {
 public:
-    JobAggregator()
+    Aggregator()
     : debug_(false)
     , hasLocalWorker_(false)
     , localWorkerId_(0)
@@ -233,14 +245,14 @@ protected:
 };
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
-const std::vector<workerid_t> JobAggregator<ConcreteAggregator, LocalWorkerCaller>::NullWorkeridList;
+const std::vector<workerid_t> Aggregator<ConcreteAggregator, LocalWorkerCaller>::NullWorkeridList;
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
-const WorkerSessionPtr JobAggregator<ConcreteAggregator, LocalWorkerCaller>::kDefaultWorkerSession_;
+const WorkerSessionPtr Aggregator<ConcreteAggregator, LocalWorkerCaller>::kDefaultWorkerSession_;
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template<typename RequestType, typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
         const RequestType& requestItem,
@@ -295,7 +307,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template<typename RequestType0, typename RequestType1, typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
         const RequestType0& requestItem0,
@@ -351,7 +363,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template<typename RequestType, typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
         RequestGroup<RequestType, ResultType>& requestGroup,
@@ -430,7 +442,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template<typename RequestType, typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         const std::string& identity,
         const std::string& func,
         const RequestType& requestItem,
@@ -478,7 +490,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template <typename RequestType0, typename RequestType1, typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         const std::string& identity,
         const std::string& func,
         const RequestType0& requestItem0,
@@ -525,7 +537,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 template<typename ResultType>
-bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::join(
+bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::join(
         const std::string& func,
         std::vector<std::pair<workerid_t, future_t> >& futureList,
         ResultType& resultItem,
@@ -605,4 +617,4 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::join(
 
 }} // end - namespace
 
-#endif /* JOB_AGGREGATOR_H_ */
+#endif /* IZENE_NET_AGGREGATOR_H_ */

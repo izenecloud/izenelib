@@ -1,8 +1,4 @@
 #include <iostream>
-#include <net/aggregator/JobInfo.h>
-#include <net/aggregator/JobWorker.h>
-#include <net/aggregator/WorkerHandler.h>
-
 #include <boost/shared_ptr.hpp>
 
 #include "worker_service.h"
