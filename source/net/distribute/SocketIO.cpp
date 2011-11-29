@@ -154,7 +154,7 @@ int SocketIO::syncSend(const char *buf, int bufLen)
 
         res = Send(buf + numSent, bufLen - numSent);
         if (res == 0)
-            return 0;
+            break;//return 0;
         if ((res < 0) &&
             ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)))
             continue;

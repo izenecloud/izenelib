@@ -19,7 +19,7 @@ DataTransfer::DataTransfer(const std::string& hostname, unsigned int port, buf_s
     assert(buf_);
     memset(buf_, 0, bufSize);
 
-    socketIO_.Connect(hostname, port);
+    //socketIO_.Connect(hostname, port);
 }
 
 DataTransfer::~DataTransfer()
@@ -130,6 +130,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
+    // start a new connection to send file, adjust Receiver if keep one connection
+    socketIO_.Connect(serverAddr_.host_, serverAddr_.port_);
     if (!socketIO_.isGood())
     {
         LOG(ERROR)<<"socket error";
@@ -146,11 +148,12 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     bfs::path path(fileName);
     msg.setFileType(SendFileReqMsg::FTYPE_SCD);
     msg.setFileName(curDir+"/"+path.filename());
-    msg.setFileSize(bfs::file_size(fileName));
+    size_t fileSize = bfs::file_size(fileName);
+    msg.setFileSize(fileSize);
 
     std::string msg_head = msg.toString();
     int nsend = socketIO_.syncSend(msg_head.c_str(), msg_head.size());
-    LOG(INFO)<<"Sent header size "<<nsend<<" - "<<msg_head;
+    //LOG(INFO)<<"Sent header size "<<nsend<<" - "<<msg_head;
 
     if (nsend < msg_head.size())
     {
@@ -173,20 +176,35 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     /// send data
     std::streamsize readLen, sendLen, totalLen = 0;
+    int progress, progress_step = 0;
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
         if ((sendLen = socketIO_.syncSend(buf_, readLen)) < readLen)
         {
             ifs.close();
-            LOG(ERROR)<<"Failed to send file data";
+            LOG(ERROR)<<"Failed to send file data, errno="<<errno;
+            std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
             return -1;
         }
         //std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
         totalLen += sendLen;
+
+        if (((progress_step++) % 10) == 0)
+        {
+            progress = totalLen*100/fileSize;
+            std::cout<<"\r progress "<<progress<<"%"<<std::flush;
+        }
+
         ifs.read(buf_, bufSize_);
     }
     ifs.close();
+
+    if (totalLen >= fileSize)
+    {
+        std::cout<<"\r progress 100%"<<std::flush;
+        std::cout<<std::endl;
+    }
     LOG(INFO)<<"Sent data size "<<totalLen;
 
     /// check receive status
