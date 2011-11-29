@@ -126,6 +126,37 @@ public:
         }
     }
 
+    void importFromEWAH(const EWAHBoolArray<uint32_t>& ewahBitmap)
+    {
+        uint pointer(0);
+        uint currentoffset(0);
+        const vector<uint32_t>& buffer = ewahBitmap.getBuffer();
+        while (pointer <buffer.size())
+        {
+            ConstRunningLengthWord<uint32_t> rlw(buffer[pointer]);
+            if (rlw.getRunningBit())
+            {
+                for (uint x = 0; x<  static_cast<uint>(rlw.getRunningLength()*32);++x)
+                {
+                set(currentoffset + x);
+                }
+            }
+            currentoffset+=rlw.getRunningLength()*32;
+            ++pointer;
+            for (uint k = 0; k<rlw.getNumberOfLiteralWords();++k)
+            {
+                const uint32_t currentword = buffer[pointer];
+                for (uint k = 0; k < 32; ++k)
+                {
+                    if ( (currentword & (static_cast<uint32_t>(1) << k)) != 0)
+                        set(currentoffset + k);
+                }
+                currentoffset+=32;
+                ++pointer;
+            }
+        }
+    }
+
     bool any() const
     {
         const size_t byteNum = getBytesNum(size_);
