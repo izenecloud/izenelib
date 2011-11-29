@@ -19,7 +19,7 @@ DataTransfer::DataTransfer(const std::string& hostname, unsigned int port, buf_s
     assert(buf_);
     memset(buf_, 0, bufSize);
 
-    socketIO_.Connect(hostname, port);
+    //socketIO_.Connect(hostname, port);
 }
 
 DataTransfer::~DataTransfer()
@@ -130,6 +130,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
+    // start a new connection to send file, adjust Receiver if keep one connection
+    socketIO_.Connect(serverAddr_.host_, serverAddr_.port_);
     if (!socketIO_.isGood())
     {
         LOG(ERROR)<<"socket error";
@@ -151,7 +153,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     std::string msg_head = msg.toString();
     int nsend = socketIO_.syncSend(msg_head.c_str(), msg_head.size());
-    LOG(INFO)<<"Sent header size "<<nsend<<" - "<<msg_head;
+    //LOG(INFO)<<"Sent header size "<<nsend<<" - "<<msg_head;
 
     if (nsend < msg_head.size())
     {
@@ -181,7 +183,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         if ((sendLen = socketIO_.syncSend(buf_, readLen)) < readLen)
         {
             ifs.close();
-            LOG(ERROR)<<"Failed to send file data";
+            LOG(ERROR)<<"Failed to send file data, errno="<<errno;
+            std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
             return -1;
         }
         //std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;

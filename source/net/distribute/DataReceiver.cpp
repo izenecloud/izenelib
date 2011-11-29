@@ -46,7 +46,7 @@ void DataReceiver::start()
     while (true)
     {
         SocketIO* accSock = sockIO_.Accept();
-        std::cout<<"--> accepted"<<std::endl;
+        //std::cout<<"--> accepted"<<std::endl;
 
         if (accSock != NULL)
         {
@@ -117,6 +117,7 @@ void DataReceiver::receive()
             std::cout<<e.what()<<std::endl;
         }
 
+        // xxx
         delete accSock;
     }
 }
@@ -186,7 +187,8 @@ bool DataReceiver::receiveHeader(SocketIO* sock, char* buf, buf_size_t bufSize, 
     }
 
     LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
-             <<", Received header "<<nread;//<<" - "<<std::string(buf, nread);
+             <<", start to receive "<<fileMsg.getFileName()<<", size "<<fileMsg.getFileSize();
+    //         <<", Received header "<<nread;//<<" - "<<std::string(buf, nread);
     return true;
 }
 
@@ -194,7 +196,7 @@ bool DataReceiver::createFile(SendFileReqMsg& fileMsg, std::ofstream& ofs)
 {
     std::string fileName = fileMsg.getFileName(); // relative path
     fileName = baseDataDir_+"/"+fileName;         // to local path
-    std::cout<<fileName<<std::endl;
+    std::cout<<"create "<<fileName<<std::endl;
 
     bfs::path path(fileName);
     std::string parent = path.parent_path().string();
@@ -221,8 +223,8 @@ bool DataReceiver::receiveData(SocketIO* sock, SendFileReqMsg& fileMsg, std::ofs
 
     // receive file data
     size_t nrecv, totalRecv=0;
-    LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
-             << ", receiving data (size: "<<fileSize<<")";
+    //LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
+    //         << ", receiving data (size: "<<fileSize<<")";
     int progress, progress_step = 0;
     while ((nrecv = sock->syncRecv(buf, bufSize_, timeout)) > 0)
     {
