@@ -154,18 +154,6 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
 {
     if(!pCurBarrelInfo_) createBarrelInfo();
 
-    if(pIndexer_->isRealTime() && pIndexBarrelWriter_->cacheFull())
-    {
-        DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
-        flush();
-        createBarrelInfo();
-    }
-
-    DocId uniqueID;
-    doc.getDocId(uniqueID);
-
-    if(uniqueID.docId > pBarrelsInfo_->maxDocId())
-        return;
     pIndexBarrelWriter_->updateDocument(oldDoc, doc);
 }
 
