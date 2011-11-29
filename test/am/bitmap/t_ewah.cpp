@@ -13,10 +13,11 @@ using namespace izenelib::am;
 namespace bfs = boost::filesystem;
 
 static uint32_t *int_data;
-void init_data(int data_size)
+static uint32_t * copy_data;
+void init_data(int data_size, int& copy_length)
 {
     std::cout<<"generating data... "<<std::endl;
-    int MAXID = 10000000;
+    int MAXID = 20000;//50000000;
 
     int_data = new unsigned[data_size];
     srand( (unsigned)time(NULL) );
@@ -25,6 +26,12 @@ void init_data(int data_size)
         int_data[i] = rand() % MAXID;
     }
     std::sort(int_data, int_data+ data_size);
+    uint32_t* it = std::unique(int_data, int_data+ data_size);
+
+    copy_length = it - int_data;
+    cout<<"real_size = "<<copy_length<<endl;
+    copy_data = new unsigned[copy_length];
+    std::memcpy(copy_data, int_data, copy_length * sizeof(uint32_t));
 
     std::cout<<"done!\n";
 }
@@ -331,30 +338,28 @@ BOOST_AUTO_TEST_CASE(ewahBoolArrayAppend)
 
 BOOST_AUTO_TEST_CASE(ewahBitIterator)
 {
-    int data_size = 1000;
-    init_data(data_size);
+    int data_size = 1000; //10000000
+    int real_size = 0;
+    init_data(data_size, real_size);
 
     EWAHBoolArray<uint32_t> myarray1;
     BoolArray<uint32_t> boolarray1;
     int i = 0;
 
-    for(; i < data_size; ++i)
+    for(; i < real_size; ++i)
     {
-        myarray1.set(int_data[i]);
+        myarray1.set(copy_data[i]);
     }
 
-    //myarray1.toBoolArray(boolarray1);
+    myarray1.toBoolArray(boolarray1);
     EWAHBoolArrayBitIterator<uint32_t> iter = myarray1.bit_iterator();
-    i = 0;
     while(iter.next())
     {
-        //BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
-        //BOOST_CHECK( iter.getCurr() == int_data[i++]);
-        if(iter.getCurr() != int_data[i])
-        std::cout<<iter.getCurr()<<" "<<int_data[i]<<std::endl;
-        i++;
+        BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
     }
+
     delete[] int_data;
+    delete[] copy_data;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
