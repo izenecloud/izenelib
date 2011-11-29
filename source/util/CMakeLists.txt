@@ -61,6 +61,7 @@ IF(izene_util_SHOULD_BUILD)
 
   SET(util_SRC
     scheduler.cpp
+    mkgmtime.cpp
 
     thread-pool/ThreadObject.cpp
     thread-pool/ThreadObjectPool.cpp
