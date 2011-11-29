@@ -12,6 +12,30 @@ using namespace std;
 using namespace izenelib::am;
 namespace bfs = boost::filesystem;
 
+static uint32_t *int_data;
+static uint32_t * copy_data;
+void init_data(int data_size, int& copy_length)
+{
+    std::cout<<"generating data... "<<std::endl;
+    int MAXID = 20000;//50000000;
+
+    int_data = new unsigned[data_size];
+    srand( (unsigned)time(NULL) );
+
+    for (int i = 0; i < data_size; ++i) {
+        int_data[i] = rand() % MAXID;
+    }
+    std::sort(int_data, int_data+ data_size);
+    uint32_t* it = std::unique(int_data, int_data+ data_size);
+
+    copy_length = it - int_data;
+    cout<<"real_size = "<<copy_length<<endl;
+    copy_data = new unsigned[copy_length];
+    std::memcpy(copy_data, int_data, copy_length * sizeof(uint32_t));
+
+    std::cout<<"done!\n";
+}
+
 const char* BITMAP_TEST_DIR_STR = "bitmap";
 
 template<class uword>
@@ -312,45 +336,19 @@ BOOST_AUTO_TEST_CASE(ewahBoolArrayAppend)
     BOOST_CHECK(testEWAHBoolArrayAppend<uint64_t > ());
 }
 
-BOOST_AUTO_TEST_CASE(ewahBoolArrayBench)
-{
-    EWAHBoolArray<uint32_t> myarray;
-    size_t max = 10000000;
-    size_t i = 1;
-    size_t maxstep = 10;
-    size_t count = 0;
-    for(; i < max; )
-    {
-        i += (1+rand() % maxstep);
-        myarray.set(i);
-        ++count;
-    }
-    /*
-    EWAHBoolArrayBitIterator<uint32_t> iter = myarray.bit_iterator();
-
-
-    i = 1;
-    while(iter.next())
-    {
-        BOOST_CHECK((i++) ==iter.getCurr());
-    }
-    BOOST_CHECK(i = max);
-    */	
-    std::cout<<"count "<<count<<" sizeInBytes "<<myarray.sizeInBytes()<<std::endl;
-}
-
 BOOST_AUTO_TEST_CASE(ewahBitIterator)
 {
+    int data_size = 1000; //10000000
+    int real_size = 0;
+    init_data(data_size, real_size);
+
     EWAHBoolArray<uint32_t> myarray1;
     BoolArray<uint32_t> boolarray1;
-    size_t max = 2000; //10000000;
-    size_t maxstep = 100;
-    size_t i = 1;
+    int i = 0;
 
-    for(; i < max; )
+    for(; i < real_size; ++i)
     {
-        myarray1.set(i);
-        i += (1 + rand() % maxstep);
+        myarray1.set(copy_data[i]);
     }
 
     myarray1.toBoolArray(boolarray1);
@@ -359,6 +357,9 @@ BOOST_AUTO_TEST_CASE(ewahBitIterator)
     {
         BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
     }
+
+    delete[] int_data;
+    delete[] copy_data;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
