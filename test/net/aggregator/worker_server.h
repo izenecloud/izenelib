@@ -7,28 +7,28 @@
 #ifndef WORKER_SERVER_H_
 #define WORKER_SERVER_H_
 
-#include <net/aggregator/JobInfo.h>
-#include <net/aggregator/JobWorker.h>
-#include <net/aggregator/WorkerHandler.h>
+#include <net/aggregator/Typedef.h>
+#include <net/aggregator/WorkerServerBase.h>
+#include <net/aggregator/WorkerServerHandler.h>
 
 #include "worker_service.h"
 
 using namespace net::aggregator;
 
 
-class WorkerServer : public JobWorker<WorkerServer>
+class WorkerServer : public WorkerServerBase<WorkerServer>
 {
 
 public:
     WorkerServer(const std::string& host, uint16_t port, boost::shared_ptr<SearchService> searchService)
-    :JobWorker<WorkerServer>(host, port)
+    :WorkerServerBase<WorkerServer>(host, port)
     ,searchService_(searchService)
     {
     }
 
 public:
     /*pure virtual*/
-    void addHandlers()
+    void addServerHandlers()
     {
         ADD_WORKER_HANDLER_LIST_BEGIN( WorkerServer )
 
@@ -38,16 +38,14 @@ public:
         ADD_WORKER_HANDLER_LIST_END()
     }
 
-    bool getKeywordSearchResult(JobRequest& req)
+    void  getKeywordSearchResult(request_t& req)
     {
-        WORKER_HANDLE_REQUEST_1_1(req, SearchRequest, SearchResult, searchService_, getKeywordSearchResult)
-        return true;
+        WORKER_HANDLE_1_1(req, SearchRequest, searchService_->getKeywordSearchResult, SearchResult)
     }
 
-    bool add(JobRequest& req)
+    void add(request_t& req)
     {
         WORKER_HANDLE_1_1(req, AddRequest, processAdd, AddResult)
-        return true;
     }
 
 private:
