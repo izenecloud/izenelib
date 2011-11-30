@@ -65,7 +65,8 @@ void IndexWriter::flush()
     if(pCurBarrelInfo_ == NULL)
     {
         // write file "barrels" to update the doc count of each barrel
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
+        if(pBarrelsInfo_->getBarrelCount() > 0)
+            pBarrelsInfo_->write(pIndexer_->getDirectory());
         DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
     }
@@ -86,9 +87,14 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
+void IndexWriter::flushDocLen() 
+{
+    if(pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen(); 
+}
+
 void IndexWriter::createBarrelInfo()
 {
-    DVLOG(2) << "=> IndexWriter::createBarrelInfo()...";
+   DVLOG(2)<< "=> IndexWriter::createBarrelInfo()...";
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
@@ -97,7 +103,7 @@ void IndexWriter::createBarrelInfo()
     pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     pBarrelsInfo_->addBarrel(pCurBarrelInfo_);
 
-    DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
+    DVLOG(2)<< "<= IndexWriter::createBarrelInfo()";
 }
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
@@ -152,9 +158,51 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
 void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
 {
-    if(!pCurBarrelInfo_) createBarrelInfo();
+    DocId uniqueID;
+    doc.getDocId(uniqueID);
 
-    pIndexBarrelWriter_->updateDocument(oldDoc, doc);
+    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
+    doc.getPropertyList(propertyValueList);
+    map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldPropertyValueList;
+    oldDoc.getPropertyList(oldPropertyValueList);
+    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter
+                = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
+    {
+        if (iter->first.isIndex() && iter->first.isFilter())
+        {
+            map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator it;
+            if( (it = oldPropertyValueList.find(iter->first)) != oldPropertyValueList.end() )
+            {
+                if(it->first.isMultiValue())
+                {
+                    MultiValuePropertyType oldProp;
+                    oldProp = boost::get<MultiValuePropertyType>(it->second);
+                    for(MultiValuePropertyType::iterator multiIt = oldProp.begin(); multiIt != oldProp.end(); ++multiIt)
+                       pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), *multiIt, uniqueID.docId);
+                }
+                else
+                {
+                    PropertyType oldProp;
+                    oldProp = boost::get<PropertyType>(it->second);
+                    pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), oldProp, uniqueID.docId);
+                }
+
+                if(iter->first.isMultiValue())
+                {
+                    MultiValuePropertyType prop;
+                    prop = boost::get<MultiValuePropertyType>(iter->second);
+                    for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
+                        pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *multiIt, uniqueID.docId);
+                }
+                else
+                {
+                    PropertyType prop;
+                    prop = boost::get<PropertyType>(iter->second);
+                    pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
+                }
+            }
+        }
+    }
 }
 
 void IndexWriter::optimizeIndex()

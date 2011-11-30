@@ -295,20 +295,26 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
     return 1;
 }
 
-void Indexer::flush()
+void Indexer::flush(bool force)
 {
     //flush btree firstly.
     if(pBTreeIndexer_) pBTreeIndexer_->flush();
-    try{
-        pIndexWriter_->flush();
-    }catch(EmptyBarrelException& e)
+    if(force)
     {
-        LOG(WARNING) << "Empty barrels "<<e.what() ;
+        try{
+            pIndexWriter_->flush();
+        }catch(EmptyBarrelException& e)
+        {
+            LOG(WARNING) << "Empty barrels "<<e.what() ;
+        }
+        setDirty();
     }
-    
+    else
+    {
+        pIndexWriter_->flushDocLen();
+    }
     pIndexReader_->flush();
 
-    setDirty();
 }
 
 void Indexer::optimizeIndex()

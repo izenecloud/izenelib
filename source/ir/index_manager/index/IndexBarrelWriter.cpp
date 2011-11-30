@@ -19,6 +19,7 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
     ,pDirectory_(NULL)
     ,pDocFilter_(0)
     ,numFieldIndexers_(0)
+    ,isLastIndexModeRealTime_(false)
 {
     pCollectionsInfo_ = new CollectionsInfo();
     pDirectory_ = pIndexer_->getDirectory();
@@ -64,14 +65,11 @@ void IndexBarrelWriter::addDocument(IndexerDocument& doc)
     pCollectionIndexer->addDocument(doc);
 }
 
-void IndexBarrelWriter::updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
+void IndexBarrelWriter::flushDocLen()
 {
-    DocId uniqueID;
-    doc.getDocId(uniqueID);
-    CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[uniqueID.colId];
-    if (NULL == pCollectionIndexer)
-        SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
-    pCollectionIndexer->updateDocument(oldDoc, doc);
+    CollectionIndexerMap::iterator p = collectionIndexerMap_.begin();
+    for (; p != collectionIndexerMap_.end( ); ++p)
+        (*p).second->flushDocLen();
 }
 
 void IndexBarrelWriter::reset()
@@ -146,16 +144,21 @@ void IndexBarrelWriter::setIndexMode(bool realtime)
         {
             cit->second->setIndexMode(pMemCache_,realtime);
         }
+        isLastIndexModeRealTime_ = false;
         assert(pMemCache_.use_count() == 0);
     }
     else
     {
-        createMemCache();
-        CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
-        for(;cit != collectionIndexerMap_.end(); ++cit)
+        if(!isLastIndexModeRealTime_)
         {
-            cit->second->setIndexMode(pMemCache_,realtime);
+            createMemCache();
+            CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
+            for(;cit != collectionIndexerMap_.end(); ++cit)
+            {
+                cit->second->setIndexMode(pMemCache_,realtime);
+            }
         }
+        isLastIndexModeRealTime_ = true;
     }
 }
 

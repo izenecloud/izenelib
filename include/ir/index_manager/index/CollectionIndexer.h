@@ -48,11 +48,13 @@ public:
 
     void addDocument(IndexerDocument& doc);
 
-    void updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
-
     void write(OutputDescriptor* desc);
 
     void reset();
+
+    void flushDocLen() { 
+        if (pDocLengthWriter_) pDocLengthWriter_->flush();
+    }
 
     FieldIndexer* getFieldIndexer(fieldid_t fid);
 
