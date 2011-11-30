@@ -124,6 +124,23 @@ public:
         getValue_(key, docs);
     }
 
+    bool getValue(const KeyType& key, std::vector<docid_t>& docs)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    
+        ValueType value;
+        bool b_db = getDbValue_(key, value);
+        CacheValueType cache_value;
+        bool b_cache = getCacheValue_(key, cache_value);
+        if(!b_db && !b_cache) return false;
+        if(b_cache)
+        {
+            applyCacheValue_(value, cache_value);
+        }
+        docs.swap(value);
+        return true;
+    }
+
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if( compare_(lowKey,highKey)>0 ) return 0;
