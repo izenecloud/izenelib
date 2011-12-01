@@ -48,7 +48,7 @@ template <class KeyType>
 class BTreeIndexer
 {
     typedef BTreeIndexer<KeyType> ThisType;
-    typedef izenelib::am::EWAHBoolArray<uint32_t> ValueType;
+    typedef std::vector<docid_t> ValueType;
 //     typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
 //     typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
@@ -124,6 +124,23 @@ public:
         getValue_(key, docs);
     }
 
+    bool getValue(const KeyType& key, std::vector<docid_t>& docs)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    
+        ValueType value;
+        bool b_db = getDbValue_(key, value);
+        CacheValueType cache_value;
+        bool b_cache = getCacheValue_(key, cache_value);
+        if(!b_db && !b_cache) return false;
+        if(b_cache)
+        {
+            applyCacheValue_(value, cache_value);
+        }
+        docs.swap(value);
+        return true;
+    }
+
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if( compare_(lowKey,highKey)>0 ) return 0;
@@ -137,10 +154,9 @@ public:
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,highKey)>0 ) break;
-                izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = kvp.second.bit_iterator();
-                while(it.next())
+                for(uint32_t i=0;i<kvp.second.size();i++)
                 {
-                    data[it.getCurr()] = kvp.first;
+                    data[kvp.second[i]] = kvp.first;
                     ++result;
                 }
             }
@@ -176,15 +192,12 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key1));
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,key2)>0 ) break;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
+            
         }
         else
         {
@@ -209,15 +222,11 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,key)>=0 ) break;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
@@ -244,15 +253,12 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,key)>0 ) break;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
+            
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
@@ -279,15 +285,12 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,key)==0 ) continue;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
+            
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
@@ -315,14 +318,11 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
+            
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
@@ -350,15 +350,11 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
@@ -386,15 +382,11 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
@@ -421,15 +413,12 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
             std::pair<KeyType, ValueType> kvp;
-            ValueType value;
             while(term_enum->next(kvp))
             {
                 if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
-                ValueType new_value;
-                value.rawlogicalor(kvp.second, new_value);
-                value.swap(new_value);
+                decompress_(kvp.second, docs);
             }
-            decompress_(value, docs);
+            
         }
         else {
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
@@ -538,7 +527,7 @@ private:
         
         
 //         ValueType value;
-        common_compressed_.reset();
+        common_value_.resize(0);
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator : "<<kvp.first<<","<<kvp.second<<std::endl;
 #endif
@@ -547,7 +536,7 @@ private:
 //         std::cout<<"initialzed buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
         timer.restart();
 #endif
-        getDbValue_(kvp.first, common_compressed_);
+        getDbValue_(kvp.first, common_value_);
 #ifdef CACHE_TIME_INFO
         t1 += timer.elapsed();
 //         std::cout<<"deserilized buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
@@ -560,7 +549,7 @@ private:
 #ifdef CACHE_TIME_INFO
         timer.restart();
 #endif
-        applyCacheValue_(common_compressed_, kvp.second);
+        applyCacheValue_(common_value_, kvp.second);
 #ifdef CACHE_TIME_INFO
         t2 += timer.elapsed();
 #endif
@@ -582,9 +571,9 @@ private:
 // #ifdef CACHE_TIME_INFO
 //         t3 += timer.elapsed();
 // #endif
-        if(common_compressed_.numberOfOnes()>0)
+        if(common_value_.size()>0)
         {
-            db_.update(kvp.first, common_compressed_);
+            db_.update(kvp.first, common_value_);
         }
         else
         {
@@ -654,83 +643,42 @@ private:
     
     static void decompress_(const ValueType& compressed, BitVector& value)
     {
-        izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
-        while(it.next())
+        for(uint32_t i=0;i<compressed.size();i++)
         {
-            value.set(it.getCurr() );
-        }
-//         std::vector<uint32_t> out;
-//         compressed.appendRowIDs(out);
-//         for(uint32_t i=0;i<out.size();i++)
-//         {
-//             value.set(out[i]);
-//         }
-    }
-    
-    static void compress_(const BitVector& value, ValueType& compressed)
-    {
-        value.compressed(compressed);
-    }
-    
-    
-    
-    static void decompress_(const ValueType& compressed, DynBitsetType& value)
-    {
-        if(value.size()< compressed.sizeInBits())
-        {
-            value.resize( compressed.sizeInBits() );
-        }
-        izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
-        while(it.next())
-        {
-            value.set(it.getCurr() );
+            value.set(compressed[i]);
         }
     }
-    
-//     static void compress_(const DynBitsetType& value, ValueType& compressed)
+
+//     static void compress_(const BitVector& value, ValueType& compressed)
 //     {
-//         typedef typename DynBitsetType::buffer_type buffer_type;
-//         const buffer_type& buffer = value.get_buffer();
-//         for(uint32_t i=0;i<buffer.size();i++)
+//         value.compressed(compressed);
+//     }
+    
+    
+    
+//     static void decompress_(const ValueType& compressed, DynBitsetType& value)
+//     {
+//         if(value.size()< compressed.sizeInBits())
 //         {
-//             compressed.add(buffer[i]);
+//             value.resize( compressed.sizeInBits() );
+//         }
+//         izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
+//         while(it.next())
+//         {
+//             value.set(it.getCurr() );
 //         }
 //     }
     
+    
 //     static void compress_(const DynBitsetType& value, ValueType& compressed)
 //     {
-//         std::size_t count = value.count();
-//         std::size_t size = value.size();
-//         double ratio = (double)count/size;
-//         if(ratio<=0.00001)
+//         std::size_t index = value.find_first();
+//         while(index!=DynBitsetType::npos)
 //         {
-//             std::size_t index = value.find_first();
-//             while(index!=DynBitsetType::npos)
-//             {
-//                 compressed.set(index);
-//                 index = value.find_next(index);
-//             }
-//         }
-//         else
-//         {
-//             typedef typename DynBitsetType::buffer_type buffer_type;
-//             const buffer_type& buffer = value.get_buffer();
-//             for(uint32_t i=0;i<buffer.size();i++)
-//             {
-//                 compressed.add(buffer[i]);
-//             }
+//             compressed.set(index);
+//             index = value.find_next(index);
 //         }
 //     }
-    
-    static void compress_(const DynBitsetType& value, ValueType& compressed)
-    {
-        std::size_t index = value.find_first();
-        while(index!=DynBitsetType::npos)
-        {
-            compressed.set(index);
-            index = value.find_next(index);
-        }
-    }
     
     inline static void reset_common_bv_(DynBitsetType& value)
     {
@@ -744,14 +692,14 @@ private:
     
     
     /// Be called in range search function.
-    static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
+    static void combineValue_(const CacheValueType& cacheValue, const ValueType& value, BitVector& result)
     {
 #ifdef BT_DEBUG
         std::cout<<"before decompress"<<std::endl;
         std::cout<<result<<std::endl;
         std::cout<<cbitmap<<std::endl;
 #endif
-        decompress_(cbitmap, result);
+        decompress_(value, result);
         
 #ifdef BT_DEBUG
         std::cout<<"after decompress"<<std::endl;
@@ -769,50 +717,19 @@ private:
     /// called only in cacheIterator_, one thread, common_bv_ is safe.
     void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
-#ifdef CACHE_TIME_INFO
-        static double t21=0.0;
-        static double t22=0.0;
-        static double t23=0.0;
-        izenelib::util::ClockTimer timer;
-#endif
-       
-        reset_common_bv_(common_bv_);
-        decompress_(value, common_bv_);
-#ifdef CACHE_TIME_INFO
-        t21 += timer.elapsed();
-        timer.restart();
-#endif
         
-        
-#ifdef CACHE_DEBUG
-        std::cout<<"applyCacheValue_ after decompress_"<<docs<<std::endl;
-#endif        
-        applyCacheValue_(common_bv_, cacheValue);
-#ifdef CACHE_TIME_INFO
-        t22 += timer.elapsed();
-        timer.restart();
-#endif
-        
-        
-#ifdef CACHE_DEBUG
-        std::cout<<"applyCacheValue_ after applyCacheValue_ "<<docs<<std::endl;
-#endif
-        value.reset();
-        compress_(common_bv_, value);
-#ifdef CACHE_TIME_INFO
-        t23 += timer.elapsed();
-        timer.restart();
-#endif
-        
-#ifdef CACHE_DEBUG
-        std::cout<<"applyCacheValue_ after compress_"<<value<<std::endl;
-#endif
-#ifdef CACHE_TIME_INFO
-        if(cache_num_%10000 == 0)
+        for(std::size_t i=0;i<cacheValue.item.size();i++)
         {
-            std::cout<<"applyCacheValue_ time cost : "<<t21<<","<<t22<<","<<t23<<std::endl;
+            if(cacheValue.flag.test(i))
+            {
+                value.push_back(cacheValue.item[i]);
+            }
+            else
+            {
+                VectorRemove_(value, cacheValue.item[i]);
+            }
         }
-#endif
+        
     }
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
@@ -830,19 +747,25 @@ private:
         }
     }
     
-    static void applyCacheValue_(DynBitsetType& value, const CacheValueType& cacheValue)
+//     static void applyCacheValue_(DynBitsetType& value, const CacheValueType& cacheValue)
+//     {
+//         docid_t max = 0;
+//         for(std::size_t i=0;i<cacheValue.item.size();i++)
+//         {
+//             if (cacheValue.item[i]>max) max = cacheValue.item[i];
+//         }
+//         if(max>= value.size()) value.resize(max+1);
+//         
+//         for(std::size_t i=0;i<cacheValue.item.size();i++)
+//         {
+//             value.set(cacheValue.item[i], cacheValue.flag.test(i));
+//         }
+//     }
+    
+    template <typename T>
+    static void VectorRemove_(std::vector<T>& vec, const T& value)
     {
-        docid_t max = 0;
-        for(std::size_t i=0;i<cacheValue.item.size();i++)
-        {
-            if (cacheValue.item[i]>max) max = cacheValue.item[i];
-        }
-        if(max>= value.size()) value.resize(max+1);
-        
-        for(std::size_t i=0;i<cacheValue.item.size();i++)
-        {
-            value.set(cacheValue.item[i], cacheValue.flag.test(i));
-        }
+        vec.erase( std::remove(vec.begin(), vec.end(), value),vec.end());
     }
     
 private:
@@ -854,7 +777,7 @@ private:
     /// used only in cacheIterator_, one thread,  safe.
 //     BitVector common_bv_;
     DynBitsetType common_bv_;
-    ValueType common_compressed_;
+    ValueType common_value_;
     ///
     std::size_t cache_num_;
     boost::shared_mutex mutex_;

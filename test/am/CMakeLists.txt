@@ -128,9 +128,8 @@ ADD_EXECUTABLE(t_matrix_cache
 )
 
 TARGET_LINK_LIBRARIES(t_matrix_cache
-  am
-  izene_util
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
 )
 

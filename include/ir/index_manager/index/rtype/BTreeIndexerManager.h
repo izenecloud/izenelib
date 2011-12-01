@@ -20,8 +20,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
 {
-   
-
 
 /**
  * BTreeIndexer
@@ -30,8 +28,6 @@ namespace indexmanager
 
 class BTreeIndexerManager
 {
-    
-    
 public:
     BTreeIndexerManager(const std::string& dir, Directory* pDirectory);
 
@@ -191,6 +187,17 @@ class mget_visitor : public boost::static_visitor<void>
 public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    {
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        pindexer->getValue(v, docs);
+    }
+};
+
+class mget2_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);

@@ -49,12 +49,6 @@ public:
     void addDocument(IndexerDocument& doc);
 
     /**
-     * update IndexerDocument
-     * @param oldDoc the old document
-     * @param doc the new document
-     */
-    void updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
-    /**
      * determine if the memory cache for indexing is full
      * @return true if cache is full otherwise false.
      */
@@ -123,6 +117,7 @@ private:
      */
     void reset();
 
+    void flushDocLen();
 private:
     BarrelInfo* pBarrelInfo_;
 
@@ -143,6 +138,8 @@ private:
     BitVector* pDocFilter_;
 
     int numFieldIndexers_;
+
+    bool isLastIndexModeRealTime_;
 
     friend class InMemoryIndexBarrelReader;
     friend class IndexWriter;

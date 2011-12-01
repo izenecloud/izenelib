@@ -63,7 +63,9 @@ public:
     //update R-type document
     int updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
     /// flush in-memory index to disk
-    void flush();
+    /// force = true means to flush all indices(inverted index, btreeindex,doclength)
+    /// force = false means to only flush (btreeindex,doclength)
+    void flush(bool force = true);
     /// merge all index barrels into a single barrel
     void optimizeIndex();
     ///check whether the integrity of indices, always used when starts up

@@ -63,7 +63,6 @@ void BTreeIndexerManager::flush()
     
 }
 
-
 bool BTreeIndexerManager::seek(const std::string& property_name, const PropertyType& key)
 {
     bool find = false;
@@ -85,14 +84,16 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
 
 void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
 {
-    BitVector docmap;
-    getValue(property_name, key, docmap);
-    for(std::size_t docid=1;docid<docmap.size();docid++)
+    izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
+    if (pFilter_)
     {
-        if(docmap.test(docid))
+        std::vector<docid_t> tmpIdList;
+        for(size_t i = 0; i < docList.size(); i++)
         {
-            docList.push_back(docid);
+            if(!pFilter_->test(docList[i]))
+                tmpIdList.push_back(docList[i]);
         }
+        docList.swap(tmpIdList);
     }
 }
 
