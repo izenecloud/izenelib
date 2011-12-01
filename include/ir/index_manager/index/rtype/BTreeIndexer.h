@@ -55,9 +55,6 @@ class BTreeIndexer
     typedef InMemoryBTreeCache<KeyType, docid_t> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
     
-    typedef izenelib::am::AMIterator<DbType> ForwardIterator;
-    typedef izenelib::am::AMReverseIterator<DbType> ReverseIterator;
-    
     typedef BTTermEnum<KeyType, CacheValueType> MemEnumType;
     typedef AMTermEnum<DbType> AMEnumType;
     typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
@@ -65,6 +62,8 @@ class BTreeIndexer
     typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
 public:
+    typedef izenelib::am::AMIterator<DbType> iterator;
+
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
     :path_(path), property_name_(property_name)
     {
@@ -81,11 +80,22 @@ public:
         return db_.open(path_);
 //         return db_.open(path_, DbType::WRITER | DbType::CREAT | DbType::NOLCK);
     }
-    
+
     void close()
     {
         db_.close();
     }
+
+    iterator begin()
+    {
+        return iterator(db_);
+    }
+
+    iterator end()
+    {
+        return iterator();
+    }
+
     
     void add(const KeyType& key, docid_t docid)
     {
