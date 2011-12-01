@@ -161,12 +161,15 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(lowKey));
             std::pair<KeyType, ValueType> kvp;
+            docid_t docid = 0;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,highKey)>0 ) break;
                 for(uint32_t i=0;i<kvp.second.size();i++)
                 {
-                    data[kvp.second[i]] = kvp.first;
+                    docid = kvp.second[i];
+                    if (docid >= maxDoc) break;
+                    data[docid] = kvp.first;
                     ++result;
                 }
             }
