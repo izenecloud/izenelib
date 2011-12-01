@@ -420,13 +420,13 @@ private:
     void grow(size_t bitNum)
     {
         const size_t newBytesNum = getBytesNum(bitNum);
-        assert(newBytesNum > maxBytesNum_);
+       // assert(newBytesNum > maxBytesNum_);
         size_t newMax = maxBytesNum_;
         while(newMax < newBytesNum)
             newMax <<= 1;
 
-        unsigned char* newBits = new unsigned char[maxBytesNum_];
-        memset(newBits, 0, maxBytesNum_);
+        unsigned char* newBits = new unsigned char[newMax];
+        memset(newBits, 0, newMax);
         memcpy(newBits, bits_, getBytesNum(size_));
         delete[] bits_;
         bits_ = newBits;
