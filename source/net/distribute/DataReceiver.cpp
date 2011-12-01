@@ -157,6 +157,8 @@ void DataReceiver::doReceive(SocketIO* sock)
         {
             receiveData(sock, fileMsg, ofs,  buf, bufSize_);
         }
+
+        ofs.close();
     }
 
     delete[] buf;
@@ -218,40 +220,43 @@ bool DataReceiver::createFile(SendFileReqMsg& fileMsg, std::ofstream& ofs)
 bool DataReceiver::receiveData(SocketIO* sock, SendFileReqMsg& fileMsg, std::ofstream& ofs, char* buf, buf_size_t bufSize)
 {
     struct timeval timeout = {180,0};
-
     size_t fileSize = fileMsg.getFileSize();
 
-    // receive file data
-    size_t nrecv, totalRecv=0;
     //LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
     //         << ", receiving data (size: "<<fileSize<<")";
-    int progress, progress_step = 0;
-    while ((nrecv = sock->syncRecv(buf, bufSize_, timeout)) > 0)
+
+    /// Receive file data
+    size_t nrecv, totalRecv=0;
+    if (fileSize > 0) // fileSize = 0, is acceptable.
     {
-        totalRecv += nrecv;
-        //std::cout <<sock->getSockFd()<< "[DataReceiver] received "<<nrecv/*<<", \t["<<buf<<"]"*/
-        //          <<", total "<<totalRecv<<std::endl;
-        ofs.write(buf, nrecv);
-
-        if (((progress_step++) % 100) == 0)
+        int progress, progress_step = 0;
+        while ((nrecv = sock->syncRecv(buf, bufSize_, timeout)) > 0)
         {
-            progress = totalRecv*100/fileSize;
-            std::cout<<"\r progress "<<progress<<"%"<<std::flush;
-        }
+            totalRecv += nrecv;
+            //std::cout <<sock->getSockFd()<< "[DataReceiver] received "<<nrecv/*<<", \t["<<buf<<"]"*/
+            //          <<", total "<<totalRecv<<std::endl;
+            ofs.write(buf, nrecv);
 
-        if (totalRecv >= fileSize)
-        {
-            std::cout<<"\r progress 100%"<<std::flush;
-            std::cout<<std::endl;
-            break;
+            if (((progress_step++) % 100) == 0)
+            {
+                progress = totalRecv*100/fileSize;
+                std::cout<<"\r progress "<<progress<<"%"<<std::flush;
+            }
+
+            if (totalRecv >= fileSize)
+                break;
         }
     }
-    ofs.close();
+    if (totalRecv >= fileSize)
+    {
+        std::cout<<"\r progress 100%"<<std::flush;
+        std::cout<<std::endl;
+    }
 
     LOG(INFO)<<"Thrd "<<boost::this_thread::get_id()<<" Fd "<<sock->getSockFd()
              <<", Received data size "<<totalRecv;
 
-    // response on receive finished
+    /// Send response after receive finished
     std::string status = "success";
     std::string errorInfo = "ok";
     if (totalRecv < fileSize)

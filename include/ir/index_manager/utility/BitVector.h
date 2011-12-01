@@ -2,7 +2,7 @@
 * @file        BitVector.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
-* @brief 
+* @brief
 */
 #ifndef BITVECTOR_H
 #define BITVECTOR_H
@@ -53,7 +53,7 @@ public:
     }
 
 public:
-    void set(size_t bit) 
+    void set(size_t bit)
     {
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
@@ -64,7 +64,7 @@ public:
         bits_[byte] |= 1 << (bit & 7);
     }
 
-    void clear(size_t bit) 
+    void clear(size_t bit)
     {
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
@@ -136,9 +136,9 @@ public:
             ConstRunningLengthWord<uint32_t> rlw(buffer[pointer]);
             if (rlw.getRunningBit())
             {
-                for (uint x = 0; x<  static_cast<uint>(rlw.getRunningLength()*32);++x)
+                for (uint x = 0; x < static_cast<uint>(rlw.getRunningLength() * 32); ++x)
                 {
-                set(currentoffset + x);
+                    set(currentoffset + x);
                 }
             }
             currentoffset+=rlw.getRunningLength()*32;
@@ -166,7 +166,7 @@ public:
 
         return false;
     }
-    
+
     std::size_t count() const
     {
         std::size_t count = 0;
@@ -183,7 +183,7 @@ public:
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] = ~bits_[i];
     }
-    
+
     friend std::ostream& operator<<(std::ostream& output, const BitVector& bv) {
         output<<"["<<bv.size()<<"] ";
         for(std::size_t i=0;i<bv.size();i++)
@@ -205,7 +205,7 @@ public:
             bits_[i] &= b.bits_[i];
         return *this;
     }
-    
+
     bool operator==(const BitVector& b)
     {
         if(size()!=b.size())
@@ -218,7 +218,7 @@ public:
         }
         return true;
     }
-    
+
     bool equal_ignore_size(const BitVector& b) const
     {
         std::size_t c_size = std::min(size(), b.size());
@@ -230,14 +230,14 @@ public:
         {
             for(std::size_t i=c_size;i<size();i++)
             {
-                if(test(i)) return false;//should be 0 
+                if(test(i)) return false;//should be 0
             }
         }
         if(b.size()>c_size)
         {
             for(std::size_t i=c_size;i<b.size();i++)
             {
-                if(b.test(i)) return false;//should be 0 
+                if(b.test(i)) return false;//should be 0
             }
         }
         return true;

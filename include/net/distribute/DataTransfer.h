@@ -4,6 +4,8 @@
 #include "SocketIO.h"
 #include "Msg.h"
 
+#include <fstream>
+
 namespace net{
 namespace distribute {
 
@@ -54,14 +56,11 @@ private:
      */
     int syncSendFile(const std::string& fileName, const std::string& curDir);
 
-    /**
-     * Synchronously send data
-     * @param buf
-     * @param bufLen
-     * @return sent length
-     */
-    //int syncSend(const char* buf, buf_size_t bufLen);
+    size_t syncSendFileData_(std::ifstream& ifs, size_t fileSize);
 
+    /**
+     * utility
+     */
     std::string processPath(const std::string& path);
 
 private:
