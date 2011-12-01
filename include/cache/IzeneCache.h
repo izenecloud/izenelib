@@ -90,7 +90,15 @@ public:
         }
         else
         {
-            cache_.firstInsert_(key, val); //Insert the corresponding CacheInfo into KeyInfoMap_.
+            if ( !hash_.full() )
+            {
+                cache_.firstInsert_(key, val);
+            }
+            else
+            {
+                cache_.evict_();
+                cache_.firstInsert_(key, val);
+            }
         }
         return true;
     }
