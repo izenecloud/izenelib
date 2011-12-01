@@ -139,3 +139,11 @@ TARGET_LINK_LIBRARIES(t_class_register
     ${Boost_LIBRARIES}
   )
 
+ADD_EXECUTABLE(scd_tool
+  scd_tool.cpp
+  )
+
+TARGET_LINK_LIBRARIES(scd_tool
+    ${Boost_LIBRARIES}
+    izene_util
+  )
