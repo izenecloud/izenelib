@@ -190,19 +190,6 @@ private:
 };
 
 /// all modifer visitor below    
-class miterate_visitor : public boost::static_visitor<void>
-{
-public:
-    template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, void* & btreeIndexer)
-    {
-        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
-        btreeIndexer = pindexer;
-    }
-};
-
-
-/// all modifer visitor below    
 class madd_visitor : public boost::static_visitor<void>
 {
 public:
