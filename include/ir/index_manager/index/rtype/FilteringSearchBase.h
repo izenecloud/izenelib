@@ -7,7 +7,6 @@
 #include <am/luxio/BTree.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
-#include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/store/Directory.h>
 
 #include <boost/variant.hpp>

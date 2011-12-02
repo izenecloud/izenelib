@@ -10,7 +10,7 @@
 
 #include "RangeTokenIterator.h"
 
-namespace izenelib {
+namespace izenelib {namespace util{
 
 template<typename TokenizerFunc, typename Iterator>
 class RangeTokenizer
@@ -98,6 +98,6 @@ private:
     TokenizerFunc func_;
 };
 
-} // namespace izenelib
+}} // namespace izenelib::util
 
 #endif // STRING_RANGE_TOKENIZER_H
