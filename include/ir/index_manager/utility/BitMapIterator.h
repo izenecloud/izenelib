@@ -22,10 +22,10 @@ class BitMapIterator : public TermDocFreqs
 {
 public:
 
-    BitMapIterator(
-        const izenelib::am::EWAHBoolArrayBitIterator<uint32_t>& bitmapIter)
+    BitMapIterator(const boost::shared_ptr<EWAHBoolArray<uint32_t> >& pDocIdSet)
             : TermDocFreqs()
-            , bitmapIter_(bitmapIter)
+            , pDocIdSet_(pDocIdSet)
+            , bitmapIter_(pDocIdSet->bit_iterator())
     {
     }
 
@@ -81,6 +81,7 @@ public:
     }
 
 private:
+    boost::shared_ptr<EWAHBoolArray<uint32_t> > pDocIdSet_;
     izenelib::am::EWAHBoolArrayBitIterator<uint32_t> bitmapIter_;
 };
 

@@ -1,6 +1,5 @@
 #include <net/distribute/DataTransfer.h>
 
-#include <fstream>
 #include <string.h>
 #include <signal.h>
 #include <boost/filesystem.hpp>
@@ -143,7 +142,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
     struct timeval timeout = {180,0};
 
-    /// send head
+    /// Send head info
     SendFileReqMsg msg;
     bfs::path path(fileName);
     msg.setFileType(SendFileReqMsg::FTYPE_SCD);
@@ -161,7 +160,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         return -1;
     }
 
-    /// check if ready to receive
+    /// Check Receiver status: ready to receive?
     int nrecv;
     ResponseMsg resMsg;
     nrecv = socketIO_.syncRecv(buf_, bufSize_, timeout);
@@ -174,9 +173,48 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     }
     LOG(INFO)<<"Ready to send file data";
 
-    /// send data
-    std::streamsize readLen, sendLen, totalLen = 0;
+    /// Send file data
+    size_t sentDataSize = syncSendFileData_(ifs, fileSize);
+    if (sentDataSize < fileSize)
+    {
+        LOG(ERROR)<<"Sent incompleted file data, sent"
+                  <<sentDataSize<<", file size"<<fileSize;
+        return -1;
+    }
+
+    /// Check Receiver status: receive completed?
+    nrecv = socketIO_.syncRecv(buf_, bufSize_, timeout);
+    if (nrecv > 0)
+    {
+        resMsg.loadMsg(std::string(buf_, nrecv));
+        //LOG(INFO)<<"receiver status? "<<std::string(buf_, nrecv);
+        // error info?
+        size_t nrecvedDataSize = resMsg.getReceivedSize();
+
+        if (nrecvedDataSize < sentDataSize)
+        {
+            // xxx, retry?
+            LOG(ERROR)<<"Receiver received incompleted data, received"
+                      <<nrecvedDataSize<<", total"<<sentDataSize;
+            return -1;
+        }
+
+        // transfer succeeded
+        LOG(INFO)<<"Transfer succeed!";
+        return 0;
+    }
+    else
+    {
+        LOG(ERROR)<<"Failed to get Receiver status";
+        return -1;
+    }
+}
+
+size_t DataTransfer::syncSendFileData_(std::ifstream& ifs, size_t fileSize)
+{
+    std::size_t readLen, sendLen, totalLen = 0;
     int progress, progress_step = 0;
+
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
@@ -207,39 +245,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     }
     LOG(INFO)<<"Sent data size "<<totalLen;
 
-    /// check receive status
-    nrecv = socketIO_.syncRecv(buf_, bufSize_, timeout);
-    if (nrecv > 0)
-    {
-        resMsg.loadMsg(std::string(buf_, nrecv));
-        //LOG(INFO)<<"receiver status? "<<std::string(buf_, nrecv);
-        // error info?
-        unsigned int nrecved = resMsg.getReceivedSize();
-
-        if (nrecved < totalLen)
-        {
-            // xxx, retry?
-            LOG(ERROR)<<"Receiver received incompleted data, received"
-                      <<nrecved<<", total"<<totalLen;
-            return -1;
-        }
-
-        // transfer succeeded
-        LOG(INFO)<<"Transfer succeed!";
-        return 0;
-    }
-    else
-    {
-        LOG(ERROR)<<"Failed to get Receiver status";
-        return -1;
-    }
+    return totalLen;
 }
-
-//int
-//DataTransfer::syncSend(const char* buf, buf_size_t bufLen)
-//{
-//    return socketIO_.syncSend(buf, bufLen);
-//}
 
 std::string DataTransfer::processPath(const std::string& path)
 {

@@ -50,6 +50,8 @@ public:
     void optimizeIndex();
     /// flush index
     void flush();
+    /// flush doclen writer
+    void flushDocLen();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
 

@@ -55,9 +55,6 @@ class BTreeIndexer
     typedef InMemoryBTreeCache<KeyType, docid_t> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
     
-    typedef izenelib::am::AMIterator<DbType> ForwardIterator;
-    typedef izenelib::am::AMReverseIterator<DbType> ReverseIterator;
-    
     typedef BTTermEnum<KeyType, CacheValueType> MemEnumType;
     typedef AMTermEnum<DbType> AMEnumType;
     typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
@@ -65,6 +62,8 @@ class BTreeIndexer
     typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
 public:
+    typedef izenelib::am::AMIterator<DbType> iterator;
+
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
     :path_(path), property_name_(property_name)
     {
@@ -81,11 +80,22 @@ public:
         return db_.open(path_);
 //         return db_.open(path_, DbType::WRITER | DbType::CREAT | DbType::NOLCK);
     }
-    
+
     void close()
     {
         db_.close();
     }
+
+    iterator begin()
+    {
+        return iterator(db_);
+    }
+
+    iterator end()
+    {
+        return iterator();
+    }
+
     
     void add(const KeyType& key, docid_t docid)
     {
@@ -124,6 +134,23 @@ public:
         getValue_(key, docs);
     }
 
+    bool getValue(const KeyType& key, std::vector<docid_t>& docs)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    
+        ValueType value;
+        bool b_db = getDbValue_(key, value);
+        CacheValueType cache_value;
+        bool b_cache = getCacheValue_(key, cache_value);
+        if(!b_db && !b_cache) return false;
+        if(b_cache)
+        {
+            applyCacheValue_(value, cache_value);
+        }
+        docs.swap(value);
+        return true;
+    }
+
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if( compare_(lowKey,highKey)>0 ) return 0;
@@ -134,12 +161,15 @@ public:
         {
             std::auto_ptr<AMEnumType> term_enum(getAMEnum_(lowKey));
             std::pair<KeyType, ValueType> kvp;
+            docid_t docid = 0;
             while(term_enum->next(kvp))
             {
                 if( compare_(kvp.first,highKey)>0 ) break;
                 for(uint32_t i=0;i<kvp.second.size();i++)
                 {
-                    data[kvp.second[i]] = kvp.first;
+                    docid = kvp.second[i];
+                    if (docid >= maxDoc) break;
+                    data[docid] = kvp.first;
                     ++result;
                 }
             }

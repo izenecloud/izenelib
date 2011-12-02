@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
     char optchar;
     bool help = false;
-    while ((optchar = getopt(argc, argv, "h:p:f:d:r")) != -1)
+    while ((optchar = getopt(argc, argv, "h:p:s:d:r")) != -1)
     {
         switch (optchar) {
             case 'h':
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
             case 'p':
                 port = atoi(optarg);
                 break;
-            case 'f':
+            case 's':
                 filename = optarg;
                 break;
             case 'd':
@@ -45,9 +45,14 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (filename.empty() || help)
+    if (help || filename.empty())
     {
-        std::cout<<"Usage: "<<argv[0]<<" [-h <host> -p <port>] -f <filename> [-d <dirname> -r] "<<std::endl;
+        std::cout<<"Usage: "<<argv[0]<<" -s <src:file-or-dir> [-h <host> -p <port> -d <dest:dir> -r] "<<std::endl;
+        std::cout<<"    -h  destination host, default as locahost"<<std::endl;
+        std::cout<<"    -p  destination port, default as 18121"<<std::endl;
+        std::cout<<"    -s  source to be sent: file or directory path name"<<std::endl;
+        std::cout<<"    -d  destination directory to store source, default as source dir"<<std::endl;
+        std::cout<<"    -r  sent dir recursively if use this option"<<std::endl;
         return 0;
     }
 

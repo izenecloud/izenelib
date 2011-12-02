@@ -295,20 +295,26 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
     return 1;
 }
 
-void Indexer::flush()
+void Indexer::flush(bool force)
 {
     //flush btree firstly.
     if(pBTreeIndexer_) pBTreeIndexer_->flush();
-    try{
-        pIndexWriter_->flush();
-    }catch(EmptyBarrelException& e)
+    if(force)
     {
-        LOG(WARNING) << "Empty barrels "<<e.what() ;
+        try{
+            pIndexWriter_->flush();
+        }catch(EmptyBarrelException& e)
+        {
+            LOG(WARNING) << "Empty barrels "<<e.what() ;
+        }
+        setDirty();
     }
-    
+    else
+    {
+        pIndexWriter_->flushDocLen();
+    }
     pIndexReader_->flush();
 
-    setDirty();
 }
 
 void Indexer::optimizeIndex()
@@ -543,14 +549,12 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
 bool Indexer::seekTermFromBTreeIndex(collectionid_t colID, string property, PropertyType value)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     return pBTreeIndexer_->seek(property, value);
 }
 
 bool Indexer::getDocsByNumericValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getNoneEmptyList(property, value, docs);
     return true;
 }
@@ -558,7 +562,6 @@ bool Indexer::getDocsByNumericValue(collectionid_t colID, std::string property, 
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValue(property, value, docs);
     return true;
 }
@@ -566,7 +569,6 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, Prop
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValue(property, value, docList);
     return true;
 }
@@ -574,7 +576,6 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property,
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueBetween(property, value1, value2, docs);
     return true;
 }
@@ -582,7 +583,6 @@ bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property,
 bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLess(property, value, docList);
     return true;
 }
@@ -590,7 +590,6 @@ bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string proper
 bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLessEqual(property, value, docList);
     return true;
 }
@@ -598,7 +597,6 @@ bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string
 bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreat(property, value, docList);
     return true;
 }
@@ -606,7 +604,6 @@ bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string pro
 bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreatEqual(property, value, docList);
     return true;
 }
@@ -614,7 +611,6 @@ bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, str
 bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueIn(property, values, docList);
     return true;
 }
@@ -622,7 +618,6 @@ bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, ve
 bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotIn(property, values, docList);
     return true;
 }
@@ -630,7 +625,6 @@ bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property,
 bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotEqual(property, value, docList);
     return true;
 }
@@ -638,7 +632,6 @@ bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string proper
 bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueStart(property, value, docList);
     return true;
 }
@@ -646,7 +639,6 @@ bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property,
 bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueEnd(property, value, docList);
     return true;
 }
@@ -654,7 +646,6 @@ bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, P
 bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-//     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueSubString(property, value, docList);
     return true;
 }

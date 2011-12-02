@@ -10,6 +10,7 @@
 #include <boost/mpl/not.hpp>
 #include <boost/bind.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <functional>
 
 #include <algorithm>
@@ -20,8 +21,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
 {
-   
-
 
 /**
  * BTreeIndexer
@@ -30,13 +29,12 @@ namespace indexmanager
 
 class BTreeIndexerManager
 {
-    
-    
 public:
     BTreeIndexerManager(const std::string& dir, Directory* pDirectory);
 
     ~BTreeIndexerManager();
 public:
+    typedef std::vector<docid_t> ValueType;
     
     template<class T>
     BTreeIndexer<T>* getIndexer(const std::string& property_name)
@@ -68,7 +66,6 @@ public:
     void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
     void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
-    
 
     void getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs);
 
@@ -113,6 +110,70 @@ public:
         pFilter_->set(docId);
     }
 
+    ///This Iterator is a template class, which requires the client to specify the type
+    ///Another kinds of design is to use boost::variant to contain all kinds of BTreeIteratorType
+    ///And then define a series of visitors, assign_visitor, including increment_visitor, dereference_visitor
+    ///It's verbose, so we only uses a template based Iterator definition
+    ///Additionally, this Iterator is a based on the persistent container of BTreeIndexer,
+    ///So it should be used after flush operation has been called.
+    template<typename KeyType>
+    class Iterator 
+        : public boost::iterator_facade<Iterator<KeyType>, std::pair<KeyType,ValueType> const, boost::forward_traversal_tag >
+    {
+    typedef typename BTreeIndexer<KeyType>::iterator BTreeIteratorType;
+    public:
+        Iterator()
+            :indexer_(NULL)
+            ,iterEnd_()
+        {}
+
+        explicit Iterator(const BTreeIndexerManager& indexer,
+                                        const std::string& property_name)
+            :indexer_(&indexer)
+            ,iterEnd_()
+        {
+            iter_ = const_cast<BTreeIndexerManager&>(indexer).getIndexer<KeyType>(property_name)->begin();
+            //increment();
+        }
+
+    private:
+        friend class boost::iterator_core_access;
+
+        void increment() 
+        { 
+            if(indexer_)
+            {
+                ++iter_;
+                if(iter_ == iterEnd_)
+                    indexer_ = NULL;
+            }
+        }
+
+        const std::pair<KeyType,ValueType> & dereference() const {return *iter_; }
+
+        bool equal(const Iterator<KeyType>& rhs) const
+        {
+            return (this == &rhs) || (indexer_ == 0 && rhs.indexer_ == 0)
+                        || (indexer_ == rhs.indexer_ && iter_ == rhs.iter_);
+        }
+
+        const BTreeIndexerManager* indexer_;
+        BTreeIteratorType iter_;
+        BTreeIteratorType iterEnd_;
+    };
+
+    template<typename KeyType>
+    Iterator<KeyType> begin(const std::string& property_name)
+    {
+        return Iterator<KeyType>(*this, property_name);
+    }
+
+    template<typename KeyType>
+    Iterator<KeyType> end()
+    {
+        return Iterator<KeyType>();
+    }
+
 private:
     
     void doFilter_(BitVector& docs);
@@ -127,7 +188,6 @@ private:
     boost::shared_ptr<BitVector> pFilter_;
 
 };
-
 
 /// all modifer visitor below    
 class madd_visitor : public boost::static_visitor<void>
@@ -213,6 +273,17 @@ class mget_visitor : public boost::static_visitor<void>
 public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    {
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        pindexer->getValue(v, docs);
+    }
+};
+
+class mget2_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
