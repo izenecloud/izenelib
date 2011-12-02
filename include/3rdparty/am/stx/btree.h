@@ -180,7 +180,7 @@ public:
 
     /// Typedef of our own type
     typedef btree<key_type, data_type, value_type, key_compare,
-		  traits, allow_duplicates, allocator_type> btree_self;
+                  traits, allow_duplicates, allocator_type> btree_self;
 
     /// Size type used to count keys
     typedef size_t                              size_type;
@@ -249,7 +249,7 @@ private:
     /// data items.
     struct inner_node : public node
     {
-	/// Define an related allocator for the inner_node structs.
+        /// Define an related allocator for the inner_node structs.
         typedef typename _Alloc::template rebind<inner_node>::other alloc_type;
 
         /// Keys of children or data pointers
@@ -288,7 +288,7 @@ private:
     /// key array is traversed very often compared to accessing the data items.
     struct leaf_node : public node
     {
-	/// Define an related allocator for the leaf_node structs.
+        /// Define an related allocator for the leaf_node structs.
         typedef typename _Alloc::template rebind<leaf_node>::other alloc_type;
 
         /// Double linked list pointers to traverse the leaves
@@ -425,9 +425,9 @@ public:
         /// Also friendly to the const_reverse_iterator, so it may access the two data items directly.
         friend class const_reverse_iterator;
 
-	/// Also friendly to the base btree class, because erase_iter() needs
-	/// to read the currnode and currslot values directly.
-	friend class btree<key_type, data_type, value_type, key_compare, traits, allow_duplicates>;
+        /// Also friendly to the base btree class, because erase_iter() needs
+        /// to read the currnode and currslot values directly.
+        friend class btree<key_type, data_type, value_type, key_compare, traits, allow_duplicates>;
 
         /// Evil! A temporary value_type to STL-correctly deliver operator* and
         /// operator->
@@ -2754,10 +2754,10 @@ private:
      * and the same underflow cases are handled as in erase_one_descend.
      */
     result_t erase_iter_descend(const iterator& iter,
-				node *curr,
-				node *left, node *right,
-				inner_node *leftparent, inner_node *rightparent,
-				inner_node *parent, unsigned int parentslot)
+                                node *curr,
+                                node *left, node *right,
+                                inner_node *leftparent, inner_node *rightparent,
+                                inner_node *parent, unsigned int parentslot)
     {
         if (curr->isleafnode())
         {
@@ -2765,12 +2765,12 @@ private:
             leaf_node *leftleaf = static_cast<leaf_node*>(left);
             leaf_node *rightleaf = static_cast<leaf_node*>(right);
 
-	    // if this is not the correct leaf, get next step in recursive
-	    // search
-	    if (leaf != iter.currnode)
-	    {
-		return btree_not_found;
-	    }
+            // if this is not the correct leaf, get next step in recursive
+            // search
+            if (leaf != iter.currnode)
+            {
+                return btree_not_found;
+            }
 
             if (iter.currslot >= leaf->slotuse)
             {
@@ -2779,7 +2779,7 @@ private:
                 return btree_not_found;
             }
 
-	    int slot = iter.currslot;
+            int slot = iter.currslot;
 
             BTREE_PRINT("Found iterator in leaf " << curr << " at slot " << slot << std::endl);
 
@@ -2890,58 +2890,58 @@ private:
             inner_node *leftinner = static_cast<inner_node*>(left);
             inner_node *rightinner = static_cast<inner_node*>(right);
 
-	    // find first slot below which the searched iterator might be
-	    // located.
+            // find first slot below which the searched iterator might be
+            // located.
 
-	    result_t result;
+            result_t result;
             int slot = find_lower(inner, iter.key());
 
-	    while (slot <= inner->slotuse)
-	    {
-		node *myleft, *myright;
-		inner_node *myleftparent, *myrightparent;
+            while (slot <= inner->slotuse)
+            {
+                node *myleft, *myright;
+                inner_node *myleftparent, *myrightparent;
 
-		if (slot == 0) {
-		    myleft = (left == NULL) ? NULL : (static_cast<inner_node*>(left))->childid[left->slotuse - 1];
-		    myleftparent = leftparent;
-		}
-		else {
-		    myleft = inner->childid[slot - 1];
-		    myleftparent = inner;
-		}
+                if (slot == 0) {
+                    myleft = (left == NULL) ? NULL : (static_cast<inner_node*>(left))->childid[left->slotuse - 1];
+                    myleftparent = leftparent;
+                }
+                else {
+                    myleft = inner->childid[slot - 1];
+                    myleftparent = inner;
+                }
 
-		if (slot == inner->slotuse) {
-		    myright = (right == NULL) ? NULL : (static_cast<inner_node*>(right))->childid[0];
-		    myrightparent = rightparent;
-		}
-		else {
-		    myright = inner->childid[slot + 1];
-		    myrightparent = inner;
-		}
+                if (slot == inner->slotuse) {
+                    myright = (right == NULL) ? NULL : (static_cast<inner_node*>(right))->childid[0];
+                    myrightparent = rightparent;
+                }
+                else {
+                    myright = inner->childid[slot + 1];
+                    myrightparent = inner;
+                }
 
-		BTREE_PRINT("erase_iter_descend into " << inner->childid[slot] << std::endl);
+                BTREE_PRINT("erase_iter_descend into " << inner->childid[slot] << std::endl);
 
-		result = erase_iter_descend(iter,
-					    inner->childid[slot],
-					    myleft, myright,
-					    myleftparent, myrightparent,
-					    inner, slot);
+                result = erase_iter_descend(iter,
+                                            inner->childid[slot],
+                                            myleft, myright,
+                                            myleftparent, myrightparent,
+                                            inner, slot);
 
-		if (!result.has(btree_not_found))
-		    break;
+                if (!result.has(btree_not_found))
+                    break;
 
-		// continue recursive search for leaf on next slot
+                // continue recursive search for leaf on next slot
 
-		if (slot < inner->slotuse && key_less(inner->slotkey[slot],iter.key()))
-		    return btree_not_found;
+                if (slot < inner->slotuse && key_less(inner->slotkey[slot],iter.key()))
+                    return btree_not_found;
 
-		++slot;
-	    }
+                ++slot;
+            }
 
-	    if (slot > inner->slotuse)
-		return btree_not_found;
+            if (slot > inner->slotuse)
+                return btree_not_found;
 
-	    result_t myres = btree_ok;
+            result_t myres = btree_ok;
 
             if (result.has(btree_update_lastkey))
             {
@@ -3607,9 +3607,9 @@ private:
         inline void fill()
         {
             // don't want to include string.h just for this signature
-	    signature[0] = 's'; signature[1] = 't'; signature[2] = 'x'; signature[3] = '-';
-	    signature[4] = 'b'; signature[5] = 't'; signature[6] = 'r'; signature[7] = 'e';
-	    signature[8] = 'e'; signature[9] = 0; signature[10] = 0; signature[11] = 0;
+            signature[0] = 's'; signature[1] = 't'; signature[2] = 'x'; signature[3] = '-';
+            signature[4] = 'b'; signature[5] = 't'; signature[6] = 'r'; signature[7] = 'e';
+            signature[8] = 'e'; signature[9] = 0; signature[10] = 0; signature[11] = 0;
 
             version = 0;
             key_type_size = sizeof(typename btree_self::key_type);
@@ -3623,9 +3623,9 @@ private:
         inline bool same(const struct dump_header &o) const
         {
             return (signature[0] == 's' && signature[1] == 't' && signature[2] == 'x' && signature[3] == '-' &&
-		    signature[4] == 'b' && signature[5] == 't' && signature[6] == 'r' && signature[7] == 'e' &&
-		    signature[8] == 'e' && signature[9] == 0 && signature[10] == 0 && signature[11] == 0)
-	        && (version == o.version)
+                    signature[4] == 'b' && signature[5] == 't' && signature[6] == 'r' && signature[7] == 'e' &&
+                    signature[8] == 'e' && signature[9] == 0 && signature[10] == 0 && signature[11] == 0)
+                && (version == o.version)
                 && (key_type_size == o.key_type_size)
                 && (data_type_size == o.data_type_size)
                 && (leafslots == o.leafslots)

@@ -1,4 +1,3 @@
-
 /**
    @file vector_string.hpp
    @author Kevin Hu
@@ -10,6 +9,8 @@
 #include "converters.h"
 #include "types.h"
 #include "algo.hpp"
+
+#include <util/hashFunction.h>
 
 // #ifdef __cplusplus
 // extern "C"
@@ -56,10 +57,10 @@ NS_IZENELIB_UTIL_BEGIN
  */
 class ConvertFunction {
 public:
-	int (*convertToUCS)(unsigned int* outputChar,
-			const unsigned char* inputChar, int bufferSize);
-	int (*convertFromUCS)(unsigned char* outputChar, unsigned int inputChar,
-			int bufferSize);
+    int (*convertToUCS)(unsigned int* outputChar,
+            const unsigned char* inputChar, int bufferSize);
+    int (*convertFromUCS)(unsigned char* outputChar, unsigned int inputChar,
+            int bufferSize);
 };
 #endif
 /**
@@ -1099,9 +1100,9 @@ public:
     if (is_refered())
     {
       char* p = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
-		if (p_ != NULL && str_!=NULL && length_>0){
-	      memcpy(p + sizeof(ReferT), str_, length_*sizeof(CharT));
-		}
+        if (p_ != NULL && str_!=NULL && length_>0){
+          memcpy(p + sizeof(ReferT), str_, length_*sizeof(CharT));
+        }
       str_ = (CharT*)(p+sizeof (ReferT));
 
       derefer();
@@ -1905,7 +1906,7 @@ public:
     //assert(pos<length_);
     if (pos>=length_)
       return *this;
-    
+
     if (n >= length_ - pos)
     {
       length_ = pos;
@@ -2292,9 +2293,9 @@ public:
     }
 
     return -1;
-*/	
+*/
     SelfT tmp = this->substr(pos);
-    
+
      size_t i = Algorithm<SelfT>::KMP(tmp, str, caseChk);
      if (i == (size_t)-1)
        return -1;
@@ -2633,8 +2634,13 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& str)
   }
 
   #include "ustr_interface.h"
+
+friend std::size_t hash_value(const SelfT& vstr)
+{
+    return HashFunction<SelfT>::generateHash64(reinterpret_cast<const char *>(vstr.c_str()), vstr.size());
 }
-  ;
+
+};
 
 #include "UCS2_Table.h"
 
