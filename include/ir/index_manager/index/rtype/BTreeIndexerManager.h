@@ -193,17 +193,39 @@ private:
 class madd_visitor : public boost::static_visitor<void>
 {
 public:
+    
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+    {
+        if(v.length()>0)
+        {
+            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            pindexer->add(v, docid);
+        }
+    }
+    
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->add(v, docid);
     }
+    
+    
 };
 
 class mremove_visitor : public boost::static_visitor<void>
 {
 public:
+    
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+    {
+        if(v.length()>0)
+        {
+            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            pindexer->remove(v, docid);
+        }
+    }
+    
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
