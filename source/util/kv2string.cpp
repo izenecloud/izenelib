@@ -18,6 +18,14 @@ void kv2string::setValue(const std::string& key, const unsigned int value)
     kvMap_[key] = oss.str();
 }
 
+void kv2string::setValue(const std::string& key, const int64_t value)
+{
+    std::ostringstream oss;
+    oss << value;
+
+    kvMap_[key] = oss.str();
+}
+
 std::string kv2string::getStrValue(const std::string& key)
 {
     return kvMap_[key];
@@ -26,6 +34,20 @@ std::string kv2string::getStrValue(const std::string& key)
 unsigned int kv2string::getUIntValue(const std::string& key)
 {
     unsigned int value = 0;
+
+    map_iter_t it = kvMap_.find(key);
+    if (it != kvMap_.end())
+    {
+        std::istringstream iss(kvMap_[key]);
+        iss >> value;
+    }
+
+    return value;
+}
+
+int64_t kv2string::getUInt64Value(const std::string& key)
+{
+    int64_t value = 0;
 
     map_iter_t it = kvMap_.find(key);
     if (it != kvMap_.end())

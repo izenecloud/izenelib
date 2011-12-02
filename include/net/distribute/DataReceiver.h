@@ -35,6 +35,8 @@ private:
     void enqueue(SocketIO* accSock);
     SocketIO* dequeue();
 
+    void checkDataBaseDir();
+
     /// receive data on accepted connection
     void receive();
 

@@ -37,9 +37,11 @@ public:
 public:
     void setValue(const std::string& key, const std::string& value);
     void setValue(const std::string& key, const unsigned int value);
+    void setValue(const std::string& key, const int64_t value);
 
     std::string getStrValue(const std::string& key);
     unsigned int getUIntValue(const std::string& key);
+    int64_t getUInt64Value(const std::string& key);
     bool getValue(const std::string& key, std::string& value);
     bool getValue(const std::string& key, unsigned int& value);
 
