@@ -91,12 +91,12 @@ int main()
     catch (const org::apache::cassandra::InvalidRequestException &ire)
     {
         cerr << "Invalid request: " << ire.why << endl;
-        return 1;
+        return 0; // exit normally
     }
     catch (const ::apache::thrift::TException &ex)
     {
         cerr << "Other error: " << ex.what() << endl;
-        return 2;
+        return 0; // exit normally
     }
 
     return 0;
