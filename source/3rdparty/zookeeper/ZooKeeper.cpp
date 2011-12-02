@@ -135,6 +135,8 @@ std::string ZooKeeper::getStateString()
 
 void ZooKeeper::connect(bool isAutoReconnect)
 {
+    disconnect(); // close last connection
+
     zk_ = zookeeper_init(
                 hosts_.c_str(),
                 &watcher_callback,
