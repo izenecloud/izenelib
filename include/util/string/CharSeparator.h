@@ -11,7 +11,7 @@
 #include <set>
 #include <utility>
 
-namespace izenelib {
+namespace izenelib {namespace util{
 
 template<typename Char>
 class CharSeparator
@@ -85,6 +85,6 @@ private:
     bool outputDone_;
 };
 
-} // namespace izenelib
+}} // namespace izenelib::util
 
 #endif // STRING_CHAR_SEPARATOR_H

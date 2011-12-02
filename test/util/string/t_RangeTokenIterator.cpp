@@ -1,10 +1,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include <string>
-#include <string/RangeTokenIterator.h>
+#include <util/string/RangeTokenIterator.h>
 #include <iostream>
 
-using namespace izenelib;
+using namespace izenelib::util;
 
 namespace { // {anonymous}
 

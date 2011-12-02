@@ -1,5 +1,7 @@
 #include <ir/index_manager/utility/XML.h>
 
+#include <util/string/StringUtils.h>
+
 #include <fstream>
 #include <assert.h>
 
@@ -7,6 +9,7 @@
 using namespace std;
 
 using namespace izenelib::ir::indexmanager;
+using namespace izenelib::util;
 
 //////////////////////////////////////////////////////////////////////
 // XMLNode construction
@@ -237,8 +240,8 @@ void XMLNode::uniformString(string& str)
     // non-alphanumeric characters which will not be ignored
     static const char* pszOK = "'-&/,;#()";
 
-    trimleft(str);
-    trimright(str);
+    TrimLeft(str);
+    TrimRight(str);
 
     bool bSpace = true;
 
@@ -299,7 +302,7 @@ XMLElement* XMLElement::clone(XMLElement* pParent)
         XMLAttribute* pAttribute = getNextAttribute( iter )->clone( pClone );
         string strName( pAttribute->sName );
 
-        toLower(strName);
+        boost::to_lower(strName);
         pClone->pAttributes.insert(AttributePair(strName, pAttribute ));
     }
 
@@ -472,7 +475,7 @@ bool XMLElement::parseString(const char*& strXML)
         if ( pAttribute->parseString( strXML ) )
         {
             string strName( pAttribute->sName );
-            toLower(strName);
+            boost::to_lower(strName);
             AttributeIterator iter = pAttributes.find(strName);
             if (iter != pAttributes.end())
             {
