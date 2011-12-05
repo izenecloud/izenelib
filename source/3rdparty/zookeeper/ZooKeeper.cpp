@@ -38,6 +38,7 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout, bool isAut
 ,recvTimeout_(recvTimeout)
 ,sessionId_(0)
 ,flags_(0)
+,zk_(NULL)
 ,zkError_(ZERR_OK)
 {
     // only one watcher can be set at a time for a client.
