@@ -65,8 +65,15 @@ public:
 
  *
  */
+
+class AggregatorBase
+{
+public:
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+};
+
 template <typename ConcreteAggregator, typename LocalWorkerCaller = MockWorkerCaller>
-class Aggregator
+class Aggregator : public AggregatorBase
 {
 public:
     Aggregator()
@@ -79,7 +86,7 @@ public:
     }
 
 public:
-    void setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
     {
         const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
 
@@ -263,6 +270,11 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
 
+    if (workerSessionList_.empty())
+    {
+        cout << "#[Aggregator] no remote worker(s)." << endl;
+    }
+
     // distribute request to remote workers
     std::vector<std::pair<workerid_t, future_t> > futureList;
     session_pool_t sessionPool; // shared sessoin pool
@@ -318,6 +330,11 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
+
+    if (workerSessionList_.empty())
+    {
+        cout << "#[Aggregator] no remote worker(s)." << endl;
+    }
 
     // distribute request to remote workers
     std::vector<std::pair<workerid_t, future_t> > futureList;
