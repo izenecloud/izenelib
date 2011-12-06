@@ -70,6 +70,7 @@ public:
 class AggregatorBase
 {
 public:
+    virtual ~AggregatorBase(){}
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
 };
 

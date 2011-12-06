@@ -92,11 +92,6 @@ void FieldIndexer::setIndexMode(
 {
     if(!realtime)
     {
-        if(alloc_)
-        {
-            delete alloc_;
-            alloc_ = 0;
-        }
         pMemCache_.reset(new MemCache(
                 pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_));
         setHitBuffer_(nBatchMemSize);
@@ -245,6 +240,12 @@ void FieldIndexer::reset()
     postingMap_.clear();
     termCount_ = 0;
 
+    if(alloc_)
+    {
+        delete alloc_;
+        alloc_ = 0;
+    }
+
     if (! pIndexer_->isRealTime())
     {
         f_ = fopen(sorterFullPath_.c_str(),"w");
@@ -253,7 +254,6 @@ void FieldIndexer::reset()
     }
     else
     {
-        if(alloc_) delete alloc_;
         alloc_ = new boost::scoped_alloc(recycle_);
     }
 }
