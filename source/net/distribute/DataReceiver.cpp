@@ -86,7 +86,6 @@ void DataReceiver::enqueue(SocketIO* accSock)
     boost::unique_lock<boost::mutex> lock(mutex_queue_);
 
     connQueue_.push(accSock);
-
     condition_.notify_one();
 }
 
@@ -94,7 +93,8 @@ SocketIO* DataReceiver::dequeue()
 {
     boost::unique_lock<boost::mutex> lock(mutex_queue_);
 
-    if (connQueue_.empty()) {
+    while (connQueue_.empty())
+    {
         condition_.wait(lock); // unlock and wait
     }
 

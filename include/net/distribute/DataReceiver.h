@@ -15,14 +15,16 @@ class DataReceiver
 {
 public:
     typedef int buf_size_t;
+
     const static buf_size_t DEFAULT_BUFFER_SIZE = 64*1024; // 64k
+    const static size_t DEFAULT_THREAD_NUM = 5;
 
 public:
     DataReceiver(
             unsigned int port,
             const std::string& baseDataDir=".",
             buf_size_t bufSize=DEFAULT_BUFFER_SIZE,
-            size_t threadNum=5);
+            size_t threadNum=DEFAULT_THREAD_NUM);
 
     ~DataReceiver();
 
