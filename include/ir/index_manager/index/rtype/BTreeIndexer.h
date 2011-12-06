@@ -13,7 +13,6 @@
 #include <ir/index_manager/index/rtype/Compare.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
-#include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/store/Directory.h>
 #include <util/ClockTimer.h>
 #include <glog/logging.h>

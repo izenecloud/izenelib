@@ -15,7 +15,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/iterator/detail/minimum_category.hpp>
 
-namespace izenelib {
+namespace izenelib {namespace util{
 
 template<typename TokenizerFunc, typename Iterator>
 class RangeTokenIterator
@@ -128,6 +128,6 @@ inline makeRangeTokenIterator(
     return RangeTokenIterator<TokenizerFunc, Iterator>(func, begin, end);
 }
 
-} // namespace izenelib
+}} // namespace izenelib::util
 
 #endif // INCLUDE_STRING_RANGE_TOKEN_ITERATOR_H

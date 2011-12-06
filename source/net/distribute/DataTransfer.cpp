@@ -127,9 +127,9 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         return -1;
     }
 
-    LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
+    //LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
-    // start a new connection to send file, adjust Receiver if keep one connection
+    /// start a new connection to send file, adjust Receiver if keep one connection
     socketIO_.Connect(serverAddr_.host_, serverAddr_.port_);
     if (!socketIO_.isGood())
     {
@@ -147,7 +147,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     bfs::path path(fileName);
     msg.setFileType(SendFileReqMsg::FTYPE_SCD);
     msg.setFileName(curDir+"/"+path.filename());
-    size_t fileSize = bfs::file_size(fileName);
+    int64_t fileSize = bfs::file_size(fileName);
     msg.setFileSize(fileSize);
 
     std::string msg_head = msg.toString();
@@ -171,14 +171,13 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         LOG(ERROR)<<"Receiver not ready";
         return -1;
     }
-    LOG(INFO)<<"Ready to send file data";
 
     /// Send file data
-    size_t sentDataSize = syncSendFileData_(ifs, fileSize);
+    int64_t sentDataSize = syncSendFileData_(ifs, path.string(), fileSize);
     if (sentDataSize < fileSize)
     {
-        LOG(ERROR)<<"Sent incompleted file data, sent"
-                  <<sentDataSize<<", file size"<<fileSize;
+        LOG(ERROR)<<"Sent incompleted file data, sent "
+                  <<sentDataSize<<", file size "<<fileSize;
         return -1;
     }
 
@@ -200,7 +199,6 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         }
 
         // transfer succeeded
-        LOG(INFO)<<"Transfer succeed!";
         return 0;
     }
     else
@@ -210,42 +208,43 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     }
 }
 
-size_t DataTransfer::syncSendFileData_(std::ifstream& ifs, size_t fileSize)
+int64_t DataTransfer::syncSendFileData_(std::ifstream& ifs, const std::string& fileName, int64_t fileSize)
 {
-    std::size_t readLen, sendLen, totalLen = 0;
+    int64_t readLen, sentLen, totalSentLen = 0;
     int progress, progress_step = 0;
 
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
-        if ((sendLen = socketIO_.syncSend(buf_, readLen)) < readLen)
+        if ((sentLen = socketIO_.syncSend(buf_, readLen)) < readLen)
         {
             ifs.close();
-            LOG(ERROR)<<"Failed to send file data, errno="<<errno;
-            std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
-            return -1;
+            LOG(ERROR)<<"Error: data buf was sent incompletely, errno="<<errno;
+            break;
         }
-        //std::cout<<"read "<<readLen<<", sent "<<sendLen<<std::endl;
-        totalLen += sendLen;
+        totalSentLen += sentLen;
 
         if (((progress_step++) % 10) == 0)
         {
-            progress = totalLen*100/fileSize;
-            std::cout<<"\r progress "<<progress<<"%"<<std::flush;
+            progress = totalSentLen*100/fileSize;
+            std::cout<<"\r"<<progress<<"%\t"<<fileSize<<"B ("<<MsgHead::size2String(fileSize)<<")\t"<<fileName<<std::flush;
         }
 
         ifs.read(buf_, bufSize_);
     }
     ifs.close();
 
-    if (totalLen >= fileSize)
+    if (totalSentLen >= fileSize)
     {
-        std::cout<<"\r progress 100%"<<std::flush;
-        std::cout<<std::endl;
+        std::cout<<"\r100%\t"<<fileSize<<"B ("<<MsgHead::size2String(fileSize)<<")\t"<<fileName<<std::flush;
     }
-    LOG(INFO)<<"Sent data size "<<totalLen;
+    else
+        std::cout<<"\nincompleted! sent "<<totalSentLen<<", file size "<<fileSize;
+    std::cout<<std::endl;
 
-    return totalLen;
+    //LOG(INFO)<<"Sent data size "<<totalSentLen;
+
+    return totalSentLen;
 }
 
 std::string DataTransfer::processPath(const std::string& path)

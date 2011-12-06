@@ -3,6 +3,7 @@
 
 #include <util/kv2string.h>
 #include <string.h>
+#include <sstream>
 
 using namespace izenelib::util;
 
@@ -27,6 +28,8 @@ struct MsgHead
 
     static const char* MSG_ERROR_OK;
     static const char* MSG_ERROR_FAILEDTOCREATE;
+
+    static std::string size2String(uint64_t size);
 
     /**
      * msgRef().setValue(k, v)
@@ -139,14 +142,18 @@ struct SendFileReqMsg : public MsgHead
         return msgpack_.getStrValue(MSG_KEY_FILENAME);
     }
 
-    void setFileSize(unsigned int fileSize)
+    /**
+     * The maximum size can be represented by int32_t is 4G,
+     * a file can be much bigger.
+     */
+    void setFileSize(int64_t fileSize)
     {
         msgpack_.setValue(MSG_KEY_DATALENGTH, fileSize);
     }
 
-    unsigned int getFileSize()
+    int64_t getFileSize()
     {
-        return msgpack_.getUIntValue(MSG_KEY_DATALENGTH);
+        return msgpack_.getUInt64Value(MSG_KEY_DATALENGTH);
     }
 };
 
@@ -164,14 +171,14 @@ struct ResponseMsg : public MsgHead
         return msgpack_.getStrValue(MSG_KEY_STATUS);
     }
 
-    void setReceivedSize(unsigned int fileSize)
+    void setReceivedSize(int64_t fileSize)
     {
         msgpack_.setValue(MSG_KEY_RECV_DATALENGTH, fileSize);
     }
 
-    unsigned int getReceivedSize()
+    int64_t getReceivedSize()
     {
-        return msgpack_.getUIntValue(MSG_KEY_RECV_DATALENGTH);
+        return msgpack_.getUInt64Value(MSG_KEY_RECV_DATALENGTH);
     }
 };
 

@@ -146,6 +146,7 @@ IF(izene_util_SHOULD_BUILD)
     osgi/util/StringTokenizer.cpp
     osgi/util/LoggerFactory.cpp
 
+    string/StringUtils.cpp
     )
 
   INCLUDE_DIRECTORIES(

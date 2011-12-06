@@ -1,10 +1,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include <string>
-#include <string/RangeTokenizer.h>
-#include <string/CharSeparator.h>
+#include <util/string/RangeTokenizer.h>
+#include <util/string/CharSeparator.h>
 
-using namespace izenelib;
+using namespace izenelib::util;
 
 namespace { // {anonymous}
 

@@ -49,9 +49,9 @@ namespace stx {
  * using some template magic in the btree class.
  */
 template <typename _Key,
-	  typename _Compare = std::less<_Key>,
-	  typename _Traits = btree_default_set_traits<_Key>,
-	  typename _Alloc = std::allocator<_Key> >
+          typename _Compare = std::less<_Key>,
+          typename _Traits = btree_default_set_traits<_Key>,
+          typename _Alloc = std::allocator<_Key> >
 class btree_multiset
 {
 public:
@@ -515,7 +515,7 @@ public:
     /// Erase the key/data pair referenced by the iterator.
     void erase(iterator iter)
     {
-	return tree.erase(iter);
+        return tree.erase(iter);
     }
 
 #ifdef BTREE_TODO

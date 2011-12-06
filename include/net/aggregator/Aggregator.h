@@ -11,9 +11,10 @@
 #include "Typedef.h"
 #include "WorkerCaller.h"
 
-#include <boost/shared_ptr.hpp>
 #include <3rdparty/msgpack/rpc/client.h>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace net{
 namespace aggregator{
@@ -65,8 +66,16 @@ public:
 
  *
  */
+
+class AggregatorBase
+{
+public:
+    virtual ~AggregatorBase(){}
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+};
+
 template <typename ConcreteAggregator, typename LocalWorkerCaller = MockWorkerCaller>
-class Aggregator
+class Aggregator : public AggregatorBase
 {
 public:
     Aggregator()
@@ -79,14 +88,16 @@ public:
     }
 
 public:
-    void setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
     {
-        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
+        boost::lock_guard<boost::mutex> lock(mutex_);
 
         workeridList_.clear();
         workerSessionList_.clear();
         hasLocalWorker_ = false;
         localWorkerId_ = 0;
+
+        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
         for (size_t i = 0; i < workerSrvList.size(); i ++)
         {
             const WorkerServerInfo& workerSrv = workerSrvList[i];
@@ -125,19 +136,6 @@ public:
     void setIsCallLocalWorkerLocally(bool isCallLocalWorkerLocally)
     {
         isCallLocalWorkerLocally_ = isCallLocalWorkerLocally;
-    }
-
-    const WorkerSessionPtr& getWorkerSessionById(const workerid_t workerid)
-    {
-        for (size_t i = 0; i < workerSessionList_.size(); i++)
-        {
-            if (workerid == workerSessionList_[i]->getWorkerId())
-            {
-                return workerSessionList_[i];
-            }
-        }
-
-        return kDefaultWorkerSession_;
     }
 
     /**
@@ -211,7 +209,19 @@ protected:
     {
     }
 
-protected:
+    const WorkerSessionPtr& getWorkerSessionById(const workerid_t workerid)
+    {
+        for (size_t i = 0; i < workerSessionList_.size(); i++)
+        {
+            if (workerid == workerSessionList_[i]->getWorkerId())
+            {
+                return workerSessionList_[i];
+            }
+        }
+
+        return kDefaultWorkerSession_;
+    }
+
     /**
      * Join and aggregate results
      * @param futureList [IN]
@@ -239,6 +249,7 @@ protected:
 
     std::vector<workerid_t> workeridList_;
     std::vector<WorkerSessionPtr> workerSessionList_;
+    boost::mutex mutex_;
 
     static const std::vector<workerid_t> NullWorkeridList;
     static const WorkerSessionPtr kDefaultWorkerSession_;
@@ -259,9 +270,16 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         ResultType& resultItem,
         timeout_t timeoutSec)
 {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
     std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
+
+    if (workerSessionList_.empty())
+    {
+        cout << "#[Aggregator] no remote worker(s)." << endl;
+    }
 
     // distribute request to remote workers
     std::vector<std::pair<workerid_t, future_t> > futureList;
@@ -315,9 +333,16 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         ResultType& resultItem,
         timeout_t timeoutSec)
 {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
     std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
+
+    if (workerSessionList_.empty())
+    {
+        cout << "#[Aggregator] no remote worker(s)." << endl;
+    }
 
     // distribute request to remote workers
     std::vector<std::pair<workerid_t, future_t> > futureList;
@@ -370,6 +395,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         ResultType& resultItem,
         timeout_t timeoutSec)
 {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
     std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
@@ -450,6 +477,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         workerid_t workerid,
         timeout_t timeoutSec)
 {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
     std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
@@ -499,6 +528,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         workerid_t workerid,
         timeout_t timeoutSec)
 {
+    boost::lock_guard<boost::mutex> lock(mutex_);
+
     if (workerid == localWorkerId_)
     {
         if (hasLocalWorker_ && localWorkerCaller_)

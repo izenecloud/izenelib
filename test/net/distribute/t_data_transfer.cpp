@@ -48,10 +48,10 @@ int main(int argc, char** argv)
     if (help || filename.empty())
     {
         std::cout<<"Usage: "<<argv[0]<<" -s <src:file-or-dir> [-h <host> -p <port> -d <dest:dir> -r] "<<std::endl;
-        std::cout<<"    -h  destination host, default as locahost"<<std::endl;
-        std::cout<<"    -p  destination port, default as 18121"<<std::endl;
+        std::cout<<"    -h  destination host, default is locahost"<<std::endl;
+        std::cout<<"    -p  destination port, default is 18121"<<std::endl;
         std::cout<<"    -s  source to be sent: file or directory path name"<<std::endl;
-        std::cout<<"    -d  destination directory to store source, default as source dir"<<std::endl;
+        std::cout<<"    -d  destination directory to store source, default is same as source dir"<<std::endl;
         std::cout<<"    -r  sent dir recursively if use this option"<<std::endl;
         return 0;
     }

@@ -17,8 +17,9 @@
 // along with Shareaza; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/utility/Utilities.h>
+
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include <list>
 #include <map>
@@ -315,7 +316,7 @@ XMLAttribute* XMLElement::addAttribute(const char* pszName, const char* pszValue
     {
         pAttribute = new XMLAttribute( this, pszName );
         std::string strName( pszName );
-        toLower(strName);
+        boost::to_lower(strName);
         pAttributes.insert(AttributePair(strName, pAttribute ));
     }
 
@@ -328,7 +329,7 @@ XMLAttribute* XMLElement::addAttribute(XMLAttribute* pAttribute)
 {
     if ( pAttribute->pParent ) return NULL;
     std::string strName( pAttribute->sName );
-    toLower(strName);
+    boost::to_lower(strName);
     pAttributes.insert(AttributePair(pAttribute->sName, pAttribute) );
     pAttribute->pParent = this;
     return pAttribute;
@@ -358,7 +359,7 @@ XMLAttribute* XMLElement::getNextAttribute(AttributeIterator& iter)
 XMLAttribute* XMLElement::getAttribute(const char* pszName)
 {
     std::string strName( pszName );
-    toLower(strName);
+    boost::to_lower(strName);
     AttributeIterator iter = pAttributes.find(strName);
     if (iter != pAttributes.end())
         return iter->second;
@@ -377,7 +378,7 @@ std::string XMLElement::getAttributeValue(const char* pszName, const char* pszDe
 void XMLElement::removeAttribute(XMLAttribute* pAttribute)
 {
     std::string strName( pAttribute->sName );
-    toLower(strName);
+    boost::to_lower(strName);
     AttributeIterator iter = pAttributes.find (strName);
     if (iter != pAttributes.end())
         pAttributes.erase(iter);

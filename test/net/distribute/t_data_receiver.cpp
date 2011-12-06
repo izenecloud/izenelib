@@ -34,10 +34,15 @@ int main(int argc, char** argv)
             break;
     }
 
-    if (help)
+    if (argc <= 1 || help)
     {
-        std::cout<<"Usage: "<<argv[0]<<" -d <data-base-dir> -p port "<<std::endl;
-        return 0;
+        std::cout<<"Usage: "<<argv[0]<<" [-d <data-base-dir> -p <port> -h]"<<std::endl;
+        std::cout<<"    -h  help "<<std::endl;
+        std::cout<<"    -p  listening port, default is 18121"<<std::endl;
+        std::cout<<"    -d  base dir for received data, default is current dir (\".\") "<<std::endl;
+
+        if (help)
+            return 0;
     }
 
     try {

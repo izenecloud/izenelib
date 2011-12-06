@@ -56,7 +56,7 @@ private:
      */
     int syncSendFile(const std::string& fileName, const std::string& curDir);
 
-    size_t syncSendFileData_(std::ifstream& ifs, size_t fileSize);
+    int64_t syncSendFileData_(std::ifstream& ifs, const std::string& fileName, int64_t fileSize);
 
     /**
      * utility

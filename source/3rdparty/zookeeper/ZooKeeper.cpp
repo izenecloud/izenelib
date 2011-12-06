@@ -38,6 +38,7 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout, bool isAut
 ,recvTimeout_(recvTimeout)
 ,sessionId_(0)
 ,flags_(0)
+,zk_(NULL)
 ,zkError_(ZERR_OK)
 {
     // only one watcher can be set at a time for a client.
@@ -135,6 +136,8 @@ std::string ZooKeeper::getStateString()
 
 void ZooKeeper::connect(bool isAutoReconnect)
 {
+    disconnect(); // close last connection
+
     zk_ = zookeeper_init(
                 hosts_.c_str(),
                 &watcher_callback,

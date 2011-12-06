@@ -4,7 +4,6 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
-#include <ir/index_manager/utility/StringUtils.h>
 
 #include <ir/index_manager/store/IndexOutput.h>
 
