@@ -16,6 +16,7 @@
 #include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/store/Directory.h>
 #include <util/ClockTimer.h>
+#include <glog/logging.h>
 
 #include <boost/variant.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -31,7 +32,7 @@
 
 // #define CACHE_DEBUG
 // #define BT_DEBUG
-#define BT_INFO
+// #define BT_INFO
 // #define DOCS_INFO
 #define CACHE_TIME_INFO
 
@@ -610,7 +611,7 @@ private:
 #ifdef CACHE_TIME_INFO
         if(cache_num_%10000 == 0)
         {
-            std::cout<<"cacheIterator time cost : "<<t1<<","<<t2<<","<<t3<<std::endl;
+            LOG(INFO)<<"cacheIterator "<<cache_num_<<" time cost : "<<t1<<","<<t2<<","<<t3<<std::endl;
         }
 #endif
     }
