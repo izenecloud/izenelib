@@ -12,14 +12,17 @@
 #include <string>
 #include <sstream>
 #include <vector>
-
+#include <boost/variant.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-
+#include <ir/index_manager/utility/system.h>
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+///PropertyType is the data supported to set up BTree index
+typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
+  
 class IndexerPropertyConfig
 {
 public:
@@ -38,6 +41,7 @@ public:
              index_(other.index_),
              analyzed_(other.analyzed_),
              filter_(other.filter_),
+             type_(other.type_),
              multiValue_(other.multiValue_),
              storeDocLen_(other.storeDocLen_)
     {}
@@ -101,6 +105,18 @@ public:
     bool isFilter() const
     {
         return filter_;
+    }
+    
+    void setType(const PropertyType& type)
+    {
+        type_ = type;
+    }
+    
+    bool getType(PropertyType& type) const
+    {
+        if(type_.empty()) return false;
+        type = type_;
+        return true;
     }
 
     void setIsMultiValue( const bool isMultiValue)
@@ -170,6 +186,11 @@ protected:
     ///whether filter index is going to be built on this property,
     ///BTree index will only be built when both index_ and filter_ are true
     bool filter_;
+    
+    
+    ///record the type information for BTreeIndexer
+    PropertyType type_;
+    
     ///only used for filter
     bool multiValue_;
     /// whether store doclen;

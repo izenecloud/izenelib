@@ -30,7 +30,7 @@ namespace indexmanager
 class BTreeIndexerManager
 {
 public:
-    BTreeIndexerManager(const std::string& dir, Directory* pDirectory);
+    BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map);
 
     ~BTreeIndexerManager();
 public:
@@ -55,13 +55,15 @@ public:
         return result;
     }
     
-    bool seek(const std::string& property_name, const PropertyType& key);
-
-    void getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs);
-
     void add(const std::string& property_name, const PropertyType& key, docid_t docid);
 
     void remove(const std::string& property_name, const PropertyType& key, docid_t docid);
+    
+    std::size_t count(const std::string& property_name);
+    
+    bool seek(const std::string& property_name, const PropertyType& key);
+
+    void getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
     void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
@@ -179,6 +181,7 @@ private:
     void doFilter_(BitVector& docs);
     
     void insertType_(const std::string& property_name, const PropertyType& value);
+    
         
 private:
     std::string dir_;
@@ -253,6 +256,17 @@ public:
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         delete pindexer;
+    }
+};
+
+class mcount_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::size_t& count)
+    {
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        count = pindexer->count();
     }
 };
 

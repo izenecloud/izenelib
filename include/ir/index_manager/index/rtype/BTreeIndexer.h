@@ -112,14 +112,35 @@ public:
         checkCache_();
     }
     
+    std::size_t count()
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::size_t count = db_.size();
+//         LOG(INFO)<<"count in db "<<property_name_<<","<<count<<std::endl;
+        return count;
+//         if(cache_.empty())
+//         {
+//             
+//         }
+//         else {
+//             std::size_t count = 0;
+//             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+//             std::pair<KeyType, BitVector> kvp;
+//             while(term_enum->next(kvp))
+//             {
+//                 ++count;
+//             }
+//             LOG(INFO)<<"count in cache "<<property_name_<<","<<count<<std::endl;
+//             return count;
+//         }
+    }
+    
     bool seek(const KeyType& key)
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        ValueType compressed;
-        bool b_db = getDbValue_(key, compressed);
-        bool b_cache = cache_.exist(key);
-        if(!b_db && !b_cache) return false;
-        return true;
+        BitVector docs;
+        getValue_(key, docs);
+        return docs.count()>0;
     }
 
     void getNoneEmptyList(const KeyType& key, BitVector& docs)

@@ -13,7 +13,7 @@
 
 #include <3rdparty/am/leveldb/db.h>
 #include <3rdparty/am/leveldb/comparator.h>
-
+#include <glog/logging.h>
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -108,8 +108,20 @@ public:
 
     size_type size() const
     {
-        //Not supported until LevelDB could support
-        return db_ ? 0 : 0;
+        //Not supported now, use iterator
+        size_type size = 0;
+        if(checkHandle_(db_) && isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            ::leveldb::Iterator* it = db_->NewIterator(options);
+            for( it->SeekToFirst(); it->Valid(); it->Next() )
+            {
+                ++size;
+            }
+            delete it;
+        }
+        return size;
     }
     /**
      * @deprecated

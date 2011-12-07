@@ -81,7 +81,8 @@ void Indexer::setIndexManagerConfig(
     pConfigurationManager_->setCollectionMetaNameMap( collectionList );
 
     collectionid_t colID;
-
+    std::map<std::string, PropertyType> type_map;//used for Btreeindexer
+    
     for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionList.begin(); iter != collectionList.end(); ++iter)
     {
         colID = iter->second.getColId();
@@ -92,9 +93,19 @@ void Indexer::setIndexManagerConfig(
  
         for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = 
                 documentSchema.begin(); it != documentSchema.end(); it++ )
-             if (it->getPropertyId() != BAD_PROPERTY_ID)
-                 propertyMap.insert(make_pair(it->getName(), it->getPropertyId()));
-         property_name_id_map_.insert(make_pair(colID, propertyMap));
+        {
+            if (it->getPropertyId() != BAD_PROPERTY_ID)
+            {
+                propertyMap.insert(make_pair(it->getName(), it->getPropertyId()));
+                PropertyType type;
+                if( it->getType(type) )
+                {
+//                     LOG(INFO)<<"Get Type "<<it->getName()<<" , "<<type.which()<<std::endl;
+                    type_map.insert(std::make_pair(it->getName(), type) );
+                }
+            }
+        }
+        property_name_id_map_.insert(make_pair(colID, propertyMap));
     }
  
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
@@ -108,7 +119,7 @@ void Indexer::setIndexManagerConfig(
     if(pConfigurationManager_->indexStrategy_.isIndexBTree_)
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
       {
-          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_, pDirectory_);
+          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_, pDirectory_, type_map);
 //           pBTreeIndexer_ = new BTreeIndexer(pDirectory_, pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
           if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
           {

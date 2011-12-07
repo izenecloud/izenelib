@@ -1,10 +1,17 @@
 #include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
+#include <am/sequence_file/ssfr.h>
+#include <boost/serialization/variant.hpp>
 
 using namespace izenelib::ir::indexmanager;
 
-BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory)
+BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map)
 :dir_(dir), pDirectory_(pDirectory)
 {
+  for( std::map<std::string, PropertyType>::const_iterator it = type_map.begin(); it!=type_map.end(); ++it)
+  {
+//       LOG(INFO)<<"add map "<<it->first<<" , "<<it->second.which()<<std::endl;
+      type_map_.insert(*it);
+  }
 }
 
 BTreeIndexerManager::~BTreeIndexerManager()
@@ -57,9 +64,22 @@ void BTreeIndexerManager::flush()
     boost::unordered_map<std::string, PropertyType>::iterator it = type_map_.begin();
     while(it!=type_map_.end())
     {
+//         LOG(INFO)<<"Flushing property : "<<it->first<<" , "<<it->second.which()<<std::endl;
         izenelib::util::boost_variant_visit(boost::bind(mflush_visitor(), this, it->first, _1), it->second);
         ++it;
     }
+//     LOG(INFO)<<"Flushed all properties."<<std::endl;
+}
+
+std::size_t BTreeIndexerManager::count(const std::string& property_name)
+{
+    std::size_t count = 0;
+    boost::unordered_map<std::string, PropertyType>::const_iterator it = type_map_.find(property_name);
+    if(it!=type_map_.end())
+    {
+        izenelib::util::boost_variant_visit(boost::bind(mcount_visitor(), this, property_name, _1, boost::ref(count)), it->second);
+    }
+    return count;
     
 }
 

@@ -29,8 +29,7 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-///PropertyType is the data supported to set up BTree index
-typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
+
 
 ///MultiValuePropertyType is splitted by ","
 typedef std::list<PropertyType > MultiValuePropertyType;
