@@ -90,6 +90,8 @@ public:
         }
     }
 
+    ~IndexManagerException() throw() {}
+
     const char* what() const throw()
     // see http://www.boost.org/more/error_handling.html for lazy build rationale
     {
