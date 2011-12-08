@@ -65,7 +65,7 @@ public:
     typedef izenelib::am::AMIterator<DbType> iterator;
 
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
-    :path_(path), property_name_(property_name)
+    :path_(path), property_name_(property_name), count_has_modify_(false)
     {
         cache_.set_max_capacity(cacheSize);
         func_ = &combineValue_;
@@ -102,7 +102,7 @@ public:
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cache_.add(key, docid);
         checkCache_();
-        
+        count_has_modify_ = true;
     }
 
     void remove(const KeyType& key, docid_t docid)
@@ -110,29 +110,28 @@ public:
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
         checkCache_();
+        count_has_modify_ = true;
     }
     
     std::size_t count()
     {
+//         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        std::size_t count = db_.size();
-//         LOG(INFO)<<"count in db "<<property_name_<<","<<count<<std::endl;
+        if( count_has_modify_ || !count_in_cache_ ) 
+        {
+            boost::lock_guard<boost::shared_mutex> lock(count_mutex_);
+            if( count_has_modify_ || !count_in_cache_ )
+            {
+                std::size_t db_count = getCount_();
+                count_in_cache_ = db_count;
+                count_has_modify_ = false;
+//                 LOG(INFO)<<property_name_<<" count NOT in cache : "<<db_count<<std::endl;
+            }
+        }
+        std::size_t count = count_in_cache_.get();
+//         LOG(INFO)<<property_name_<<" count in cache : "<<count<<std::endl;
         return count;
-//         if(cache_.empty())
-//         {
-//             
-//         }
-//         else {
-//             std::size_t count = 0;
-//             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-//             std::pair<KeyType, BitVector> kvp;
-//             while(term_enum->next(kvp))
-//             {
-//                 ++count;
-//             }
-//             LOG(INFO)<<"count in cache "<<property_name_<<","<<count<<std::endl;
-//             return count;
-//         }
+
     }
     
     bool seek(const KeyType& key)
@@ -474,6 +473,7 @@ public:
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cacheClear_();
         db_.flush();
+        count_has_modify_ = true;//force use db_.size() in count as cache will be empty
     }
 
     
@@ -658,6 +658,27 @@ private:
 //         }
 //         return true;
 //     }
+
+    std::size_t getCount_()
+    {
+        if(cache_.empty())
+        {
+            return db_.size();
+        }
+        else {
+            std::size_t count = 0;
+            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+            std::pair<KeyType, BitVector> kvp;
+            while(term_enum->next(kvp))
+            {
+                if(kvp.second.count()>0)
+                {
+                    ++count;
+                }
+            }
+            return count;
+        }
+    }
     
     bool getValue_(const KeyType& key, BitVector& value)
     {
@@ -813,8 +834,11 @@ private:
     DynBitsetType common_bv_;
     ValueType common_value_;
     ///
+    boost::optional<std::size_t> count_in_cache_;
+    bool count_has_modify_;
     std::size_t cache_num_;
     boost::shared_mutex mutex_;
+    boost::shared_mutex count_mutex_;
 };
 
 
