@@ -67,6 +67,8 @@ std::size_t izene_read_until(std::istream& s, izene_streambuf& b, const std::str
     // Check if buffer is full.
     if (b.size() == b.max_size())
     {
+      std::cerr << "izene_streambuf is full, b.size(): " << b.size()
+                << ", b.max_size(): " << b.max_size() << std::endl;
       return 0;
     }
 	
@@ -74,9 +76,14 @@ std::size_t izene_read_until(std::istream& s, izene_streambuf& b, const std::str
     std::size_t bytes_available =
       std::min<std::size_t>(512, b.max_size() - b.size());
     b.reserve(bytes_available);
-    std::size_t bytes_read = s.readsome(b.pptr(), bytes_available);
-    if(bytes_read <=0 || (s.rdstate() == std::ios_base::eofbit))
+
+    s.read(b.pptr(), bytes_available);
+    std::size_t bytes_read = s.gcount();
+    if(bytes_read <=0)
+    {
         return 0;
+    }
+
     b.commit(bytes_read);
   }
 }
@@ -118,9 +125,14 @@ std::size_t izene_read_until(std::istream& s, izene_streambuf& b, char delim)
     std::size_t bytes_available =
       std::min<std::size_t>(512, b.max_size() - b.size());
     b.reserve(bytes_available);
-    std::size_t bytes_read = s.readsome(b.pptr(), bytes_available);
-    if(bytes_read <=0 || (s.rdstate() == std::ios_base::eofbit))
+
+    s.read(b.pptr(), bytes_available);
+    std::size_t bytes_read = s.gcount();
+    if(bytes_read <=0)
+    {
         return 0;
+    }
+
     b.commit(bytes_read);
   }
 }
@@ -169,11 +181,15 @@ std::size_t izene_read_until(std::istream& s, izene_streambuf& b, const boost::r
     // Need more data.
     std::size_t bytes_available =
       std::min<std::size_t>(512, b.max_size() - b.size());
-
     b.reserve(bytes_available);
-    std::size_t bytes_read = s.readsome(b.pptr(), bytes_available);
-    if(bytes_read <=0 || (s.rdstate() == std::ios_base::eofbit))
+
+    s.read(b.pptr(), bytes_available);
+    std::size_t bytes_read = s.gcount();
+    if(bytes_read <=0)
+    {
         return 0;
+    }
+
     b.commit(bytes_read);
   }
 }
