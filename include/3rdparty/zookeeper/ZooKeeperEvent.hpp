@@ -10,6 +10,7 @@
 #include <3rdparty/zookeeper/zookeeper.h>
 #include <sstream>
 
+namespace izenelib{
 namespace zookeeper{
 
 class ZooKeeperEvent
@@ -107,8 +108,11 @@ public:
     virtual void onSessionConnected() {}
     virtual void onSessionExpired() {}
     virtual void onAuthFailed() {}
+
+    // for monitoring zookeeper connection status
+    virtual void onMonitor() {}
 };
 
-}
+}} // namespace
 
 #endif /* ZOO_KEEPER_EVENT_HPP_ */

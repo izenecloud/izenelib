@@ -12,7 +12,7 @@
 using namespace std;
 using namespace boost;
 using namespace boost::lambda;
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 
 class WorkerSearch : public ZooKeeperEventHandler

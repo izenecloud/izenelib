@@ -1,6 +1,6 @@
 #include <CyclicBarrier.h>
 
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 boost::timed_mutex CyclicBarrier::t_mutex_;
 

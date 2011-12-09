@@ -1,14 +1,13 @@
 #include <3rdparty/zookeeper/ZooKeeper.hpp>
 #include <3rdparty/zookeeper/ZooKeeperWatcher.hpp>
 #include <3rdparty/zookeeper/ZooKeeperEvent.hpp>
-#include <3rdparty/zookeeper/ZkDataPack.hpp>
 
 #include <iostream>
 #include <sstream>
 #include "string.h"
 
 using namespace std;
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 void printUsage(char* argv0)
 {

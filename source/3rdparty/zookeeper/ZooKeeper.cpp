@@ -10,7 +10,7 @@
 #include <sstream>
 
 
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 namespace {
 

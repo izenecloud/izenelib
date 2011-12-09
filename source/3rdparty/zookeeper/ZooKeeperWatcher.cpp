@@ -2,7 +2,7 @@
 #include <ZooKeeperEvent.hpp>
 
 using namespace std;
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 ZooKeeperWatcher::ZooKeeperWatcher()
 {

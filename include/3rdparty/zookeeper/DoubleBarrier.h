@@ -14,6 +14,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 
+namespace izenelib {
 namespace zookeeper {
 
 class SyncPrimitive : public ZooKeeperEventHandler
@@ -48,6 +49,6 @@ private:
     size_t size_;
 };
 
-}
+}}
 
 #endif /* DOUBLE_BARRIER_H_ */

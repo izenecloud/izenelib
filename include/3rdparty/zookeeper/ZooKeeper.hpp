@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+namespace izenelib{
 namespace zookeeper {
 
 class ZooKeeperWatcher;
@@ -316,6 +317,6 @@ private:
 };
 
 
-}
+}} // namespace
 
 #endif /* ZOO_KEEPER_HPP_ */
