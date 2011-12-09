@@ -37,9 +37,8 @@ public:
         izdB.read_image(keyB);
 
         return _comp(keyA, keyB);
-        
     }
-	
+
     // Ignore the following methods for now:
     const char* Name() const { return "TwoPartComparator"; }
     void FindShortestSeparator(std::string*, const ::leveldb::Slice&) const { }

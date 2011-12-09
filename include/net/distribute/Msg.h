@@ -146,12 +146,12 @@ struct SendFileReqMsg : public MsgHead
      * The maximum size can be represented by int32_t is 4G,
      * a file can be much bigger.
      */
-    void setFileSize(int64_t fileSize)
+    void setFileSize(uint64_t fileSize)
     {
         msgpack_.setValue(MSG_KEY_DATALENGTH, fileSize);
     }
 
-    int64_t getFileSize()
+    uint64_t getFileSize()
     {
         return msgpack_.getUInt64Value(MSG_KEY_DATALENGTH);
     }
@@ -171,12 +171,12 @@ struct ResponseMsg : public MsgHead
         return msgpack_.getStrValue(MSG_KEY_STATUS);
     }
 
-    void setReceivedSize(int64_t fileSize)
+    void setReceivedSize(uint64_t fileSize)
     {
         msgpack_.setValue(MSG_KEY_RECV_DATALENGTH, fileSize);
     }
 
-    int64_t getReceivedSize()
+    uint64_t getReceivedSize()
     {
         return msgpack_.getUInt64Value(MSG_KEY_RECV_DATALENGTH);
     }

@@ -14,6 +14,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 
+namespace izenelib {
 namespace zookeeper {
 
 class CyclicBarrier : public ZooKeeperEventHandler
@@ -49,7 +50,6 @@ private:
 
 };
 
-
-}
+}}
 
 #endif /* CYCLIC_BARRIER_H_ */

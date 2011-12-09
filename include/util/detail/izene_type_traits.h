@@ -119,24 +119,24 @@ struct IsFebirdSerial<std::map<T1, T2 >  >{
 
 NS_IZENELIB_UTIL_END
 
-#define MAKE_FEBIRD_SERIALIZATION(type) \
+#define MAKE_FEBIRD_SERIALIZATION(...) \
     namespace izenelib \
     { \
     namespace util \
     { \
-        template <>struct IsFebirdSerial<type > \
+        template <>struct IsFebirdSerial< __VA_ARGS__ > \
         { \
             enum { yes=1, no=!yes}; \
         }; \
     } \
     }
 
-#define MAKE_MEMCPY_SERIALIZATION(type) \
+#define MAKE_MEMCPY_SERIALIZATION(...) \
     namespace izenelib \
     { \
     namespace util \
     { \
-        template <>struct IsMemcpySerial<type > \
+        template <>struct IsMemcpySerial< __VA_ARGS__ > \
         { \
             enum { yes=1, no=!yes}; \
         }; \

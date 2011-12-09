@@ -7,14 +7,15 @@
 #include <3rdparty/zookeeper/ZooKeeper.hpp>
 #include <3rdparty/zookeeper/ZooKeeperWatcher.hpp>
 #include <3rdparty/zookeeper/ZooKeeperEvent.hpp>
-#include <3rdparty/zookeeper/ZkDataPack.hpp>
-
 #include <3rdparty/zookeeper/DoubleBarrier.h>
 #include <3rdparty/zookeeper/CyclicBarrier.h>
+#include <util/kv2string.h>
 
 using namespace std;
 using namespace boost;
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
+
+typedef izenelib::util::kv2string ZkDataPack;
 
 class Watcher : public ZooKeeperEventHandler
 {
@@ -147,7 +148,7 @@ void t_zk_data_pack(string& hosts)
     std::string sdata;
 
     zdata.setValue("host", "localhost");
-    zdata.setValue("port", 18111);
+    zdata.setValue("port", (unsigned int)18111);
     zdata.setValue("file", "");
     zdata.setValue("", "");
     zdata.setValue("file", "/test/hello world");
@@ -161,7 +162,7 @@ void t_zk_data_pack(string& hosts)
     std::string sdata2;
     cli.getZNodeData("/testdata", sdata2);
     cout <<"unpack: "<<sdata2 <<endl;
-    zdata2.loadZkData(sdata2, true);
+    zdata2.loadKvString(sdata2, true);
 }
 
 void t_asyn_create(string& hosts)

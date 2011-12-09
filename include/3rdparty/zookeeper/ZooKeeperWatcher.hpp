@@ -12,6 +12,7 @@
 #include <vector>
 //#include <auto_ptr.h>
 
+namespace izenelib{
 namespace zookeeper{
 
 class ZooKeeperEventHandler;
@@ -48,6 +49,6 @@ private:
 };
 
 
-}
+}} // namesapce
 
 #endif /* ZOO_KEEPER_WATCHER_HPP_ */

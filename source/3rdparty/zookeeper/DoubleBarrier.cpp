@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-using namespace zookeeper;
+using namespace izenelib::zookeeper;
 
 
 std::auto_ptr<ZooKeeper> SyncPrimitive::zk_;
