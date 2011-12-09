@@ -148,4 +148,5 @@ ADD_EXECUTABLE(scd_tool
 TARGET_LINK_LIBRARIES(scd_tool
     ${Boost_LIBRARIES}
     izene_util
+    ${Glog_LIBRARIES}    
   )
