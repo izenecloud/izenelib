@@ -447,7 +447,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
           IASSERT(out_buf_size_[out_buf_in_idx_]!=0);//output buffer chanel is smaller than size of a record
           out_buf_full_[out_buf_in_idx_] = true;
           uint32_t tmp = out_buf_in_idx_;
-          out_buf_in_idx_ = (++out_buf_in_idx_)%OUT_BUF_NUM_;
+          ++out_buf_in_idx_;
+          out_buf_in_idx_ %= OUT_BUF_NUM_;
           in_out_con_[tmp].notify_one();
           //std::cout<<idx<<"-"<<out_buf_size_[tmp]<<std::endl;
           continue; 
@@ -522,7 +523,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       if (count_ == 0)
       {
-        out_buf_out_idx_ = (++out_buf_out_idx_)%OUT_BUF_NUM_;
+        ++out_buf_out_idx_;
+        out_buf_out_idx_ %=OUT_BUF_NUM_;
         out_out_con_.notify_all();
         break;
       }
@@ -545,7 +547,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       ioStream.write(sub_out_buf_[idx], out_buf_size_[idx]);
       out_buf_full_[idx] = false;
       out_buf_size_[idx] = 0;
-      out_buf_out_idx_ = (++out_buf_out_idx_)%OUT_BUF_NUM_;
+      ++out_buf_out_idx_;
+      out_buf_out_idx_ %=OUT_BUF_NUM_;
 
       out_out_con_.notify_all();
       in_out_con_[idx].notify_one();

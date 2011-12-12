@@ -26,7 +26,7 @@ IF(index_manager_SHOULD_BUILD)
     ${Glog_INCLUDE_DIRS}
     )
 
-  ADD_DEFINITIONS("-fPIC")
+  ADD_DEFINITIONS("-fPIC -fno-strict-aliasing")
 
   MACRO_ADD_LIBRARY(index_manager SRCS ${index_manager_SRC})
   MACRO_ADD_LIBRARY(mock_index_manager index_manager SRCS ${mock_index_manager_SRC})

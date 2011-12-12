@@ -114,12 +114,13 @@ public:
     size_t _read(char* data, size_t length)
     {
         size_t count = RECORD_ALL_LENGTH;
-        uint8_t len;
+        //uint8_t len;
         char* p = data;
         uint32_t* q = 0;
         while((count <= length)&&(!_isEof()))
         {
-            len = _readByte();
+            //len = _readByte();
+            _readByte();
             //assert(len<=12);
             *p++ = RECORD_VALUE_LENGTH;
             q = (uint32_t*)p;
