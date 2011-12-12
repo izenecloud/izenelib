@@ -341,6 +341,7 @@ private:
     bool b;
 };
 
+
 template <class uword=uint32_t>
 class EWAHBoolArraySparseIterator
 {
@@ -402,6 +403,7 @@ private:
     EWAHBoolArrayIterator<uword> i;
     uint mPosition;
     friend class EWAHBoolArray<uword>;
+    friend class EWAHBoolArrayBitIterator<uword>;
 };
 
 template <class uword=uint32_t>
@@ -410,44 +412,42 @@ class EWAHBoolArrayBitIterator{
 
         uword getCurr() { return (uword)retbit; }
 
-        uword numerOfOnes() { return numones; }
+        uword numberOfOnes() { return numones; }
 
         bool next() {
             if (currentword == zero)
             {
                 return false;
             }
-            if(iscleanword)
+            if(currentword == notzero)
             {
+                retbit = currentbit + bitoffsetinword;
                 ++bitoffsetinword;
-                ++currentbit;
-                retbit = currentbit - 1;
             }
             else
             {
                 uint k;
                 for(k = bitoffsetinword; k < wordinbits; ++k) {
-                    ++bitoffsetinword;
-                    ++currentbit;
                     if ( (currentword & (static_cast<uword>(1) << k)) != 0)
                     {
-                        retbit = currentbit - 1;
+                        retbit = currentbit + k;
+                        bitoffsetinword = k + 1;
                         break;
                     }
                 }
-                if (k == wordinbits) { readNewWord(); return next(); }
+                if (k == wordinbits) { currentbit += wordinbits; readNewWord(); return next(); }
             }
 
             if ( bitoffsetinword == wordinbits )
             {
-                 readNewWord();
+                currentbit += wordinbits;
+                readNewWord();
             }
             return true;
         }
 
         EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other):i(other.i),
         currentword(other.currentword),
-        iscleanword(other.iscleanword),
         retbit(other.retbit),
         currentbit(other.currentbit),
         bitoffsetinword(other.bitoffsetinword),
@@ -461,7 +461,6 @@ class EWAHBoolArrayBitIterator{
         EWAHBoolArrayBitIterator(const vector<uword> & parent, const uint& ones):
             i(parent),
             currentword(0),
-            iscleanword(false),
             retbit(0),
             currentbit(0),
             bitoffsetinword(0),
@@ -473,9 +472,8 @@ class EWAHBoolArrayBitIterator{
 
     private:
         friend class EWAHBoolArray<uword>;
-        EWAHBoolArrayIterator<uword> i;
+        EWAHBoolArraySparseIterator<uword> i;
         uword currentword;
-        bool iscleanword;
         uint retbit;
         uint currentbit;
         uint bitoffsetinword;
@@ -1097,15 +1095,12 @@ void EWAHBoolArrayBitIterator<uword>::readNewWord()
         if (currentword != zero)
         {
             bitoffsetinword = 0;
-            if (currentword == notzero)
-                iscleanword = true;
-            else
-                iscleanword = false;
             return;
         }
         else
         {
-            currentbit += wordinbits;
+            currentbit = i.position() * wordinbits;
+            continue;
         }
     }
     currentword = zero;

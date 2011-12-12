@@ -43,7 +43,7 @@ public:
 
     freq_t docFreq()
     {
-        return bitmapIter_.numerOfOnes();
+        return bitmapIter_.numberOfOnes();
     }
 
     int64_t getCTF()
