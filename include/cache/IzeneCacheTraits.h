@@ -168,7 +168,7 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
                                 CacheInfoListType& cacheContainer_)
     {
         CachedDataType *pd1 = 0;
-        assert(hash_.get(key, pd1));
+        hash_.get(key, pd1);
         LIT lit = pd1->lit;
         ++lit->second;
 
