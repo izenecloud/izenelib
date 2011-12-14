@@ -91,6 +91,8 @@ private:
 
 private:
     int sockFd_;
+
+    bool shutdownFlag_;
 };
 
 }}
