@@ -137,6 +137,51 @@ public:
     }
 
     /**
+     * @param key the row to read
+     * @param func the function @c func(const RowType&) would be called with the row as argument
+     * @return true for success, false for @p key is not found
+     */
+    template <typename Func>
+    bool read_with_func(const key_type& key, Func& func) const
+    {
+        ScopedReadLock lock(lock_);
+
+        const_iterator it = container_.find(key);
+        if (it == container_.end())
+            return false;
+
+        const RowType& crow(*it->second);
+        func(crow);
+        return true;
+    }
+
+    /**
+     * @param key the row to update
+     * @param func the function @c func(RowType&) would be called with the row as argument
+     * @return true for success, false for @p key is not found
+     */
+    template <typename Func>
+    bool update_with_func(const key_type& key, Func& func)
+    {
+        ScopedWriteLock lock(lock_);
+
+        iterator it = container_.find(key);
+        if (it == container_.end())
+            return false;
+
+        boost::shared_ptr<RowType> row = it->second;
+        const int oldSize = row->size();
+
+        func(*row);
+
+        const int newSize = row->size();
+        elemCount_ += newSize - oldSize;
+        dirtyFlags_.insert(key);
+
+        return true;
+    }
+
+    /**
      * erase a row.
      * @param[in] key the row to erase
      * @param[out] isDirty whether the row is dirty

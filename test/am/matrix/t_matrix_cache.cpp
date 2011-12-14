@@ -15,6 +15,57 @@
 namespace
 {
 
+template<typename RowType>
+void checkRow(const RowType& row, const RowType& gold)
+{
+    BOOST_REQUIRE_EQUAL(row.size(), gold.size());
+
+    typename RowType::const_iterator rowIt = row.begin();
+    typename RowType::const_iterator goldIt = gold.begin();
+    typename RowType::const_iterator rowEnd = row.end();
+    typename RowType::const_iterator goldEnd = gold.end();
+
+    for (; rowIt != rowEnd && goldIt != goldEnd; ++rowIt, ++goldIt)
+    {
+        BOOST_CHECK_EQUAL(rowIt->first, goldIt->first);
+        BOOST_CHECK_EQUAL(rowIt->second, goldIt->second);
+    }
+
+    BOOST_CHECK(rowIt == rowEnd);
+    BOOST_CHECK(goldIt == goldEnd);
+}
+
+template<typename RowType>
+class UpdateRowFunc
+{
+public:
+    void operator() (RowType& row)
+    {
+        for (typename RowType::iterator it = row.begin();
+            it != row.end(); ++it)
+        {
+            it->second *= 3;
+        }
+    }
+};
+
+template<typename RowType>
+class CheckRowFunc
+{
+public:
+    CheckRowFunc(const RowType& gold)
+        : gold_(gold)
+    {}
+
+    void operator() (const RowType& row)
+    {
+        checkRow(row, gold_);
+    }
+
+private:
+    const RowType& gold_;
+};
+
 template<typename MatrixType>
 void checkMatrix()
 {
@@ -89,18 +140,33 @@ void checkMatrix()
     }
 
     {
+        BOOST_TEST_MESSAGE("check update_with_func...");
+        UpdateRowFunc<RowType> updateFunc;
+        BOOST_CHECK(matrix.update_with_func(1, updateFunc));
+    }
+
+    RowType goldRow1;
+    goldRow1[1] = MATRIX_VALUE*2*3;
+    goldRow1[2] = MATRIX_VALUE*2*3;
+    goldRow1[3] = MATRIX_VALUE*3;
+    goldRow1[5] = MATRIX_VALUE*3;
+
+    {
+        BOOST_TEST_MESSAGE("check read_with_func...");
+        CheckRowFunc<RowType> readFunc(goldRow1);
+        BOOST_CHECK(matrix.read_with_func(1, readFunc));
+    }
+
+    {
         BOOST_TEST_MESSAGE("check erase...");
         bool isDirty = false;
         SharedRowType row1 = matrix.erase(1, isDirty);
         BOOST_CHECK(isDirty); // as updated
-        BOOST_CHECK_EQUAL((*row1)[1], 2*MATRIX_VALUE);
-        BOOST_CHECK_EQUAL((*row1)[2], 2*MATRIX_VALUE);
-        BOOST_CHECK_EQUAL((*row1)[3], MATRIX_VALUE);
-        BOOST_CHECK_EQUAL((*row1)[5], MATRIX_VALUE);
+        checkRow(*row1, goldRow1);
         BOOST_CHECK(matrix.get(1) == false);
 
         SharedRowType row4 = matrix.erase(4, isDirty);
-        BOOST_CHECK(row4 == false);
+        BOOST_CHECK(row4.get() == NULL);
 
         // matrix = [2][2], [3][1]
         BOOST_CHECK_EQUAL(matrix.size(), 2U);

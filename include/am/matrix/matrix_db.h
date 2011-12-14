@@ -126,6 +126,48 @@ public:
         _policy.touch(x);
     }
 
+    /**
+     * @param x the row to read
+     * @param func the function @c func(const RowType&) would be called with the row as argument
+     */
+    template <typename Func>
+    void read_row_with_func(KeyType x, Func& func)
+    {
+        if (! _cache.read_with_func(x, func))
+        {
+            boost::shared_ptr<RowType> row(new RowType);
+            _db_storage.get(x, *row);
+
+            const RowType& crow(*row);
+            func(crow);
+
+            _evict();
+            _cache.insert(x, row);
+        }
+        _policy.touch(x);
+    }
+
+    /**
+     * @param x the row to update
+     * @param func the function @c func(RowType&) would be called with the row as argument
+     */
+    template <typename Func>
+    void update_row_with_func(KeyType x, Func& func)
+    {
+        _evict();
+        if (! _cache.update_with_func(x, func))
+        {
+            boost::shared_ptr<RowType> row(new RowType);
+            _db_storage.get(x, *row);
+
+            func(*row);
+
+            _cache.update(x, row);
+        }
+
+        _policy.touch(x);
+    }
+
     void clear()
     {
         _dump();
