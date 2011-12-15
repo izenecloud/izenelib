@@ -24,6 +24,7 @@ void MessageHeader::addFileName(const std::string& filename)
 
 SocketIO::SocketIO()
 :sockFd_(-1)
+,shutdownFlag_(false)
 {
 }
 
@@ -79,7 +80,10 @@ SocketIO* SocketIO::Accept()
     socklen_t cliAddrLen = sizeof(cliAddr);
 
     if ((fd = accept(sockFd_, (struct sockaddr *) &cliAddr, &cliAddrLen)) < 0) {
-        perror("Accept: ");
+        if (!shutdownFlag_)
+        {
+            perror("Accept: ");
+        }
         return NULL;
     }
 
@@ -246,6 +250,7 @@ void SocketIO::Close()
 
 void SocketIO::Shutdown()
 {
+    shutdownFlag_ = true;
     shutdown(sockFd_, SHUT_RDWR);
 
     Close();
