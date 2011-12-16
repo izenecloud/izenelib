@@ -69,6 +69,8 @@ private:
 
     char* buf_;
     buf_size_t bufSize_;
+
+    int sentFileNum_;
 };
 
 }} // namespace

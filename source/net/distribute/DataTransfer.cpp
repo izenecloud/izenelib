@@ -12,7 +12,7 @@ namespace net{
 namespace distribute{
 
 DataTransfer::DataTransfer(const std::string& hostname, unsigned int port, buf_size_t bufSize)
-: serverAddr_(hostname, port), bufSize_(bufSize)
+: serverAddr_(hostname, port), bufSize_(bufSize), sentFileNum_(0)
 {
     buf_ = new char[bufSize];
     assert(buf_);
@@ -33,7 +33,7 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
 {
     if (!bfs::exists(src))
     {
-        std::cout<<"Not exists: "<<src<<std::endl;
+        LOG(ERROR)<<"Path does not exists: "<<src<<std::endl;
         return -1;
     }
 
@@ -70,6 +70,12 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
         }
     }
 
+    if (sentFileNum_ == 0)
+    {
+        LOG(ERROR)<<"Dir is empty.";
+        return -1;
+    }
+
     return ret;
 }
 
@@ -90,6 +96,7 @@ DataTransfer::syncSendDirRecur(const std::string& curDir, const std::string& par
 
     int ret = 0;
     int sent = 0;
+    sentFileNum_ = 0;
     bfs::directory_iterator iterEnd;
     for (bfs::directory_iterator iter(curDir); iter != iterEnd; iter++)
     {
@@ -127,6 +134,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         return -1;
     }
 
+    sentFileNum_ ++;
     //LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
     /// start a new connection to send file, adjust Receiver if keep one connection
