@@ -13,9 +13,12 @@ using namespace std;
 using namespace org::apache::cassandra;
 using namespace libcassandra;
 
-static string host("172.16.0.163");
+static const string host("211.152.36.219");
+static const string username("admin");
+static const string password("~Yeogirl!Yun@Is#Watching$You%");
 static int port= 9160;
 static size_t pool_size = 16;
+
 int main()
 {
     try
@@ -29,6 +32,7 @@ int main()
 
         CassandraConnectionManager::instance()->init(host,port,pool_size);
         boost::shared_ptr<Cassandra> client(new Cassandra());
+        client->login(username, password);
 
         string clus_name= client->getClusterName();
         cout << "cluster name: " << clus_name << endl;

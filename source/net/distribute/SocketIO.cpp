@@ -11,6 +11,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 
+#include <stdexcept>
 
 namespace net{
 namespace distribute{
@@ -60,6 +61,10 @@ int SocketIO::Listen(unsigned int port)
     }
 
     if (bind(sockFd_, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+        if (errno == EADDRINUSE)
+        {
+            throw std::runtime_error("SocketIO: Address already in use");
+        }
         perror("Bind: ");
         close(sockFd_);
         sockFd_ = -1;

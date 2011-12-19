@@ -18,185 +18,145 @@ NS_IZENELIB_AM_BEGIN
 
 struct ID_64_32
 {
-    char id64[8];
-    char id32[4];
-
-    uint64_t& ID64_()
-    {
-        return *(uint64_t*)id64;
-    }
-
-    uint32_t& ID32_()
-    {
-        return *(uint32_t*)id32;
-    }
-
-    uint64_t ID64()const
-    {
-        return *(uint64_t*)id64;
-    }
-
-    uint32_t ID32()const
-    {
-        return *(uint32_t*)id32;
-    }
+    uint64_t id64;
+    uint32_t id32;
 
     inline ID_64_32(uint64_t i, uint32_t j)
     {
-        ID64_() = i;
-        ID32_() = j;
+        id64 = i;
+        id32 = j;
     }
 
     inline ID_64_32(uint64_t i)
     {
-        ID64_() = i;
-        ID32_() = -1;
+        id64 = i;
+        id32 = -1;
     }
 
     inline ID_64_32()
     {
-        ID64_() = 0;
-        ID32_() = 0;
+        id64 = 0;
+        id32 = 0;
     }
 
     inline ID_64_32(const ID_64_32& other)
     {
-        ID64_() = other.ID64();
-        ID32_() = other.ID32();
+        id64 = other.id64;
+        id32 = other.id32;
     }
 
     inline ID_64_32& operator = (const ID_64_32& other)
     {
-        ID64_() = other.ID64();
-        ID32_() = other.ID32();
+        id64 = other.id64;
+        id32 = other.id32;
         return *this;
     }
 
     inline bool operator == (const ID_64_32& other)const
     {
-        return (ID64() == other.ID64());
+        return (id64 == other.id64);
     }
 
     inline bool operator != (const ID_64_32& other)const
     {
-        return (ID64() != other.ID64());
+        return (id64 != other.id64);
     }
 
     inline bool operator < (const ID_64_32& other)const
     {
-        return (ID64() < other.ID64());
+        return (id64 < other.id64);
     }
 
     inline bool operator > (const ID_64_32& other)const
     {
-        return (ID64() > other.ID64());
+        return (id64 > other.id64);
     }
 
     inline bool operator <= (const ID_64_32& other)const
     {
-        return (ID64() <= other.ID64());
+        return (id64 <= other.id64);
     }
 
     inline bool operator >= (const ID_64_32& other)const
     {
-        return (ID64() >= other.ID64());
+        return (id64 >= other.id64);
     }
 
     inline uint32_t operator % (uint32_t e)const
     {
-        return (ID64() % e);
+        return (id64 % e);
     }
 };
 
 struct ID_32_64
 {
-    char id32[4];
-    char id64[8];
-
-    uint32_t& ID32_()
-    {
-        return *(uint32_t*)id32;
-    }
-
-    uint64_t& ID64_()
-    {
-        return  *(uint64_t*)id64;
-    }
-
-    uint32_t ID32()const
-    {
-        return *(uint32_t*)id32;
-    }
-
-    uint64_t ID64()const
-    {
-        return *(uint64_t*)id64;
-    }
+    uint32_t id32;
+    uint64_t id64;
 
     inline ID_32_64(uint32_t i, uint64_t j)
     {
-        ID32_() = i;
-        ID64_() = j;
+        id32 = i;
+        id64 = j;
     }
 
     inline ID_32_64(uint32_t i)
     {
-        ID32_() = i;
-        ID64_() = 0;
+        id32 = i;
+        id64 = 0;
     }
 
     inline ID_32_64()
     {
-        ID32_() = 0;
-        ID64_() = 0;
+        id32 = 0;
+        id64 = 0;
     }
 
     inline ID_32_64(const ID_32_64& other)
     {
-        ID32_() = other.ID32();
-        ID64_() = other.ID64();
+        id32 = other.id32;
+        id64 = other.id64;
     }
 
     inline ID_32_64& operator = (const ID_32_64& other)
     {
-        ID32_() = other.ID32();
-        ID64_() = other.ID64();
+        id32 = other.id32;
+        id64 = other.id64;
         return *this;
     }
 
     inline bool operator == (const ID_32_64& other)const
     {
-        return (ID32() == other.ID32());
+        return (id32 == other.id32);
     }
 
     inline bool operator != (const ID_32_64& other)const
     {
-        return (ID32() != other.ID32());
+        return (id32 != other.id32);
     }
 
     inline bool operator < (const ID_32_64& other)const
     {
-        return (ID32() < other.ID32());
+        return (id32 < other.id32);
     }
 
     inline bool operator > (const ID_32_64& other)const
     {
-        return (ID32() > other.ID32());
+        return (id32 > other.id32);
     }
 
     inline bool operator <= (const ID_32_64& other)const
     {
-        return (ID32() <= other.ID32());
+        return (id32 <= other.id32);
     }
 
     inline bool operator >= (const ID_32_64& other)const
     {
-        return (ID32() >= other.ID32());
+        return (id32 >= other.id32);
     }
 
     inline uint32_t operator % (uint32_t e)const
     {
-        return (ID32() % e);
+        return (id32 % e);
     }
 };
 
@@ -240,7 +200,7 @@ public:
 
         if(!table32_64_.find(id))
             return -1;
-        return id.ID64();
+        return id.id64;
     }
 
     uint32_t get32(uint64_t id64)const
@@ -249,7 +209,7 @@ public:
 
         if(!table64_32_.find(id))
             return -1;
-        return id.ID32();
+        return id.id32;
     }
 
     uint32_t save(FILE* f, uint64_t addr = -1)
