@@ -6,6 +6,9 @@
 
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
 namespace net{
 namespace distribute {
 
@@ -21,23 +24,23 @@ public:
     ~DataTransfer();
 
     /**
-     * Synchronously send file or file(s) in directory
+     * Synchronously send file or directory to remote host
      * @param src  full file name or directory name which contain file(s) to be sent.
-     * @param curDir  directory name which should contain the file(s) to be sent,
-     *                if src is a dir, it will be renamed to curDir.
+     * @param destDir  destination directory in remote host (relative to receiver base dir),
+     *                 default is current dir name of src.
      * @param isRecursively  whether send recursively, only available when src is a directory.
-     * @return 0 on success, -n on failure (n indicates the file number of failure).
+     * @return 0 on success, -n on failure.
      */
-    int syncSend(const std::string& src, const std::string& curDirName, bool isRecursively=false);
+    int syncSend(const std::string& src, const std::string& destDir, bool isRecursively=false);
 
     /**
-     * Copy file or directory
+     * Copy file or directory to local
      * @param src source file or directory name
-     * @param dest destination file or directory name
+     * @param dest destination file or directory, directory path should be exited.
      * @param isRecursively whether copy recursively if src is directory
      * @return
      */
-    static int copy(const std::string& src, const std::string& dest, bool isRecursively=false);
+    static bool copy(const std::string& src, const std::string& dest, bool isRecursively=false, bool isOverwrite=false);
 
 private:
     /**
@@ -59,9 +62,14 @@ private:
     int64_t syncSendFileData_(std::ifstream& ifs, const std::string& fileName, int64_t fileSize);
 
     /**
+     * File copy
+     */
+    static bool copyFile_(const bfs::path& src, const bfs::path& dest, bool isOverwrite);
+
+    /**
      * utility
      */
-    std::string processPath(const std::string& path);
+    static std::string processPath(const std::string& path);
 
 private:
     SocketIO socketIO_;

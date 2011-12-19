@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <signal.h>
-#include <boost/filesystem.hpp>
 
 #include <glog/logging.h>
 
@@ -29,7 +28,7 @@ DataTransfer::~DataTransfer()
 }
 
 int
-DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bool isRecursively)
+DataTransfer::syncSend(const std::string& src, const std::string& destDir, bool isRecursively)
 {
     if (!bfs::exists(src))
     {
@@ -41,14 +40,14 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
     if (!bfs::is_directory(src))
     {
         bfs::path path(src);
-        std::string curFileDir = curDirName.empty() ? path.parent_path().filename() : curDirName;
+        std::string curFileDir = destDir.empty() ? path.parent_path().filename() : destDir;
         return syncSendFile(src, curFileDir);
     }
 
     // src is a directory
     bfs::path path(processPath(src));
     //std::cout<<path.string()<<std::endl;
-    std::string curFileDir = curDirName.empty() ? path.filename() : curDirName; // rename dir to dirName
+    std::string curFileDir = destDir.empty() ? path.filename() : destDir; // rename dir to dirName
     //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl;
 
     int ret = 0;
@@ -79,11 +78,58 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
     return ret;
 }
 
-int
-DataTransfer::copy(const std::string& src, const std::string& dest, bool isRecursively)
+/*static*/ bool
+DataTransfer::copy(const std::string& src, const std::string& dest, bool isRecursively, bool isOverwrite)
 {
-    //bfs::copy_file();
-    return 0;
+    if (!bfs::exists(src))
+    {
+        LOG(ERROR)<<"No such file or directory: "<<src<<std::endl;
+        return false;
+    }
+
+    processPath(dest);
+
+    // src is a file
+    if (!bfs::is_directory(src))
+    {
+        if (bfs::is_regular_file(src))
+        {
+            bfs::path srcPath(src);
+            bfs::path destPath(dest);
+            if (bfs::is_directory(destPath))
+            {
+                destPath = destPath / srcPath.filename();
+            }
+            return copyFile_(srcPath, destPath, isOverwrite);
+        }
+    }
+    // src is a directory
+    else
+    {
+        if (!bfs::is_directory(dest))
+        {
+            LOG(ERROR)<<"Destination is not a directory or not existed: "<<dest<<std::endl;
+            return false;
+        }
+
+        bfs::directory_iterator iterEnd;
+        for (bfs::directory_iterator iter(src); iter != iterEnd; iter++)
+        {
+            if (bfs::is_regular_file(iter->path()))
+            {
+                if (!copyFile_(iter->path(), bfs::path(dest) / iter->path().filename(), isOverwrite))
+                    return false;
+            }
+            else if (isRecursively && bfs::is_directory(iter->path()))
+            {
+                std::string recDir = dest+"/"+iter->path().filename();
+                bfs::create_directories(recDir);
+                copy(iter->path().string(), recDir, isRecursively, isOverwrite);
+            }
+        }
+    }
+
+    return true;
 }
 
 /// private ////////////////////////////////////////////////////////////////////
@@ -253,6 +299,25 @@ int64_t DataTransfer::syncSendFileData_(std::ifstream& ifs, const std::string& f
     //LOG(INFO)<<"Sent data size "<<totalSentLen;
 
     return totalSentLen;
+}
+
+/*static*/ bool
+DataTransfer::copyFile_(const bfs::path& src, const bfs::path& dest, bool isOverwrite)
+{
+    //std::cout<<src<<"  --->  "<<dest<<std::endl;
+    try
+    {
+        BOOST_SCOPED_ENUM(bfs::copy_option) option =
+            isOverwrite ? bfs::copy_option::overwrite_if_exists : bfs::copy_option::fail_if_exists;
+        bfs::copy_file(src, dest, option);
+    }
+    catch (std::exception& e)
+    {
+        std::cout<<e.what()<<std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 std::string DataTransfer::processPath(const std::string& path)
