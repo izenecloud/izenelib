@@ -27,8 +27,8 @@ NS_IZENELIB_AM_BEGIN
 template<
 typename KeyType,
 typename ElementType,
-typename RowType = ::google::sparse_hash_map<KeyType, ElementType >,
-typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
+typename RowType = ::google::sparse_hash_map<KeyType, ElementType>,
+typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock>,
 typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
 typename Policy = detail::policy_lfu_nouveau<KeyType>
 >
@@ -175,18 +175,24 @@ public:
         _policy.clear();
     }
 
-    void print(std::ostream& ostream) const
+    std::size_t occupy_size() const
     {
-        size_t cacheSize = _cache.occupy_size();
-        size_t policySize = _policy.size();
-        size_t totalSize = cacheSize + policySize;
+        return _cache.occupy_size() + _policy.size();
+    }
 
-        ostream << _cache
-                << " + policy[" << policySize
-                << "] => MatrixDB[" << totalSize << "]";
+    void print(std::ostream& ostream, bool detail = false) const
+    {
         if (_is_cache_full())
         {
-            ostream << " FULL";
+            ostream << "FULL ";
+        }
+
+        ostream << "MatrixDB[" << occupy_size() << "], ";
+
+        if (detail)
+        {
+            ostream << std::endl << "======> Detail: " << _cache
+                    << " + policy[" << _policy.size() << "]" << std::endl;
         }
     }
 
