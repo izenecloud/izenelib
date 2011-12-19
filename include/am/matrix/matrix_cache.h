@@ -40,7 +40,9 @@ public:
     enum
     {
         ELEM_SIZE = sizeof(col_type) + sizeof(elem_type),
-        ROW_SIZE = sizeof(typename container_type::key_type) + sizeof(typename container_type::mapped_type),
+        ROW_SIZE = sizeof(typename container_type::key_type) +
+                   sizeof(typename container_type::mapped_type) +
+                   sizeof(RowType),
         FLAG_SIZE = sizeof(key_type)
     };
 
@@ -56,11 +58,6 @@ public:
     {
         ScopedReadLock lock(lock_);
         return container_.empty();
-    }
-
-    std::size_t occupy_size() const
-    {
-        return ELEM_SIZE*elemCount_ + ROW_SIZE*size() + FLAG_SIZE*dirtyFlags_.size();
     }
 
     std::size_t elem_count() const
@@ -244,14 +241,18 @@ public:
         dirtyFlags_.clear();
     }
 
+    std::size_t occupy_size() const
+    {
+        return ELEM_SIZE * elemCount_ +
+               ROW_SIZE * size() +
+               FLAG_SIZE * dirtyFlags_.size();
+    }
+
     void print(std::ostream& ostream) const
     {
-        ostream << "ELEM_SIZE[" << ELEM_SIZE
-                << "]*elem[" << elemCount_
-                << "] + ROW_SIZE[" << ROW_SIZE
-                << "]*row[" << size()
-                << "] + FLAG_SIZE[" << FLAG_SIZE
-                << "]*flag[" << dirtyFlags_.size()
+        ostream << "ELEM_SIZE[" << ELEM_SIZE << "]*elem[" << elemCount_
+                << "] + ROW_SIZE[" << ROW_SIZE << "]*row[" << size()
+                << "] + FLAG_SIZE[" << FLAG_SIZE << "]*flag[" << dirtyFlags_.size()
                 << "] => MatrixCache[" << occupy_size() << "]";
     }
 
