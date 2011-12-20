@@ -98,7 +98,7 @@ void Indexer::setIndexManagerConfig(
             {
                 propertyMap.insert(make_pair(it->getName(), it->getPropertyId()));
                 PropertyType type;
-                if( it->getType(type) )
+                if( it->getType(type) && it->isFilter() )
                 {
 //                     LOG(INFO)<<"Get Type "<<it->getName()<<" , "<<type.which()<<std::endl;
                     type_map.insert(std::make_pair(it->getName(), type) );
