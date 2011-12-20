@@ -410,7 +410,7 @@ template <class uword=uint32_t>
 class EWAHBoolArrayBitIterator{
     public:
 
-        uword getCurr() { return (uword)retbit; }
+        uword getCurr() { return retbit; }
 
         uword numberOfOnes() { return numones; }
 
@@ -474,10 +474,10 @@ class EWAHBoolArrayBitIterator{
         friend class EWAHBoolArray<uword>;
         EWAHBoolArraySparseIterator<uword> i;
         uword currentword;
-        uint retbit;
-        uint currentbit;
-        uint bitoffsetinword;
-        uint numones;
+        uword retbit;
+        uword currentbit;
+        uword bitoffsetinword;
+        uword numones;
 };
 
 
