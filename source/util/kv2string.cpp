@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <boost/lexical_cast.hpp>
+
 namespace izenelib {
 namespace util {
 
@@ -66,9 +68,15 @@ bool kv2string::getValue(const std::string& key, unsigned int& value)
     map_iter_t it = kvMap_.find(key);
     if (it != kvMap_.end())
     {
-        std::istringstream iss(kvMap_[key]);
-        iss >> value;
-        return true;
+        //std::istringstream iss(kvMap_[key]);
+        //iss >> value;
+
+        try {
+            value = boost::lexical_cast<unsigned int>(kvMap_[key]);
+            return true;
+        } catch (std::exception& e) {
+            return false;
+        }
     }
 
     return false;
