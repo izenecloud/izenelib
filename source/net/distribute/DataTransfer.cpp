@@ -307,9 +307,10 @@ DataTransfer::copyFile_(const bfs::path& src, const bfs::path& dest, bool isOver
     //std::cout<<src<<"  --->  "<<dest<<std::endl;
     try
     {
-        BOOST_SCOPED_ENUM(bfs::copy_option) option =
-            isOverwrite ? bfs::copy_option::overwrite_if_exists : bfs::copy_option::fail_if_exists;
-        bfs::copy_file(src, dest, option);
+        // boost version > 1.38
+        //BOOST_SCOPED_ENUM(bfs::copy_option) option =
+        //    isOverwrite ? bfs::copy_option::overwrite_if_exists : bfs::copy_option::fail_if_exists;
+        bfs::copy_file(src, dest);
     }
     catch (std::exception& e)
     {
