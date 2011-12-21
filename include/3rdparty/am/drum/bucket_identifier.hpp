@@ -34,10 +34,70 @@
 
 DRUM_BEGIN_NAMESPACE
 
-template <class key_t, std::size_t ident_len>
-struct BucketIdentififer
+template <>
+struct BucketIdentififer<boost::uint64_t, 2>
 {
-    static std::size_t Calculate(key_t const& key);
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0x8000000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 63);
+    }
+};
+
+template <>
+struct BucketIdentififer<boost::uint64_t, 4>
+{
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0xC000000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 62);
+    }
+};
+
+template <>
+struct BucketIdentififer<boost::uint64_t, 8>
+{
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0xE000000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 61);
+    }
+};
+
+template <>
+struct BucketIdentififer<boost::uint64_t, 16>
+{
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0xF000000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 60);
+    }
+};
+
+template <>
+struct BucketIdentififer<boost::uint64_t, 32>
+{
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0xF800000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 59);
+    }
+};
+
+template <>
+struct BucketIdentififer<boost::uint64_t, 64>
+{
+    static std::size_t Calculate(boost::uint64_t const& key)
+    {
+        boost::uint64_t mask = 0xFC00000000000000LL;
+        boost::uint64_t bucket = mask & key;
+        return static_cast<std::size_t>(bucket >> 58);
+    }
 };
 
 DRUM_END_NAMESPACE
