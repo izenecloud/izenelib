@@ -22,7 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include <3rdparty/drum/rabin_fingerprint.hpp>
+#include <3rdparty/am/drum/rabin_fingerprint.hpp>
 
 
 RabinFingerprint::RabinFingerprint()

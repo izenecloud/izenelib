@@ -22,7 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include <3rdparty/drum/bucket_identifier.hpp>
+#include <3rdparty/am/drum/bucket_identifier.hpp>
 
 
 DRUM_BEGIN_NAMESPACE

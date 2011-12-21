@@ -22,7 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include <3rdparty/drum/drum.hpp>
+#include <3rdparty/am/drum/drum.hpp>
 
 #include <sstream>
 
