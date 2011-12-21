@@ -17,7 +17,6 @@ typedef boost::mpl::list<
     , sdb_fixedhash<int, std::string>
     , sdb_fixedbtree<int, std::string>
     , sdb_storage<int, std::string>   
-    , sdb_storage_mm<int, std::string>   
 > test_types;
 
 BOOST_AUTO_TEST_SUITE(OpenClose_test)

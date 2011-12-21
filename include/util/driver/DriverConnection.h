@@ -17,6 +17,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
 namespace izenelib {

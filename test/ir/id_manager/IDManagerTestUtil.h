@@ -31,7 +31,7 @@ public:
     IDManagerFixture()
     {
         // generate two term lists
-		BOOST_CHECK_EQUAL(generateTermLists(termUStringList1_, termUStringList2_), true);
+        BOOST_CHECK_EQUAL(generateTermLists(termUStringList1_, termUStringList2_), true);
 
     } // end - TermIdManagerFixture()
 
@@ -41,7 +41,7 @@ public:
         directory_iterator end_itr; // default construction yields past-the-end
         for ( directory_iterator itr("."); itr != end_itr; ++itr )
         {
-            if(itr->leaf().compare(0, prefix.length(), prefix)  == 0)
+            if(path(*itr).filename().string().compare(0, prefix.length(), prefix)  == 0)
                 remove_all(itr->path());
         }
     }

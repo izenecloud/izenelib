@@ -15,15 +15,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/bind.hpp>
-#include <boost/serialization/deque.hpp>
+//#include <boost/serialization/deque.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp> 
-#include <boost/format.hpp>
+//#include <boost/format.hpp>
 
 #include <am/tokyo_cabinet/tc_fixdb.h>
-#include <cache/IzeneCache.h>
-#include <util/izene_serialization.h>
-#include <util/Exception.h>
+//#include <cache/IzeneCache.h>
+//#include <util/izene_serialization.h>
+//#include <util/Exception.h>
 
 #include "SeqFileDef.hpp"
 

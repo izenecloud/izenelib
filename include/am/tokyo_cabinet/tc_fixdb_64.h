@@ -125,7 +125,7 @@ public:
         if ( pv == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -148,7 +148,7 @@ public:
         if ( pv == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -226,7 +226,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb open on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -245,7 +245,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb close on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -265,7 +265,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb commit on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -302,7 +302,7 @@ private:
             if ( fdb_ == NULL )
             {
                 int errcode = ecode();
-                if ( errcode != TCESUCCESS )
+                //if ( errcode != TCESUCCESS )
                 {
                     IZENELIB_THROW("tc_fixdb new on "+fileName_+" : "+tcfdberrmsg(errcode));
                 }

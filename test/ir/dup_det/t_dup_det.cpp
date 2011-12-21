@@ -78,16 +78,16 @@ bool match(const std::string& path, const char* prefix)
 
 void remove(const char* prefix)
 {
-    boost::filesystem::path full_path(   "./"   ,boost::filesystem::native);
+    boost::filesystem::path full_path("./");
     if (boost::filesystem::exists(full_path))
          {
        boost::filesystem::directory_iterator item_begin(full_path);
        boost::filesystem::directory_iterator item_end;
        for ( ;item_begin   !=  item_end; item_begin ++ )
                  {
-           if (match(item_begin ->path().native_file_string(), prefix))
-        		boost::filesystem::remove(item_begin ->path().native_file_string());
-           //cout  << item_begin ->path().native_file_string() << " \t[dir] " << endl;
+           if (match(item_begin ->path().string(), prefix))
+        		boost::filesystem::remove(item_begin ->path().string());
+           //cout  << item_begin ->path().string() << " \t[dir] " << endl;
                  }
         }
 }

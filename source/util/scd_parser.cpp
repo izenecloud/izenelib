@@ -121,7 +121,7 @@ bool ScdParser::checkSCDFormat( const string & file )
             && boost::filesystem::path(file).extension() != ".scd"  )
         return false;
 
-    string fileName = boost::filesystem::path(file).stem();
+    string fileName = boost::filesystem::path(file).stem().string();
 
     size_t pos = 0;
     string strVal;
@@ -203,7 +203,7 @@ unsigned ScdParser::checkSCDDate( const string& file)
 
     try
     {
-        string strVal = boost::filesystem::path(file).stem().substr(kOffset, kCount);
+        string strVal = boost::filesystem::path(file).stem().string().substr(kOffset, kCount);
         unsigned val = 0;
         sscanf( strVal.c_str(), "%u", &val );
         return val;
@@ -221,7 +221,7 @@ unsigned ScdParser::checkSCDTime( const string& file)
 
     try
     {
-        string strVal = boost::filesystem::path(file).stem().substr(kOffset, kCount);
+        string strVal = boost::filesystem::path(file).stem().string().substr(kOffset, kCount);
         unsigned hhmm = 0;
         unsigned sssss = 0;
         sscanf( strVal.c_str(), "%u-%u", &hhmm, &sssss );
@@ -239,7 +239,7 @@ SCD_TYPE ScdParser::checkSCDType( const string& file )
     //    <SSsss(second, millisecond, 5Bytes)>-<I/U/D/R(1Byte)>-
     //    <C/F(1Byte)>.SCD
 
-    string fileName = boost::filesystem::path(file).stem();
+    string fileName = boost::filesystem::path(file).stem().string();
 
     SCD_TYPE type = NOT_SCD;
 

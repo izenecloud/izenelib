@@ -386,7 +386,7 @@ void MRWorker::MapWork(boost::shared_ptr<Mapper> mapper)
     {
         if(bfs::is_regular_file(*iter))
         {
-            string currentInputFileName = iter->string();
+            string currentInputFileName = bfs::path(*iter).string();
             LOG(INFO) << "Mapping input file: " << currentInputFileName;
 
             boost::scoped_ptr<Reader> reader(CREATE_READER("text"));

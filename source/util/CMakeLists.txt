@@ -162,6 +162,7 @@ IF(izene_util_SHOULD_BUILD)
     ${Boost_THREAD_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${Boost_REGEX_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
     json
     ${CMAKE_THREAD_LIBS_INIT}
     dl

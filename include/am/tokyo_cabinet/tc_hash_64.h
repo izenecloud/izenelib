@@ -161,7 +161,7 @@ public:
         if ( value == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_hash find on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -190,7 +190,7 @@ public:
         if ( pv == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_hash get on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -216,7 +216,7 @@ public:
         if ( pv == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
             }
@@ -357,7 +357,7 @@ public:
         if ( ret_key_buff == NULL )
         {
             int errcode = ecode();
-            if ( errcode != TCENOREC )
+            //if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_hash get next on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -444,7 +444,7 @@ public:
         if ( !op )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_hash iterInit on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -462,7 +462,7 @@ public:
         if ( !b )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_hash iterNext on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -507,7 +507,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -526,7 +526,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_hash close on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -546,7 +546,7 @@ public:
         if ( !ret )
         {
             int errcode = ecode();
-            if ( errcode != TCESUCCESS )
+            //if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_hash commit on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -602,7 +602,7 @@ private:
             if ( hdb_ == NULL )
             {
                 int errcode = ecode();
-                if ( errcode != TCESUCCESS )
+                //if ( errcode != TCESUCCESS )
                 {
                     IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
                 }

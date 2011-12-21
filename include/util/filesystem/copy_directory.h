@@ -8,7 +8,6 @@
  */
 
 #include <boost/filesystem.hpp>
-#include <boost/utility/enable_if.hpp>
 
 namespace izenelib {
 namespace util {
@@ -23,15 +22,13 @@ using namespace boost::filesystem;
  * Only copies regular files in directory \a from, no sub-directory is
  * traversed.
  */
-template<typename Path>
-typename boost::enable_if<is_basic_path<Path> >::type
-copy_directory(const Path& from, const Path& to)
+inline void copy_directory(const path& from, const path& to)
 {
     remove_all(to);
     create_directory(to);
 
-    static const basic_directory_iterator<Path> itEnd;
-    for (basic_directory_iterator<Path> it(from);
+    static const directory_iterator itEnd;
+    for (directory_iterator it(from);
          it != itEnd;
          ++it)
     {
@@ -55,15 +52,14 @@ copy_directory(const Path& from, const Path& to)
  * Only copies regular files in directory \a from, no sub-directory is
  * traversed.
  */
-template<typename Path, typename Predicate>
-typename boost::enable_if<is_basic_path<Path> >::type
-copy_directory_if(const Path& from, const Path& to, Predicate shouldCopy)
+template<typename Predicate>
+inline void copy_directory_if(const path& from, const path& to, Predicate shouldCopy)
 {
     remove_all(to);
     create_directory(to);
 
-    static const basic_directory_iterator<Path> itEnd;
-    for (basic_directory_iterator<Path> it(from);
+    static const directory_iterator itEnd;
+    for (directory_iterator it(from);
          it != itEnd;
          ++it)
     {
@@ -78,15 +74,13 @@ copy_directory_if(const Path& from, const Path& to, Predicate shouldCopy)
  * @brief copies file recursively in \a from to \a to.
  * @exception basic_filesystem_error<Path>
  */
-template<typename Path>
-typename boost::enable_if<is_basic_path<Path> >::type
-recursive_copy_directory(const Path& from, const Path& to)
+inline void recursive_copy_directory(const path& from, const path& to)
 {
     remove_all(to);
     create_directory(to);
 
-    static const basic_directory_iterator<Path> itEnd;
-    for (basic_directory_iterator<Path> it(from);
+    static const directory_iterator itEnd;
+    for (directory_iterator it(from);
          it != itEnd;
          ++it)
     {
@@ -116,15 +110,14 @@ recursive_copy_directory(const Path& from, const Path& to)
  *
  * @exception basic_filesystem_error<Path>
  */
-template<typename Path, typename Predicate>
-typename boost::enable_if<is_basic_path<Path> >::type
-recursive_copy_directory_if(const Path& from, const Path& to, Predicate shouldCopy)
+template<typename Predicate>
+inline void recursive_copy_directory_if(const path& from, const path& to, Predicate shouldCopy)
 {
     remove_all(to);
     create_directory(to);
 
-    static const basic_directory_iterator<Path> itEnd;
-    for (basic_directory_iterator<Path> it(from);
+    static const directory_iterator itEnd;
+    for (directory_iterator it(from);
          it != itEnd;
          ++it)
     {
@@ -140,43 +133,6 @@ recursive_copy_directory_if(const Path& from, const Path& to, Predicate shouldCo
             }
         }
     }
-}
-
-inline void copy_directory(const path& from, const path& to)
-{
-    return copy_directory<path>(from, to);
-}
-inline void copy_directory(const wpath& from, const wpath& to)
-{
-    return copy_directory<wpath>(from, to);
-}
-template<typename Predicate>
-inline void copy_directory_if(const path& from, const path& to, Predicate shouldCopy)
-{
-    return copy_directory_if<path>(from, to, shouldCopy);
-}
-template<typename Predicate>
-inline void copy_directory_if(const wpath& from, const wpath& to, Predicate shouldCopy)
-{
-    return copy_directory_if<wpath>(from, to, shouldCopy);
-}
-inline void recursive_copy_directory(const path& from, const path& to)
-{
-    return recursive_copy_directory<path>(from, to);
-}
-inline void recursive_copy_directory(const wpath& from, const wpath& to)
-{
-    return recursive_copy_directory<wpath>(from, to);
-}
-template<typename Predicate>
-inline void recursive_copy_directory_if(const path& from, const path& to, Predicate shouldCopy)
-{
-    return recursive_copy_directory_if<path>(from, to, shouldCopy);
-}
-template<typename Predicate>
-inline void recursive_copy_directory_if(const wpath& from, const wpath& to, Predicate shouldCopy)
-{
-    return recursive_copy_directory_if<wpath>(from, to, shouldCopy);
 }
 
 }}} // namespace izenelib::util::filesystem

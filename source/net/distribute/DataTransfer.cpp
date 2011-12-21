@@ -40,14 +40,14 @@ DataTransfer::syncSend(const std::string& src, const std::string& destDir, bool 
     if (!bfs::is_directory(src))
     {
         bfs::path path(src);
-        std::string curFileDir = destDir.empty() ? path.parent_path().filename() : destDir;
+        std::string curFileDir = destDir.empty() ? path.parent_path().filename().string() : destDir;
         return syncSendFile(src, curFileDir);
     }
 
     // src is a directory
     bfs::path path(processPath(src));
     //std::cout<<path.string()<<std::endl;
-    std::string curFileDir = destDir.empty() ? path.filename() : destDir; // rename dir to dirName
+    std::string curFileDir = destDir.empty() ? path.filename().string() : destDir; // rename dir to dirName
     //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl;
 
     int ret = 0;
@@ -122,7 +122,7 @@ DataTransfer::copy(const std::string& src, const std::string& dest, bool isRecur
             }
             else if (isRecursively && bfs::is_directory(iter->path()))
             {
-                std::string recDir = dest+"/"+iter->path().filename();
+                std::string recDir = dest+"/"+iter->path().filename().string();
                 bfs::create_directories(recDir);
                 copy(iter->path().string(), recDir, isRecursively, isOverwrite);
             }
@@ -137,7 +137,7 @@ int
 DataTransfer::syncSendDirRecur(const std::string& curDir, const std::string& parentDir)
 {
     bfs::path path(curDir);
-    std::string curFileDir = parentDir + "/" + path.filename();
+    std::string curFileDir = parentDir + "/" + path.filename().string();
     //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl; //xxx
 
     int ret = 0;
@@ -200,7 +200,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     SendFileReqMsg msg;
     bfs::path path(fileName);
     msg.setFileType(SendFileReqMsg::FTYPE_SCD);
-    msg.setFileName(curDir+"/"+path.filename());
+    msg.setFileName(curDir+"/"+path.filename().string());
     int64_t fileSize = bfs::file_size(fileName);
     msg.setFileSize(fileSize);
 
