@@ -160,11 +160,6 @@ public:
 
         if ( value == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_hash find on "+fileName_+" : "+tchdberrmsg(errcode));
-            }
         }
         if ( value == NULL )return NULL;
         else
@@ -189,11 +184,6 @@ public:
         void* pv = tchdbget(hdb_, ptr, ksize, &sp);
         if ( pv == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_hash get on "+fileName_+" : "+tchdberrmsg(errcode));
-            }
         }
         if ( !pv )return false;
         else
@@ -215,11 +205,6 @@ public:
         void* pv = tchdbget(hdb_, ptr, ksize, &sp);
         if ( pv == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
-            }
             return NULL;
         }
         else
@@ -356,11 +341,6 @@ public:
 
         if ( ret_key_buff == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_hash get next on "+fileName_+" : "+tchdberrmsg(errcode));
-            }
         }
         if (ret_key_buff)
         {

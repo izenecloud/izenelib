@@ -124,11 +124,6 @@ public:
         void* pv = tcfdbget(fdb_, key, &sp);
         if ( pv == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
-            }
             return false;
         }
         else
@@ -147,11 +142,6 @@ public:
         void* pv = tcfdbget(fdb_, key, &sp);
         if ( pv == NULL )
         {
-            int errcode = ecode();
-            //if ( errcode != TCENOREC )
-            {
-                IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
-            }
             return NULL;
         }
         else
