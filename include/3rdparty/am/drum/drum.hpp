@@ -31,7 +31,6 @@
 #include "null_dispatcher.hpp"
 
 //Boost.
-#include <boost/array.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/cstdint.hpp>
 
@@ -47,7 +46,7 @@
 DRUM_BEGIN_NAMESPACE
 
 //For specialization.
-template <class key_t, std::size_t num_buckets_nt> struct BucketIdentififer;
+template <class key_t> struct BucketIdentififer;
 
 /*
  * NOTES:
@@ -64,13 +63,10 @@ template <class key_t, std::size_t num_buckets_nt> struct BucketIdentififer;
 template<class key_t,
          class value_t,
          class aux_t,
-         std::size_t num_buckets_nt,
-         std::size_t bucket_buff_elem_size_nt,
-         std::size_t bucket_byte_size_nt,
          template <class> class key_comp_t,
          template <class, class, class> class ordered_db_t,
          template <class, class, class> class dispatcher_t = NullDispatcher>
-class Drum
+class Drum : public boost::noncopyable
 {
 public:
     typedef key_t KeyType;
@@ -84,16 +80,14 @@ private:
                          std::size_t,  //Position in the bucket.
                          char          //Operation result (unique, duplicate).
                         > CompoundType;
-    typedef boost::array<CompoundType, bucket_buff_elem_size_nt> CompoundBucketBuffer;
-    typedef boost::array<CompoundBucketBuffer, num_buckets_nt> CompoundBucketBufferContainer;
-    typedef boost::array<AuxType, bucket_buff_elem_size_nt> AuxBucketBuffer;
-    typedef boost::array<AuxBucketBuffer, num_buckets_nt> AuxBucketBufferContainer;
-    typedef boost::array<std::size_t, num_buckets_nt> NextBufferPositionsContainer;
+    typedef std::vector<CompoundType> CompoundBucketBuffer;
+    typedef std::vector<CompoundBucketBuffer> CompoundBucketBufferContainer;
+    typedef std::vector<AuxType> AuxBucketBuffer;
+    typedef std::vector<AuxBucketBuffer> AuxBucketBufferContainer;
+    typedef std::vector<std::size_t> NextBufferPositionsContainer;
 
-    typedef boost::array<
-        std::pair<std::string, std::string>, num_buckets_nt> BucketFileNamesContainer;
-    typedef boost::array<
-        std::pair<std::streampos, std::streampos>, num_buckets_nt> BucketFilePointersContainer;
+    typedef std::vector<std::pair<std::string, std::string> > BucketFileNamesContainer;
+    typedef std::vector<std::pair<std::streampos, std::streampos> > BucketFilePointersContainer;
 
     typedef ordered_db_t<key_t, value_t, key_comp_t<key_t> > DbType;
 
@@ -109,9 +103,6 @@ private:
             return ka < kb; //Must be available for key type.
         }
     };
-
-    Drum(Drum const&);
-    Drum const& operator=(Drum const&);
 
     //Setup/cleanup.
     void SetUp();
@@ -148,9 +139,12 @@ private:
     void Dispatch();
 
 public:
-    Drum(std::string const& name);
-    Drum(std::string const& name, DispatcherType const& dispatcher);
-    Drum(std::string const& name, DispatcherType const& dispatcher, boost::uint32_t dds);
+    Drum(std::string const& name,
+         std::size_t num_buckets,
+         std::size_t bucket_buff_elem_size,
+         std::size_t bucket_byte_size,
+         DispatcherType const& dispatcher = DispatcherType()
+    );
     ~Drum(); //Not intended to be inherited.
 
     //Check/update operations.
@@ -169,7 +163,6 @@ private:
     bool feed_buckets_;
     std::string drum_name_;
     DbType db_; //Disk repository.
-    boost::uint32_t const db_default_data_size_;
     bool db_closed_;
     DispatcherType dispatcher_;
 
@@ -180,6 +173,11 @@ private:
     static const char UPDATE = 2;
     static const char UNIQUE_KEY = 3;
     static const char DUPLICATE_KEY = 4;
+
+    std::size_t const num_buckets_;
+    std::size_t const bucket_buff_elem_size_;
+    std::size_t const bucket_byte_size_;
+    std::size_t num_bucket_bits_;
 
     std::vector<CompoundType> sorted_merge_buffer_; //Used during merge with disk.
     std::vector<std::size_t> unsorting_helper_; //Original positions of elements in buckets.
@@ -197,9 +195,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -207,50 +202,39 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
-Drum(std::string const& name)
+Drum(std::string const& name,
+     std::size_t num_buckets,
+     std::size_t bucket_buff_elem_size,
+     std::size_t bucket_byte_size,
+     DispatcherType const& dispatcher
+)
     : merge_buckets_(false)
     , feed_buckets_(false)
     , drum_name_(name)
-    , db_default_data_size_(128)
-    , db_closed_(false)
-{
-    this->SetUp();
-}
-
-template <
-    class key_t,
-    class value_t,
-    class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
-    template <class> class key_comp_t,
-    template <class, class, class> class ordered_db_t,
-    template <class, class, class> class dispatcher_t>
-Drum<
-    key_t,
-    value_t,
-    aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
-    key_comp_t,
-    ordered_db_t,
-    dispatcher_t>::
-Drum(std::string const& name, DispatcherType const& dispatcher)
-    : merge_buckets_(false)
-    , feed_buckets_(false)
-    , drum_name_(name)
-    , db_default_data_size_(128)
     , db_closed_(false)
     , dispatcher_(dispatcher)
+    , num_buckets_(num_buckets)
+    , bucket_buff_elem_size_(bucket_buff_elem_size)
+    , bucket_byte_size_(bucket_byte_size)
+    , num_bucket_bits_(0)
+    , kv_buffers_(num_buckets_)
+    , aux_buffers_(num_buckets_)
+    , next_positions_(num_buckets_)
+    , file_names_(num_buckets_)
+    , current_pointers_(num_buckets_)
 {
+    while (num_buckets >>= 1)
+    {
+        ++num_bucket_bits_;
+    }
+    for (std::size_t i = 0; i < num_buckets_; i++)
+    {
+        kv_buffers_[i].resize(bucket_buff_elem_size);
+        aux_buffers_[i].resize(bucket_buff_elem_size);
+    }
     this->SetUp();
 }
 
@@ -258,9 +242,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -268,40 +249,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
-    key_comp_t,
-    ordered_db_t,
-    dispatcher_t>::
-Drum(std::string const& name, DispatcherType const& dispatcher, uint32_t dds)
-    : merge_buckets_(false)
-    , feed_buckets_(false)
-    , drum_name_(name)
-    , db_default_data_size_(dds)
-    , db_closed_(false)
-    , dispatcher_(dispatcher)
-{
-    this->SetUp();
-}
-
-template <
-    class key_t,
-    class value_t,
-    class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
-    template <class> class key_comp_t,
-    template <class, class, class> class ordered_db_t,
-    template <class, class, class> class dispatcher_t>
-Drum<
-    key_t,
-    value_t,
-    aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -319,9 +266,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -330,9 +274,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -347,9 +288,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -358,15 +296,12 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 AssignFileNames()
 {
-    for (std::size_t bucket_id = 0; bucket_id < num_buckets_nt; ++bucket_id)
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
     {
         std::ostringstream kv_file;
         kv_file << "bucket" << bucket_id << ".kv";
@@ -382,9 +317,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -393,9 +325,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -409,9 +338,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -420,9 +346,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -436,9 +359,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -447,9 +367,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -464,9 +381,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -475,15 +389,12 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 ResetFilePointers()
 {
-    for (std::size_t bucket_id = 0; bucket_id < num_buckets_nt; ++bucket_id)
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
         current_pointers_[bucket_id].first = current_pointers_[bucket_id].second = std::ios_base::beg;
 }
 
@@ -491,9 +402,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -502,9 +410,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -512,7 +417,7 @@ ResetNextBufferPositions()
 {
     //Boost array's size() method cannot be used for the number of *valid* elements since it's
     //statically bound to N.
-    for (std::size_t bucket_id = 0; bucket_id < num_buckets_nt; ++bucket_id)
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
         next_positions_[bucket_id] = 0;
 }
 
@@ -520,9 +425,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -531,29 +433,23 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 ResetSynchronizationBuffers()
 {
     sorted_merge_buffer_.clear();
-    sorted_merge_buffer_.reserve(bucket_buff_elem_size_nt); //At least.
+    sorted_merge_buffer_.reserve(bucket_buff_elem_size_); //At least.
     unsorting_helper_.clear();
-    unsorting_helper_.reserve(bucket_buff_elem_size_nt);
+    unsorting_helper_.reserve(bucket_buff_elem_size_);
     unsorted_aux_buffer_.clear();
-    unsorted_aux_buffer_.reserve(bucket_buff_elem_size_nt);
+    unsorted_aux_buffer_.reserve(bucket_buff_elem_size_);
 }
 
 template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -562,9 +458,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -578,9 +471,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -589,9 +479,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -605,9 +492,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -616,20 +500,17 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 GetBucketAndBufferPos(key_t const& key)
 {
-    std::size_t bucket_id = BucketIdentififer<key_t, num_buckets_nt>::Calculate(key);
+    std::size_t bucket_id = BucketIdentififer<key_t>::Calculate(key, num_bucket_bits_);
     std::size_t pos = next_positions_[bucket_id]++; //Notice this increments the position.
 
-    assert(pos <= bucket_buff_elem_size_nt && "Position must not be larger than buffer size.");
+    assert(pos <= bucket_buff_elem_size_ && "Position must not be larger than buffer size.");
 
-    if (next_positions_[bucket_id] == bucket_buff_elem_size_nt)
+    if (next_positions_[bucket_id] == bucket_buff_elem_size_)
         feed_buckets_ = true;
 
     return std::make_pair(bucket_id, pos);
@@ -638,9 +519,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -649,9 +527,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -667,9 +542,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -678,9 +550,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -696,9 +565,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -707,9 +573,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -723,9 +586,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -734,9 +594,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -750,9 +607,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -761,9 +615,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -781,9 +632,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -792,9 +640,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -809,9 +654,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -820,9 +662,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -835,9 +674,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -846,15 +682,12 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 FeedBuckets()
 {
-    for (std::size_t bucket_id = 0; bucket_id < num_buckets_nt; ++bucket_id)
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
         this->FeedBucket(bucket_id);
 
     this->ResetNextBufferPositions();
@@ -865,9 +698,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -876,9 +706,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -950,8 +777,8 @@ FeedBucket(std::size_t bucket_id)
     this->CloseFile(aux_file);
 
     //Is it time to merge?
-    if (current_pointers_[bucket_id].first - kv_begin > bucket_byte_size_nt ||
-            current_pointers_[bucket_id].second - aux_begin > bucket_byte_size_nt)
+    if (current_pointers_[bucket_id].first - kv_begin > bucket_byte_size_ ||
+            current_pointers_[bucket_id].second - aux_begin > bucket_byte_size_)
     {
         merge_buckets_ = true;
     }
@@ -961,9 +788,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -972,16 +796,13 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
 MergeBuckets()
 {
     //Merge with one-pass through disk repository.
-    for (std::size_t bucket_id = 0; bucket_id < num_buckets_nt; ++bucket_id)
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
     {
         this->ReadInfoBucketIntoMergeBuffer(bucket_id);
         this->SortMergeBuffer();
@@ -1000,9 +821,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1011,9 +829,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1062,9 +877,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1073,9 +885,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1088,9 +897,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1099,9 +905,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1155,9 +958,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1166,9 +966,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1192,9 +989,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1203,9 +997,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1234,9 +1025,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1245,9 +1033,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1287,9 +1072,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1298,9 +1080,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1313,9 +1092,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1324,9 +1100,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1342,9 +1115,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1353,9 +1123,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1368,9 +1135,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1379,9 +1143,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1396,9 +1157,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1407,9 +1165,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1422,9 +1177,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1433,9 +1185,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
@@ -1450,9 +1199,6 @@ template <
     class key_t,
     class value_t,
     class aux_t,
-    std::size_t num_buckets_nt,
-    std::size_t bucket_buff_elem_size_nt,
-    std::size_t bucket_byte_size_nt,
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t>
@@ -1461,9 +1207,6 @@ Drum<
     key_t,
     value_t,
     aux_t,
-    num_buckets_nt,
-    bucket_buff_elem_size_nt,
-    bucket_byte_size_nt,
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
