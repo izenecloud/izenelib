@@ -172,6 +172,8 @@ struct has_compare_operator{
     enum { value = boost::is_arithmetic<T>::value };
 };
 
+#if !defined(WIN32) || defined(__MINGW32__)
+
 template <>
 struct has_compare_operator<int128_t>
 {
@@ -183,6 +185,8 @@ struct has_compare_operator<uint128_t>
 {
     enum { value = 1 };
 };
+
+#endif
 
 template <typename T1, typename T2>
 struct has_compare_operator<std::pair<T1, T2> >
