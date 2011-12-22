@@ -2,21 +2,27 @@
 #define TYPES_H
 
 #if !defined(WIN32) || defined(__MINGW32__)
+
 #include <stddef.h>
 #include <sys/types.h>
 #include <stdint.h>
+
+typedef int                 int128_t    __attribute__((mode(TI)));
+typedef unsigned int        uint128_t   __attribute__((mode(TI)));
+
 #else
+
 #include <sys/types.h>
 #include <wchar.h>
 
-typedef signed char       int8_t;
-typedef short             int16_t;
-typedef long              int32_t;
-typedef __int64           int64_t;
-typedef unsigned char     uint8_t;
-typedef unsigned short    uint16_t;
-typedef unsigned long     uint32_t;
-typedef unsigned __int64  uint64_t;
+typedef signed char         int8_t;
+typedef short               int16_t;
+typedef long                int32_t;
+typedef __int64             int64_t;
+typedef unsigned char       uint8_t;
+typedef unsigned short      uint16_t;
+typedef unsigned long       uint32_t;
+typedef unsigned __int64    uint64_t;
 
 #endif //end of WIN32
 
@@ -34,8 +40,6 @@ typedef unsigned __int64  uint64_t;
 
 #define BEGIN_SERIALIZATION namespace izenelib{ namespace am{ namespace util{
 #define END_SERIALIZATION }}}
-
-#endif // end of TYPES_H
 
 #include <cassert>
 #include <stdexcept>
@@ -55,3 +59,4 @@ typedef unsigned __int64  uint64_t;
     TypeName(const TypeName&);					\
     void operator=(const TypeName&)
 
+#endif // end of TYPES_H

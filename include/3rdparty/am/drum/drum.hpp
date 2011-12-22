@@ -26,6 +26,7 @@
 #define IZENELIB_DISK_REPOSITORY_UPDATE_MANAGEMENT_HPP
 
 #include "config.hpp"
+#include "bucket_identifier.hpp"
 #include "exception.hpp"
 #include "element_io.hpp"
 #include "null_dispatcher.hpp"
@@ -44,9 +45,6 @@
 
 
 DRUM_BEGIN_NAMESPACE
-
-//For specialization.
-template <class key_t> struct BucketIdentififer;
 
 /*
  * NOTES:

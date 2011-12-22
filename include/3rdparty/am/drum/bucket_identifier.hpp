@@ -34,12 +34,24 @@
 
 DRUM_BEGIN_NAMESPACE
 
+template <class key_t>
+struct BucketIdentififer;
+
 template <>
-struct BucketIdentififer<boost::uint64_t>
+struct BucketIdentififer<uint64_t>
 {
-    static std::size_t Calculate(boost::uint64_t const& key, std::size_t const& num_bucket_bits)
+    static std::size_t Calculate(uint64_t const& key, std::size_t const& num_bucket_bits)
     {
-        return static_cast<std::size_t>(bucket >> (64 - num_bucket_bits));
+        return static_cast<std::size_t>(key >> (64 - num_bucket_bits));
+    }
+};
+
+template <>
+struct BucketIdentififer<uint128_t>
+{
+    static std::size_t Calculate(uint128_t const& key, std::size_t const& num_bucket_bits)
+    {
+        return static_cast<std::size_t>(key >> (128 - num_bucket_bits));
     }
 };
 
