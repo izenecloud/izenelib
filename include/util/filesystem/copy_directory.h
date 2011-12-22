@@ -32,7 +32,7 @@ inline void copy_directory(const path& from, const path& to)
          it != itEnd;
          ++it)
     {
-        if (!is_directory(it->status()))
+        if (!is_directory(*it))
         {
             copy_file(it->path(), to / it->path().filename());
         }
@@ -63,7 +63,7 @@ inline void copy_directory_if(const path& from, const path& to, Predicate should
          it != itEnd;
          ++it)
     {
-        if (!is_directory(it->status()) && shouldCopy(it->path()))
+        if (!is_directory(*it) && shouldCopy(it->path()))
         {
             copy_file(it->path(), to / it->path().filename());
         }
@@ -84,7 +84,7 @@ inline void recursive_copy_directory(const path& from, const path& to)
          it != itEnd;
          ++it)
     {
-        if (is_directory(it->status()))
+        if (is_directory(*it))
         {
             recursive_copy_directory(it->path(), to / it->path().filename());
         }
@@ -123,7 +123,7 @@ inline void recursive_copy_directory_if(const path& from, const path& to, Predic
     {
         if (shouldCopy(it->path()))
         {
-            if (is_directory(it->status()))
+            if (is_directory(*it))
             {
                 recursive_copy_directory(it->path(), to / it->path().filename());
             }
