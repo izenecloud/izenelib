@@ -27,7 +27,9 @@
 
 #include "config.hpp"
 
-#include <types.h>
+#include <boost/cstdint.hpp>
+
+#include <stdint.h>
 
 
 DRUM_BEGIN_NAMESPACE

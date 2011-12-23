@@ -3,89 +3,79 @@
 #include <sstream>
 #include <stdexcept>
 #include <typeinfo>
-#include <errno.h>
-
-#if defined(_MSC_VER)
-# include <intrin.h>
-#pragma intrinsic(_BitScanReverse)
-//#pragma intrinsic(_BitScanReverse64)
-#endif
-
-#include <boost/version.hpp>
-#if BOOST_VERSION < 103301
-# include <boost/limits.hpp>
-# include <boost/detail/limits.hpp>
-#else
-# include <boost/detail/endian.hpp>
-#endif
 
 namespace febird {
 
-//void MemIO_Base::skip(ptrdiff_t diff)
+//void MemIO_Base::seek_cur(ptrdiff_t diff)
 
 void throw_EndOfFile(const char* func, size_t want, size_t available)
 {
-    std::ostringstream oss;
-    oss << "in " << func << ", want=" << want
-        << ", available=" << available
+	std::ostringstream oss;
+	oss << "in " << func << ", want=" << want
+		<< ", available=" << available
 //		<< ", tell=" << tell() << ", size=" << size()
-        ;
-    throw EndOfFileException(oss.str().c_str());
+		;
+	throw EndOfFileException(oss.str().c_str());
 }
 
 void throw_OutOfSpace(const char* func, size_t want, size_t available)
 {
-    std::ostringstream oss;
-    oss << "in " << func << ", want=" << want
-        << ", available=" << available
+	std::ostringstream oss;
+	oss << "in " << func << ", want=" << want
+		<< ", available=" << available
 //		<< ", tell=" << tell() << ", size=" << size()
-        ;
-    throw OutOfSpaceException(oss.str().c_str());
+		;
+	throw OutOfSpaceException(oss.str().c_str());
 }
 
 void MemIO::throw_EndOfFile(const char* func, size_t want)
 {
-    febird::throw_EndOfFile(func, want, remain());
+	febird::throw_EndOfFile(func, want, available());
 }
 
 void MemIO::throw_OutOfSpace(const char* func, size_t want)
 {
-    febird::throw_OutOfSpace(func, want, remain());
+	febird::throw_OutOfSpace(func, want, available());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-void SeekableMemIO::seek(ptrdiff_t newPos)
+void SeekableMemIO::swap(SeekableMemIO& that)
 {
-    assert(newPos >= 0);
-    if (newPos < 0 || newPos > m_end - m_beg) {
-        std::ostringstream oss;
-        oss << "in " << BOOST_CURRENT_FUNCTION
-            << "[newPos=" << newPos << ", size=" << m_end << "]";
-//		errno = EINVAL;
-        throw std::invalid_argument(oss.str());
-    }
-    m_pos = m_beg + newPos;
+	std::swap(m_beg, that.m_beg);
+	std::swap(m_end, that.m_end);
+	std::swap(m_pos, that.m_pos);
 }
 
-void SeekableMemIO::seek(ptrdiff_t offset, int origin)
+void SeekableMemIO::seek(long newPos)
 {
-    size_t pos;
-    switch (origin)
-    {
-        default:
-        {
-            std::ostringstream oss;
-            oss << "in " << BOOST_CURRENT_FUNCTION
-                << "[offset=" << offset << ", origin=" << origin << "(invalid)]";
-        //	errno = EINVAL;
-            throw std::invalid_argument(oss.str().c_str());
-        }
-        case 0: pos = (size_t)(0 + offset); break;
-        case 1: pos = (size_t)(tell() + offset); break;
-        case 2: pos = (size_t)(size() + offset); break;
-    }
-    seek(pos);
+	assert(newPos >= 0);
+	if (newPos < 0 || newPos > m_end - m_beg) {
+		std::ostringstream oss;
+		oss << "in " << BOOST_CURRENT_FUNCTION
+			<< "[newPos=" << newPos << ", size=" << m_end << "]";
+		throw std::invalid_argument(oss.str());
+	}
+	m_pos = m_beg + newPos;
+}
+
+void SeekableMemIO::seek(long offset, int origin)
+{
+	size_t pos;
+	switch (origin)
+	{
+		default:
+		{
+			std::ostringstream oss;
+			oss << "in " << BOOST_CURRENT_FUNCTION
+				<< "[offset=" << offset << ", origin=" << origin << "(invalid)]";
+			throw std::invalid_argument(oss.str().c_str());
+		}
+		case 0: pos = (size_t)(0 + offset); break;
+		case 1: pos = (size_t)(tell() + offset); break;
+		case 2: pos = (size_t)(size() + offset); break;
+	}
+	seek(pos);
 }
 
 // rarely used methods....
@@ -93,260 +83,171 @@ void SeekableMemIO::seek(ptrdiff_t offset, int origin)
 
 MemIO SeekableMemIO::range(size_t ibeg, size_t iend) const
 {
-    assert(ibeg <= iend);
-    assert(ibeg <= size());
-    assert(iend <= size());
-    if (ibeg <= iend && ibeg <= size() && iend <= size())
-    {
-        return MemIO(m_beg + ibeg, m_beg + iend);
-    }
-    std::ostringstream oss;
-    oss << BOOST_CURRENT_FUNCTION
-        << ": size=" << size()
-        << ", tell=" << tell()
-        << ", ibeg=" << ibeg
-        << ", iend=" << iend
-        ;
-    throw std::invalid_argument(oss.str());
+	assert(ibeg <= iend);
+	assert(ibeg <= size());
+	assert(iend <= size());
+	if (ibeg <= iend && ibeg <= size() && iend <= size())
+	{
+		return MemIO(m_beg + ibeg, m_beg + iend);
+	}
+	std::ostringstream oss;
+	oss << BOOST_CURRENT_FUNCTION
+		<< ": size=" << size()
+		<< ", tell=" << tell()
+		<< ", ibeg=" << ibeg
+		<< ", iend=" << iend
+		;
+	throw std::invalid_argument(oss.str());
 }
 
 //////////////////////////////////////////////////////////////////////////
 
+static std::allocator<byte> G_byteAlloc;
+
 AutoGrownMemIO::AutoGrownMemIO(size_t size)
 {
-    if (size) {
-        m_beg = (byte*)malloc(size);
-        if (NULL == m_beg) {
-#ifdef _MSC_VER
-            char szMsg[128];
-            sprintf(szMsg
-                , "AutoGrownMemIO::AutoGrownMemIO(size=%lu)"
-                , (unsigned long)size
-                );
-            throw std::bad_alloc(szMsg);
-#else
-            throw std::bad_alloc();
-#endif
-        }
-        m_end = m_beg + size;
-        m_pos = m_beg;
-    }
-    else
-        m_pos = m_end = m_beg = NULL;
+//	m_beg = 0 == size ? 0 : (byte*)::malloc(size);
+	try {
+		m_beg = 0 == size ? 0 : G_byteAlloc.allocate(size);
+	}
+	catch (const std::exception& exp)
+	{
+		std::ostringstream oss;
+		oss << "at " << BOOST_CURRENT_FUNCTION << ": size=" << size
+			<< ", nested-exption[, type=" << typeid(exp).name() << ", what=" << exp.what() << "]";
+		throw std::runtime_error(oss.str());
+	}
+	m_end = m_beg + size;
+	m_pos = m_beg;
 }
 
 AutoGrownMemIO::~AutoGrownMemIO()
 {
-    if (m_beg)
-        free(m_beg);
+//	if (m_beg) ::free(m_beg);
+	if (m_beg)
+		G_byteAlloc.deallocate(m_beg, size());
 }
 
 void AutoGrownMemIO::clone(const AutoGrownMemIO& src)
 {
-    AutoGrownMemIO t(src.size());
-    memcpy(t.begin(), src.begin(), src.size());
-    this->swap(t);
+	AutoGrownMemIO t(src.size());
+	memcpy(t.begin(), src.begin(), src.size());
+	this->swap(t);
+}
+
+void AutoGrownMemIO::swap(AutoGrownMemIO& that)
+{
+	std::swap(m_beg, that.m_beg);
+	std::swap(m_end, that.m_end);
+	std::swap(m_pos, that.m_pos);
 }
 
 /**
- @brief ¸Ä±ä buffer ³ß´ç
+ @brief ï¿½Ä±ï¿½ buffer ï¿½ß´ï¿½
 
-  ²»¸Ä±ä buffer ÖÐµÄÒÑ´æÄÚÈÝ£¬²»¸Ä±ä pos
+  ï¿½ï¿½ï¿½Ä±ï¿½ buffer ï¿½Ðµï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ pos
 
  @note must m_pos <= newsize
  */
 void AutoGrownMemIO::resize(size_t newsize)
 {
-    assert(tell() <= newsize);
+	assert(tell() <= newsize);
 
-    size_t oldsize = size();
-    byte* newbeg = (byte*)realloc(m_beg, newsize);
-    if (newbeg) {
-        m_pos = newbeg + (m_pos - m_beg);
-        m_end = newbeg + newsize;
-        m_beg = newbeg;
-    }
-    else {
+//	byte* newbeg = (byte*)::realloc(m_beg, newsize);
+	byte* newbeg = 0;
+	try {		
+		newbeg = G_byteAlloc.allocate(newsize);
+	}
+	catch (const std::exception& exp)
+	{
+		std::ostringstream oss;
+		oss << "at " << BOOST_CURRENT_FUNCTION << ": size=" << size() << ", newsize=" << newsize
+			<< ", nested-exption[, type=" << typeid(exp).name() << ", what=" << exp.what() << "]";
+		throw std::runtime_error(oss.str());
+	}
+	if (newbeg)
+	{
+		memcpy(newbeg, m_beg, size());		
+		G_byteAlloc.deallocate(m_beg, size() );
+		m_pos = newbeg + (m_pos - m_beg);
+		m_beg = newbeg;
+		m_end = newbeg + newsize;
+	}
+	else
+	{
 #ifdef _MSC_VER
-        std::ostringstream oss;
-        oss << "realloc failed in \"void AutoGrownMemIO::resize(size[new=" << newsize << ", old=" << oldsize
-            << "])\", the AutoGrownMemIO object is not mutated!";
-        throw std::bad_alloc(oss.str().c_str());
+		std::ostringstream oss;
+		oss << "realloc failed in \"void AutoGrownMemIO::resize(newsize=" << newsize
+			<< ")\", the AutoGrownMemIO object is not mutated!";
+		throw std::bad_alloc(oss.str().c_str());
 #else
-        throw std::bad_alloc();
+		throw std::bad_alloc();
 #endif
-    }
+	}
 }
 
 /**
- @brief ÊÍ·ÅÔ­ÏÈµÄ¿Õ¼ä²¢ÖØÐÂ·ÖÅä
+ @brief ï¿½Í·ï¿½Ô­ï¿½ÈµÄ¿Õ¼ä²¢ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½
 
-  Ïàµ±ÓÚ°´ÐÂ³ß´çÖØÐÂ¹¹ÔìÒ»¸öÐÂ AutoGrownMemIO
-  ²»ÐèÒª°Ñ¾ÉÄÚÈÝ¿½±´µ½ÐÂµØÖ·
+  ï¿½àµ±ï¿½Ú°ï¿½ï¿½Â³ß´ï¿½ï¿½ï¿½ï¿½Â¹ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ AutoGrownMemIO
+  ï¿½ï¿½ï¿½ï¿½Òªï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½Ö·
  */
 void AutoGrownMemIO::init(size_t newsize)
 {
-    size_t oldsize = (size_t)(m_beg - m_beg);
-    if (m_beg)
-        ::free(m_beg);
-    if (newsize) {
-        m_beg = (byte*)::malloc(newsize);
-        if (NULL == m_beg) {
-            m_pos = m_end = NULL;
-    #ifdef _MSC_VER
-            char szMsg[128];
-            sprintf(szMsg
-                , "malloc failed in AutoGrownMemIO::init(newsize=%lu), oldsize=%lu"
-                , (unsigned long)newsize
-                , (unsigned long)oldsize
-                );
-            throw std::bad_alloc(szMsg);
-    #else
-            throw std::bad_alloc();
-    #endif
-        }
-        m_pos = m_beg;
-        m_end = m_beg + newsize;
-    }
-    else
-        m_pos = m_end = m_beg = NULL;
+//	if (m_beg)
+//		::free(m_beg);
+//	m_pos = m_beg = m_end = 0;
+//	m_beg = (byte*)::malloc(newsize);
+	size_t oldSize = size();
+	try {
+		if (m_beg) {
+			G_byteAlloc.deallocate(m_beg, oldSize);
+			m_pos = m_beg = m_end = 0;
+		}
+		m_beg = G_byteAlloc.allocate(newsize);
+	}
+	catch (const std::exception& exp)
+	{
+		std::ostringstream oss;
+		oss << "at " << BOOST_CURRENT_FUNCTION << ": size=" << oldSize << ", newsize=" << newsize
+			<< ", nested-exption[, type=" << typeid(exp).name() << ", what=" << exp.what() << "]";
+		throw std::runtime_error(oss.str());
+	}
+
+	if (0 == m_beg)
+	{
+#ifdef _MSC_VER
+		std::ostringstream oss;
+		oss << "alloc failed in \"" << BOOST_CURRENT_FUNCTION
+			<< "\", with capacity=" << newsize
+			<< ", [this=" << (void*)(this)
+			<< "] was partly mutated and is not in consistent state!";
+		throw std::bad_alloc(oss.str().c_str());
+#else
+		throw std::bad_alloc();
+#endif
+	}
+	m_pos = m_beg;
+	m_end = m_beg + newsize;
 }
 
-void AutoGrownMemIO::growAndWrite(const void* data, size_t length)
+void AutoGrownMemIO::growAndWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT
 {
-    using namespace std;
-    size_t nSize = size();
-    size_t nGrow = max(length, nSize);
-    resize(max(nSize + nGrow, (size_t)64u));
-    memcpy(m_pos, data, length);
-    m_pos += length;
+	using namespace std;
+	size_t nSize = size();
+	size_t nGrow = max(length, nSize);
+	resize(max(nSize + nGrow, (size_t)64u));
+	memcpy(m_pos, data, length);
+	m_pos += length;
 }
 
-void AutoGrownMemIO::growAndWriteByte(byte b)
+void AutoGrownMemIO::growAndWriteByte(byte b)FEBIRD_RESTRICT
 {
-    using namespace std;
-    resize(max(2u * size(), (size_t)64u));
-    *m_pos++ = b;
+	using namespace std;
+	resize(max(2u * size(), (size_t)64u));
+	*m_pos++ = b;
 }
-
-size_t AutoGrownMemIO::printf(const char* format, ...)
-{
-    va_list ap;
-    size_t n;
-    va_start(ap, format);
-    n = this->vprintf(format, ap);
-    va_end(ap);
-    return n;
-}
-
-size_t AutoGrownMemIO::vprintf(const char* format, va_list ap)
-{
-    while (1) {
-        ptrdiff_t n, size = m_end - m_pos;
-
-        /* Try to print in the allocated space. */
-        n = ::vsnprintf((char*)m_pos, size, format, ap);
-
-        /* If that worked, return the written bytes. */
-        if (n > -1 && n < size) {
-            m_pos += n;
-            return n;
-        }
-        /* Else try again with more space. */
-        if (n > -1)    /* glibc 2.1 */
-            size = n+1; /* precisely what is needed */
-        else           /* glibc 2.0 */
-            size *= 2;  /* twice the old size */
-
-        this->resize((m_pos - m_beg + size) * 2);
-    }
-}
-
-///////////////////////////////////////////////////////
-//
-#ifdef _GNU_SOURCE
-
-ssize_t
-MemIO_FILE_read(void *cookie, char *buf, size_t size)
-{
-    MemIO* input = (MemIO*)cookie;
-    return input->read(buf, size);
-}
-
-ssize_t
-AutoGrownMemIO_FILE_write(void *cookie, const char *buf, size_t size)
-{
-    AutoGrownMemIO* output = (AutoGrownMemIO*)cookie;
-    return output->write(buf, size);
-}
-
-int AutoGrownMemIO_FILE_seek(void* cookie, off_t* offset, int whence)
-{
-    AutoGrownMemIO* output = (AutoGrownMemIO*)cookie;
-    try {
-        output->seek(*offset, whence);
-        *offset = output->tell();
-        return 0;
-    }
-    catch (const std::exception& e) {
-        errno = EINVAL;
-        return -1;
-    }
-}
-
-/**
- * @note must call fclose after use of returned FILE
- */
-FILE* MemIO::forInputFILE()
-{
-    cookie_io_functions_t func = {
-        MemIO_FILE_read,
-        NULL,
-        NULL,
-        NULL
-    };
-    assert(this);
-    void* cookie = this;
-    FILE* fp = fopencookie(cookie,"r", func);
-    if (fp == NULL) {
-        perror("fopencookie@MemIO::getInputFILE");
-        return NULL;
-    }
-    return fp;
-}
-
-/**
- * @note must call fclose after use of returned FILE
- */
-FILE* AutoGrownMemIO::forFILE(const char* mode)
-{
-    cookie_io_functions_t func = {
-        MemIO_FILE_read,
-        AutoGrownMemIO_FILE_write,
-        AutoGrownMemIO_FILE_seek,
-        NULL
-    };
-    assert(this);
-    void* cookie = this;
-    FILE* fp = fopencookie(cookie, mode, func);
-    if (fp == NULL) {
-        perror("fopencookie@AutoGrownMemIO::forOutputFILE");
-        return NULL;
-    }
-    return fp;
-}
-
-#endif // _GNU_SOURCE
-
-#define STREAM_READER MinMemIO
-#define STREAM_WRITER MinMemIO
-#include <febird/io/var_int_io.hpp>
-
-#define STREAM_READER MemIO
-#define STREAM_WRITER MemIO
-#include <febird/io/var_int_io.hpp>
-
-#define STREAM_WRITER AutoGrownMemIO
-#include <febird/io/var_int_io.hpp>
 
 } // namespace febird
+
+

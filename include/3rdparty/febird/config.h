@@ -30,24 +30,23 @@
 
 #endif /* _MSC_VER */
 
+//////////////////////////////////////////////////////////////////////////
+// for FEBIRD_RESTRICT keyword
 
-#if defined(__GNUC__) || defined(__INTEL_COMPILER) || defined(__clang__)
+#if defined(__cplusplus)
 
-#  define febird_likely(x)    __builtin_expect(x, 1)
-#  define febird_unlikely(x)  __builtin_expect(x, 0)
+#  if defined(_MSC_VER)
+#    define FEBIRD_RESTRICT __restrict
+#  elif defined(__GNUC__)
+#    if defined(__GNUC_MINOR__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#      define FEBIRD_RESTRICT __restrict__
+#    else
+#      define FEBIRD_RESTRICT
+#    endif
+#  else
+#    define FEBIRD_RESTRICT
+#  endif
 
-#else
-
-#  define febird_likely(x)    x
-#  define febird_unlikely(x)  x
-
-#endif
-
-/* The ISO C99 standard specifies that in C++ implementations these
- *    should only be defined if explicitly requested __STDC_CONSTANT_MACROS
- */
-#define __STDC_CONSTANT_MACROS
-
-#define DATA_IO_ALLOW_DEFAULT_SERIALIZE
+#endif // __cplusplus
 
 #endif // __febird_config_h__

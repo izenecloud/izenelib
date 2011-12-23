@@ -17,28 +17,28 @@ namespace febird { namespace rpc {
 
 template<class Input>  class client_object_input
 {
-    Input* p;
+	Input* p;
 
 public:
-    explicit client_object_input(Input* input = 0) : p(input) {}
+	explicit client_object_input(Input* input = 0) : p(input) {}
 
-    void attach(Input* input) { p = input; }
-    Input& get() const { return *p; }
+	void attach(Input* input) { p = input; }
+	Input& get() const { return *p; }
 
-    template<class T> client_object_input& operator>>(boost::intrusive_ptr<T>& x)
-    {
-        return *this >> *x;
-    }
+	template<class T> client_object_input& operator>>(boost::intrusive_ptr<T>& x)
+	{
+		return *this >> *x;
+	}
 
-    template<class T> client_object_input& operator &(T& x) { return *this >> x; }
+	template<class T> client_object_input& operator &(T& x) { return *this >> x; }
 
-    // T must derived from remote_object
-    template<class T> client_object_input& operator>>(T*& x) { return *this >> *x; }
-    template<class T> client_object_input& operator>>(T& x)
-    {
-        // do nothing...
-        typename T::SFINAE_ro_self_t* for_check = 0;
-// 		var_size_t objid;
+	// T must derived from remote_object
+	template<class T> client_object_input& operator>>(T*& x) { return *this >> *x; }
+	template<class T> client_object_input& operator>>(T& x)
+	{
+		// do nothing...
+		//typename T::SFINAE_ro_self_t* for_check = 0;
+// 		var_uint32_t objid;
 // 		*p >> objid;
 // 		if (x.getID() == 0)
 // 		{
@@ -57,57 +57,57 @@ public:
 // 				<< "local objid = " << x.getID();
 // 			throw rpc_exception(oss.str());
 // 		}
-        return *this;
-    }
+		return *this;
+	}
 
-    // do nothing...
-    template<class T> client_object_input& operator &(rpc_in<T> x) { return *this; }
-    template<class T> client_object_input& operator>>(rpc_in<T> x) { return *this; }
+	// do nothing...
+	template<class T> client_object_input& operator &(rpc_in<T> x) { return *this; }
+	template<class T> client_object_input& operator>>(rpc_in<T> x) { return *this; }
 
-    template<class T> client_object_input& operator &(rpc_out<T> x) { *p >> x.r; return *this; }
-    template<class T> client_object_input& operator>>(rpc_out<T> x) { *p >> x.r; return *this; }
+	template<class T> client_object_input& operator &(rpc_out<T> x) { *p >> x.r; return *this; }
+	template<class T> client_object_input& operator>>(rpc_out<T> x) { *p >> x.r; return *this; }
 
-    template<class T> client_object_input& operator &(rpc_inout<T> x) { *p >> x.r; return *this; }
-    template<class T> client_object_input& operator>>(rpc_inout<T> x) { *p >> x.r; return *this; }
+	template<class T> client_object_input& operator &(rpc_inout<T> x) { *p >> x.r; return *this; }
+	template<class T> client_object_input& operator>>(rpc_inout<T> x) { *p >> x.r; return *this; }
 };
 
 template<class Output>  class client_object_output
 {
-    Output* p;
+	Output* p;
 
 public:
-    explicit client_object_output(Output* output = 0) : p(output) {}
+	explicit client_object_output(Output* output = 0) : p(output) {}
 
-    void attach(Output* output) { p = output; }
-    void flush() { p->flush(); }
-    Output& get() const { return *p; }
+	void attach(Output* output) { p = output; }
+	void flush() { p->flush(); }
+	Output& get() const { return *p; }
 
-    template<class T> client_object_output& operator<<(const boost::intrusive_ptr<T>& x)
-    {
-        return *this << *x;
-    }
+	template<class T> client_object_output& operator<<(const boost::intrusive_ptr<T>& x)
+	{
+		return *this << *x;
+	}
 
-    template<class T> client_object_output& operator &(const T& x) { return *this << x; }
+	template<class T> client_object_output& operator &(const T& x) { return *this << x; }
 
-    // T must derived from remote_object
-    template<class T> client_object_output& operator<<(      T* x) { return *this << *x; }
-    template<class T> client_object_output& operator<<(const T* x) { return *this << *x; }
-    template<class T> client_object_output& operator<<(const T& x)
-    {
-        typename T::SFINAE_ro_self_t* for_check = 0;
-        *p << var_size_t(x.getID());
-        return *this;
-    }
+	// T must derived from remote_object
+	template<class T> client_object_output& operator<<(      T* x) { return *this << *x; }
+	template<class T> client_object_output& operator<<(const T* x) { return *this << *x; }
+	template<class T> client_object_output& operator<<(const T& x)
+	{
+		//typename T::SFINAE_ro_self_t* for_check = 0;
+		*p << var_uint32_t(x.getID());
+		return *this;
+	}
 
-    template<class T> client_object_output& operator &(rpc_in<T> x) { *p << x.r; return *this; }
-    template<class T> client_object_output& operator<<(rpc_in<T> x) { *p << x.r; return *this; }
+	template<class T> client_object_output& operator &(rpc_in<T> x) { *p << x.r; return *this; }
+	template<class T> client_object_output& operator<<(rpc_in<T> x) { *p << x.r; return *this; }
 
-    // do nothing...
-    template<class T> client_object_output& operator &(rpc_out<T> x) { return *this; }
-    template<class T> client_object_output& operator<<(rpc_out<T> x) { return *this; }
+	// do nothing...
+	template<class T> client_object_output& operator &(rpc_out<T> x) { return *this; }
+	template<class T> client_object_output& operator<<(rpc_out<T> x) { return *this; }
 
-    template<class T> client_object_output& operator &(rpc_inout<T> x) { *p << x.r; return *this; }
-    template<class T> client_object_output& operator<<(rpc_inout<T> x) { *p << x.r; return *this; }
+	template<class T> client_object_output& operator &(rpc_inout<T> x) { *p << x.r; return *this; }
+	template<class T> client_object_output& operator<<(rpc_inout<T> x) { *p << x.r; return *this; }
 };
 
 } } // namespace::febird::rpc

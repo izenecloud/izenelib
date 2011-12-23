@@ -6,7 +6,6 @@
  * @date Created <2010-06-08 15:09:50>
  */
 
-#include "types.h"
 #include "Value.h"
 
 #include <boost/variant.hpp>
@@ -44,16 +43,6 @@ private:
 };
 
 template<class DataIO>
-void DataIO_saveObject(DataIO& ar, const NullTypeTag& v)
-{
-}
-
-template<class DataIO>
-void DataIO_loadObject(DataIO& ar, NullTypeTag& v)
-{
-}
-
-template<class DataIO>
 void DataIO_saveObject(DataIO& ar, const Value& v)
 {
     int which = v.type();
@@ -67,8 +56,7 @@ struct DataIO_ValueLoader
     template<typename DataIO>
     static void load(DataIO& ar, int which, Value& v)
     {
-        if (which == 0)
-        {
+        if (which == 0) {
             typedef typename boost::mpl::front<Types>::type head_type;
             head_type value;
             ar & value;
@@ -103,6 +91,7 @@ void DataIO_loadObject(DataIO& ar, Value& v)
             "Failed to load data"
         );
     }
+
     DataIO_ValueLoader<Value::type_list>::load(ar, which, v);
 }
 
@@ -116,8 +105,8 @@ namespace serialization {
 
 template<class Archive>
 inline void serialize(Archive & ar,
-                      ::izenelib::driver::Value& v,
-                      const unsigned int version)
+               ::izenelib::driver::Value& v,
+               const unsigned int version)
 {
     ar & v.variant();
 }

@@ -24,45 +24,45 @@ namespace febird {
 class FEBIRD_DLL_EXPORT SocketException : public IOException
 {
 public:
-    explicit SocketException(const char* szMsg = "SocketException");
-    explicit SocketException(int errCode, const char* szMsg = "SocketException");
+	explicit SocketException(const char* szMsg = "SocketException");
+	explicit SocketException(int errCode, const char* szMsg = "SocketException");
 
-    static int lastError();
+	static int lastError();
 };
 
 class FEBIRD_DLL_EXPORT SocketStream : public RefCounter, public IDuplexStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(SocketStream)
+	DECLARE_NONE_COPYABLE_CLASS(SocketStream)
 public:
-    SocketStream(SOCKET socket, bool bAutoClose = true);
-    ~SocketStream();
+	SocketStream(SOCKET socket, bool bAutoClose = true);
+	~SocketStream();
 
 public:
-    size_t read(void* data, size_t length);
-    size_t write(const void* data, size_t length);
+	size_t read(void* data, size_t length);
+	size_t write(const void* data, size_t length);
 
-    void flush() { }
-    bool eof() const { return m_bEof; }
+	void flush() { }
+	bool eof() const { return m_bEof; }
 
-    size_t tellp() { return posp; }
-    size_t tellg() { return posg; }
+	size_t tellp() { return posp; }
+	size_t tellg() { return posg; }
 
 protected:
-    virtual bool waitfor_again();
+	virtual bool waitfor_again();
 
-    ::SOCKET socket;
-    size_t posp; // sent size/pos
-    size_t posg; // receive size/pos
-    bool m_bEof; // for override IInputStream::eof
-    bool m_bAutoClose;
+	::SOCKET socket;
+	size_t posp; // sent size/pos
+	size_t posg; // receive size/pos
+	bool m_bEof; // for override IInputStream::eof
+	bool m_bAutoClose;
 };
 
 class FEBIRD_DLL_EXPORT SocketAcceptor : public IAcceptor
 {
-    ::SOCKET m_socket;
+	::SOCKET m_socket;
 public:
-    SocketAcceptor(const char* szBindAddr);
-    SocketStream* accept();
+	SocketAcceptor(const char* szBindAddr);
+	SocketStream* accept();
 };
 
 FEBIRD_DLL_EXPORT SocketStream* ConnectSocket(const char* szServerAddr);

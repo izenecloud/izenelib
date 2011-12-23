@@ -6,7 +6,7 @@
 # pragma once
 #endif
 
-#include "MemMapStream.h"
+#include "mem_map_stream.h"
 #include "DataIO.h"
 
 //#include "../statistic_time.h"
@@ -22,7 +22,7 @@ namespace febird {
 #define FEBIRD_DATA_OUTPUT_CLASS     LittleEndianDataOutput
 #define FEBIRD_DATA_INPUT_LOAD_FROM(input, x)  input >> x
 #define FEBIRD_DATA_OUTPUT_SAVE_TO(output, x)  output << x
-#include "load_save_iterator.h"
+#include "load_save_convenient.h"
 
 
 #define FEBIRD_LOAD_FUNCTION_NAME    portable_load_from_file
@@ -31,7 +31,7 @@ namespace febird {
 #define FEBIRD_DATA_OUTPUT_CLASS     PortableDataOutput
 #define FEBIRD_DATA_INPUT_LOAD_FROM(input, x)  input >> x
 #define FEBIRD_DATA_OUTPUT_SAVE_TO(output, x)  output << x
-#include "load_save_iterator.h"
+#include "load_save_convenient.h"
 
 
 #define FEBIRD_LOAD_FUNCTION_NAME    dump_load_from_file
@@ -40,7 +40,7 @@ namespace febird {
 #define FEBIRD_DATA_OUTPUT_CLASS     LittleEndianDataOutput
 #define FEBIRD_DATA_INPUT_LOAD_FROM(input, x)  DataIO_dump_load_object(input, x)
 #define FEBIRD_DATA_OUTPUT_SAVE_TO(output, x)  DataIO_dump_save_object(output, x)
-#include "load_save_iterator.h"
+#include "load_save_convenient.h"
 
 /**
  @brief 更新文件
@@ -49,17 +49,17 @@ namespace febird {
 #define FEBIRD_DATA_OUTPUT_CLASS     LittleEndianDataOutput
 #define FEBIRD_DATA_OUTPUT_SAVE_TO(output, x)  x.dump_save(output)
 #define FEBIRD_SAVE_FILE_OPEN_MODE "rb+" //!< 可读可写
-#include "load_save_iterator.h"
+#include "load_save_convenient.h"
 
 template<class Object>
 void dump_update_file(const Object& x, const std::string& szFile, bool printLog=true)
 {
-    try {
-        dump_update_file_only(x, szFile, printLog);
-    }
-    catch (const OpenFileException&) {
-        dump_save_to_file(x, szFile, printLog);
-    }
+	try {
+		dump_update_file_only(x, szFile, printLog);
+	}
+	catch (const OpenFileException&) {
+		dump_save_to_file(x, szFile, printLog);
+	}
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

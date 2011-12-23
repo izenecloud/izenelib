@@ -61,6 +61,17 @@ typedef uint32_t ip_addr_t;
 //! 空类，多用于参数化继承时的基类占位符
 class EmptyClass{};
 
+/**
+ @name 使用 boost::multi_index 时，用作 index 标识
+ @{
+ */
+struct TagID{};
+struct TagKey{};
+struct TagName{};
+struct TagTime{};
+struct TagMru{};
+//@}
+
 #define TT_PAIR(T) std::pair<T,T>
 
 template<class SizeT, class AlignT>

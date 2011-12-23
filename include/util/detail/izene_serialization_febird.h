@@ -6,7 +6,7 @@
 #include <3rdparty/febird/io/DataIO.h>
 #include <3rdparty/febird/io/StreamBuffer.h>
 #include <3rdparty/febird/io/FileStream.h>
-#include <3rdparty/febird/io/MemStream.h>
+#include <3rdparty/febird/io/ConcurrentStream.h>
 
 using namespace febird;
 using febird::ulong;

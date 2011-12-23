@@ -11,8 +11,8 @@
 #include <boost/preprocessor/enum_params.hpp>
 #include <boost/type_traits.hpp>
 
-#include "IStream.h"
-/*
+#include "IStreamWrapper.h"
+
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
 #if _MSC_VER < 1500
 #  define _POSIX_
@@ -23,7 +23,6 @@
 #else
 
 #endif
-*/
 
 namespace febird {
 
@@ -32,100 +31,100 @@ namespace febird {
 #define CONS_ARG(z, n, _) const Arg##n& a##n
 
 #define TEMPLATE_CONS(WrapperClass, n) template<BOOST_PP_ENUM_PARAMS(n, class Arg)> \
-    explicit WrapperClass(BOOST_PP_ENUM(n, CONS_ARG, ~)) : m_stream(BOOST_PP_ENUM_PARAMS(n, a)) {}
+	explicit WrapperClass(BOOST_PP_ENUM(n, CONS_ARG, ~)) : m_stream(BOOST_PP_ENUM_PARAMS(n, a)) {}
 
 template<class SeekableClass>
 class SeekableWrapper : public ISeekable
 {
-    DECLARE_NONE_COPYABLE_CLASS(SeekableWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(SeekableWrapper)
 protected:
-    SeekableClass m_stream;
+	SeekableClass m_stream;
 
 public:
-    SeekableWrapper() {}
+	SeekableWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(SeekableWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
-    virtual stream_position_t tell() const { return m_stream.tell(); }
-    virtual stream_position_t size() const { return m_stream.size(); }
+	virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
+	virtual stream_position_t tell() { return m_stream.tell(); }
+	virtual stream_position_t size() { return m_stream.size(); }
 };
 template<class SeekableClass>
 class SeekableWrapper<SeekableClass*> : public ISeekable
 {
 protected:
-    SeekableClass* m_stream;
+	SeekableClass* m_stream;
 
 public:
-    SeekableWrapper(SeekableClass* stream) : m_stream(stream) {}
+	SeekableWrapper(SeekableClass* stream) : m_stream(stream) {}
 
-    virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream->tell(); }
-    virtual stream_position_t size() const { return m_stream->size(); }
+	virtual stream_position_t tell() { return m_stream->tell(); }
+	virtual stream_position_t size() { return m_stream->size(); }
 };
 
 template<class InputStream>
 class InputStreamWrapper : public IInputStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(InputStreamWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(InputStreamWrapper)
 protected:
-    InputStream m_stream;
+	InputStream m_stream;
 
 public:
-    InputStreamWrapper() {}
+	InputStreamWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(InputStreamWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual bool eof() const { return m_stream.eof(); }
+	virtual bool eof() const { return m_stream.eof(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
 };
 template<class InputStream>
 class InputStreamWrapper<InputStream*> : public IInputStream
 {
 protected:
-    InputStream* m_stream;
+	InputStream* m_stream;
 
 public:
-    InputStreamWrapper(InputStream* stream) : m_stream(stream) {}
+	InputStreamWrapper(InputStream* stream) : m_stream(stream) {}
 
-    virtual bool eof() const { return m_stream->eof(); }
+	virtual bool eof() const { return m_stream->eof(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
 };
 
 template<class OutputStream>
 class OutputStreamWrapper : public IOutputStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(OutputStreamWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(OutputStreamWrapper)
 protected:
-    OutputStream m_stream;
+	OutputStream m_stream;
 
 public:
-    OutputStreamWrapper() {}
+	OutputStreamWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(OutputStreamWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
-    virtual void flush() { m_stream.flush(); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
+	virtual void flush() { m_stream.flush(); }
 };
 template<class OutputStream>
 class OutputStreamWrapper<OutputStream*> : public IOutputStream
 {
 protected:
-    OutputStream* m_stream;
+	OutputStream* m_stream;
 
 public:
-    OutputStreamWrapper(OutputStream* stream) : m_stream(stream) {}
+	OutputStreamWrapper(OutputStream* stream) : m_stream(stream) {}
 
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
-    virtual void flush() { m_stream->flush(); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
+	virtual void flush() { m_stream->flush(); }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,141 +132,133 @@ public:
 template<class InputStream>
 class SeekableInputStreamWrapper : public ISeekableInputStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(SeekableInputStreamWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(SeekableInputStreamWrapper)
 protected:
-    InputStream m_stream;
+	InputStream m_stream;
 
 public:
-    SeekableInputStreamWrapper() {}
+	SeekableInputStreamWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(SeekableInputStreamWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual bool eof() const { return m_stream.eof(); }
+	virtual bool eof() const { return m_stream.eof(); }
 
-    virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream.tell(); }
-    virtual stream_position_t size() const { return m_stream.size(); }
+	virtual stream_position_t tell() { return m_stream.tell(); }
+	virtual stream_position_t size() { return m_stream.size(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
-    virtual size_t pread(stream_position_t pos, void* vbuf, size_t length) { return m_stream.pread(pos, vbuf, length); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
 };
 template<class InputStream>
 class SeekableInputStreamWrapper<InputStream*> : public ISeekableInputStream
 {
 protected:
-    InputStream* m_stream;
+	InputStream* m_stream;
 
 public:
-    SeekableInputStreamWrapper(IInputStream* stream) : m_stream(stream) {}
+	SeekableInputStreamWrapper(IInputStream* stream) : m_stream(stream) {}
 
-    virtual bool eof() const { return m_stream.eof(); }
+	virtual bool eof() const { return m_stream.eof(); }
 
-    virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream->tell(); }
-    virtual stream_position_t size() const { return m_stream->size(); }
+	virtual stream_position_t tell() { return m_stream->tell(); }
+	virtual stream_position_t size() { return m_stream->size(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
-    virtual size_t pread(stream_position_t pos, void* vbuf, size_t length) { return m_stream->pread(pos, vbuf, length); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
 };
 
 template<class OutputStream>
 class SeekableOutputStreamWrapper : public ISeekableOutputStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(SeekableOutputStreamWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(SeekableOutputStreamWrapper)
 protected:
-    OutputStream m_stream;
+	OutputStream m_stream;
 
 public:
-    SeekableOutputStreamWrapper() {}
+	SeekableOutputStreamWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(SeekableOutputStreamWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream.tell(); }
-    virtual stream_position_t size() const { return m_stream.size(); }
-    virtual size_t pwrite(stream_position_t pos, const void* vbuf, size_t length) { return m_stream.pwrite(pos, vbuf, length); }
+	virtual stream_position_t tell() { return m_stream.tell(); }
+	virtual stream_position_t size() { return m_stream.size(); }
 
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
-    virtual void flush() { m_stream.flush(); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
+	virtual void flush() { m_stream.flush(); }
 };
 template<class OutputStream>
 class SeekableOutputStreamWrapper<OutputStream*> : public ISeekableOutputStream
 {
 protected:
-    OutputStream* m_stream;
+	OutputStream* m_stream;
 
 public:
-    SeekableOutputStreamWrapper(OutputStream* stream) : m_stream(stream) {}
+	SeekableOutputStreamWrapper(OutputStream* stream) : m_stream(stream) {}
 
-    virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream->tell(); }
-    virtual stream_position_t size() const { return m_stream->size(); }
-    virtual size_t pwrite(stream_position_t pos, const void* vbuf, size_t length) { return m_stream->pwrite(pos, vbuf, length); }
+	virtual stream_position_t tell() { return m_stream->tell(); }
+	virtual stream_position_t size() { return m_stream->size(); }
 
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
-    virtual void flush() { m_stream->flush(); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
+	virtual void flush() { m_stream->flush(); }
 };
 
 template<class Stream>
 class SeekableStreamWrapper : public ISeekableStream
 {
-    DECLARE_NONE_COPYABLE_CLASS(SeekableStreamWrapper)
+	DECLARE_NONE_COPYABLE_CLASS(SeekableStreamWrapper)
 protected:
-    Stream m_stream;
+	Stream m_stream;
 
 public:
-    SeekableStreamWrapper() {}
+	SeekableStreamWrapper() {}
 #define BOOST_PP_LOCAL_LIMITS CONS_LIMITS
 #define BOOST_PP_LOCAL_MACRO(n)  TEMPLATE_CONS(SeekableStreamWrapper, n)
 #include BOOST_PP_LOCAL_ITERATE()
 
-    virtual bool eof() const { return m_stream.eof(); }
+	virtual bool eof() const { return m_stream.eof(); }
 
-    virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream.seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream.seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream.tell(); }
-    virtual stream_position_t size() const { return m_stream.size(); }
-    virtual size_t pread(stream_position_t pos, void* vbuf, size_t length) { return m_stream.pread(pos, vbuf, length); }
-    virtual size_t pwrite(stream_position_t pos, const void* vbuf, size_t length) { return m_stream.pwrite(pos, vbuf, length); }
+	virtual stream_position_t tell() { return m_stream.tell(); }
+	virtual stream_position_t size() { return m_stream.size(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream.read(vbuf, length); }
 
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
-    virtual void flush() { m_stream.flush(); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream.write(vbuf, length); }
+	virtual void flush() { m_stream.flush(); }
 };
 template<class Stream>
 class SeekableStreamWrapper<Stream*> : public ISeekableStream
 {
 protected:
-    Stream* m_stream;
+	Stream* m_stream;
 
 public:
-    SeekableStreamWrapper(Stream* stream) : m_stream(stream) {}
+	SeekableStreamWrapper(Stream* stream) : m_stream(stream) {}
 
-    virtual bool eof() const { return m_stream.eof(); }
+	virtual bool eof() const { return m_stream.eof(); }
 
-    virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
-    virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
+	virtual void seek(stream_position_t pos) { m_stream->seek(pos); }
+	virtual void seek(stream_offset_t offset, int origin) { m_stream->seek(offset, origin); }
 
-    virtual stream_position_t tell() const { return m_stream->tell(); }
-    virtual stream_position_t size() const { return m_stream->size(); }
-    virtual size_t pread(stream_position_t pos, void* vbuf, size_t length) { return m_stream->pread(pos, vbuf, length); }
-    virtual size_t pwrite(stream_position_t pos, const void* vbuf, size_t length) { return m_stream->pwrite(pos, vbuf, length); }
+	virtual stream_position_t tell() { return m_stream->tell(); }
+	virtual stream_position_t size() { return m_stream->size(); }
 
-    virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
-    virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
-    virtual void flush() { m_stream->flush(); }
+	virtual size_t read(void* vbuf, size_t length) { return m_stream->read(vbuf, length); }
+	virtual size_t write(const void* vbuf, size_t length) { return m_stream->write(vbuf, length); }
+	virtual void flush() { m_stream->flush(); }
 };
 
 #undef CONS_LIMITS
@@ -277,3 +268,4 @@ public:
 } // namespace febird
 
 #endif
+
