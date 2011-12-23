@@ -259,16 +259,16 @@ public:
 NS_IZENELIB_UTIL_END
 
 
-#define MAKE_MEMCPY(TYPE) \
+#define MAKE_MEMCPY(...) \
 namespace izenelib { \
 namespace util { \
 \
 template<> \
-class izene_serialization_memcpy< TYPE > \
+class izene_serialization_memcpy< __VA_ARGS__ > \
 { \
-    const TYPE& dat_; \
+    const __VA_ARGS__& dat_; \
 public: \
-    izene_serialization_memcpy(const TYPE& dat) \
+    izene_serialization_memcpy(const __VA_ARGS__& dat) \
         : dat_(dat) \
     {} \
     void write_image(char* &ptr, size_t& size) \
@@ -278,7 +278,7 @@ public: \
     } \
 }; \
 \
-template<> class izene_deserialization_memcpy< TYPE > \
+template<> class izene_deserialization_memcpy< __VA_ARGS__ > \
 { \
     const char* ptr_; \
     const size_t size_; \
@@ -286,7 +286,7 @@ public: \
     izene_deserialization_memcpy(const char* ptr, const size_t size) \
         : ptr_(ptr), size_(size) \
     {} \
-    void read_image(TYPE& dat) \
+    void read_image(__VA_ARGS__& dat) \
     { \
         memcpy(&dat, ptr_, size_); \
     } \
@@ -297,20 +297,9 @@ public: \
 
 //MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
 
-#define MAKE_MEMCPY_TYPE(TYPE) \
-namespace izenelib { \
-namespace util{ \
-\
-template <> \
-struct IsMemcpySerial< TYPE > \
-{ \
-    enum { yes = 1, no =! yes }; \
-}; \
-\
-} \
-} \
-\
-MAKE_MEMCPY(TYPE)
+#define MAKE_MEMCPY_TYPE(...) \
+MAKE_MEMCPY_SERIALIZATION(__VA_ARGS__) \
+MAKE_MEMCPY(__VA_ARGS__)
 
 MAKE_MEMCPY(bool)
 
@@ -338,11 +327,9 @@ MAKE_MEMCPY(unsigned long long)
 #endif
 
 #if !defined(WIN32) || defined(__MINGW32__)
-
 MAKE_MEMCPY_TYPE(int128_t)
 
 MAKE_MEMCPY_TYPE(uint128_t)
-
 #endif
 
 MAKE_MEMCPY(float)
