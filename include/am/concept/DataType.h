@@ -173,7 +173,6 @@ struct has_compare_operator{
 };
 
 #if !defined(WIN32) || defined(__MINGW32__)
-
 template <>
 struct has_compare_operator<int128_t>
 {
@@ -185,7 +184,6 @@ struct has_compare_operator<uint128_t>
 {
     enum { value = 1 };
 };
-
 #endif
 
 template <typename T1, typename T2>
