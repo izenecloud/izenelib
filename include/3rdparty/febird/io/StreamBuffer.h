@@ -6,11 +6,12 @@
 # pragma once
 #endif
 
-#include "IOException.h"
-#include "IStream.h"
-#include "MemStream.h"
-
 #include "../refcount.h"
+#include "var_int.h"
+#include <boost/mpl/bool.hpp>
+#include <string.h>
+#include <stdarg.h>
+#include <string>
 
 /**
  @file 以 Stream 的 Concept, 实现的 Buffer
@@ -27,14 +28,14 @@
    -# 在这些 inline 函数最频繁的执行路径上, 执行最少的代码 @see InputBuffer::readByte
    -# 只有极少情况下会执行的分支, 封装到一个非虚函数(非虚函数的调用代码比虚函数小)
    -# 如此, inline 函数的执行效率会非常高, 在 Visual Studio 下, ensureRead 中的 memcpy 在大多数情况下完全被优化掉了:
-	 @code
-	  LittleEndianDataInput<InputBuffer> input(&buf);
-	  int x;
-	  input >> x;
-	  // 在这个代码段中, input >> x;
-	  // 的最频繁分支甚至被优化成了等价代码: x = *(int*)m_cur;
-	  // 底层函数调用的 memcpy 完全被优化掉了
-	 @endcode
+     @code
+      LittleEndianDataInput<InputBuffer> input(&buf);
+      int x;
+      input >> x;
+      // 在这个代码段中, input >> x;
+      // 的最频繁分支甚至被优化成了等价代码: x = *(int*)m_pos;
+      // 底层函数调用的 memcpy 完全被优化掉了
+     @endcode
 
  - 共有五种 StreamBuffer: InputBuffer/OutputBuffer/SeekableInputBuffer/SeekableOutputBuffer/SeekableBuffer
    -# 每种 buffer 都可以附加(attach)一个支持相应功能的流
@@ -46,384 +47,416 @@
 
 namespace febird {
 
+class IInputStream;
+class IOutputStream;
+class ISeekable;
+
 class FEBIRD_DLL_EXPORT IOBufferBase : public RefCounter
 {
 private:
-	// can not copy
-	IOBufferBase(const IOBufferBase&);
-	const IOBufferBase& operator=(const IOBufferBase&);
+    // can not copy
+    IOBufferBase(const IOBufferBase&);
+    const IOBufferBase& operator=(const IOBufferBase&);
 
 public:
-	IOBufferBase();
-	virtual ~IOBufferBase();
+    IOBufferBase();
+    virtual ~IOBufferBase();
 
-	//! 设置 buffer 尺寸并分配 buffer 内存
-	//! 在整个生存期内只能调用一次
-	void initbuf(size_t capacity) FEBIRD_RESTRICT;
+    //! 设置 buffer 尺寸并分配 buffer 内存
+    //! 在整个生存期内只能调用一次
+    void initbuf(size_t capacity);
 
-	//! 如果在 init 之前调用，仅设置 buffer 尺寸
-	//! 否则重新分配 buffer 并设置相应的指针
-	void set_bufsize(size_t size) FEBIRD_RESTRICT;
+    //! 如果在 init 之前调用，仅设置 buffer 尺寸
+    //! 否则重新分配 buffer 并设置相应的指针
+    void set_bufsize(size_t size);
 
-	byte*  bufbeg() const { return m_beg; }
-	byte*  bufcur() const { return m_cur; }
-	byte*  bufend() const { return m_end; }
+    byte*  bufbeg() const { return m_beg; }
+    byte*  bufcur() const { return m_pos; }
+    byte*  bufend() const { return m_end; }
 
-	size_t bufpos()  const { return m_cur-m_beg; }
-	size_t bufsize() const { return m_end-m_beg; }
-	size_t bufcapacity() const { return m_capacity; }
+    size_t bufpos()  const { return m_pos-m_beg; }
+    size_t bufsize() const { return m_end-m_beg; }
+    size_t bufcapacity() const { return m_capacity; }
 
-	//! only seek in buffer
-	//!
-	//! when dest stream is null, can seek and used as a memstream
-	virtual void seek_cur(ptrdiff_t diff);
+    //! only rewind buffer, not rewind the back stream
+    void rewind_buf() { m_pos = m_end = m_beg; }
 
-	//! set buffer eof
-	//!
-	//! most for m_is/m_os == 0
-	void set_bufeof(size_t eofpos);
+    //! only seek in buffer
+    //!
+    //! when dest stream is null, can seek and used as a memstream
+    virtual void skip(ptrdiff_t diff);
 
-protected:
-	//! 当调用完 stream.read/write 时，使用该函数来同步内部 pos 变量
-	//!
-	//! 对 non-seekable stream, 这个函数是空, SeekableBufferBase 改写了该函数
-	//! @see SeekableBufferBase::update_pos
-	virtual void update_pos(size_t inc) {} // empty for non-seekable
+    //! set buffer eof
+    //!
+    //! most for m_is/m_os == 0
+    void set_bufeof(size_t eofpos);
+
+    ptrdiff_t buf_remain_bytes() const { return m_end - m_pos; }
 
 protected:
-	// dummy, only for OutputBufferBase::attach to use
-	void attach(void*) { }
+    //! 当调用完 stream.read/write 时，使用该函数来同步内部 pos 变量
+    //!
+    //! 对 non-seekable stream, 这个函数是空, SeekableBufferBase 改写了该函数
+    //! @see SeekableBufferBase::update_pos
+    virtual void update_pos(size_t inc) {} // empty for non-seekable
 
 protected:
-	// for  InputBuffer, [m_beg, m_cur) is readed,  [m_cur, m_end) is prefetched
-	// for OutputBuffer, [m_beg, m_cur) is written, [m_cur, m_end) is undefined
+    // dummy, only for OutputBufferBase::attach to use
+    void attach(void*) { }
 
-	byte*  FEBIRD_RESTRICT m_beg;	// buffer ptr
-	byte*  FEBIRD_RESTRICT m_cur;	// current read/write position
-	byte*  FEBIRD_RESTRICT m_end;   // end mark, m_end <= m_beg + m_capacity && m_end >= m_beg
-	size_t m_capacity; // buffer capacity
+protected:
+    // for  InputBuffer, [m_beg, m_pos) is readed,  [m_pos, m_end) is prefetched
+    // for OutputBuffer, [m_beg, m_pos) is written, [m_pos, m_end) is undefined
+
+    byte*  m_beg;	// buffer ptr
+    byte*  m_pos;	// current read/write position
+    byte*  m_end;   // end mark, m_end <= m_beg + m_capacity && m_end >= m_beg
+    size_t m_capacity; // buffer capacity
 };
 
 class FEBIRD_DLL_EXPORT InputBuffer : public IOBufferBase
 {
 public:
-//	typedef IInputStream stream_t;
-	typedef boost::mpl::false_ is_seekable;
+    typedef boost::mpl::false_ is_seekable;
 
-	explicit InputBuffer(IInputStream* stream = 0)
-		: m_is(stream)
-	{
-	}
+    explicit InputBuffer(IInputStream* stream = 0)
+        : m_is(stream)
+    {
+    }
 
-	void attach(IInputStream* stream)
-	{
-		m_is = stream;
-	}
+    void attach(IInputStream* stream)
+    {
+        m_is = stream;
+    }
 
-	bool eof() const { return m_cur == m_end && (0 == m_is || m_is->eof()); }
+    bool eof() { return m_pos == m_end && test_eof(); }
 
-	size_t read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		if (m_cur+length <= m_end) {
-			memcpy(vbuf, m_cur, length);
-			m_cur += length;
-			return length;
-		} else
-			return fill_and_read(vbuf, length);
-	}
-	void ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		// 为了效率，这么实现可以让编译器更好地 inline 这个函数
-		// inline 后的函数体并尽可能小
-		if (m_cur+length <= m_end) {
-			memcpy(vbuf, m_cur, length);
-			m_cur += length;
-		} else
-			fill_and_ensureRead(vbuf, length);
-	}
+    size_t read(void* vbuf, size_t length)
+    {
+        if (febird_likely(m_pos+length <= m_end)) {
+            memcpy(vbuf, m_pos, length);
+            m_pos += length;
+            return length;
+        } else
+            return fill_and_read(vbuf, length);
+    }
+    void ensureRead(void* vbuf, size_t length)
+    {
+        // 为了效率，这么实现可以让编译器更好地 inline 这个函数
+        // inline 后的函数体并尽可能小
+        if (febird_likely(m_pos+length <= m_end)) {
+            memcpy(vbuf, m_pos, length);
+            m_pos += length;
+        } else
+            fill_and_ensureRead(vbuf, length);
+    }
 
-	byte readByte() FEBIRD_RESTRICT
-	{
-		if (m_cur < m_end)
-			return *m_cur++;
-		else
-			return fill_and_read_byte();
-	}
-	int getByte() FEBIRD_RESTRICT
-	{
-		if (m_cur < m_end)
-			return *m_cur++;
-		else
-			return this->fill_and_get_byte();
-	}
+    byte readByte()
+    {
+        if (febird_likely(m_pos < m_end))
+            return *m_pos++;
+        else
+            return fill_and_read_byte();
+    }
+    int getByte()
+    {
+        if (febird_likely(m_pos < m_end))
+            return *m_pos++;
+        else
+            return this->fill_and_get_byte();
+    }
 
-	void getline(std::string& line, size_t maxlen);
+    void getline(std::string& line, size_t maxlen = UINT_MAX);
 
-	template<class OutputStream>
-	void to_output(OutputStream& output, size_t length) FEBIRD_RESTRICT
-	{
-		size_t total = 0;
-		while (total < length)
-		{
-			using namespace std; // for min
-			if (m_cur == m_end)
-				this->fill_and_read(m_beg, m_end-m_beg);
-			size_t nWrite = min(size_t(m_end-m_cur), size_t(length-total));
-			output.ensureWrite(m_cur, nWrite);
-			total += nWrite;
-			m_cur += nWrite;
-		}
-	}
+    template<class OutputStream>
+    void to_output(OutputStream& output, size_t length)
+    {
+        size_t total = 0;
+        while (total < length)
+        {
+            using namespace std; // for min
+            if (febird_unlikely(m_pos == m_end))
+                this->fill_and_read(m_beg, m_end-m_beg);
+            size_t nWrite = min(size_t(m_end-m_pos), size_t(length-total));
+            output.ensureWrite(m_pos, nWrite);
+            total += nWrite;
+            m_pos += nWrite;
+        }
+    }
 
-protected:
-	size_t fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
-	void   fill_and_ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
-	byte   fill_and_read_byte() FEBIRD_RESTRICT;
-	int    fill_and_get_byte() FEBIRD_RESTRICT;
-	size_t read_min_max(void* FEBIRD_RESTRICT vbuf, size_t min_length, size_t max_length) FEBIRD_RESTRICT;
-
-	virtual size_t do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
+    FEBIRD_DECL_FAST_VAR_INT_READER()
 
 protected:
-	IInputStream* m_is;
+    size_t fill_and_read(void* vbuf, size_t length);
+    void   fill_and_ensureRead(void* vbuf, size_t length);
+    byte   fill_and_read_byte();
+    int    fill_and_get_byte();
+    size_t read_min_max(void* vbuf, size_t min_length, size_t max_length);
+    int    test_eof();
+
+    virtual size_t do_fill_and_read(void* vbuf, size_t length);
+
+protected:
+    IInputStream* m_is;
 };
 
 template<class BaseClass>
 class FEBIRD_DLL_EXPORT OutputBufferBase : public BaseClass
 {
 public:
-	typedef boost::mpl::false_ is_seekable;
+    typedef boost::mpl::false_ is_seekable;
 
-	explicit OutputBufferBase(IOutputStream* os = 0) : m_os(os)
-	{
-	}
-	virtual ~OutputBufferBase();
+    explicit OutputBufferBase(IOutputStream* os = 0) : m_os(os)
+    {
+    }
+    virtual ~OutputBufferBase();
 
-	template<class Stream>
-	void attach(Stream* stream)
-	{
-		BaseClass::attach(stream);
-		m_os = stream;
-	}
+    template<class Stream>
+    void attach(Stream* stream)
+    {
+        BaseClass::attach(stream);
+        m_os = stream;
+    }
 
-	void flush();
+    void flush();
 
-	size_t write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		if (m_cur+length <= m_end) {
-			memcpy(m_cur, vbuf, length);
-			m_cur += length;
-			return length;
-		} else
-			return flush_and_write(vbuf, length);
-	}
+    size_t write(const void* vbuf, size_t length)
+    {
+        if (febird_likely(m_pos+length <= m_end)) {
+            memcpy(m_pos, vbuf, length);
+            m_pos += length;
+            return length;
+        } else
+            return flush_and_write(vbuf, length);
+    }
 
-	void ensureWrite(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		// 为了效率，这么实现可以让编译器更好地 inline 这个函数
-		// inline 后的函数体并尽可能小
-		if (m_cur+length <= m_end) {
-			memcpy(m_cur, vbuf, length);
-			m_cur += length;
-		} else
-			flush_and_ensureWrite(vbuf, length);
-	}
+    void ensureWrite(const void* vbuf, size_t length)
+    {
+        // 为了效率，这么实现可以让编译器更好地 inline 这个函数
+        // inline 后的函数体并尽可能小
+        if (febird_likely(m_pos+length <= m_end)) {
+            memcpy(m_pos, vbuf, length);
+            m_pos += length;
+        } else
+            flush_and_ensureWrite(vbuf, length);
+    }
 
-	void writeByte(byte b) FEBIRD_RESTRICT
-	{
-		if (m_cur < m_end)
-			*m_cur++ = b;
-		else
-			flush_and_write_byte(b);
-	}
+    void writeByte(byte b)
+    {
+        if (febird_likely(m_pos < m_end))
+            *m_pos++ = b;
+        else
+            flush_and_write_byte(b);
+    }
 
-	template<class InputStream>
-	void from_input(InputStream& input, size_t length) FEBIRD_RESTRICT
-	{
-		size_t total = 0;
-		while (total < length)
-		{
-			using namespace std; // for min
-			if (m_cur == m_end)
-				flush_buffer();
-			size_t nRead = min(size_t(m_end-m_cur), size_t(length-total));
-			input.ensureRead(m_cur, nRead);
-			total += nRead;
-			m_cur += nRead;
-		}
-	}
+    template<class InputStream>
+    void from_input(InputStream& input, size_t length)
+    {
+        size_t total = 0;
+        while (total < length)
+        {
+            using namespace std; // for min
+            if (febird_unlikely(m_pos == m_end))
+                flush_buffer();
+            size_t nRead = min(size_t(m_end-m_pos), size_t(length-total));
+            input.ensureRead(m_pos, nRead);
+            total += nRead;
+            m_pos += nRead;
+        }
+    }
+
+    size_t printf(const char* format, ...)
+#ifdef __GNUC__
+    __attribute__ ((__format__ (__printf__, 2, 3)))
+#endif
+    ;
+
+    size_t vprintf(const char* format, va_list ap)
+#ifdef __GNUC__
+    __attribute__ ((__format__ (__printf__, 2, 0)))
+#endif
+    ;
 
 protected:
-	size_t flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
-	void   flush_and_ensureWrite(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
-	void   flush_and_write_byte(byte b) FEBIRD_RESTRICT;
+    size_t flush_and_write(const void* vbuf, size_t length);
+    void   flush_and_ensureWrite(const void* vbuf, size_t length);
+    void   flush_and_write_byte(byte b);
 
-	virtual size_t do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT;
+    virtual size_t do_flush_and_write(const void* vbuf, size_t length);
 
-	virtual void flush_buffer(); // only write to m_os, not flush m_os
+    virtual void flush_buffer(); // only write to m_os, not flush m_os
 
 protected:
-	IOutputStream* m_os;
-	using BaseClass::m_cur;
-	using BaseClass::m_beg;
-	using BaseClass::m_end;
-	using BaseClass::m_capacity;
+    IOutputStream* m_os;
+    using BaseClass::m_pos;
+    using BaseClass::m_beg;
+    using BaseClass::m_end;
+    using BaseClass::m_capacity;
 };
-typedef OutputBufferBase<IOBufferBase> OutputBuffer;
+
+class FEBIRD_DLL_EXPORT OutputBuffer : public OutputBufferBase<IOBufferBase>
+{
+public:
+    explicit OutputBuffer(IOutputStream* os = 0)
+       	: OutputBufferBase<IOBufferBase> (os)
+    { }
+
+    FEBIRD_DECL_FAST_VAR_INT_WRITER()
+};
 
 template<class BaseClass>
 class FEBIRD_DLL_EXPORT SeekableBufferBase : public BaseClass
 {
 protected:
-	using BaseClass::m_beg;
-	using BaseClass::m_cur;
-	using BaseClass::m_end;
-	using BaseClass::m_capacity;
+    using BaseClass::m_beg;
+    using BaseClass::m_pos;
+    using BaseClass::m_end;
+    using BaseClass::m_capacity;
 
 public:
-	typedef boost::mpl::true_ is_seekable;
+    typedef boost::mpl::true_ is_seekable;
 
-	//! constructor
-	//!
-	//! 如果以 append 方式打开流，这个 m_stream_pos 是不对的
-	//! 不过一般这种情况下很少会调用 seek/tell
-	//! 如果真这么做，会导致未定义行为
-	explicit SeekableBufferBase()
-	{
-		m_seekable = 0;
-		m_stream_pos = 0;
-	}
+    //! constructor
+    //!
+    //! 如果以 append 方式打开流，这个 m_stream_pos 是不对的
+    //! 不过一般这种情况下很少会调用 seek/tell
+    //! 如果真这么做，会导致未定义行为
+    explicit SeekableBufferBase()
+    {
+        m_seekable = 0;
+        m_stream_pos = 0;
+    }
 
-	template<class Stream>
-	void attach(Stream* stream)
-	{
-		BaseClass::attach(stream);
-		m_seekable = stream;
-	}
+    template<class Stream>
+    void attach(Stream* stream)
+    {
+        BaseClass::attach(stream);
+        m_seekable = stream;
+    }
 
-	void seek(stream_position_t pos);
-	void seek(stream_offset_t offset, int origin);
+    void seek(stream_position_t pos);
+    void seek(stream_offset_t offset, int origin);
 
-	void seek_cur(ptrdiff_t diff);
+    void skip(ptrdiff_t diff);
 
-	stream_position_t tell() const;
-	stream_position_t size() const;
-
-protected:
-	virtual void update_pos(size_t inc); //!< override
-	virtual void invalidate_buffer() = 0;
-
-	//! 如果已预取，m_stream_pos 对应缓冲区末尾 m_end
-	//! 否则 m_stream_pos 对应缓冲区开始
-	virtual int is_prefetched() const = 0;
+    stream_position_t tell() const;
+    stream_position_t size() const;
 
 protected:
-	ISeekable* m_seekable;
-	stream_position_t m_stream_pos;
+    virtual void update_pos(size_t inc); //!< override
+    virtual void invalidate_buffer() = 0;
+
+    //! 如果已预取，m_stream_pos 对应缓冲区末尾 m_end
+    //! 否则 m_stream_pos 对应缓冲区开始
+    virtual int is_prefetched() const = 0;
+
+protected:
+    ISeekable* m_seekable;
+    stream_position_t m_stream_pos;
 };
 
 class FEBIRD_DLL_EXPORT SeekableInputBuffer : public SeekableBufferBase<InputBuffer>
 {
-	typedef SeekableBufferBase<InputBuffer> super;
+    typedef SeekableBufferBase<InputBuffer> super;
 public:
-	SeekableInputBuffer() { }
+    SeekableInputBuffer() { }
 protected:
-	virtual void invalidate_buffer();
-	virtual int is_prefetched() const;
+    virtual void invalidate_buffer();
+    virtual int is_prefetched() const;
 };
 
 class FEBIRD_DLL_EXPORT SeekableOutputBuffer : public SeekableBufferBase<OutputBuffer>
 {
-	typedef SeekableBufferBase<OutputBuffer> super;
+    typedef SeekableBufferBase<OutputBuffer> super;
 
 public:
 //	typedef boost::mpl::true_ is_seekable;
 
-	//! constructor
-	//!
-	//! 如果以 append 方式打开流，这个 m_stream_pos 是不对的
-	//! 不过一般这种情况下很少会调用 seek/tell
-	//! 如果真这么做，会导致未定义行为
-	SeekableOutputBuffer() {}
+    //! constructor
+    //!
+    //! 如果以 append 方式打开流，这个 m_stream_pos 是不对的
+    //! 不过一般这种情况下很少会调用 seek/tell
+    //! 如果真这么做，会导致未定义行为
+    SeekableOutputBuffer() {}
 
 protected:
-	virtual void invalidate_buffer();
-	virtual int is_prefetched() const;
+    virtual void invalidate_buffer();
+    virtual int is_prefetched() const;
 };
 
 class FEBIRD_DLL_EXPORT SeekableBuffer :
-	public SeekableBufferBase<OutputBufferBase<InputBuffer> >
+    public SeekableBufferBase<OutputBufferBase<InputBuffer> >
 {
-	typedef SeekableBufferBase<OutputBufferBase<InputBuffer> > super;
+    typedef SeekableBufferBase<OutputBufferBase<InputBuffer> > super;
 
 public:
-	SeekableBuffer();
-	~SeekableBuffer();
+    SeekableBuffer();
+    ~SeekableBuffer();
 
-	size_t read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		if (m_cur+length <= m_end && m_prefetched) {
-			memcpy(vbuf, m_cur, length);
-			m_cur += length;
-			return length;
-		} else
-			return fill_and_read(vbuf, length);
-	}
-	void ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
-	{
-		// 为了效率，这么实现可以让编译器更好地 inline 这个函数
-		// inline 后的函数体并尽可能小
-		if (m_cur+length <= m_end && m_prefetched) {
-			memcpy(vbuf, m_cur, length);
-			m_cur += length;
-		} else
-			fill_and_ensureRead(vbuf, length);
-	}
+    size_t read(void* vbuf, size_t length)
+    {
+        if (febird_likely(m_pos+length <= m_end && m_prefetched)) {
+            memcpy(vbuf, m_pos, length);
+            m_pos += length;
+            return length;
+        } else
+            return fill_and_read(vbuf, length);
+    }
+    void ensureRead(void* vbuf, size_t length)
+    {
+        // 为了效率，这么实现可以让编译器更好地 inline 这个函数
+        // inline 后的函数体并尽可能小
+        if (febird_likely(m_pos+length <= m_end && m_prefetched)) {
+            memcpy(vbuf, m_pos, length);
+            m_pos += length;
+        } else
+            fill_and_ensureRead(vbuf, length);
+    }
 
-	byte readByte() FEBIRD_RESTRICT 
-	{
-		if (m_cur < m_end && m_prefetched)
-			return *m_cur++;
-		else
-			return fill_and_read_byte();
-	}
-	int getByte() FEBIRD_RESTRICT 
-	{
-		if (m_cur < m_end && m_prefetched)
-			return *m_cur++;
-		else
-			return fill_and_get_byte();
-	}
+    byte readByte()
+    {
+        if (febird_likely(m_pos < m_end && m_prefetched))
+            return *m_pos++;
+        else
+            return fill_and_read_byte();
+    }
+    int getByte()
+    {
+        if (febird_likely(m_pos < m_end && m_prefetched))
+            return *m_pos++;
+        else
+            return fill_and_get_byte();
+    }
 
-	size_t write(const void* vbuf, size_t length) FEBIRD_RESTRICT 
-	{
-		m_dirty = true;
-		return super::write(vbuf, length);
-	}
+    size_t write(const void* vbuf, size_t length)
+    {
+        m_dirty = true;
+        return super::write(vbuf, length);
+    }
 
-	void ensureWrite(const void* vbuf, size_t length) FEBIRD_RESTRICT 
-	{
-		m_dirty = true;
-		super::ensureWrite(vbuf, length);
-	}
+    void ensureWrite(const void* vbuf, size_t length)
+    {
+        m_dirty = true;
+        super::ensureWrite(vbuf, length);
+    }
 
-	void writeByte(byte b) FEBIRD_RESTRICT 
-	{
-		m_dirty = true;
-		super::writeByte(b);
-	}
+    void writeByte(byte b)
+    {
+        m_dirty = true;
+        super::writeByte(b);
+    }
 
 protected:
-	virtual size_t do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT ; //!< override
-	virtual size_t do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT ; //!< override
+    virtual size_t do_fill_and_read(void* vbuf, size_t length) ; //!< override
+    virtual size_t do_flush_and_write(const void* vbuf, size_t length) ; //!< override
 
-	virtual void flush_buffer(); //!< override
-	virtual void invalidate_buffer(); //!< override
-	virtual int is_prefetched() const;
+    virtual void flush_buffer(); //!< override
+    virtual void invalidate_buffer(); //!< override
+    virtual int is_prefetched() const;
 
 private:
-	int m_dirty;
-	int m_prefetched;
+    int m_dirty;
+    int m_prefetched;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -431,12 +464,10 @@ private:
 class FEBIRD_DLL_EXPORT FileStreamBuffer : public SeekableBuffer
 {
 public:
-	explicit FileStreamBuffer(const char* FEBIRD_RESTRICT fname, const char* FEBIRD_RESTRICT mode, size_t capacity = 8*1024);
-	~FileStreamBuffer();
+    explicit FileStreamBuffer(const char* fname, const char* mode, size_t capacity = 8*1024);
+    ~FileStreamBuffer();
 };
 
 } // febird
 
 #endif // __febird_io_StreamBuffer_h__
-
-

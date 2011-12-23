@@ -12,59 +12,59 @@
 #define BYTE_IO_EMPTY
 
 #define FEBIRD_GEN_ensureRead(prefix)  \
-	void prefix ensureRead(void* vbuf, size_t length) \
-	{ \
-		size_t n = this->read(vbuf, length); \
-		if (n != length) \
-		{ \
-			std::ostringstream oss; \
-			oss << "\"" << BOOST_CURRENT_FUNCTION << "\"" \
-				<< ", ReadBytes[want=" << length << ", read=" << n << "]"; \
-			throw EndOfFileException(oss.str().c_str()); \
-		} \
-	}
+    void prefix ensureRead(void* vbuf, size_t length) \
+    { \
+        size_t n = this->read(vbuf, length); \
+        if (n != length) \
+        { \
+            std::ostringstream oss; \
+            oss << "\"" << BOOST_CURRENT_FUNCTION << "\"" \
+                << ", ReadBytes[want=" << length << ", read=" << n << "]"; \
+            throw EndOfFileException(oss.str().c_str()); \
+        } \
+    }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #define FEBIRD_GEN_ensureWrite(prefix)  \
-	void prefix ensureWrite(const void* vbuf, size_t length) \
-	{ \
-		size_t n = this->write(vbuf, length); \
-		if (n != length) \
-		{ \
-			std::ostringstream oss; \
-			oss << "\"" << BOOST_CURRENT_FUNCTION << "\"" \
-				<< ", WriteBytes[want=" << length << ", written=" << n << "]"; \
-			throw OutOfSpaceException(oss.str().c_str()); \
-		} \
-	}
+    void prefix ensureWrite(const void* vbuf, size_t length) \
+    { \
+        size_t n = this->write(vbuf, length); \
+        if (n != length) \
+        { \
+            std::ostringstream oss; \
+            oss << "\"" << BOOST_CURRENT_FUNCTION << "\"" \
+                << ", WriteBytes[want=" << length << ", written=" << n << "]"; \
+            throw OutOfSpaceException(oss.str().c_str()); \
+        } \
+    }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #define FEBIRD_GEN_getByte(prefix) \
-	int prefix getByte() \
-	{ \
-		unsigned char b; \
-		if (this->read(&b, 1) == 0) \
-			return -1; \
-		return b; \
-	}
+    int prefix getByte() \
+    { \
+        unsigned char b; \
+        if (this->read(&b, 1) == 0) \
+            return -1; \
+        return b; \
+    }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #define FEBIRD_GEN_readByte(prefix) \
-	unsigned char prefix readByte() \
-	{ \
-		unsigned char b; \
-		if (this->read(&b, 1) == 0) \
-			throw EndOfFileException(BOOST_CURRENT_FUNCTION); \
-		return b; \
-	}
+    unsigned char prefix readByte() \
+    { \
+        unsigned char b; \
+        if (this->read(&b, 1) == 0) \
+            throw EndOfFileException(BOOST_CURRENT_FUNCTION); \
+        return b; \
+    }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #define FEBIRD_GEN_writeByte(prefix) \
-	void prefix writeByte(unsigned char b) \
-	{ \
-		if (this->write(&b, 1) == 0) \
-			throw OutOfSpaceException(BOOST_CURRENT_FUNCTION); \
-	}
+    void prefix writeByte(unsigned char b) \
+    { \
+        if (this->write(&b, 1) == 0) \
+            throw OutOfSpaceException(BOOST_CURRENT_FUNCTION); \
+    }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*
@@ -74,48 +74,48 @@ template<class Stream>
 class InputStream_Method_Impl
 {
 public:
-	unsigned char readByte()
-	{
-		unsigned char b;
-		if (static_cast<Stream&>(*this).read(&b, 1) == 0)
-			throw EndOfFileException(BOOST_CURRENT_FUNCTION);
-		return b;
-	}
+    unsigned char readByte()
+    {
+        unsigned char b;
+        if (static_cast<Stream&>(*this).read(&b, 1) == 0)
+            throw EndOfFileException(BOOST_CURRENT_FUNCTION);
+        return b;
+    }
 
-	void ensureRead(void* vbuf, size_t length)
-	{
-		size_t n = static_cast<Stream&>(*this).read(vbuf, length);
-		if (n != length)
-		{
-			std::ostringstream oss;
-			oss << "\"" << BOOST_CURRENT_FUNCTION << "\""
-				<< ", ReadBytes[want=" << length << ", read=" << n << "]";
-			throw EndOfFileException(oss.str().c_str());
-		}
-	}
+    void ensureRead(void* vbuf, size_t length)
+    {
+        size_t n = static_cast<Stream&>(*this).read(vbuf, length);
+        if (n != length)
+        {
+            std::ostringstream oss;
+            oss << "\"" << BOOST_CURRENT_FUNCTION << "\""
+                << ", ReadBytes[want=" << length << ", read=" << n << "]";
+            throw EndOfFileException(oss.str().c_str());
+        }
+    }
 };
 
 template<class Stream>
 class OutputStream_Method_Impl
 {
 public:
-	void writeByte(unsigned char b)
-	{
-		if (static_cast<Stream&>(*this).write(&b, 1) == 0)
-			throw OutOfSpaceException(BOOST_CURRENT_FUNCTION);
-	}
+    void writeByte(unsigned char b)
+    {
+        if (static_cast<Stream&>(*this).write(&b, 1) == 0)
+            throw OutOfSpaceException(BOOST_CURRENT_FUNCTION);
+    }
 
-	void ensureWrite(const void* vbuf, size_t length)
-	{
-		size_t n = static_cast<Stream&>(*this).write(vbuf, length);
-		if (n != length)
-		{
-			std::ostringstream oss;
-			oss << "\"" << BOOST_CURRENT_FUNCTION << "\""
-				<< ", WriteBytes[want=" << length << ", written=" << n << "]";
-			throw OutOfSpaceException(oss.str().c_str());
-		}
-	}
+    void ensureWrite(const void* vbuf, size_t length)
+    {
+        size_t n = static_cast<Stream&>(*this).write(vbuf, length);
+        if (n != length)
+        {
+            std::ostringstream oss;
+            oss << "\"" << BOOST_CURRENT_FUNCTION << "\""
+                << ", WriteBytes[want=" << length << ", written=" << n << "]";
+            throw OutOfSpaceException(oss.str().c_str());
+        }
+    }
 };
 
 template<class Stream>
@@ -130,4 +130,3 @@ public:
 */
 
 #endif
-

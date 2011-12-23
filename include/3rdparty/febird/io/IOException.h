@@ -15,26 +15,26 @@ namespace febird {
 class FEBIRD_DLL_EXPORT IOException : public std::exception
 {
 protected:
-	int m_errCode;
-	std::string m_message;
+    std::string m_message;
+    int m_errCode;
 public:
-	explicit IOException(const char* szMsg = "febird::IOException");
-	explicit IOException(int errCode, const char* szMsg = "febird::IOException");
-	virtual ~IOException() throw() {}
+    explicit IOException(const char* szMsg = "febird::IOException");
+    explicit IOException(int errCode, const char* szMsg = "febird::IOException");
+    virtual ~IOException() throw() {}
 
-	const char* what() const throw() { return m_message.c_str(); }
-	int errCode() const throw() { return m_errCode; }
+    const char* what() const throw() { return m_message.c_str(); }
+    int errCode() const throw() { return m_errCode; }
 
-	static int lastError();
-	static std::string errorText(int errCode);
+    static int lastError();
+    static std::string errorText(int errCode);
 };
 
 class FEBIRD_DLL_EXPORT OpenFileException : public IOException
 {
-	std::string m_path;
+    std::string m_path;
 public:
-	explicit OpenFileException(const char* path, const char* szMsg = "febird::OpenFileException");
-	~OpenFileException() throw() {}
+    explicit OpenFileException(const char* path, const char* szMsg = "febird::OpenFileException");
+    ~OpenFileException() throw() {}
 };
 
 // blocked streams read 0 bytes will cause this exception
@@ -43,26 +43,34 @@ public:
 class FEBIRD_DLL_EXPORT EndOfFileException : public IOException
 {
 public:
-	explicit EndOfFileException(const char* szMsg = "febird::EndOfFileException")
-		: IOException(szMsg)
-	{ }
+    explicit EndOfFileException(const char* szMsg = "febird::EndOfFileException")
+        : IOException(szMsg)
+    { }
 };
 
 class FEBIRD_DLL_EXPORT OutOfSpaceException : public IOException
 {
 public:
-	explicit OutOfSpaceException(const char* szMsg = "febird::OutOfSpaceException")
-		: IOException(szMsg)
-	{ }
+    explicit OutOfSpaceException(const char* szMsg = "febird::OutOfSpaceException")
+        : IOException(szMsg)
+    { }
 };
 
-class FEBIRD_DLL_EXPORT DelayedWriteFailException : public IOException
+class FEBIRD_DLL_EXPORT DelayWriteException : public IOException
 {
 public:
-	DelayedWriteFailException(const char* szMsg = "febird::DelayedWriteFailException")
-		: IOException(szMsg)
-	{ }
+    DelayWriteException(const char* szMsg = "febird::DelayWriteException")
+        : IOException(szMsg)
+    { }
 //	size_t streamPosition;
+};
+
+class FEBIRD_DLL_EXPORT BrokenPipeException : public IOException
+{
+public:
+    BrokenPipeException(const char* szMsg = "febird::BrokenPipeException")
+        : IOException(szMsg)
+    { }
 };
 
 

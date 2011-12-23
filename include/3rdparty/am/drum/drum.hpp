@@ -33,15 +33,12 @@
 
 //Boost.
 #include <boost/tuple/tuple.hpp>
-#include <boost/cstdint.hpp>
 
 //STL.
 #include <cassert>
 #include <sstream>
 #include <fstream>
 #include <vector>
-
-#include <stdint.h>
 
 
 DRUM_BEGIN_NAMESPACE

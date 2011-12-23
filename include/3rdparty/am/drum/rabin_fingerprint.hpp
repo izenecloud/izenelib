@@ -25,8 +25,7 @@
 #ifndef IZENELIB_RABIN_FINGERPRINT_HPP
 #define IZENELIB_RABIN_FINGERPRINT_HPP
 
-#include <boost/cstdint.hpp>
-#include <stdint.h>
+#include <types.h>
 
 /*
  * Rabin Fingerprint - Implementation as suggested by Broder

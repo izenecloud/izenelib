@@ -9,7 +9,7 @@
 namespace febird {
 
 //! 当 T 是一个人造的引用时，使用这个类来转发调用
-//! 
+//!
 //!	input >> t 实际调用的是 void DataIO_loadObject(Input& input, T t)
 //! 这里 pass_by_value 和 T 都是传值调用的
 //!
@@ -23,20 +23,19 @@ namespace febird {
 template<class T> class pass_by_value
 {
 public:
-	T val;
+    T val;
 
     typedef T type;
 
-	pass_by_value(const T& val) : val(val) {}
+    pass_by_value(const T& val) : val(val) {}
 
-	T& operator=(const T& y) { val = y; return val; }
+    T& operator=(const T& y) { val = y; return val; }
 
-	operator T&() { return val; }
+    operator T&() { return val; }
 
-	T& get() { return val; }
+    T& get() { return val; }
 };
 
 }
 
 #endif // __febird_pass_by_value_h__
-

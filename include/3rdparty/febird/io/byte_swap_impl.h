@@ -2,15 +2,38 @@
 #ifndef __febird_io_byte_swap_impl_h__
 #define __febird_io_byte_swap_impl_h__
 
+/* The ISO C99 standard specifies that in C++ implementations these
+ *    should only be defined if explicitly requested __STDC_CONSTANT_MACROS
+ */
+//has been defined in <febird/config.h>
+//#define __STDC_CONSTANT_MACROS
+#include "../config.h"
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1020)
 # pragma once
 # include <intrin.h>
 # include <stdlib.h>
 #endif
 
-#include <boost/cstdint.hpp>
 
-namespace febird { 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#include <stdint.h>
+#endif
+
+//#include <boost/cstdint.hpp>
+#include <limits.h>
+
+#ifdef ULONG_MAX
+#	if ULONG_MAX != 0xFFFFFFFFul
+#		if ULONG_MAX != 0xFFFFFFFFFFFFFFFFul
+#			error "ULONG_MAX error" is ULONG_MAX
+#		endif
+#	endif
+#else
+#	error "ULONG_MAX is not defined"
+#endif
+
+namespace febird {
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1020) //&& defined(_M_IX86)
 
@@ -56,27 +79,27 @@ inline short byte_swap(short x) { return x << 8 | (unsigned short)x >> 8; }
 
 inline unsigned int byte_swap(unsigned int i)
 {
-	unsigned int j;
-	j =  (i << 24);
-	j += (i <<  8) & 0x00FF0000;
-	j += (i >>  8) & 0x0000FF00;
-	j += (i >> 24);
-	return j;
+    unsigned int j;
+    j  = (i << 24);
+    j |= (i <<  8) & 0x00FF0000;
+    j |= (i >>  8) & 0x0000FF00;
+    j |= (i >> 24);
+    return j;
 }
 inline int byte_swap(int i) { return byte_swap((unsigned int)i); }
 
 inline unsigned long long byte_swap(unsigned long long i)
 {
-	unsigned long long j;
-	j =  (i << 56);
-	j += (i << 40)&0x00FF000000000000LL;
-	j += (i << 24)&0x0000FF0000000000LL;
-	j += (i <<  8)&0x000000FF00000000LL;
-	j += (i >>  8)&0x00000000FF000000LL;
-	j += (i >> 24)&0x0000000000FF0000LL;
-	j += (i >> 40)&0x000000000000FF00LL;
-	j += (i >> 56);
-	return j;
+    unsigned long long j;
+    j  = (i << 56);
+    j |= (i << 40)& ((unsigned long long)0xFF)<<48;
+    j |= (i << 24)& ((unsigned long long)0xFF)<<40;
+    j |= (i <<  8)& ((unsigned long long)0xFF)<<32;
+    j |= (i >>  8)& ((unsigned long long)0xFF)<<24;
+    j |= (i >> 24)& ((unsigned long long)0xFF)<<16;
+    j |= (i >> 40)& ((unsigned long long)0xFF)<< 8;
+    j |= (i >> 56);
+    return j;
 }
 inline long long byte_swap(long long i) { return byte_swap((unsigned long long)(i)); }
 
