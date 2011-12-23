@@ -37,6 +37,8 @@ public:
     typedef ActionHandlerBase* handler_ptr;
     typedef boost::unordered_map<key_type, handler_ptr> map_type;
 
+    Router();
+
     ~Router();
 
     /// @brief Find registered action to handle the request
@@ -68,8 +70,14 @@ public:
         insertResult.first->second = handler;
     }
 
+    void setSuperHandler(const handler_ptr superHandler)
+    {
+        superHandler_ = superHandler;
+    }
+
 private:
     map_type table_;
+    handler_ptr superHandler_;
     static const handler_ptr kEmptyHandler_;
 };
 
