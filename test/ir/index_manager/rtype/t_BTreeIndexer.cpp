@@ -147,6 +147,8 @@ BOOST_AUTO_TEST_CASE(ustring)
     check_ustring("wqert", "abc", false, false, false);
     check_ustring("abc", "abcd", false, false, false);
     check_ustring("asd123", "123", false, true, true);
+    check_ustring("数码>手机通讯>手机配件", ">", false, false, true);
+    check_ustring("数码>手机通讯>手机配件", "数码", true, false, true);
 }
 
 BOOST_AUTO_TEST_CASE(flush)

@@ -37,23 +37,13 @@ void BTreeIndexerManager::doFilter_(BitVector& docs)
 void BTreeIndexerManager::add(const std::string& property_name, const PropertyType& key, docid_t docid)
 {
     izenelib::util::boost_variant_visit(boost::bind(madd_visitor(), this, property_name, _1, docid), key);
-    insertType_(property_name, key);//for flush
 }
 
 void BTreeIndexerManager::remove(const std::string& property_name, const PropertyType& key, docid_t docid)
 {
     izenelib::util::boost_variant_visit(boost::bind(mremove_visitor(), this, property_name, _1, docid), key);
-    insertType_(property_name, key);//for flush
 }
 
-void BTreeIndexerManager::insertType_(const std::string& property_name, const PropertyType& value)
-{
-    boost::unordered_map<std::string, PropertyType>::iterator it = type_map_.find(property_name);
-    if(it==type_map_.end())
-    {
-        type_map_.insert(std::make_pair(property_name, value));
-    }
-}
 
 void BTreeIndexerManager::flush()
 {
