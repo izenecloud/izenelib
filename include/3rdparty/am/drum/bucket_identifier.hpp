@@ -27,15 +27,22 @@
 
 #include "config.hpp"
 
-#include <boost/cstdint.hpp>
-
-#include <stdint.h>
+#include <util/izene_serialization.h>
 
 
 DRUM_BEGIN_NAMESPACE
 
 template <class key_t>
-struct BucketIdentififer;
+struct BucketIdentififer
+{
+    static std::size_t Calculate(key_t const& key, std::size_t const& num_bucket_bits)
+    {
+        static std::size_t bucket_id = 0;
+        if (bucket_id >> num_bucket_bits)
+            bucket_id = 0;
+        return bucket_id++;
+    }
+};
 
 template <>
 struct BucketIdentififer<uint64_t>

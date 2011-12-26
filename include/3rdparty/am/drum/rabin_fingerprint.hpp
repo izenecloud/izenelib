@@ -25,8 +25,7 @@
 #ifndef IZENELIB_RABIN_FINGERPRINT_HPP
 #define IZENELIB_RABIN_FINGERPRINT_HPP
 
-#include <boost/cstdint.hpp>
-#include <stdint.h>
+#include <types.h>
 
 /*
  * Rabin Fingerprint - Implementation as suggested by Broder
@@ -185,8 +184,8 @@ RabinFingerprint::Compute(int32_t const* A, std::size_t size)const
     for (; s < size; s += 2)
     {
         w = this->ComputeTablesSum(w) ^
-            (static_cast<uint64_t>(A[s] & 0xFFFFFFFF) << 32) ^
-            (static_cast<uint64_t>(A[s + 1]) & 0xFFFFFFFF);
+            (static_cast<uint64_t>(A[s]) << 32) ^
+            (static_cast<uint64_t>(A[s + 1]));
     }
     return w;
 }
@@ -207,10 +206,10 @@ RabinFingerprint::Compute(int16_t const* A, std::size_t size)const
     for (; s < size; s += 4)
     {
         w = this->ComputeTablesSum(w) ^
-            (static_cast<uint64_t>(A[s] & 0xFFFF) << 48) ^
-            (static_cast<uint64_t>(A[s + 1] & 0xFFFF) << 32) ^
-            (static_cast<uint64_t>(A[s + 2] & 0xFFFF) << 14) ^
-            (static_cast<uint64_t>(A[s + 3] & 0xFFFF));
+            (static_cast<uint64_t>(A[s]) << 48) ^
+            (static_cast<uint64_t>(A[s + 1]) << 32) ^
+            (static_cast<uint64_t>(A[s + 2]) << 14) ^
+            (static_cast<uint64_t>(A[s + 3]));
     }
     return w;
 }
@@ -231,14 +230,14 @@ RabinFingerprint::Compute(int8_t const* A, std::size_t size)const
     for (; s < size; s += 8)
     {
         w = this->ComputeTablesSum(w) ^
-            (static_cast<uint64_t>(A[s] & 0xFF) << 56) ^
-            (static_cast<uint64_t>(A[s + 1] & 0xFF) << 48) ^
-            (static_cast<uint64_t>(A[s + 2] & 0xFF) << 40) ^
-            (static_cast<uint64_t>(A[s + 3] & 0xFF) << 32) ^
-            (static_cast<uint64_t>(A[s + 4] & 0xFF) << 24) ^
-            (static_cast<uint64_t>(A[s + 5] & 0xFF) << 16) ^
-            (static_cast<uint64_t>(A[s + 6] & 0xFF) << 8) ^
-            (static_cast<uint64_t>(A[s + 7] & 0xFF));
+            (static_cast<uint64_t>(A[s]) << 56) ^
+            (static_cast<uint64_t>(A[s + 1]) << 48) ^
+            (static_cast<uint64_t>(A[s + 2]) << 40) ^
+            (static_cast<uint64_t>(A[s + 3]) << 32) ^
+            (static_cast<uint64_t>(A[s + 4]) << 24) ^
+            (static_cast<uint64_t>(A[s + 5]) << 16) ^
+            (static_cast<uint64_t>(A[s + 6]) << 8) ^
+            (static_cast<uint64_t>(A[s + 7]));
     }
     return w;
 }

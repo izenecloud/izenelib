@@ -9,10 +9,11 @@ NS_IZENELIB_UTIL_BEGIN
 template<typename T>
 inline void write_image_memcpy(const T& dat, char* &str, size_t& size);
 
-template<typename T> inline void read_image_memcpy(T& dat, const char* str,
-        const size_t size);
+template<typename T>
+inline void read_image_memcpy(T& dat, const char* str, const size_t size);
 
-template<typename T> class izene_serialization_memcpy
+template<typename T>
+class izene_serialization_memcpy
 {
     char* ptr_;
     size_t size_;
@@ -24,8 +25,10 @@ public:
     ~izene_serialization_memcpy()
     {
         if (ptr_)
+        {
             delete ptr_;
-        ptr_ = 0;
+            ptr_ = 0;
+        }
     }
     void write_image(char* &ptr, size_t& size)
     {
@@ -60,7 +63,7 @@ public:
     }
     void write_image(char* &ptr, size_t& size)
     {
-        ptr = (char*)dat_.c_str();
+        ptr = (char*) dat_.c_str();
         size = dat_.size();
     }
 };
