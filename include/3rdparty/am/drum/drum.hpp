@@ -224,6 +224,9 @@ Drum(std::string const& name,
     {
         ++num_bucket_bits_;
     }
+    if (num_bucket_bits_ > 16)
+        num_bucket_bits_ = 16;
+
     for (std::size_t i = 0; i < num_buckets_; i++)
     {
         kv_buffers_[i].resize(bucket_buff_elem_size);
