@@ -26,6 +26,7 @@
 #define IZENELIB_DRUM_EXCEPTION_HPP
 
 #include "config.hpp"
+
 #include <stdexcept>
 
 

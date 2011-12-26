@@ -163,6 +163,8 @@ public:
 
     BTreeIndexerManager* getBTreeIndexer() { return pBTreeIndexer_; }
 
+    size_t numDocs() { return pBarrelsInfo_->getDocCount(); }
+
     fieldid_t getPropertyIDByName(collectionid_t colID, string property)
     {
         return property_name_id_map_[colID][property];

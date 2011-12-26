@@ -28,20 +28,16 @@
 #include "config.hpp"
 #include "bucket_identifier.hpp"
 #include "exception.hpp"
-#include "element_io.hpp"
 #include "null_dispatcher.hpp"
 
 //Boost.
 #include <boost/tuple/tuple.hpp>
-#include <boost/cstdint.hpp>
 
 //STL.
 #include <cassert>
 #include <sstream>
 #include <fstream>
 #include <vector>
-
-#include <stdint.h>
 
 
 DRUM_BEGIN_NAMESPACE
@@ -740,31 +736,40 @@ FeedBucket(std::size_t bucket_id)
         kv_file.write(&op, sizeof(char));
 
         //Key.
-        std::size_t key_size;
-        const char* key_serial;
-        KeyType const& key = element.template get<0>();
-        ElementIO<KeyType>::Serialize(key, key_size, key_serial);
-        kv_file.write(reinterpret_cast<const char*>(&key_size), sizeof(std::size_t));
-        kv_file.write(key_serial, key_size);
+        {
+            std::size_t key_size;
+            const char* key_serial;
+            KeyType const& key = element.template get<0>();
+            izenelib::util::izene_serialization<KeyType> izsKey(key);
+            izsKey.write_image(key_serial, key_size);
+            kv_file.write(reinterpret_cast<const char*>(&key_size), sizeof(std::size_t));
+            kv_file.write(key_serial, key_size);
+        }
 
         //Value.
-        std::size_t value_size;
-        const char* value_serial;
-        ValueType const& value = element.template get<1>();
-        ElementIO<ValueType>::Serialize(value, value_size, value_serial);
-        kv_file.write(reinterpret_cast<const char*>(&value_size), sizeof(std::size_t));
-        kv_file.write(value_serial, value_size);
+        {
+            std::size_t value_size;
+            const char* value_serial;
+            ValueType const& value = element.template get<1>();
+            izenelib::util::izene_serialization<ValueType> izsValue(value);
+            izsValue.write_image(value_serial, value_size);
+            kv_file.write(reinterpret_cast<const char*>(&value_size), sizeof(std::size_t));
+            kv_file.write(value_serial, value_size);
+        }
 
         //Write the following sequentially:
         // - aux length;
         // - aux.
-        AuxType const& aux = aux_buffers_[bucket_id][i];
+        {
+            AuxType const& aux = aux_buffers_[bucket_id][i];
 
-        std::size_t aux_size;
-        const char* aux_serial;
-        ElementIO<AuxType>::Serialize(aux, aux_size, aux_serial);
-        aux_file.write(reinterpret_cast<const char*>(&aux_size), sizeof(std::size_t));
-        aux_file.write(aux_serial, aux_size);
+            std::size_t aux_size;
+            const char* aux_serial;
+            izenelib::util::izene_serialization<AuxType> izsAux(aux);
+            izsAux.write_image(aux_serial, aux_size);
+            aux_file.write(reinterpret_cast<const char*>(&aux_size), sizeof(std::size_t));
+            aux_file.write(aux_serial, aux_size);
+        }
     }
 
     //Store pointers for the next feed.
@@ -852,20 +857,26 @@ ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
         kv_file.read(&op, sizeof(char));
 
         //Key.
-        KeyType & key = element.template get<0>();
-        std::size_t key_size;
-        kv_file.read(reinterpret_cast<char*>(&key_size), sizeof(std::size_t));
-        std::vector<char> key_serial(key_size);
-        kv_file.read(&key_serial[0], key_size);
-        ElementIO<KeyType>::Deserialize(key, key_size, &key_serial[0]);
+        {
+            KeyType & key = element.template get<0>();
+            std::size_t key_size;
+            kv_file.read(reinterpret_cast<char*>(&key_size), sizeof(std::size_t));
+            std::string key_serial(key_size);
+            kv_file.read(key_serial.data(), key_size);
+            izenelib::util::izene_deserialization<KeyType> izsKey(key_serial.data(), key_size);
+            izsKey.read_image(key);
+        }
 
         //Value.
-        ValueType & value = element.template get<1>();
-        std::size_t value_size;
-        kv_file.read(reinterpret_cast<char*>(&value_size), sizeof(std::size_t));
-        std::vector<char> value_serial(value_size);
-        kv_file.read(&value_serial[0], value_size);
-        ElementIO<ValueType>::Deserialize(value, value_size, &value_serial[0]);
+        {
+            ValueType & value = element.template get<1>();
+            std::size_t value_size;
+            kv_file.read(reinterpret_cast<char*>(&value_size), sizeof(std::size_t));
+            std::string value_serial(value_size);
+            kv_file.read(value_serial.data(), value_size);
+            izenelib::util::izene_deserialization<ValueType> izsValue(value_serial.data(), value_size);
+            izsValue.read_image(value);
+        }
     }
 
     this->CloseFile(kv_file);
@@ -1011,9 +1022,10 @@ ReadAuxBucketForDispatching(std::size_t bucket_id)
 
         std::size_t aux_size;
         aux_file.read(reinterpret_cast<char*>(&aux_size), sizeof(std::size_t));
-        std::vector<char> aux_serial(aux_size);
-        aux_file.read(&aux_serial[0], aux_size);
-        ElementIO<AuxType>::Deserialize(aux, aux_size, &aux_serial[0]);
+        std::string aux_serial(aux_size);
+        aux_file.read(aux_serial.data(), aux_size);
+        izenelib::util::izene_deserialization<AuxType> izsAux(aux_serial.data(), aux_size);
+        izsAux.read_image(aux);
     }
 
     this->CloseFile(aux_file);

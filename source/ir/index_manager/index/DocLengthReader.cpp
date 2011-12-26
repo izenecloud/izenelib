@@ -66,7 +66,7 @@ void DocLengthReader::load(docid_t maxDocId)
         pInput->readBytes((unsigned char*)data_, size_*sizeof(doclen_t));
     }catch(std::exception& e)
     {
-        LOG(WARNING) << e.what();
+     //   LOG(WARNING) << e.what();
     }
 }
 
