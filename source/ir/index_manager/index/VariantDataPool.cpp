@@ -17,16 +17,6 @@ VariantDataPool::VariantDataPool(
 {
 }
 
-VariantDataPool::VariantDataPool(const VariantDataPool& src)
-    :pMemCache_(src.pMemCache_)
-    ,pHeadChunk_(src.pHeadChunk_)
-    ,pTailChunk_(src.pTailChunk_)
-    ,nTotalSize_(src.nTotalSize_)
-    ,nPosInCurChunk_(src.nPosInCurChunk_)
-    ,nTotalUsed_(src.nTotalUsed_)
-{
-}
-
 VariantDataPool::~VariantDataPool()
 {
 }
