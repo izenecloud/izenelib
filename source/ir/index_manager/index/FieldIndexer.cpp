@@ -236,6 +236,7 @@ void FieldIndexer::reset()
         {
             pPosting->reset();		///clear posting data
         }
+        delete pPosting;
     }
     postingMap_.clear();
     termCount_ = 0;
