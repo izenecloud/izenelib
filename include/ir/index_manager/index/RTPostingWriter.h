@@ -55,10 +55,6 @@ public:
     * flush last document
     */
     void flushLastDoc(bool bTruncTail);
-    /**
-    * get posting reader, it is required by real-time query
-    */
-    PostingReader* createPostingReader();
     /*
     * set in memory posting as dirty, as a result, it can not be searched any more
     */

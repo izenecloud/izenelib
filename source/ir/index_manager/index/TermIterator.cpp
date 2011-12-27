@@ -232,7 +232,7 @@ bool MemTermIterator::next()
     if(pCurTermPosting_)
         postingIterator_++;
 
-    RTPostingWriter* pPostingWriter = NULL;
+    boost::shared_ptr<RTPostingWriter> pPostingWriter;
     if(postingIterator_ != postingIteratorEnd_)
     {
         pPostingWriter = postingIterator_->second;
@@ -256,7 +256,7 @@ bool MemTermIterator::next()
             pCurTermPosting_ = NULL;
         }
 
-        pCurTermPosting_ = (MemPostingReader*)pPostingWriter->createPostingReader();
+        pCurTermPosting_ = new MemPostingReader(pPostingWriter);
         if (pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
         pCurTermInfo_->set(pCurTermPosting_->docFreq(),

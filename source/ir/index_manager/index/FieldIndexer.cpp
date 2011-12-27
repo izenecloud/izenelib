@@ -177,13 +177,13 @@ void FieldIndexer::addField(
     if (pIndexer_->isRealTime())
     {
         //if(!alloc_) alloc_ = new boost::scoped_alloc(recycle_);
-        RTPostingWriter* curPosting;
+        boost::shared_ptr<RTPostingWriter> curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
             InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termid_);
             if (postingIter == postingMap_.end())
             {
-                curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
+                curPosting.reset(new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_));
                 //assert(alloc_);
                 //curPosting = BOOST_NEW(*alloc_, RTPostingWriter)
                 //                      (pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
@@ -227,18 +227,6 @@ void FieldIndexer::addField(
 
 void FieldIndexer::reset()
 {
-    RTPostingWriter* pPosting;
-    InMemoryPostingMap::iterator iter = postingMap_.begin();
-    for (; iter !=postingMap_.end(); ++iter)
-    {
-        pPosting = iter->second;
-        if (!pPosting->isEmpty())
-        {
-            pPosting->reset();		///clear posting data
-        }
-        delete pPosting;
-    }
-    postingMap_.clear();
     termCount_ = 0;
 
     //if(alloc_)
@@ -271,19 +259,17 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     if (pIndexer_->isRealTime())
     {
-        RTPostingWriter* pPosting;
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
         InMemoryPostingMap::iterator iter = postingMap_.begin();
         for (; iter !=postingMap_.end(); ++iter)
         {
-            pPosting = iter->second;
-            pPosting->setDirty(true);
-            if (!pPosting->isEmpty())
+            iter->second->setDirty(true);
+            if (!iter->second->isEmpty())
             {
                 tid = iter->first;
-                pPosting->write(pWriterDesc, termInfo);		///write posting data
+                iter->second->write(pWriterDesc, termInfo);		///write posting data
                 writeTermInfo(pVocWriter,tid,termInfo);
-                //pPosting->reset();								///clear posting data
+                iter->second->reset();								///clear posting data
                 termInfo.reset();
                 termCount_++;
             }

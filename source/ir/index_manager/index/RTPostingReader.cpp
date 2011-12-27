@@ -18,7 +18,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 MemPostingReader::MemPostingReader(
-    RTPostingWriter* pPostingWriter
+    boost::shared_ptr<RTPostingWriter> pPostingWriter
 )
     :pPostingWriter_(pPostingWriter)
     ,pDocFreqList_(pPostingWriter->pDocFreqList_)

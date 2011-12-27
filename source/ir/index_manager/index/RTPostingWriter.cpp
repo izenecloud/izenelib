@@ -218,11 +218,6 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
     }
 }
 
-PostingReader* RTPostingWriter::createPostingReader()
-{
-    return new MemPostingReader(this);
-}
-
 }
 
 NS_IZENELIB_IR_END

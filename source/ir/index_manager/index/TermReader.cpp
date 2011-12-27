@@ -629,7 +629,6 @@ MemTermReader::MemTermReader(const char* field,FieldIndexer* pIndexer)
         : field_(field)
         , pIndexer_(pIndexer)
         , pCurTermInfo_(NULL)
-        , pCurPosting_(NULL)
 {
 }
 
@@ -671,10 +670,10 @@ TermDocFreqs* MemTermReader::termDocFreqs()
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
-    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
+    if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
         return NULL;
 
-    PostingReader* pPosting = pCurPosting_->createPostingReader();
+    PostingReader* pPosting = new MemPostingReader(pCurPosting_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,*pCurTermInfo_);
@@ -685,9 +684,9 @@ TermPositions* MemTermReader::termPositions()
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
-    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
+    if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
         return NULL;
-    PostingReader* pPosting = pCurPosting_->createPostingReader();
+    PostingReader* pPosting = new MemPostingReader(pCurPosting_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermPositions* pPositions = new TermPositions(pPosting,*pCurTermInfo_);

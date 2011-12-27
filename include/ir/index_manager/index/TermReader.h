@@ -260,7 +260,7 @@ private:
 
     TermInfo* pCurTermInfo_;
 
-    RTPostingWriter* pCurPosting_;
+    boost::shared_ptr<RTPostingWriter> pCurPosting_;
 
     friend class MemTermIterator;
 };

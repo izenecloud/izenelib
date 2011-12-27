@@ -333,7 +333,7 @@ friend class FieldIndexer;
 
 
 //Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
-typedef stx::btree_map<unsigned int, RTPostingWriter* > InMemoryPostingMap;
+typedef stx::btree_map<unsigned int, boost::shared_ptr<RTPostingWriter> > InMemoryPostingMap;
 
 class TermReader;
 /**

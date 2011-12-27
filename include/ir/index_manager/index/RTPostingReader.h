@@ -42,7 +42,7 @@ public:
         int32_t decodedPosCount;
     };
 public:
-    explicit MemPostingReader(RTPostingWriter* pPostingWriter);
+    explicit MemPostingReader(boost::shared_ptr<RTPostingWriter> pPostingWriter);
 
     virtual ~MemPostingReader();
 public:
@@ -143,7 +143,7 @@ protected:
     int skipInterval_;
     int maxSkipLevel_;
 
-    RTPostingWriter* pPostingWriter_;
+    boost::shared_ptr<RTPostingWriter> pPostingWriter_;
     boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
     boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     DecodeState* pDS_;			///decoding state
