@@ -277,7 +277,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             //pPosting = NULL;
         }
 
-        //postingMap_.clear();
+        postingMap_.clear();
     }
     else
     {

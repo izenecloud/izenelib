@@ -121,7 +121,7 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    // pPostingWriter_->flushLastDoc(false);
+    pPostingWriter_->flushLastDoc(false);
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
 	
     if (!pDS_)
@@ -203,7 +203,7 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    //pPostingWriter_->flushLastDoc(false);
+    pPostingWriter_->flushLastDoc(false);
 
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
@@ -446,7 +446,7 @@ docid_t MemPostingReader::DecodeTo(
     ///just pass one by one
 
     ///flush last document
-    //pPostingWriter_->flushLastDoc(false);
+    pPostingWriter_->flushLastDoc(false);
 	
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
