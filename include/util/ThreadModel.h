@@ -12,140 +12,161 @@ NS_IZENELIB_UTIL_BEGIN
 class NullLock
 {
 public:
-	inline int acquire_read_lock() {
-		return 0;
-	}
+    inline int acquire_read_lock()
+    {
+        return 0;
+    }
 
-	inline int release_read_lock() {
-		return 0;
-	}
+    inline int release_read_lock()
+    {
+        return 0;
+    }
 
-	inline int acquire_write_lock() {
-		return 0;
-	}
+    inline int acquire_write_lock()
+    {
+        return 0;
+    }
 
-	inline int release_write_lock() {
-		return 0;
-	}
+    inline int release_write_lock()
+    {
+        return 0;
+    }
 
 };
 
-class ReadWriteLock : private boost::noncopyable {
+class ReadWriteLock : private boost::noncopyable
+{
 private:
-	boost::shared_mutex rwMutex_;
+    boost::shared_mutex rwMutex_;
 public:
-	ReadWriteLock() {
-	}
+    explicit ReadWriteLock()
+    {}
 
-	~ReadWriteLock() {
-	}
+    ~ReadWriteLock()
+    {}
 
-	/** 
-	 * @ brief Get entity mutex. 
-	 */
-	boost::shared_mutex& get_entity() {
-		return rwMutex_;
-	}
+    /**
+     * @ brief Get entity mutex.
+     */
+    boost::shared_mutex& get_entity()
+    {
+        return rwMutex_;
+    }
 
-	/** 
-	 * @ brief Attempts to get the read lock. 
-	 */
-	inline int acquire_read_lock() {
-		rwMutex_.lock_shared();
-		return 0;
-	}
-	/** 
-	 *  @ brief Attempts to get the write lock. 
-	 */
-	inline int acquire_write_lock() {
-		rwMutex_.lock();
-		return 0;
-	}
-	/** 
-	 *  @ brief Attempts to release the  read lock . 
-	 */
-	inline int release_read_lock() {
-		rwMutex_.unlock_shared();
-		return 0;
-	}
-	/** 
-	 * @ brief Attempts to release the write lock. 
-	 */
-	inline int release_write_lock() {
-		rwMutex_.unlock();
-		return 0;
-	}
+    /**
+     * @ brief Attempts to get the read lock.
+     */
+    inline int acquire_read_lock()
+    {
+        rwMutex_.lock_shared();
+        return 0;
+    }
+    /**
+     *  @ brief Attempts to get the write lock.
+     */
+    inline int acquire_write_lock()
+    {
+        rwMutex_.lock();
+        return 0;
+    }
+    /**
+     *  @ brief Attempts to release the  read lock .
+     */
+    inline int release_read_lock()
+    {
+        rwMutex_.unlock_shared();
+        return 0;
+    }
+    /**
+     * @ brief Attempts to release the write lock.
+     */
+    inline int release_write_lock()
+    {
+        rwMutex_.unlock();
+        return 0;
+    }
 };
 
-class RecursiveLock : private boost::noncopyable {
+class RecursiveLock : private boost::noncopyable
+{
 private:
-	boost::recursive_mutex recurMutex_;
+    boost::recursive_mutex recurMutex_;
 public:
-	RecursiveLock() {
-	}
+    explicit RecursiveLock()
+    {}
 
-	~RecursiveLock() {
-	}
+    ~RecursiveLock()
+    {
+    }
 
-	/** 
-	 * @ brief Attempts to get the read lock. 
-	 */
-	inline int acquire_read_lock() {
-		recurMutex_.lock();
-		return 0;
-	}
-	/** 
-	 *  @ brief Attempts to get the write lock. 
-	 */
-	inline int acquire_write_lock() {
-		recurMutex_.lock();
-		return 0;
-	}
-	/** 
-	 *  @ brief Attempts to release the  read lock . 
-	 */
-	inline int release_read_lock() {
-		recurMutex_.unlock();
-		return 0;
-	}
-	/** 
-	 * @ brief Attempts to release the write lock. 
-	 */
-	inline int release_write_lock() {
-		recurMutex_.unlock();
-		return 0;
-	}
+    /**
+     * @ brief Attempts to get the read lock.
+     */
+    inline int acquire_read_lock()
+    {
+        recurMutex_.lock();
+        return 0;
+    }
+    /**
+     *  @ brief Attempts to get the write lock.
+     */
+    inline int acquire_write_lock()
+    {
+        recurMutex_.lock();
+        return 0;
+    }
+    /**
+     *  @ brief Attempts to release the  read lock .
+     */
+    inline int release_read_lock()
+    {
+        recurMutex_.unlock();
+        return 0;
+    }
+    /**
+     * @ brief Attempts to release the write lock.
+     */
+    inline int release_write_lock()
+    {
+        recurMutex_.unlock();
+        return 0;
+    }
 };
 
 template<class LockType>
 class ScopedReadLock
 {
-	LockType& lock_;
+    LockType& lock_;
 public:
-	ScopedReadLock( LockType& lock):lock_(lock) {
-		lock_.acquire_read_lock();
-	}
-	~ScopedReadLock() {
-		lock_.release_read_lock();
-	}
+    explicit ScopedReadLock( LockType& lock):lock_(lock)
+    {
+        lock_.acquire_read_lock();
+    }
+    ~ScopedReadLock()
+    {
+        lock_.release_read_lock();
+    }
 };
 
 template<class LockType>
 class ScopedWriteLock
 {
-	LockType& lock_;
+    LockType& lock_;
 public:
-	ScopedWriteLock( LockType& lock):lock_(lock) {
-		lock_.acquire_write_lock();
-	}
-	~ScopedWriteLock() {
-		lock_.release_write_lock();
-	}
+    explicit ScopedWriteLock( LockType& lock):lock_(lock)
+    {
+        lock_.acquire_write_lock();
+    }
+    ~ScopedWriteLock()
+    {
+        lock_.release_write_lock();
+    }
 };
 
 NS_IZENELIB_UTIL_END
 
-namespace boost{
+namespace boost
+{
 typedef boost::detail::try_lock_wrapper<boost::shared_mutex> shared_scoped_try_lock;
 }
 
