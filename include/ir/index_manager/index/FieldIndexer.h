@@ -16,7 +16,7 @@
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 #include <am/external_sort/izene_sort.hpp>
 #include <util/ThreadModel.h>
-#include <boost/memory.hpp>
+//#include <boost/memory.hpp>
 #include <3rdparty/am/stx/btree_map>
 
 #include <boost/thread.hpp>
@@ -395,9 +395,9 @@ private:
 
     izenelib::util::ReadWriteLock rwLock_;
 
-    NS_BOOST_MEMORY::block_pool recycle_;
+    //NS_BOOST_MEMORY::block_pool recycle_;
 
-    boost::scoped_alloc* alloc_;
+    //boost::scoped_alloc* alloc_;
 
     std::string sorterFullPath_;
 

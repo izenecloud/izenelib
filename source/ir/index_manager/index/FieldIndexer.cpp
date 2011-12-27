@@ -54,7 +54,7 @@ FieldIndexer::FieldIndexer(
     :field_(field)
     ,pIndexer_(pIndexer)
     ,vocFilePointer_(0)
-    ,alloc_(0)
+    //,alloc_(0)
     ,f_(0)
     ,termCount_(0)
     ,iHitsMax_(0)
@@ -76,7 +76,7 @@ FieldIndexer::FieldIndexer(
 
 FieldIndexer::~FieldIndexer()
 {
-    if (alloc_) delete alloc_;
+    //if (alloc_) delete alloc_;
     if (f_)
     {
         fclose(f_);
@@ -176,17 +176,17 @@ void FieldIndexer::addField(
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
-        if(!alloc_) alloc_ = new boost::scoped_alloc(recycle_);
+        //if(!alloc_) alloc_ = new boost::scoped_alloc(recycle_);
         RTPostingWriter* curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
             InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termid_);
             if (postingIter == postingMap_.end())
             {
-                //curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
-                assert(alloc_);
-                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)
-                                      (pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
+                curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
+                //assert(alloc_);
+                //curPosting = BOOST_NEW(*alloc_, RTPostingWriter)
+                //                      (pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
                 postingMap_[iter->termid_] = curPosting;
             }
             else
@@ -240,11 +240,11 @@ void FieldIndexer::reset()
     postingMap_.clear();
     termCount_ = 0;
 
-    if(alloc_)
-    {
-        delete alloc_;
-        alloc_ = 0;
-    }
+    //if(alloc_)
+    //{
+    //    delete alloc_;
+    //    alloc_ = 0;
+    //}
 
     if (! pIndexer_->isRealTime())
     {
@@ -254,7 +254,7 @@ void FieldIndexer::reset()
     }
     else
     {
-        alloc_ = new boost::scoped_alloc(recycle_);
+        //alloc_ = new boost::scoped_alloc(recycle_);
     }
 }
 
