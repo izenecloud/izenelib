@@ -283,7 +283,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
                 tid = iter->first;
                 pPosting->write(pWriterDesc, termInfo);		///write posting data
                 writeTermInfo(pVocWriter,tid,termInfo);
-                pPosting->reset();								///clear posting data
+                //pPosting->reset();								///clear posting data
                 termInfo.reset();
                 termCount_++;
             }

@@ -26,7 +26,7 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(
+    explicit RTPostingWriter(
         boost::shared_ptr<MemCache> pMemCache, 
         int skipInterval, 
         int maxSkipLevel, 
@@ -116,7 +116,7 @@ private:
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
     IndexLevel indexLevel_;
-    izenelib::util::ReadWriteLock mutex_;
+    boost::shared_mutex mutex_;
 	
     friend class MemPostingReader;
     friend class PostingMerger;

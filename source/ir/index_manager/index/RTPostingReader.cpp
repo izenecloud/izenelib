@@ -121,8 +121,8 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
+    // pPostingWriter_->flushLastDoc(false);
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
 	
     if (!pDS_)
     {
@@ -203,9 +203,9 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
+    //pPostingWriter_->flushLastDoc(false);
 
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
@@ -311,8 +311,8 @@ bool MemPostingReader::DecodeNextPositions(
     {
         return false;
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
 
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -345,8 +345,8 @@ bool MemPostingReader::DecodeNextPositions(
     {
         return false;
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
 
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -381,8 +381,8 @@ bool MemPostingReader::DecodeNextPositions(
     {
         return false;
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
 
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -424,7 +424,7 @@ SkipListReader* MemPostingReader::getSkipListReader()
 
 void MemPostingReader::ResetPosition()
 {
-    pDS_->lastDecodedPos = 0;
+    if(pDS_) pDS_->lastDecodedPos = 0;
 }
 
 docid_t MemPostingReader::DecodeTo(
@@ -446,9 +446,9 @@ docid_t MemPostingReader::DecodeTo(
     ///just pass one by one
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pPostingWriter_->mutex_);
+    //pPostingWriter_->flushLastDoc(false);
 	
+    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;

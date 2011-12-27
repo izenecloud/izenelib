@@ -42,7 +42,7 @@ public:
         int32_t decodedPosCount;
     };
 public:
-    MemPostingReader(RTPostingWriter* pPostingWriter);
+    explicit MemPostingReader(RTPostingWriter* pPostingWriter);
 
     virtual ~MemPostingReader();
 public:
