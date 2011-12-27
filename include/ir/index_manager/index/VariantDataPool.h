@@ -36,9 +36,7 @@ struct VariantDataChunk
 class VariantDataPool : public OutputStream
 {
 public:
-    VariantDataPool(boost::shared_ptr<MemCache> pMemCache);
-
-    VariantDataPool(const VariantDataPool& src);
+    explicit VariantDataPool(boost::shared_ptr<MemCache> pMemCache);
 
     ~VariantDataPool();
 public:
@@ -123,6 +121,9 @@ private:
      * @param pNode the node
      */
     void addChunk();
+
+    VariantDataPool(const VariantDataPool&);
+    void operator=(const VariantDataPool&);
 
 private:
     boost::shared_ptr<MemCache> pMemCache_;
