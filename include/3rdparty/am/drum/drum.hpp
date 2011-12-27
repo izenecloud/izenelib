@@ -224,8 +224,8 @@ Drum(std::string const& name,
     {
         ++num_bucket_bits_;
     }
-    if (num_bucket_bits_ > 16)
-        num_bucket_bits_ = 16;
+    if (num_buckets_ != static_cast<std::size_t>(1) << num_bucket_bits_)
+        ++num_bucket_bits_;
 
     for (std::size_t i = 0; i < num_buckets_; i++)
     {
@@ -502,7 +502,7 @@ Drum<
     dispatcher_t>::
 GetBucketAndBufferPos(key_t const& key)
 {
-    std::size_t bucket_id = BucketIdentififer<key_t>::Calculate(key, num_bucket_bits_);
+    std::size_t bucket_id = std::min(num_buckets_ - 1, BucketIdentififer<KeyType>::Calculate(key, num_bucket_bits_));
     std::size_t pos = next_positions_[bucket_id]++; //Notice this increments the position.
 
     assert(pos <= bucket_buff_elem_size_ && "Position must not be larger than buffer size.");
@@ -987,7 +987,7 @@ UnsortMergeBuffer()
     //Now I use those positions as keys to "sort" them back in linear time.
     //Traversing unsorting_helper_ gives the indexes into sorted_merge_buffer considering the original
     //order. (I use only the indexes to avoid element copies.)
-    std::size_t total = static_cast<std::size_t>(sorted_merge_buffer_.size());
+    std::size_t total = sorted_merge_buffer_.size();
     unsorting_helper_.resize(total);
     for (std::size_t i = 0; i < total; ++i)
     {
