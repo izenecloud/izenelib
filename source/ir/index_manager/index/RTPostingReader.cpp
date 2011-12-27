@@ -393,6 +393,7 @@ bool MemPostingReader::DecodeNextPositions(
     for (int32_t nF = 0; nF < nFreqs;nF++)
     {
         nCurDecoded = 0;
+        ISCHUNKOVER_P();		
         while (nCurDecoded < pFreqs[nF])
         {
             ISCHUNKOVER_P();
