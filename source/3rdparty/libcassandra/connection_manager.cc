@@ -15,23 +15,22 @@ CassandraConnectionManager::~CassandraConnectionManager()
 }
 
 void CassandraConnectionManager::init(
-    const std::string& host,
-    int port,
-    size_t pool_size)
+        const std::string& host,
+        int port,
+        size_t pool_size)
 {
     clear();
-    for(size_t i = 0; i < pool_size; ++i)
+    for (size_t i = 0; i < pool_size; ++i)
     {
-        MyCassandraClient* client = new MyCassandraClient(host,port);
-        client->open();
-        clients_.push_back(client);
+        clients_.push_back(new MyCassandraClient(host, port));
+        clients_.back()->open();
     }
 }
 
 void CassandraConnectionManager::clear()
 {
     std::list<MyCassandraClient*>::iterator it = clients_.begin();
-    for(;it != clients_.end(); ++it)
+    for (;it != clients_.end(); ++it)
     {
         delete *it;
     }
@@ -41,7 +40,7 @@ MyCassandraClient * CassandraConnectionManager::borrowClient()
 {
     MyCassandraClient* client = NULL;
     boost::unique_lock<boost::mutex> lock(mutex_);
-    while(clients_.empty())
+    while (clients_.empty())
     {
         cond_.wait(lock);
     }
