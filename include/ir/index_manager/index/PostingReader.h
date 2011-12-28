@@ -125,7 +125,9 @@ protected:
         while(posBufLength < minBufLength)
             posBufLength <<= 1;
 
-        pPPosting = (uint32_t*)realloc(pPPosting, posBufLength * sizeof(uint32_t));
+        uint32_t* p = (uint32_t*)realloc(pPPosting, posBufLength * sizeof(uint32_t));
+        if(p) pPPosting = p;
+        else SF1V5_THROW(ERROR_OUTOFMEM,"PostingReader:GrowPosBuffer() : ReAllocate memory failed.");
 
         assert(posBufLength >= minBufLength);
     }
