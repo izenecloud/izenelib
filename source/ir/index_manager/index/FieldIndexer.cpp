@@ -259,7 +259,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     if (pIndexer_->isRealTime())
     {
-        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
+        boost::unique_lock<boost::shared_mutex> lock(rwLock_);
+		
         InMemoryPostingMap::iterator iter = postingMap_.begin();
         for (; iter !=postingMap_.end(); ++iter)
         {
@@ -395,7 +396,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
 TermReader* FieldIndexer::termReader()
 {
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(rwLock_);
+    boost::shared_lock<boost::shared_mutex> lock(rwLock_);
     return new MemTermReader(getField(),this);
 }
 

@@ -15,9 +15,8 @@
 #include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
-#include <util/ThreadModel.h>
-
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{

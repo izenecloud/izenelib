@@ -668,7 +668,7 @@ bool MemTermReader::seek(Term* term)
 
 TermDocFreqs* MemTermReader::termDocFreqs()
 {
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
 
     if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
         return NULL;
@@ -682,7 +682,7 @@ TermDocFreqs* MemTermReader::termDocFreqs()
 
 TermPositions* MemTermReader::termPositions()
 {
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
 
     if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
         return NULL;
@@ -704,7 +704,7 @@ freq_t MemTermReader::docFreq(Term* term)
 
 TermInfo* MemTermReader::termInfo(Term* term)
 {
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
 
     if (strcasecmp(term->getField(),field_.c_str()))
         return NULL;
