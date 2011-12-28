@@ -27,7 +27,7 @@ MemPostingReader::MemPostingReader(
     ,pSkipListReader_(0)
     ,pDocFilter_(0)
 {
-    pPostingWriter_->flushLastDoc(false);
+    //pPostingWriter_->flushLastDoc(false);
 }
 
 MemPostingReader::~MemPostingReader()
@@ -121,7 +121,7 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
+    //pPostingWriter_->flushLastDoc(false);
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
 	
     if (!pDS_)
@@ -203,7 +203,7 @@ int32_t MemPostingReader::DecodeNext(
     }
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
+    //pPostingWriter_->flushLastDoc(false);
 
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
@@ -393,7 +393,7 @@ bool MemPostingReader::DecodeNextPositions(
     for (int32_t nF = 0; nF < nFreqs;nF++)
     {
         nCurDecoded = 0;
-        ISCHUNKOVER_P();		
+        if(!pDS_->decodingPChunk) break;
         while (nCurDecoded < pFreqs[nF])
         {
             ISCHUNKOVER_P();
@@ -446,7 +446,7 @@ docid_t MemPostingReader::DecodeTo(
     ///just pass one by one
 
     ///flush last document
-    pPostingWriter_->flushLastDoc(false);
+    //pPostingWriter_->flushLastDoc(false);
 	
     boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
@@ -462,6 +462,10 @@ docid_t MemPostingReader::DecodeTo(
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;
+    }
+    if(! pDS_->decodingDChunk)
+    {
+        return BAD_DOCID;
     }
 
 

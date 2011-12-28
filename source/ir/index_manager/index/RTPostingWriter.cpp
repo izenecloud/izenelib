@@ -112,8 +112,7 @@ void RTPostingWriter::write(
 
 void RTPostingWriter::reset()
 {
-    boost::upgrade_lock< boost::shared_mutex > lock(mutex_);
-    boost::upgrade_to_unique_lock< boost::shared_mutex > uniqueLock(lock);
+    boost::unique_lock< boost::shared_mutex > lock(mutex_);
 
     pDocFreqList_->reset();
     if(pLocList_)
@@ -133,8 +132,7 @@ void RTPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(realTimeFlag)
     {
-        boost::upgrade_lock< boost::shared_mutex > lock(mutex_);
-        boost::upgrade_to_unique_lock< boost::shared_mutex > uniqueLock(lock);
+        boost::unique_lock< boost::shared_mutex > lock(mutex_);
         doAdd(docid,location);
     }
     else doAdd(docid,location);
@@ -193,8 +191,7 @@ int32_t RTPostingWriter::getSkipLevel()
 
 void RTPostingWriter::flushLastDoc(bool bTruncTail)
 {
-    boost::upgrade_lock< boost::shared_mutex > lock(mutex_);
-    boost::upgrade_to_unique_lock< boost::shared_mutex > uniqueLock(lock);
+    boost::unique_lock< boost::shared_mutex > lock(mutex_);
     if(!pMemCache_)
         return;
 
