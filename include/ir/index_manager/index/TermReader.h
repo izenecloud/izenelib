@@ -258,7 +258,7 @@ private:
 
     FieldIndexer* pIndexer_;
 
-    TermInfo* pCurTermInfo_;
+    TermInfo curTermInfo_;
 
     boost::shared_ptr<RTPostingWriter> pCurPosting_;
 

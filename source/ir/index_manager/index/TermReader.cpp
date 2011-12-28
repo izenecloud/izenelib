@@ -628,7 +628,6 @@ TermIterator* RTDiskTermReader::termIterator(const char* field)
 MemTermReader::MemTermReader(const char* field,FieldIndexer* pIndexer)
         : field_(field)
         , pIndexer_(pIndexer)
-        , pCurTermInfo_(NULL)
 {
 }
 
@@ -656,8 +655,8 @@ TermIterator* MemTermReader::termIterator(const char* field)
 bool MemTermReader::seek(Term* term)
 {
     try{
-    pCurTermInfo_ = termInfo(term);
-    if ((pCurTermInfo_)&&(pCurTermInfo_->docFreq() > 0))
+        termInfo(term);
+    if ((curTermInfo_.docFreq() > 0))
         return true;
     return false;
     }catch(std::exception& e)
@@ -670,13 +669,13 @@ TermDocFreqs* MemTermReader::termDocFreqs()
 {
     boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
 
-    if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
+    if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
 
     PostingReader* pPosting = new MemPostingReader(pCurPosting_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-    TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,*pCurTermInfo_);
+    TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,curTermInfo_);
     return pTermDocs;
 }
 
@@ -684,22 +683,18 @@ TermPositions* MemTermReader::termPositions()
 {
     boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
 
-    if( (pCurTermInfo_ == NULL)||(!pCurPosting_))
+    if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
     PostingReader* pPosting = new MemPostingReader(pCurPosting_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-    TermPositions* pPositions = new TermPositions(pPosting,*pCurTermInfo_);
+    TermPositions* pPositions = new TermPositions(pPosting,curTermInfo_);
     return pPositions;
 }
 freq_t MemTermReader::docFreq(Term* term)
 {
-    TermInfo* ti = termInfo(term);
-    if (ti)
-    {
-        return ti->docFreq();
-    }
-    return 0;
+    termInfo(term);
+    return curTermInfo_.docFreq();
 }
 
 TermInfo* MemTermReader::termInfo(Term* term)
@@ -717,27 +712,19 @@ TermInfo* MemTermReader::termInfo(Term* term)
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
-    if (!pCurTermInfo_)
-        pCurTermInfo_ = new TermInfo;
 
     pCurPosting_->flushLastDoc(false);
 
-    pCurTermInfo_->set(pCurPosting_->docFreq(),
+    curTermInfo_.set(pCurPosting_->docFreq(),
                                pCurPosting_->getCTF(),
                                pCurPosting_->lastDocID(),
                                pCurPosting_->getSkipLevel(),
                                -1,-1,0,-1,0);
-    return pCurTermInfo_;
+    return NULL;
 }
 
 void MemTermReader::close()
 {
-    if (pCurTermInfo_)
-    {
-        delete pCurTermInfo_;
-        pCurTermInfo_ = NULL;
-    }
-    pCurTermInfo_ = NULL;
 }
 
 TermReader* MemTermReader::clone()
