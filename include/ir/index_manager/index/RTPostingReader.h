@@ -42,7 +42,9 @@ public:
         int32_t decodedPosCount;
     };
 public:
-    explicit MemPostingReader(boost::shared_ptr<RTPostingWriter> pPostingWriter);
+    explicit MemPostingReader(
+        boost::shared_ptr<RTPostingWriter> pPostingWriter,
+        const TermInfo& termInfo);
 
     virtual ~MemPostingReader();
 public:
@@ -50,8 +52,6 @@ public:
     count_t docFreq() const;
     /// Get collection's total term frequency
     int64_t getCTF() const;
-    /// get current tf
-    count_t getCurTF() const;
     /// Get last added doc id
     docid_t lastDocID();
 
@@ -146,6 +146,7 @@ protected:
     boost::shared_ptr<RTPostingWriter> pPostingWriter_;
     boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
     boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
+    TermInfo termInfo_;
     DecodeState* pDS_;			///decoding state
     SkipListReader* pSkipListReader_; ///skiplist reader
     BitVector* pDocFilter_;
@@ -291,14 +292,6 @@ public:
     {
         return postingDesc_.ctf;
     };
-
-    /**
-     * get current tf
-     */
-    count_t getCurTF() const
-    {
-        return ds_.lastDecodedDocTF;
-    }
 
     SkipListReader* getSkipListReader()
     {

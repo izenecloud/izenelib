@@ -18,11 +18,13 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 MemPostingReader::MemPostingReader(
-    boost::shared_ptr<RTPostingWriter> pPostingWriter
+    boost::shared_ptr<RTPostingWriter> pPostingWriter,
+    const TermInfo& termInfo
 )
     :pPostingWriter_(pPostingWriter)
     ,pDocFreqList_(pPostingWriter->pDocFreqList_)
     ,pLocList_(pPostingWriter->pLocList_)
+    ,termInfo_(termInfo)
     ,pDS_(NULL)
     ,pSkipListReader_(0)
     ,pDocFilter_(0)
@@ -47,27 +49,22 @@ MemPostingReader::~MemPostingReader()
 
 count_t MemPostingReader::docFreq() const
 {
-    return pPostingWriter_->docFreq();
+    return termInfo_.docFreq_;
 };
 
 int64_t MemPostingReader::getCTF() const
 {
-    return pPostingWriter_->getCTF();
+    return termInfo_.ctf_;
 };
-
-count_t MemPostingReader::getCurTF() const
-{
-    return pPostingWriter_->getCurTF();
-}
 
 docid_t MemPostingReader::lastDocID()
 {
-    return pPostingWriter_->lastDocID();
+    return termInfo_.lastDocID_;
 }
 
 int32_t MemPostingReader::getSkipLevel()
 {
-    return pPostingWriter_->getSkipLevel();
+    return termInfo_.skipLevel_;
 }
 
 count_t MemPostingReader::getDPostingLen()
@@ -147,7 +144,7 @@ int32_t MemPostingReader::DecodeNext(
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
 
-    int32_t left = pPostingWriter_->nDF_ - pDS_->decodedDocCount;
+    int32_t left = termInfo_.docFreq_ - pDS_->decodedDocCount;
     if (left <= 0)
         return -1;
 
@@ -236,7 +233,7 @@ int32_t MemPostingReader::DecodeNext(
         pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
     }
 
-    int32_t left = pPostingWriter_->nDF_ - pDS_->decodedDocCount;
+    int32_t left = termInfo_.docFreq_ - pDS_->decodedDocCount;
     if (left <= 0)
         return -1;
 
@@ -469,7 +466,7 @@ docid_t MemPostingReader::DecodeTo(
     }
 
 
-    int32_t left = pPostingWriter_->nDF_ - pDS_->decodedDocCount;
+    int32_t left = termInfo_.docFreq_ - pDS_->decodedDocCount;
 
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);
@@ -513,7 +510,7 @@ docid_t MemPostingReader::DecodeTo(
     pDS_->lastDecodedPos = loc;
 
     pPosting[0] = ( did >= target )? did : -1;
-    pPosting[length>>1] = pPostingWriter_->getCTF();
+    pPosting[length>>1] = termInfo_.ctf_;
     decodedCount = 1;
     nCurrentPosting = 0;
     return pPosting[0];

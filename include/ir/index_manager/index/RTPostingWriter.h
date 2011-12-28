@@ -76,13 +76,6 @@ public:
         return nCTF_;
     };
 
-    /*
-     * get current tf
-    */
-    count_t getCurTF() const
-    {
-        return nCurTermFreq_;
-    }
 
     /** get last added doc id */
     docid_t lastDocID()

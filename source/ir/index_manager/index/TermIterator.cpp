@@ -256,7 +256,7 @@ bool MemTermIterator::next()
             pCurTermPosting_ = NULL;
         }
 
-        pCurTermPosting_ = new MemPostingReader(pPostingWriter);
+        pCurTermPosting_ = new MemPostingReader(pPostingWriter,*pCurTermInfo_);
         if (pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
         pCurTermInfo_->set(pCurTermPosting_->docFreq(),

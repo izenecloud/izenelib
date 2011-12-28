@@ -104,8 +104,6 @@ public:
 
     virtual int64_t getCTF()const = 0;
 
-    virtual count_t getCurTF()const = 0;
-
     virtual void setFilter(BitVector* pFilter) = 0;
 
 protected:

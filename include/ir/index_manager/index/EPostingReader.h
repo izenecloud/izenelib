@@ -140,15 +140,6 @@ public:
         return ctf_;
     }
 
-    /*
-     * get current tf
-    */
-    count_t getCurTF() const
-    {
-        return blockDecoder_.chunk_decoder_.frequencies(
-                        blockDecoder_.chunk_decoder_.curr_document_offset());		
-    }
-
     docid_t lastDocID()
     {
         return 0;
@@ -329,14 +320,6 @@ public:
     int64_t getCTF()const
     {
         return ctf_;
-    }
-
-    /*
-     * get current tf
-    */
-    count_t getCurTF() const
-    {
-        return chunkDecoder_.frequencies(chunkDecoder_.curr_document_offset());
     }
 
     docid_t lastDocID()

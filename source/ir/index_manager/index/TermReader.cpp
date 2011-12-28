@@ -672,7 +672,7 @@ TermDocFreqs* MemTermReader::termDocFreqs()
     if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
 
-    PostingReader* pPosting = new MemPostingReader(pCurPosting_);
+    PostingReader* pPosting = new MemPostingReader(pCurPosting_,curTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,curTermInfo_);
@@ -685,7 +685,7 @@ TermPositions* MemTermReader::termPositions()
 
     if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
-    PostingReader* pPosting = new MemPostingReader(pCurPosting_);
+    PostingReader* pPosting = new MemPostingReader(pCurPosting_,curTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermPositions* pPositions = new TermPositions(pPosting,curTermInfo_);
