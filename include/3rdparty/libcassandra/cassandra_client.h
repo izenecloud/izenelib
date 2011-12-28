@@ -14,6 +14,7 @@ using namespace apache::thrift::transport;
 
 namespace libcassandra
 {
+
 class MyCassandraClient
 {
 public:

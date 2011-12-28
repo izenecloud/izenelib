@@ -66,6 +66,9 @@ public:
     typedef key_t KeyType;
     typedef value_t ValueType;
     typedef aux_t AuxType;
+    typedef key_comp_t<key_t> KeyCompType;
+    typedef ordered_db_t<key_t, value_t, key_comp_t<key_t> > DbType;
+    typedef dispatcher_t<key_t, value_t, aux_t> DispatcherType;
 
 private:
     typedef boost::tuple<key_t,
@@ -82,10 +85,6 @@ private:
 
     typedef std::vector<std::pair<std::string, std::string> > BucketFileNamesContainer;
     typedef std::vector<std::pair<std::streampos, std::streampos> > BucketFilePointersContainer;
-
-    typedef ordered_db_t<key_t, value_t, key_comp_t<key_t> > DbType;
-
-    typedef dispatcher_t<key_t, value_t, aux_t> DispatcherType;
 
     //Other compare method different than "less than" doesn't fit well in the Drum architecture.
     struct KeyCompare
