@@ -845,7 +845,7 @@ ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
     this->OpenFile(file_names_[bucket_id].first, kv_file);
     std::streampos kv_written = current_pointers_[bucket_id].first;
 
-    while (kv_file.tellg() < kv_written)
+    while (kv_file.tellg() < (kv_written - std::streampos(0)))
     {
         //It would be nice to have semantics to move the element into the container. To avoid an
         //extra copy I insert the element and use a reference to it.
@@ -1018,7 +1018,7 @@ ReadAuxBucketForDispatching(std::size_t bucket_id)
     this->OpenFile(file_names_[bucket_id].second, aux_file);
     std::streampos aux_written = current_pointers_[bucket_id].second;
 
-    while (aux_file.tellg() < aux_written)
+    while (aux_file.tellg() < (aux_written - std::streampos(0)))
     {
         unsorted_aux_buffer_.push_back(AuxType());
         AuxType & aux = unsorted_aux_buffer_.back();
