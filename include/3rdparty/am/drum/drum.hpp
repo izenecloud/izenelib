@@ -956,7 +956,7 @@ SynchronizeWithDisk()
         {
             ValueType const& value = element.template get<1>();
 
-            if (!db_.put(key, value)) //Overwrite if the key is already present.
+            if (!db_.update(key, value)) //Overwrite if the key is already present.
                 throw DrumException("Error merging with repository.");
         }
     }
@@ -1059,23 +1059,32 @@ Dispatch()
         char op = element.template get<2>();
         char result = element.template get<4>();
 
+        ValueType const& value = boost::tuples::get<1>(element);
         AuxType const& aux = unsorted_aux_buffer_[i];
 
-        if (CHECK == op && UNIQUE_KEY == result)
-            dispatcher_.UniqueKeyCheck(key, aux);
-        else
+        switch (op)
         {
-            ValueType const& value = element.template get<1>();
+            case CHECK:
+                if (UNIQUE_KEY == result)
+                    dispatcher_.UniqueKeyCheck(key, aux);
+                else
+                    dispatcher_.DuplicateKeyCheck(key, value, aux);
+                break;
 
-            if (CHECK == op && DUPLICATE_KEY == result)
-                dispatcher_.DuplicateKeyCheck(key, value, aux);
-            else if (CHECK_UPDATE == op && UNIQUE_KEY == result)
-                dispatcher_.UniqueKeyUpdate(key, value, aux);
-            else if (CHECK_UPDATE == op && DUPLICATE_KEY == result)
-                dispatcher_.DuplicateKeyUpdate(key, value, aux);
-            else if (UPDATE == op)
+            case CHECK_UPDATE:
+                if (UNIQUE_KEY == result)
+                    dispatcher_.UniqueKeyUpdate(key, value, aux);
+                else
+                    dispatcher_.DuplicateKeyUpdate(key, value, aux);
+                break;
+
+            case UPDATE:
                 dispatcher_.Update(key, value, aux);
-            else assert("Invalid combination of operation and result.");
+                break;
+
+            default:
+                assert("Invalid combination of operation and result.");
+                break;
         }
     }
 }
