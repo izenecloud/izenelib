@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/PostingReader.h>
 #include <ir/index_manager/index/VariantDataPool.h>
 #include <ir/index_manager/index/TermInfo.h>
+#include <ir/index_manager/index/InputDescriptor.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -21,7 +22,6 @@ namespace indexmanager{
 class BitVector;
 class SkipListReader;
 class OutputDescriptor;
-class InputDescriptor;
 
 class RTPostingWriter;
 /**
@@ -44,7 +44,8 @@ public:
 public:
     explicit MemPostingReader(
         boost::shared_ptr<RTPostingWriter> pPostingWriter,
-        const TermInfo& termInfo);
+        const TermInfo& termInfo,
+        IndexLevel type=WORDLEVEL);
 
     virtual ~MemPostingReader();
 public:

@@ -29,7 +29,6 @@ RTPostingWriter::RTPostingWriter(
     ,nCurTermFreq_(0)
     ,nCTF_(0)
     ,pSkipListWriter_(0)
-    ,dirty_(false)
     ,indexLevel_(indexLevel)
 {
     pDocFreqList_.reset(new VariantDataPool(pCache));
@@ -51,6 +50,13 @@ RTPostingWriter::~RTPostingWriter()
 bool RTPostingWriter::isEmpty()
 {
     return (pDocFreqList_->pTailChunk_==NULL);
+}
+
+void RTPostingWriter::getSnapShot(TermInfo& snapshot)
+{
+    boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    snapshot.set(nDF_,nCTF_,nLastDocID_,getSkipLevel(),-1,-1,0,-1,0);
+    snapshot.currTF_ = nCurTermFreq_;
 }
 
 void RTPostingWriter::write(
@@ -112,8 +118,6 @@ void RTPostingWriter::write(
 
 void RTPostingWriter::reset()
 {
-    boost::unique_lock< boost::shared_mutex > lock(mutex_);
-
     pDocFreqList_->reset();
     if(pLocList_)
         pLocList_->reset();
@@ -191,7 +195,6 @@ int32_t RTPostingWriter::getSkipLevel()
 
 void RTPostingWriter::flushLastDoc(bool bTruncTail)
 {
-    boost::unique_lock< boost::shared_mutex > lock(mutex_);
     if(!pMemCache_)
         return;
 

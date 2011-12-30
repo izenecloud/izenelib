@@ -76,7 +76,6 @@ FieldIndexer::FieldIndexer(
 
 FieldIndexer::~FieldIndexer()
 {
-    //if (alloc_) delete alloc_;
     if (f_)
     {
         fclose(f_);
@@ -176,7 +175,6 @@ void FieldIndexer::addField(
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
-        //if(!alloc_) alloc_ = new boost::scoped_alloc(recycle_);
         boost::shared_ptr<RTPostingWriter> curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
@@ -184,9 +182,7 @@ void FieldIndexer::addField(
             if (postingIter == postingMap_.end())
             {
                 curPosting.reset(new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_));
-                //assert(alloc_);
-                //curPosting = BOOST_NEW(*alloc_, RTPostingWriter)
-                //                      (pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
+                boost::unique_lock<boost::shared_mutex> lock(rwLock_);
                 postingMap_[iter->termid_] = curPosting;
             }
             else
@@ -229,21 +225,11 @@ void FieldIndexer::reset()
 {
     termCount_ = 0;
 
-    //if(alloc_)
-    //{
-    //    delete alloc_;
-    //    alloc_ = 0;
-    //}
-
     if (! pIndexer_->isRealTime())
     {
         f_ = fopen(sorterFullPath_.c_str(),"w");
         uint64_t count = 0;
         fwrite(&count, sizeof(uint64_t), 1, f_);
-    }
-    else
-    {
-        //alloc_ = new boost::scoped_alloc(recycle_);
     }
 }
 
@@ -259,25 +245,21 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     if (pIndexer_->isRealTime())
     {
-        boost::unique_lock<boost::shared_mutex> lock(rwLock_);
-		
         InMemoryPostingMap::iterator iter = postingMap_.begin();
         for (; iter !=postingMap_.end(); ++iter)
         {
-            iter->second->setDirty(true);
             if (!iter->second->isEmpty())
             {
                 tid = iter->first;
                 iter->second->write(pWriterDesc, termInfo);		///write posting data
                 writeTermInfo(pVocWriter,tid,termInfo);
-                iter->second->reset();								///clear posting data
+                //Don't need reset anymore
+                //iter->second->reset();						///clear posting data
                 termInfo.reset();
                 termCount_++;
             }
-            //delete pPosting;
-            //pPosting = NULL;
         }
-
+        boost::unique_lock<boost::shared_mutex> lock(rwLock_);
         postingMap_.clear();
     }
     else

@@ -22,7 +22,7 @@ namespace indexmanager{
 BlockPostingReader::BlockPostingReader(
     InputDescriptor* pInputDescriptor, 
     const TermInfo& termInfo,
-    IndexType type)
+    IndexLevel type)
     :inputDescriptorPtr_(pInputDescriptor)
     ,pListingCache_(0)
     ,pDocFilter_(0)
@@ -30,7 +30,7 @@ BlockPostingReader::BlockPostingReader(
     ,compressedPos_(0)
 {
     reset(termInfo);
-    if(type == WORD_LEVEL)
+    if(type == WORDLEVEL)
     {
         curr_pos_buffer_size_ = INIT_POS_CHUNK_SIZE;
         compressedPos_  = (uint32_t*)malloc(curr_pos_buffer_size_*sizeof(uint32_t));
@@ -496,7 +496,7 @@ ChunkPostingReader::ChunkPostingReader(
     int maxSkipLevel, 
     InputDescriptor* pInputDescriptor, 
     const TermInfo& termInfo,
-    IndexType type)
+    IndexLevel type)
     :skipInterval_(skipInterval)
     ,maxSkipLevel_(maxSkipLevel)
     ,inputDescriptorPtr_(pInputDescriptor)
@@ -504,7 +504,7 @@ ChunkPostingReader::ChunkPostingReader(
     ,compressedPos_(0)
 {
     reset(termInfo);
-    if(type == WORD_LEVEL)
+    if(type == WORDLEVEL)
     {
         curr_pos_buffer_size_ = INIT_POS_CHUNK_SIZE;
         compressedPos_  = (uint32_t*)malloc(curr_pos_buffer_size_*sizeof(uint32_t));
