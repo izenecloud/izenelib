@@ -740,7 +740,7 @@ FeedBucket(std::size_t bucket_id)
         //Key.
         {
             std::size_t key_size;
-            const char* key_serial;
+            char* key_serial;
             KeyType const& key = element.template get<0>();
             izenelib::util::izene_serialization<KeyType> izsKey(key);
             izsKey.write_image(key_serial, key_size);
@@ -751,7 +751,7 @@ FeedBucket(std::size_t bucket_id)
         //Value.
         {
             std::size_t value_size;
-            const char* value_serial;
+            char* value_serial;
             ValueType const& value = element.template get<1>();
             izenelib::util::izene_serialization<ValueType> izsValue(value);
             izsValue.write_image(value_serial, value_size);
@@ -766,7 +766,7 @@ FeedBucket(std::size_t bucket_id)
             AuxType const& aux = aux_buffers_[bucket_id][i];
 
             std::size_t aux_size;
-            const char* aux_serial;
+            char* aux_serial;
             izenelib::util::izene_serialization<AuxType> izsAux(aux);
             izsAux.write_image(aux_serial, aux_size);
             aux_file.write(reinterpret_cast<const char*>(&aux_size), sizeof(std::size_t));
@@ -782,8 +782,10 @@ FeedBucket(std::size_t bucket_id)
     this->CloseFile(aux_file);
 
     //Is it time to merge?
-    if (current_pointers_[bucket_id].first - kv_begin > bucket_byte_size_ ||
-            current_pointers_[bucket_id].second - aux_begin > bucket_byte_size_)
+    std::streamoff kv_feed_size = current_pointers_[bucket_id].first - kv_begin;
+    std::streamoff aux_feed_size = current_pointers_[bucket_id].second - aux_begin;
+    if ((kv_feed_size > 0 && static_cast<std::size_t>(kv_feed_size) > bucket_byte_size_) ||
+            (aux_feed_size > 0 && static_cast<std::size_t>(aux_feed_size) > bucket_byte_size_))
     {
         merge_buckets_ = true;
     }
@@ -863,9 +865,9 @@ ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
             KeyType & key = element.template get<0>();
             std::size_t key_size;
             kv_file.read(reinterpret_cast<char*>(&key_size), sizeof(std::size_t));
-            std::string key_serial(key_size);
-            kv_file.read(key_serial.data(), key_size);
-            izenelib::util::izene_deserialization<KeyType> izsKey(key_serial.data(), key_size);
+            char key_serial[key_size];
+            kv_file.read(key_serial, key_size);
+            izenelib::util::izene_deserialization<KeyType> izsKey(key_serial, key_size);
             izsKey.read_image(key);
         }
 
@@ -874,9 +876,9 @@ ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
             ValueType & value = element.template get<1>();
             std::size_t value_size;
             kv_file.read(reinterpret_cast<char*>(&value_size), sizeof(std::size_t));
-            std::string value_serial(value_size);
-            kv_file.read(value_serial.data(), value_size);
-            izenelib::util::izene_deserialization<ValueType> izsValue(value_serial.data(), value_size);
+            char value_serial[value_size];
+            kv_file.read(value_serial, value_size);
+            izenelib::util::izene_deserialization<ValueType> izsValue(value_serial, value_size);
             izsValue.read_image(value);
         }
     }
@@ -924,7 +926,6 @@ SynchronizeWithDisk()
     //Fast Berkeley DB queries are expected due to the locality of the keys in the bucket (and
     //consequently in the merge buffer).
 
-    int ret;
     for (typename std::vector<CompoundType>::size_type i = 0; i < sorted_merge_buffer_.size(); ++i)
     {
         CompoundType & element = sorted_merge_buffer_[i];
@@ -956,7 +957,7 @@ SynchronizeWithDisk()
         {
             ValueType const& value = element.template get<1>();
 
-            if (!db_.put(key, value)) //Overwrite if the key is already present.
+            if (!db_.update(key, value)) //Overwrite if the key is already present.
                 throw DrumException("Error merging with repository.");
         }
     }
@@ -1024,9 +1025,9 @@ ReadAuxBucketForDispatching(std::size_t bucket_id)
 
         std::size_t aux_size;
         aux_file.read(reinterpret_cast<char*>(&aux_size), sizeof(std::size_t));
-        std::string aux_serial(aux_size);
-        aux_file.read(aux_serial.data(), aux_size);
-        izenelib::util::izene_deserialization<AuxType> izsAux(aux_serial.data(), aux_size);
+        char aux_serial[aux_size];
+        aux_file.read(aux_serial, aux_size);
+        izenelib::util::izene_deserialization<AuxType> izsAux(aux_serial, aux_size);
         izsAux.read_image(aux);
     }
 
