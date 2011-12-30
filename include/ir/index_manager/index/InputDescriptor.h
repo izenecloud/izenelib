@@ -8,16 +8,12 @@
 #define INPUTDESCRIPTOR_H
 
 #include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 /// Helper class of combining different IndexInput, including *.voc, *.dfp, *.pop
-enum IndexType
-{
-    DOCUMENT_LEVEL,  /// document level posting
-    WORD_LEVEL /// word level posting
-};
 
 class BarrelInfo;
 class InputDescriptor
@@ -57,7 +53,7 @@ public:
     {
         return bDestroy_;
     }
-    InputDescriptor* clone(IndexType type = WORD_LEVEL);
+    InputDescriptor* clone(IndexLevel type = WORDLEVEL);
 
     void setBarrelInfo(BarrelInfo* pBarrelInfo);
 

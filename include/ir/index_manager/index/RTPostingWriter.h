@@ -54,10 +54,6 @@ public:
     * flush last document
     */
     void flushLastDoc(bool bTruncTail);
-    /*
-    * set in memory posting as dirty, as a result, it can not be searched any more
-    */
-    void setDirty(bool dirty) { dirty_ = dirty; }
     /**
      * get document frequency
      * @return DF value
@@ -76,7 +72,6 @@ public:
         return nCTF_;
     };
 
-
     /** get last added doc id */
     docid_t lastDocID()
     {
@@ -84,6 +79,11 @@ public:
     }
 
     int32_t getSkipLevel();
+
+    /*
+     * for realtime search.
+     */
+    void getSnapShot(TermInfo& snapshot);
 
 private:
     RTPostingWriter(const RTPostingWriter&);
@@ -102,12 +102,12 @@ private:
     boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
     boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
-    volatile bool dirty_;
     IndexLevel indexLevel_;
     boost::shared_mutex mutex_;
 	
     friend class MemPostingReader;
     friend class PostingMerger;
+    friend class MemTermReader;
 };
 
 

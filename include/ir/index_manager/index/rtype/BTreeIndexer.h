@@ -99,7 +99,7 @@ public:
     
     void add(const KeyType& key, docid_t docid)
     {
-        boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.add(key, docid);
         checkCache_();
         count_has_modify_ = true;
@@ -107,7 +107,7 @@ public:
 
     void remove(const KeyType& key, docid_t docid)
     {
-        boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
         checkCache_();
         count_has_modify_ = true;
@@ -116,10 +116,10 @@ public:
     std::size_t count()
     {
 //         boost::lock_guard<boost::shared_mutex> lock(mutex_);
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::upgrade_lock<boost::shared_mutex> lock(mutex_);
         if( count_has_modify_ || !count_in_cache_ ) 
         {
-            boost::lock_guard<boost::shared_mutex> lock(count_mutex_);
+            boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
             if( count_has_modify_ || !count_in_cache_ )
             {
                 std::size_t db_count = getCount_();
@@ -470,7 +470,7 @@ public:
 
     void flush()
     {
-        boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cacheClear_();
         db_.flush();
         count_has_modify_ = true;//force use db_.size() in count as cache will be empty
@@ -838,7 +838,6 @@ private:
     bool count_has_modify_;
     std::size_t cache_num_;
     boost::shared_mutex mutex_;
-    boost::shared_mutex count_mutex_;
 };
 
 

@@ -41,7 +41,7 @@ InputDescriptor::~InputDescriptor()
     pPPostingInput_ = NULL;
 }
 
-InputDescriptor* InputDescriptor::clone(IndexType type)
+InputDescriptor* InputDescriptor::clone(IndexLevel type)
 {
     DVLOG(4) << "=> InputDescriptor::clone(), type: " << type << ", pBarrelInfo_: " << pBarrelInfo_;
 
@@ -51,7 +51,7 @@ InputDescriptor* InputDescriptor::clone(IndexType type)
         vocInputPtr.reset(pVocInput_->clone());
     if(pDPostingInput_)
         dPostingInputPtr.reset(pDPostingInput_->clone());
-    if(type == WORD_LEVEL && pPPostingInput_)
+    if(type == WORDLEVEL && pPPostingInput_)
         pPostingInputPtr.reset(pPPostingInput_->clone());
 
     InputDescriptor* pInputDes = new InputDescriptor(vocInputPtr.get(), dPostingInputPtr.get(), pPostingInputPtr.get(), true);

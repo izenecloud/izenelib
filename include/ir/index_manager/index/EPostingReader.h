@@ -34,7 +34,7 @@ public:
     BlockPostingReader(
         InputDescriptor* pInputDescriptor,
         const TermInfo& termInfo,
-        IndexType type = WORD_LEVEL);
+        IndexLevel type = WORDLEVEL);
 
     ~BlockPostingReader();
 
@@ -216,7 +216,7 @@ public:
         int maxSkipLevel, 
         InputDescriptor* pInputDescriptor,
         const TermInfo& termInfo,
-        IndexType type = WORD_LEVEL);
+        IndexLevel type = WORDLEVEL);
 
     ~ChunkPostingReader();
 
