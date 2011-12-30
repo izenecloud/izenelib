@@ -26,6 +26,7 @@
 #define IZENELIB_DRUM_BUCKET_IDENTIFIER_HPP
 
 #include "config.hpp"
+#include "rabin_fingerprint.hpp"
 
 #include <util/izene_serialization.h>
 
@@ -37,26 +38,15 @@ struct BucketIdentififer
 {
     static std::size_t Calculate(key_t const& key, std::size_t const& num_bucket_bits)
     {
+        static RabinFingerprint rabin_fingerprint;
+
         std::size_t key_size;
         const char* key_serial;
         izenelib::util::izene_serialization<key_t> izsKey(key);
         izsKey.write_image(key_serial, key_size);
+        uint64_t fp = rabin_fingerprint.Compute(key_serial, key_size);
 
-        uint64_t fp = 0;
-        std::size_t min_len = std::min(num_bucket_bits / 8, key_size);
-        std::size_t i = 0;
-
-        while (i < min_len)
-        {
-            fp <<= 8;
-            fp |= key_serial[i++];
-        }
-        if (num_bucket_bits > i * 8)
-            fp <<= num_bucket_bits - i * 8;
-        else
-            fp >>= i * 8 - num_bucket_bits;
-
-        return static_cast<std::size_t>(fp);
+        return static_cast<std::size_t>(fp >> (64 - num_bucket_bits));
     }
 };
 
@@ -92,21 +82,11 @@ struct BucketIdentififer<std::string>
 {
     static std::size_t Calculate(std::string const& key, std::size_t const& num_bucket_bits)
     {
-        uint64_t fp = 0;
-        std::size_t min_len = std::min(num_bucket_bits / 8, key.length());
-        std::size_t i = 0;
+        static RabinFingerprint rabin_fingerprint;
 
-        while (i < min_len)
-        {
-            fp <<= 8;
-            fp |= key[i++];
-        }
-        if (num_bucket_bits > i * 8)
-            fp <<= num_bucket_bits - i * 8;
-        else
-            fp >>= i * 8 - num_bucket_bits;
+        uint64_t fp = rabin_fingerprint.Compute(key.data(), key.size());
 
-        return static_cast<std::size_t>(fp);
+        return static_cast<std::size_t>(fp >> (64 - num_bucket_bits));
     }
 };
 
