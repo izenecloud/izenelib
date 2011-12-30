@@ -18,28 +18,28 @@ class TermInfo
 {
 public:
     TermInfo()
-        :docFreq_(0),
-         ctf_(0),
-         lastDocID_(BAD_DOCID),
-         skipLevel_(0),
-         skipPointer_(-1),
-         docPointer_(-1),
-         docPostingLen_(0),
-         positionPointer_(-1),
-         positionPostingLen_(0)
-    {}
+    :docFreq_(0)
+    ,ctf_(0)
+    ,lastDocID_(BAD_DOCID)
+    ,skipLevel_(0)
+    ,skipPointer_(-1)
+    ,docPointer_(-1)
+    ,docPostingLen_(0)
+    ,positionPointer_(-1)
+    ,positionPostingLen_(0)
+    ,currTF_(0)    {}
 		
     TermInfo(const TermInfo& ti)
-        :docFreq_(ti.docFreq_),
-         ctf_(ti.ctf_),
-         lastDocID_(ti.lastDocID_),
-         skipLevel_(ti.skipLevel_),
-         skipPointer_(ti.skipPointer_),
-         docPointer_(ti.docPointer_),
-         docPostingLen_(ti.docPostingLen_),
-         positionPointer_(ti.positionPointer_),
-         positionPostingLen_(ti.positionPostingLen_)
-    {}
+    :docFreq_(ti.docFreq_)
+    ,ctf_(ti.ctf_)
+    ,lastDocID_(ti.lastDocID_)
+    ,skipLevel_(ti.skipLevel_)
+    ,skipPointer_(ti.skipPointer_)
+    ,docPointer_(ti.docPointer_)
+    ,docPostingLen_(ti.docPostingLen_)
+    ,positionPointer_(ti.positionPointer_)
+    ,positionPostingLen_(ti.positionPostingLen_)
+    ,currTF_(ti.currTF_)    {}
 
     ~TermInfo() {}
 public:
@@ -64,17 +64,9 @@ public:
               ti.docPostingLen_, ti.positionPointer_, ti.positionPostingLen_);
     }
 
-    void set(
-                   freq_t df,
-                   freq_t ctf,
-                   docid_t lastDocID,
-                   freq_t skipLevel,
-                   fileoffset_t skipPointer,
-                   fileoffset_t docPointer,
-                   freq_t docPostingLen,
-                   fileoffset_t positionPointer,
-                   freq_t positionPostingLen
-                   )
+    void set(freq_t df, freq_t ctf, docid_t lastDocID,
+                 freq_t skipLevel, fileoffset_t skipPointer, fileoffset_t docPointer,
+                 freq_t docPostingLen, fileoffset_t positionPointer, freq_t positionPostingLen)
     {
         docFreq_ = df;
         ctf_ = ctf;
@@ -117,6 +109,9 @@ public:
     fileoffset_t positionPointer_;
 
     freq_t positionPostingLen_;
+
+    //Do not store,just for real time search
+    freq_t currTF_;
 };
 
 }

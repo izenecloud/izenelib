@@ -178,6 +178,8 @@ public:
 
 private:
     
+    bool checkPropertyName_(const std::string& propertyName);
+    bool checkType_(const std::string& propertyName, const PropertyType& value);
     void doFilter_(BitVector& docs);
     
 private:

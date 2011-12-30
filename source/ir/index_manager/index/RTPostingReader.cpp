@@ -19,17 +19,21 @@ namespace indexmanager{
 
 MemPostingReader::MemPostingReader(
     boost::shared_ptr<RTPostingWriter> pPostingWriter,
-    const TermInfo& termInfo
+    const TermInfo& termInfo,
+    IndexLevel type
 )
     :pPostingWriter_(pPostingWriter)
     ,pDocFreqList_(pPostingWriter->pDocFreqList_)
-    ,pLocList_(pPostingWriter->pLocList_)
     ,termInfo_(termInfo)
     ,pDS_(NULL)
     ,pSkipListReader_(0)
     ,pDocFilter_(0)
 {
-    //pPostingWriter_->flushLastDoc(false);
+    if(type == WORDLEVEL)
+    {
+        assert(pPostingWriter->indexLevel_ == WORDLEVEL);
+        pLocList_ = pPostingWriter->pLocList_;
+    }
 }
 
 MemPostingReader::~MemPostingReader()
@@ -112,15 +116,6 @@ int32_t MemPostingReader::DecodeNext(
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
-    if(pPostingWriter_->dirty_)
-    {
-        return 0;
-    }
-
-    ///flush last document
-    //pPostingWriter_->flushLastDoc(false);
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
-	
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
@@ -194,15 +189,6 @@ int32_t MemPostingReader::DecodeNext(
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
-    if(pPostingWriter_->dirty_)
-    {
-        return 0;
-    }
-
-    ///flush last document
-    //pPostingWriter_->flushLastDoc(false);
-
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
@@ -254,10 +240,16 @@ int32_t MemPostingReader::DecodeNext(
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
-
-            ISCHUNKOVER_D();
-
-            uint32_t nCurTF = VariantDataPool::decodeVData32(pDChunk);
+            uint32_t nCurTF = 0;
+            if(did == termInfo_.lastDocID_)
+            {
+                nCurTF = termInfo_.currTF_;
+            }
+            else
+            {
+                ISCHUNKOVER_D();
+                nCurTF = VariantDataPool::decodeVData32(pDChunk);
+            }
             *pFreq++ = nCurTF;
             ++copiedCount;
 
@@ -304,12 +296,11 @@ bool MemPostingReader::DecodeNextPositions(
     uint32_t* pPosting,
     int32_t length)
 {
-    if(pPostingWriter_->dirty_ || ! pDS_->decodingPChunk)
+    if(! pDS_->decodingPChunk)
     {
         return false;
     }
 
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -338,12 +329,11 @@ bool MemPostingReader::DecodeNextPositions(
     int32_t decodeLength,
     int32_t& nCurrentPPosting)
 {
-    if(pPostingWriter_->dirty_ || ! pDS_->decodingPChunk)
+    if(! pDS_->decodingPChunk)
     {
         return false;
     }
 
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -374,12 +364,11 @@ bool MemPostingReader::DecodeNextPositions(
     int32_t nFreqs,
     int32_t& nCurrentPPosting)
 {
-    if(pPostingWriter_->dirty_|| ! pDS_->decodingPChunk)
+    if(! pDS_->decodingPChunk)
     {
         return false;
     }
 
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -434,18 +423,9 @@ docid_t MemPostingReader::DecodeTo(
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
-    if(pPostingWriter_->dirty_)
-    {
-        return BAD_DOCID;
-    }
-
     ///skipping for in-memory posting is not that necessary
     ///just pass one by one
 
-    ///flush last document
-    //pPostingWriter_->flushLastDoc(false);
-	
-    boost::shared_lock<boost::shared_mutex> lock(pPostingWriter_->mutex_);
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
@@ -465,7 +445,6 @@ docid_t MemPostingReader::DecodeTo(
         return BAD_DOCID;
     }
 
-
     int32_t left = termInfo_.docFreq_ - pDS_->decodedDocCount;
 
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
@@ -479,35 +458,41 @@ docid_t MemPostingReader::DecodeTo(
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
 
-        ISCHUNKOVER_D();
+        uint32_t nCurTF = 0;
+        if(did == termInfo_.lastDocID_)
+        {
+            nCurTF = termInfo_.currTF_;
+        }
+        else
+        {
+            ISCHUNKOVER_D();
+            nCurTF = VariantDataPool::decodeVData32(pDChunk);
+        }
 
-        nSkipPCount += VariantDataPool::decodeVData32(pDChunk);
+        nSkipPCount += nCurTF;
     }
     ///update state
     pDS_->decodedDocCount += count;
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
 
-    uint8_t* pPChunk = NULL;
-    uint8_t* pPChunkEnd = NULL;
     if(pDS_->decodingPChunk)
     {
+        uint8_t* pPChunk = NULL;
+        uint8_t* pPChunkEnd = NULL;
         pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
         pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-    }
 
-    loc_t loc = pDS_->lastDecodedPos;
-    count_t nDecoded = 0;
-    if(pDS_->decodingPChunk)
-    {
+        loc_t loc = pDS_->lastDecodedPos;
+        count_t nDecoded = 0;
         for(; nDecoded < nSkipPCount; nDecoded++)
         {
             ISCHUNKOVER_P();
             loc += VariantDataPool::decodeVData32(pPChunk);
         }
+        pDS_->decodedPosCount += nDecoded;
+        pDS_->lastDecodedPos = loc;
     }
-    pDS_->decodedPosCount += nDecoded;
-    pDS_->lastDecodedPos = loc;
 
     pPosting[0] = ( did >= target )? did : -1;
     pPosting[length>>1] = termInfo_.ctf_;

@@ -220,7 +220,7 @@ TermDocFreqs* VocReader::termDocFreqs()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     RTDiskPostingReader* pPosting = 
-        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
@@ -236,7 +236,7 @@ TermPositions* VocReader::termPositions()
         return NULL;
 
     RTDiskPostingReader* pPosting = 
-        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
@@ -571,7 +571,7 @@ TermDocFreqs* RTDiskTermReader::termDocFreqs()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     RTDiskPostingReader* pPosting = 
-        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 	
@@ -675,7 +675,7 @@ TermDocFreqs* MemTermReader::termDocFreqs()
     PostingReader* pPosting = new MemPostingReader(pCurPosting_,curTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-    TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,curTermInfo_);
+    TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,curTermInfo_,DOCLEVEL);
     return pTermDocs;
 }
 
@@ -688,7 +688,7 @@ TermPositions* MemTermReader::termPositions()
     PostingReader* pPosting = new MemPostingReader(pCurPosting_,curTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-    TermPositions* pPositions = new TermPositions(pPosting,curTermInfo_);
+    TermPositions* pPositions = new TermPositions(pPosting,curTermInfo_,WORDLEVEL);
     return pPositions;
 }
 freq_t MemTermReader::docFreq(Term* term)
@@ -699,27 +699,23 @@ freq_t MemTermReader::docFreq(Term* term)
 
 TermInfo* MemTermReader::termInfo(Term* term)
 {
-    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
-
     if (strcasecmp(term->getField(),field_.c_str()))
         return NULL;
 
     termid_t tid = term->getValue();
 
-    InMemoryPostingMap::iterator postingIter = pIndexer_->postingMap_.find(tid);
+    InMemoryPostingMap::iterator postingIter;
+    {
+        boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
+        postingIter = pIndexer_->postingMap_.find(tid);
+    }	
     if(postingIter == pIndexer_->postingMap_.end())
         return NULL;
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
 
-    pCurPosting_->flushLastDoc(false);
-
-    curTermInfo_.set(pCurPosting_->docFreq(),
-                               pCurPosting_->getCTF(),
-                               pCurPosting_->lastDocID(),
-                               pCurPosting_->getSkipLevel(),
-                               -1,-1,0,-1,0);
+    pCurPosting_->getSnapShot(curTermInfo_);
     return NULL;
 }
 
@@ -766,7 +762,7 @@ TermDocFreqs* BlockTermReader::termDocFreqs()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     BlockPostingReader* pPosting = 
-        new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
+        new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_, DOCLEVEL);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermDocFreqs* pTermDoc = 
@@ -832,7 +828,7 @@ TermDocFreqs* ChunkTermReader::termDocFreqs()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     ChunkPostingReader* pPosting = 
-        new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
+        new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_, DOCLEVEL);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 	
