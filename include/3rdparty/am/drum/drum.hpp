@@ -253,7 +253,11 @@ Drum<
 {
     try
     {
-        if (!db_closed_) this->Dispose();
+        if (!db_closed_)
+        {
+            this->Synchronize();
+            this->Dispose();
+        }
     }
     catch (std::exception & e) { /* Do logging... */ }
     catch (...) { /* Do logging... */ }
@@ -329,7 +333,7 @@ Drum<
     dispatcher_t>::
 CreateRepository()
 {
-    if (!db_.open(drum_name_ + "/db"))
+    if (!db_.open(drum_name_ + "/ordered_db"))
         throw DrumException("Error creating repository.");
 }
 
@@ -544,7 +548,7 @@ GetBucketAndBufferPos(key_t const& key)
     std::size_t bucket_id = std::min(num_buckets_ - 1, BucketIdentififer<KeyType>::Calculate(key, num_bucket_bits_));
     std::size_t pos = next_positions_[bucket_id]++; //Notice this increments the position.
 
-    assert(pos <= bucket_buff_elem_size_ && "Position must not be larger than buffer size.");
+    assert(pos < bucket_buff_elem_size_ && "Position must not be larger than buffer size.");
 
     if (next_positions_[bucket_id] == bucket_buff_elem_size_)
         feed_buckets_ = true;
