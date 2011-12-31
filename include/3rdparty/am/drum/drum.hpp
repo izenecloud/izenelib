@@ -158,7 +158,7 @@ private:
     std::string drum_name_;
     DbType db_; //Disk repository.
     bool db_closed_;
-    DispatcherType dispatcher_;
+    const DispatcherType& dispatcher_;
 
     //According to Effective C++ it's not necessary to provide definitions for such integral constant
     //variables as long as their addresses are not taken.
