@@ -109,6 +109,7 @@ private:
     void ResetSynchronizationBuffers();
 
     //Utility.
+    void InitFile(std::string const& file_name);
     void OpenFile(std::string const& file_name, std::fstream & bucket_file);
     void CloseFile(std::fstream & bucket_file);
 
@@ -300,12 +301,14 @@ AssignFileNames()
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
     {
         std::ostringstream kv_file;
-        kv_file << "bucket" << bucket_id << ".kv";
+        kv_file << drum_name_ << "/" << "bucket" << bucket_id << ".kv";
         file_names_[bucket_id].first = kv_file.str();
+        InitFile(file_names_[bucket_id].first);
 
         std::ostringstream aux_file;
-        aux_file << "bucket" << bucket_id << ".aux";
+        aux_file << drum_name_ << "/"  << "bucket" << bucket_id << ".aux";
         file_names_[bucket_id].second = aux_file.str();
+        InitFile(file_names_[bucket_id].second);
     }
 }
 
@@ -326,7 +329,7 @@ Drum<
     dispatcher_t>::
 CreateRepository()
 {
-    if (!db_.open(drum_name_))
+    if (!db_.open(drum_name_ + "/db"))
         throw DrumException("Error creating repository.");
 }
 
@@ -440,6 +443,43 @@ ResetSynchronizationBuffers()
     unsorting_helper_.reserve(bucket_buff_elem_size_);
     unsorted_aux_buffer_.clear();
     unsorted_aux_buffer_.reserve(bucket_buff_elem_size_);
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+InitFile(std::string const& file_name)
+{
+    // Create empty file if not existed yet
+    std::ifstream in_f;
+    in_f.open(file_name.c_str());
+
+    if (!in_f.is_open())
+    {
+        std::ofstream out_f;
+        out_f.open(file_name.c_str());
+        if (!out_f.good())
+        {
+            std::string ex("Error creating disk bucket: ");
+            ex.append(file_name);
+            throw DrumException(ex.c_str());
+        }
+        out_f.close();
+    }
+
+    in_f.close();
 }
 
 template <
@@ -845,7 +885,7 @@ ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
     this->OpenFile(file_names_[bucket_id].first, kv_file);
     std::streampos kv_written = current_pointers_[bucket_id].first;
 
-    while (kv_file.tellg() < kv_written)
+    while (kv_file.tellg() < (kv_written - std::streampos(0)))
     {
         //It would be nice to have semantics to move the element into the container. To avoid an
         //extra copy I insert the element and use a reference to it.
@@ -1018,7 +1058,7 @@ ReadAuxBucketForDispatching(std::size_t bucket_id)
     this->OpenFile(file_names_[bucket_id].second, aux_file);
     std::streampos aux_written = current_pointers_[bucket_id].second;
 
-    while (aux_file.tellg() < aux_written)
+    while (aux_file.tellg() < (aux_written - std::streampos(0)))
     {
         unsorted_aux_buffer_.push_back(AuxType());
         AuxType & aux = unsorted_aux_buffer_.back();
