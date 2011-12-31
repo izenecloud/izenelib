@@ -9,6 +9,7 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/bind.hpp>
+#include <boost/thread/locks.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <functional>
@@ -39,10 +40,13 @@ public:
     template<class T>
     BTreeIndexer<T>* getIndexer(const std::string& property_name)
     {
+        //TODO refine lock
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         BTreeIndexer<T>* result = NULL;
         boost::unordered_map<std::string, void*>::iterator it = instance_map_.find(property_name);
         if(it==instance_map_.end())
         {
+            //boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
             result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
             result->open();
             instance_map_.insert(std::make_pair( property_name, (void*)result) );
@@ -188,6 +192,7 @@ private:
     boost::unordered_map<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
     boost::shared_ptr<BitVector> pFilter_;
+    boost::shared_mutex mutex_;
 
 };
 
