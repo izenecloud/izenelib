@@ -12,6 +12,7 @@
 #include <boost/thread/locks.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/iterator/iterator_facade.hpp>
+#include <3rdparty/am/concurrent_hash/hashmap.h>
 #include <functional>
 
 #include <algorithm>
@@ -41,19 +42,21 @@ public:
     BTreeIndexer<T>* getIndexer(const std::string& property_name)
     {
         //TODO refine lock
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         BTreeIndexer<T>* result = NULL;
-        boost::unordered_map<std::string, void*>::iterator it = instance_map_.find(property_name);
-        if(it==instance_map_.end())
+        if(!instance_map_.contains(property_name))
         {
-            //boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
-            result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
-            result->open();
-            instance_map_.insert(std::make_pair( property_name, (void*)result) );
+            boost::unique_lock<boost::shared_mutex> lock(mutex_);
+            if(!instance_map_.contains(property_name))
+            {
+                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
+                result->open();
+                instance_map_.insert(std::make_pair( property_name, (void*)result) );
+            }
         }
-        else
+        if(result == NULL) // has been initialized
         {
-            void* pv = it->second;
+            void* pv = NULL;
+            instance_map_.get(property_name, pv);
             result = (BTreeIndexer<T>*)pv;
         }
         return result;
@@ -189,7 +192,7 @@ private:
 private:
     std::string dir_;
     Directory* pDirectory_;
-    boost::unordered_map<std::string, void*> instance_map_;
+    concurrent::hashmap<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
     boost::shared_ptr<BitVector> pFilter_;
     boost::shared_mutex mutex_;
