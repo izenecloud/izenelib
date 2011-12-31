@@ -301,12 +301,12 @@ AssignFileNames()
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
     {
         std::ostringstream kv_file;
-        kv_file << "bucket" << bucket_id << ".kv";
+        kv_file << drum_name_ << "/" << "bucket" << bucket_id << ".kv";
         file_names_[bucket_id].first = kv_file.str();
         InitFile(file_names_[bucket_id].first);
 
         std::ostringstream aux_file;
-        aux_file << "bucket" << bucket_id << ".aux";
+        aux_file << drum_name_ << "/"  << "bucket" << bucket_id << ".aux";
         file_names_[bucket_id].second = aux_file.str();
         InitFile(file_names_[bucket_id].second);
     }
@@ -329,7 +329,7 @@ Drum<
     dispatcher_t>::
 CreateRepository()
 {
-    if (!db_.open(drum_name_))
+    if (!db_.open(drum_name_ + "/db"))
         throw DrumException("Error creating repository.");
 }
 
@@ -470,7 +470,12 @@ InitFile(std::string const& file_name)
     {
         std::ofstream out_f;
         out_f.open(file_name.c_str());
-        if (!out_f.good()) throw DrumException("Error creating disk bucket.");
+        if (!out_f.good())
+        {
+            std::string ex("Error creating disk bucket: ");
+            ex.append(file_name);
+            throw DrumException(ex.c_str());
+        }
         out_f.close();
     }
 
