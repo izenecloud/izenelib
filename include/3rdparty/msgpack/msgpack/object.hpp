@@ -49,6 +49,8 @@ namespace type {
 	enum raw_type {
 	    RAW_INT64   = MAP + 1,
 	    RAW_UINT64,
+	    RAW_INT128,
+	    RAW_UINT128,
 	    RAW_FLOAT,
 	    RAW_DOUBLE,
 	    RAW_STRING,

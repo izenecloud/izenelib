@@ -3,6 +3,7 @@
 #include "type/fixint.hpp"
 #include "type/float.hpp"
 #include "type/int.hpp"
+#include "type/int128.hpp"
 #include "type/list.hpp"
 #include "type/map.hpp"
 #include "type/nil.hpp"
