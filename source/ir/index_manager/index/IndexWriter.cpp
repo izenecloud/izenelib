@@ -59,6 +59,28 @@ void IndexWriter::tryResumeExistingBarrels()
         pIndexMergeManager_->addToMerge(pBarrelInfo);
     }
 }
+
+void IndexWriter::close()
+{
+    ///The difference between close and flush is close don't need t reopen indexreader
+    DVLOG(2) << "=> IndexWriter::close()...";
+    if(pCurBarrelInfo_ == NULL)
+    {
+        // write file "barrels" to update the doc count of each barrel
+        if(pBarrelsInfo_->getBarrelCount() > 0)
+            pBarrelsInfo_->write(pIndexer_->getDirectory());
+        DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
+        return;
+    }
+    assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
+
+    pIndexBarrelWriter_->flush();
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
+    pIndexBarrelWriter_->reset();
+    pCurBarrelInfo_ = NULL;
+    DVLOG(2) << "<= IndexWriter::close()";
+}
+
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";

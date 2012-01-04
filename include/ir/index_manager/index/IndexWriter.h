@@ -48,6 +48,8 @@ public:
     void updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
     /// optimize index
     void optimizeIndex();
+    /// close
+    void close();
     /// flush index
     void flush();
     /// flush doclen writer
