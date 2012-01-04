@@ -178,6 +178,13 @@ void MultiTermReader::setMaxSkipLevel(int maxSkipLevel)
         iter->second->setMaxSkipLevel(maxSkipLevel);
 }
 
+void MultiTermReader::setDocFilter(BitVector* pFilter)
+{
+    std::vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+    for(;iter != termReaders_.end(); ++iter)
+        iter->second->setDocFilter(pFilter);
+}
+
 void MultiTermReader::close()
 {
     if(isOwnTermReaders_)
