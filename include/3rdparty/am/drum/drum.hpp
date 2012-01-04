@@ -545,7 +545,7 @@ Drum<
     dispatcher_t>::
 GetBucketAndBufferPos(key_t const& key)
 {
-    std::size_t bucket_id = std::min(num_buckets_ - 1, BucketIdentififer<KeyType>::Calculate(key, num_bucket_bits_));
+    std::size_t bucket_id = std::min(num_buckets_ - 1, BucketIdentifier<KeyType>::Calculate(key, num_bucket_bits_));
     std::size_t pos = next_positions_[bucket_id]++; //Notice this increments the position.
 
     assert(pos < bucket_buff_elem_size_ && "Position must not be larger than buffer size.");

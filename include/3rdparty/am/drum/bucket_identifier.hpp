@@ -34,7 +34,7 @@
 DRUM_BEGIN_NAMESPACE
 
 template <class key_t>
-struct BucketIdentififer
+struct BucketIdentifier
 {
     static std::size_t Calculate(key_t const& key, std::size_t const& num_bucket_bits)
     {
@@ -51,7 +51,7 @@ struct BucketIdentififer
 };
 
 template <>
-struct BucketIdentififer<uint32_t>
+struct BucketIdentifier<uint32_t>
 {
     static std::size_t Calculate(uint32_t const& key, std::size_t const& num_bucket_bits)
     {
@@ -60,7 +60,7 @@ struct BucketIdentififer<uint32_t>
 };
 
 template <>
-struct BucketIdentififer<uint64_t>
+struct BucketIdentifier<uint64_t>
 {
     static std::size_t Calculate(uint64_t const& key, std::size_t const& num_bucket_bits)
     {
@@ -69,7 +69,7 @@ struct BucketIdentififer<uint64_t>
 };
 
 template <>
-struct BucketIdentififer<uint128_t>
+struct BucketIdentifier<uint128_t>
 {
     static std::size_t Calculate(uint128_t const& key, std::size_t const& num_bucket_bits)
     {
@@ -78,7 +78,7 @@ struct BucketIdentififer<uint128_t>
 };
 
 template <>
-struct BucketIdentififer<std::string>
+struct BucketIdentifier<std::string>
 {
     static std::size_t Calculate(std::string const& key, std::size_t const& num_bucket_bits)
     {
