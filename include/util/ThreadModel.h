@@ -138,11 +138,7 @@ class ScopedReadLock
 {
     LockType& lock_;
 public:
-    explicit ScopedReadLock(LockType& lock):lock_(lock)
-    {
-        lock_.acquire_read_lock();
-    }
-    ScopedReadLock(const ScopedReadLock& that):lock_(that.lock_)
+    explicit ScopedReadLock( LockType& lock):lock_(lock)
     {
         lock_.acquire_read_lock();
     }
@@ -157,11 +153,7 @@ class ScopedWriteLock
 {
     LockType& lock_;
 public:
-    explicit ScopedWriteLock(LockType& lock):lock_(lock)
-    {
-        lock_.acquire_write_lock();
-    }
-    ScopedWriteLock(const ScopedWriteLock& that):lock_(that.lock_)
+    explicit ScopedWriteLock( LockType& lock):lock_(lock)
     {
         lock_.acquire_write_lock();
     }
