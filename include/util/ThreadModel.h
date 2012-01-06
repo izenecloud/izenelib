@@ -146,6 +146,8 @@ public:
     {
         lock_.release_read_lock();
     }
+private:
+    DISALLOW_COPY_AND_ASSIGN(ScopedReadLock);
 };
 
 template<class LockType>
@@ -161,6 +163,8 @@ public:
     {
         lock_.release_write_lock();
     }
+private:
+    DISALLOW_COPY_AND_ASSIGN(ScopedWriteLock);
 };
 
 NS_IZENELIB_UTIL_END
