@@ -18,6 +18,7 @@ SET(libs
   febird
   luxio
   leveldb
+  snappy
   am
   index_manager
   izene_util

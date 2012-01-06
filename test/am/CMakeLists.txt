@@ -43,6 +43,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    ${TokyoCabinet_LIBRARIES} 
    lzo
    leveldb
+   snappy
     )
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
@@ -119,6 +120,7 @@ TARGET_LINK_LIBRARIES(t_matrix
    procmeminfo
    izene_log
    leveldb
+   snappy
    izene_util
   )
 
@@ -150,6 +152,7 @@ TARGET_LINK_LIBRARIES(t_bitmap
    procmeminfo
    izene_log
    leveldb
+   snappy
    izene_util
    luxio
   )

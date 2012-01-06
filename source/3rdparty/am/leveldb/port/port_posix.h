@@ -20,6 +20,7 @@
   #include <endian.h>
 #endif
 #include <pthread.h>
+#define SNAPPY
 #ifdef SNAPPY
 #include <3rdparty/compression/snappy/snappy.h>
 #endif
