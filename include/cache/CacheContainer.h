@@ -12,13 +12,7 @@
 #include "CacheInfo.h"
 #include "cm_basics.h"
 
-#include <ctime>
-#include <map>
-#include <ext/hash_map>
-
-using  namespace std;
-using  namespace   __gnu_cxx;
-using namespace boost;
+#include <boost/unordered_map.hpp>
 
 
 namespace izenelib
@@ -29,7 +23,7 @@ namespace cache
 
 
 /**
-* 	\brief Cache Container for CacheInfo.
+*	\brief Cache Container for CacheInfo.
 *
 *	It can deal with different type of key-data pair using different Replacement
 *	Policies to store caching info.
@@ -42,11 +36,11 @@ template <class KeyType, class ValueType, class ReplacementPolicy>
 class CacheContainer
 {
 public:
-    enum {LIFE_TIME = 86400*7};//set the lifetime of the cache item,  a week.
-    typedef map<CacheInfo<KeyType>, bool, ReplacementPolicy >  CacheInfoKeyMap;
-    typedef hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > CmHashMap;
-    typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy  > :: iterator MIT;
-    typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator HIT;
+    enum { LIFE_TIME = 86400 * 7 };//set the lifetime of the cache item,  a week.
+    typedef std::map<CacheInfo<KeyType>, bool, ReplacementPolicy> CacheInfoKeyMap;
+    typedef boost::unordered_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > CmHashMap;
+    typedef typename CacheInfoKeyMap::iterator MIT;
+    typedef typename CmHashMap::iterator HIT;
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
     CacheContainer()
@@ -94,9 +88,9 @@ public:
     void firstInsert(const KeyType& key);
     void del(const KeyType& key);
 
-    void insert( const KeyType& key)
+    void insert(const KeyType& key)
     {
-        if ( find(key) )
+        if (find(key))
         {
             replace(key);
         }
@@ -105,6 +99,7 @@ public:
             firstInsert(key);
         }
     }
+
     size_t size()
     {
         return CacheInfoHash_.size();
@@ -112,8 +107,8 @@ public:
 
     void display()
     {
-        cout<<"CacheInfoHash size:"<<CacheInfoHash_.size()<<endl;
-        cout<<"keyInfoMap_ size:"<<keyInfoMap_.size()<<endl;
+        std::cout << "CacheInfoHash size:" << CacheInfoHash_.size() << std::endl;
+        std::cout << "keyInfoMap_ size:" << keyInfoMap_.size() << std::endl;
     }
 
     void setTimeToLive(const KeyType &key, time_t lifeTime);
@@ -137,7 +132,7 @@ public:
 private:
     CmHashMap CacheInfoHash_;	//Map key to the corresponding CacheInfo.
     CacheInfoKeyMap keyInfoMap_;	//Container of CacheInfo.
-    unsigned int  seqNo_;
+    unsigned int seqNo_;
 };
 
 /**
@@ -145,17 +140,17 @@ private:
 *
 */
 template <class KeyType, class ValueType, class ReplacementPolicy>
-void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: printKeyInfoMap()
+void CacheContainer<KeyType, ValueType ,ReplacementPolicy>::printKeyInfoMap()
 {
-    cout<<"KeyInforMap_ Info chain: "<<endl;
+    std::cout << "KeyInforMap_ Info chain: " << std::endl;
     for (MIT pos = keyInfoMap_.begin(); pos != keyInfoMap_.end(); pos++)
     {
         KeyType key = pos->first.key;
-        cout<<"->"<<CacheInfoHash_[key].key<< "(" << CacheInfoHash_[key].iCount
-            <<" "<<CacheInfoHash_[key].FirstAccessTime <<" "<<CacheInfoHash_[key].LastAccessTime
-            <<" "<<CacheInfoHash_[key].TimeToLive<< ")";
+        cout << "->" << CacheInfoHash_[key].key << "(" << CacheInfoHash_[key].iCount
+             << " " << CacheInfoHash_[key].FirstAccessTime << " " << CacheInfoHash_[key].LastAccessTime
+             << " " << CacheInfoHash_[key].TimeToLive << ")";
     }
-    cout<<endl;
+    std::cout << std::endl;
 }
 
 
@@ -164,7 +159,7 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: printKeyInfoMap()
 *
 */
 template <class KeyType, class ValueType, class ReplacementPolicy>
-void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: replace(const KeyType& key)
+void CacheContainer<KeyType, ValueType ,ReplacementPolicy>::replace(const KeyType& key)
 {
 
     CacheInfo<KeyType> oldCacheInfo = CacheInfoHash_[key];
@@ -185,10 +180,10 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: replace(const KeyT
 }
 
 /**
-* 	\brief When insert an new item into the cache, update the corresponding CacheInfoHash_ and keyInfoMap_.
+*	\brief When insert an new item into the cache, update the corresponding CacheInfoHash_ and keyInfoMap_.
 */
 template <class KeyType, class ValueType, class ReplacementPolicy>
-void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: firstInsert(const KeyType& key)
+void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>::firstInsert(const KeyType& key)
 {
     CacheInfo<KeyType> newCacheInfo;
     newCacheInfo.key = key;
@@ -203,10 +198,10 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: firstInsert(const 
 }
 
 /**
-* 	\brief When delele an item from the cache, update the corresponding CacheInfoHash_ and keyInfoMap_.
+*	\brief When delele an item from the cache, update the corresponding CacheInfoHash_ and keyInfoMap_.
 */
 template <class KeyType, class ValueType, class ReplacementPolicy>
-void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: del(const KeyType& key)
+void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>::del(const KeyType& key)
 {
     //if(keyInfoMap_.erase(CacheInfoHash_[key]))
     keyInfoMap_.erase(CacheInfoHash_[key]);
@@ -219,7 +214,7 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: del(const KeyType&
 
 
 /**
-*  	\brief It sets the TimeToLive of one item in Cache, can be used to indicate the item is out of date.
+*	\brief It sets the TimeToLive of one item in Cache, can be used to indicate the item is out of date.
 *
 */
 template <class KeyType, class ValueType, class ReplacementPolicy>
@@ -233,11 +228,11 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>::setTimeToLive(const
  *	\brief To detemine which item is out of date by the CacheInfos.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy>
-void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: UpdateKeyInfoMap()
+void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>::UpdateKeyInfoMap()
 {
 
     MIT it = keyInfoMap_.begin();
-    while ( it != keyInfoMap_.end() )
+    while (it != keyInfoMap_.end())
     {
         MIT it1 = it;
         it++;
@@ -248,7 +243,7 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: UpdateKeyInfoMap()
 
         //Diffenent rule to detemine a item is out of date can be implemented here.
 
-        if ( (LastAccessTime - FirstAccessTime) > TimeToLive )
+        if (LastAccessTime - FirstAccessTime > TimeToLive)
             keyInfoMap_[CacheInfoHash_[key]] = 1;
         else
         {
@@ -263,5 +258,3 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: UpdateKeyInfoMap()
 
 }
 #endif //CacheContainer
-
-

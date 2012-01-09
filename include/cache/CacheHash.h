@@ -19,11 +19,12 @@ namespace cache
 /**
  * \brief Cache  Storage Class.
 
- * A hybrid hash that combines two hash, mostly one FirstHash is memory hash(M_LH or M_EH ), the other is file hash(F_EH or F_LH).
+ * A hybrid hash that combines two hash, mostly one FirstHash is memory hash(M_LH or M_EH), the other is file hash(F_EH or F_LH).
  *
  * Note that FirstHash and SecondHash should have the same interface as CacheHash.
  */
-template <class KeyType, class ValueType, class Hash> class CacheHash
+template <class KeyType, class ValueType, class Hash>
+class CacheHash
 {
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
@@ -78,22 +79,18 @@ public:
 
     bool insert(const KeyType& key, const ValueType& value)
     {
-        if ( memHash_.num_items() <(int) hashSize_ )
-            return memHash_.insert(key, value);
-        else
-            return false;
+        return memHash_.num_items() < (int) hashSize_
+            && memHash_.insert(key, value);
     }
-    bool insert(const DataType<KeyType,ValueType>& data)
+    bool insert(const DataType<KeyType, ValueType>& data)
     {
-        if ( memHash_.num_items() <(int) hashSize_ )
-            return memHash_.insert(data);
-        else
-            return false;
+        return memHash_.num_items() < (int) hashSize_
+            && memHash_.insert(data);
     }
 
     bool full()
     {
-        return (memHash_.num_items() >= (int)hashSize_);
+        return (memHash_.num_items() >= (int) hashSize_);
     }
     bool del(const KeyType& key)
     {
@@ -117,18 +114,20 @@ public:
      */
     void displayHash()
     {
-        cout<<"Hash: numItem = "<< memHash_.num_items();
+        cout << "Hash: numItem = " << memHash_.num_items();
 
     }
 
-    template<class Archive> void save(Archive & ar,
-                                      const unsigned int version = 0)
+    template<class Archive>
+    void save(Archive & ar,
+              const unsigned int version = 0)
     {
         memHash_.save(ar);
     }
 
-    template<class Archive> void load(Archive & ar,
-                                      const unsigned int version = 0)
+    template<class Archive>
+    void load(Archive & ar,
+              const unsigned int version = 0)
     {
         memHash_.load(ar);
     }
@@ -143,11 +142,12 @@ private:
 /**
  * \brief Cache  Storage Class.
 
- * A hybrid hash that combines two hash, mostly one FirstHash is memory hash(M_LH or M_EH ), the other is file hash(F_EH or F_LH).
+ * A hybrid hash that combines two hash, mostly one FirstHash is memory hash(M_LH or M_EH), the other is file hash(F_EH or F_LH).
  *
  * Note that FirstHash and SecondHash should have the same interface as CacheHash.
  */
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> class CacheExtHash
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+class CacheExtHash
 {
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
@@ -186,8 +186,8 @@ public:
      and the second hash will be 0.6*hashSize.
      *	\param fileName for the second hash(file hash).
      */
-    CacheExtHash(unsigned int hashSize, double ratio, const char* fileName) :
-            fileHash_(fileName)
+    CacheExtHash(unsigned int hashSize, double ratio, const char* fileName)
+        : fileHash_(fileName)
     {
         hashSize_ = hashSize;
         ratio_ = ratio;
@@ -219,14 +219,14 @@ public:
 
     bool getValue(const KeyType& key, ValueType& val)
     {
-        if ( ! memHash_.get(key, val) )
-            return fileHash_.get(key, val) ;
+        if (! memHash_.get(key, val))
+            return fileHash_.get(key, val);
     }
     bool insert(const KeyType& key, const ValueType& value)
     {
-        return insert( DataType<KeyType,ValueType>(key,value) );
+        return insert(DataType<KeyType,ValueType>(key,value));
     }
-    bool insert(const DataType<KeyType,ValueType>& data);
+    bool insert(const DataType<KeyType, ValueType>& data);
     bool del(const KeyType& key);
 
     bool update(const DataType<KeyType,ValueType>& data)
@@ -237,7 +237,7 @@ public:
 
     bool update(const KeyType& key, const ValueType& value)
     {
-        return update( DataType<KeyType,ValueType>(key,value) );
+        return update(DataType<KeyType,ValueType>(key,value));
     }
 
 
@@ -257,18 +257,20 @@ public:
      */
     void displayHash()
     {
-        cout<<"memHash: numItem = "<< memHash_.num_items()
-            <<"; fileHash:numItem = "<<fileHash_.num_items()<<endl;
+        cout << "memHash: numItem = " << memHash_.num_items()
+             << "; fileHash:numItem = " << fileHash_.num_items() << endl;
     }
 
-    template<class Archive> void save(Archive & ar,
-                                      const unsigned int version = 0)
+    template <class Archive>
+    void save(Archive & ar,
+              const unsigned int version = 0)
     {
         memHash_.save(ar);
     }
 
-    template<class Archive> void load(Archive & ar,
-                                      const unsigned int version = 0)
+    template <class Archive>
+    void load(Archive & ar,
+              const unsigned int version = 0)
     {
         memHash_.load(ar);
     }
@@ -289,10 +291,10 @@ private:
  *
  */
 
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::RatioCheck()
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+bool CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::RatioCheck()
 {
-    if ((ratio_>=0) && (ratio_<=1))
+    if ((ratio_ >= 0) && (ratio_ <= 1))
         return 1;
     else
     {
@@ -308,8 +310,8 @@ KeyType, ValueType, FirstHash, SecondHash>::RatioCheck()
  *	@return  pointer to the value, otherwise return NULL if not found.
  */
 
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> ValueType* CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key)
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+ValueType* CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key)
 {
     ValueType *p;
     p = memHash_.find(key);
@@ -326,9 +328,9 @@ KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key)
  *
  *	@return FOUND_RESULT:NOT_FOUND, FOUND_IN_MEM, FOUND_IN_FILE.
  */
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> FOUND_RESULT CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key,
-        ValueType &dat)
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+FOUND_RESULT CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::find(
+        const KeyType& key, ValueType &dat)
 {
     ValueType *pv;
     pv = memHash_.find(key);
@@ -360,8 +362,9 @@ KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key,
  *	@return true if succeeds, otherwise return false when insert failed, eg. when hash is full.
  */
 
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueType>& data)
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+bool CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::insert(
+        const DataType<KeyType, ValueType>& data)
 {
 
 #if 0
@@ -371,10 +374,10 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
 #endif
 
     const KeyType& key = data.get_key();
-    if (find(key) )
+    if (find(key))
         return true;
 
-    if (memHash_.num_items()+1 <= hashSize_ * ratio_)
+    if (memHash_.num_items() + 1 <= hashSize_ * ratio_)
     {
         //memSizeOfValue_ += CacheDataType<DataType>::getSize(data);
         //memSizeOfValue_ += data.size();
@@ -382,7 +385,7 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
     }
     else
     {
-        if (fileHash_.num_items()+1 <= hashSize_*(1-ratio_))
+        if (fileHash_.num_items() + 1 <= hashSize_ * (1 - ratio_))
         {
             return fileHash_.insert(data);
         }
@@ -399,8 +402,8 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
  *
  *	@return true if succeeds, otherwise return false when insert failed, eg. when hash is empty.
  */
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::del(const KeyType& key)
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+bool CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::del(const KeyType& key)
 {
 
 #if 0
@@ -438,12 +441,12 @@ KeyType, ValueType, FirstHash, SecondHash>::del(const KeyType& key)
  *		2----memory full
  *		3----both not full
  */
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> HASH_STATUS CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::getStatus()
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+HASH_STATUS CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::getStatus()
 {
     int mNum = memHash_.num_items();
     int fNum = fileHash_.num_items();
-    return HASH_STATUS(int( mNum < hashSize_*ratio_ ) + int( fNum < hashSize_*(1-ratio_) )*2);
+    return HASH_STATUS(int(mNum < hashSize_*ratio_) + int(fNum < hashSize_ * (1 - ratio_)) * 2);
 }
 
 /**
@@ -452,8 +455,8 @@ KeyType, ValueType, FirstHash, SecondHash>::getStatus()
  *	@return DUMP_RESULT:not dump, dump from memory to file, dump from file to memory, dump failed(eg,when targe hash is full).
  */
 
-template <class KeyType, class ValueType, class FirstHash, class SecondHash> DUMP_RESULT CacheExtHash<
-KeyType, ValueType, FirstHash, SecondHash>::dump(const KeyType& key)
+template <class KeyType, class ValueType, class FirstHash, class SecondHash>
+DUMP_RESULT CacheExtHash<KeyType, ValueType, FirstHash, SecondHash>::dump(const KeyType& key)
 {
     ValueType val;
     FOUND_RESULT result = find(key, val);
@@ -463,22 +466,25 @@ KeyType, ValueType, FirstHash, SecondHash>::dump(const KeyType& key)
     case NOT_FOUND:
         return NO_DUMP; //return not dump
         break;
+
     case FOUND_IN_MEM:
         //Make sure filehash_ is not full;
-        if (fileHash_.num_items() < hashSize_*(1-ratio_) && memHash_.del(key))
+        if (fileHash_.num_items() < hashSize_ * (1 - ratio_) && memHash_.del(key))
         {
-            if (fileHash_.insert(key, val) )
+            if (fileHash_.insert(key, val))
                 return DUMP_M2F;// return dump from memory to file.
         }
         break;
+
     case FOUND_IN_FILE:
         //make sure memHash_ is not full
-        if (memHash_.num_items() < hashSize_*ratio_ && fileHash_.del(key))
+        if (memHash_.num_items() < hashSize_ * ratio_ && fileHash_.del(key))
         {
-            if (memHash_.insert(key, val) )
+            if (memHash_.insert(key, val))
                 return DUMP_F2M;// return dump from file to memory.
         }
         break;
+
     default:
         break;
     }

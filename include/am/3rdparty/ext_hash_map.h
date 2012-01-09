@@ -2,21 +2,19 @@
 #define EXT_HASH_MAP_H_
 
 #include <util/hashFunction.h>
-#include <ext/hash_map>
 #include <am/am.h>
 #include <am/concept/DataType.h>
 
-using namespace __gnu_cxx;
+#include <boost/unordered_map.hpp>
+
 
 NS_IZENELIB_AM_BEGIN
 
-template <
-typename KeyType,
-typename ValueType,
-typename HashFunctor = izenelib::util::HashFunctor<KeyType>
-> class ext_hash_map: public AccessMethod<KeyType, ValueType>
+template <typename KeyType, typename ValueType,
+          typename HashFunctor = izenelib::util::HashFunctor<KeyType> >
+class ext_hash_map: public AccessMethod<KeyType, ValueType>
 {
-    typedef typename hash_map<KeyType, ValueType, HashFunctor>::iterator
+    typedef typename boost::unordered_map<KeyType, ValueType, HashFunctor>::iterator
     IT;
     typedef pair<IT, bool> PAIR;
 public:
@@ -68,7 +66,7 @@ public:
     }
 
 private:
-    hash_map<KeyType, ValueType, HashFunctor > 		hash_map_;
+    boost::unordered_map<KeyType, ValueType, HashFunctor> hash_map_;
 };
 
 NS_IZENELIB_AM_END
