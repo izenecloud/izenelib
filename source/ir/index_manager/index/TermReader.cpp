@@ -667,8 +667,6 @@ bool MemTermReader::seek(Term* term)
 
 TermDocFreqs* MemTermReader::termDocFreqs()
 {
-    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
-
     if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
 
@@ -681,8 +679,6 @@ TermDocFreqs* MemTermReader::termDocFreqs()
 
 TermPositions* MemTermReader::termPositions()
 {
-    boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
-
     if( (! curTermInfo_.docFreq())||(!pCurPosting_))
         return NULL;
     PostingReader* pPosting = new MemPostingReader(pCurPosting_,curTermInfo_,WORDLEVEL);
@@ -708,10 +704,10 @@ TermInfo* MemTermReader::termInfo(Term* term)
     {
         boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
         postingIter = pIndexer_->postingMap_.find(tid);
+        if(postingIter == pIndexer_->postingMap_.end())
+            return NULL;
+        pCurPosting_ = postingIter->second;
     }	
-    if(postingIter == pIndexer_->postingMap_.end())
-        return NULL;
-    pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
 

@@ -378,7 +378,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
 TermReader* FieldIndexer::termReader()
 {
-    boost::shared_lock<boost::shared_mutex> lock(rwLock_);
     return new MemTermReader(getField(),this);
 }
 
