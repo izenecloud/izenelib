@@ -1,24 +1,20 @@
 #ifndef STL_MAP_H_
 #define STL_MAP_H_
 
-
 #include <util/hashFunction.h>
-#include <map>
 #include <am/am.h>
 #include <am/concept/DataType.h>
 
-using namespace std;
+#include <map>
 
 
 NS_IZENELIB_AM_BEGIN
 
-template <
-typename KeyType,
-typename ValueType,
-typename Compare = less<KeyType>
-> class stl_map: public AccessMethod<KeyType, ValueType>
+template <typename KeyType, typename ValueType,
+          typename Compare = less<KeyType> >
+class stl_map: public AccessMethod<KeyType, ValueType>
 {
-    typedef typename map<KeyType, ValueType, Compare>::iterator
+    typedef typename std::map<KeyType, ValueType, Compare>::iterator
     IT;
     typedef pair<IT, bool> PAIR;
 public:
@@ -70,7 +66,7 @@ public:
     }
 
 private:
-    map<KeyType, ValueType, Compare> 		map_;
+    map<KeyType, ValueType, Compare> map_;
 };
 
 

@@ -11,13 +11,7 @@
 #include "cm_basics.h"
 #include "CacheHash.h"
 
-#include <ctime>
 #include <list>
-#include <fstream>
-
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
 
 
 namespace izenelib
@@ -39,8 +33,8 @@ template <class KeyType, class ValueType, class Hash=izenelib::am::rde_hash<KeyT
 class ThreadSafeLock=NullLock> class MLRUCache
 {
 
-    typedef list<KeyType> CacheInfoList;
-    typedef typename list<KeyType> :: iterator LIT;
+    typedef std::list<KeyType> CacheInfoList;
+    typedef typename std::list<KeyType>::iterator LIT;
 
     template<class D> struct _CachedData
     {

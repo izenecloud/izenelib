@@ -13,17 +13,10 @@
 #include "CacheInfo.h"
 #include "CacheContainer.h"
 
-#include <ctime>
-#include <list>
-#include <map>
-#include <fstream>
-#include <ext/hash_map>
+#include <boost/unordered_map.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
 
 namespace izenelib
 {
@@ -44,12 +37,13 @@ namespace cache
 
 //static ofstream loggerFile1("./mcache_logger");
 template <class KeyType, class ValueType, class ReplacementPolicy,
-class Hash = izenelib::am::rde_hash<KeyType, ValueType>,
-class LockType =NullLock> class MCache
+          class Hash = izenelib::am::rde_hash<KeyType, ValueType>,
+          class LockType = NullLock>
+class MCache
 {
-    typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
+    typedef typename std::map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
     MIT;
-    typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator
+    typedef typename boost::unordered_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> >::iterator
     HIT;
     LockType lock;
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
@@ -57,9 +51,13 @@ public:
     /**
      *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
      */
-    MCache(unsigned int cacheSize) :
-            hash_(cacheSize), startingTime_(time(0)), nTotal_(0), nHit_(0),
-            hitRatio_(0.0), workload_(0.0)
+    MCache(unsigned int cacheSize)
+        : hash_(cacheSize)
+        , startingTime_(time(0))
+        , nTotal_(0)
+        , nHit_(0)
+        , hitRatio_(0.0)
+        , workload_(0.0)
     {
         cacheSize_ = cacheSize;
         isArchive_ = 0;
@@ -80,14 +78,14 @@ public:
 
     void insertValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
     {
-        insertValue(DataType<KeyType, ValueType>(key, value) );
+        insertValue(DataType<KeyType, ValueType>(key, value));
     }
 
     bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
     {
         lock.acquire_write_lock();
         KeyType key = dat.get_key();
-        if (hash_.update(dat) )
+        if (hash_.update(dat))
         {
             if (cacheContainer_.find(key))
             {
@@ -104,7 +102,7 @@ public:
     }
     bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
     {
-        return updateValue(DataType<KeyType, ValueType>(key, value) );
+        return updateValue(DataType<KeyType, ValueType>(key, value));
     }
 
     bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.
@@ -171,7 +169,7 @@ public:
         }
         if (time(0) != startingTime_)
         {
-            workload_ = double( nTotal_) / double(time(0) - startingTime_);
+            workload_ = double(nTotal_) / double(time(0) - startingTime_);
         }
         hitRatio = hitRatio_;
         workload = workload_;
@@ -187,8 +185,8 @@ public:
         time_t now = time(0);
         getEfficiency(hitRatio_, workload_);
 
-        /*loggerFile1 <<"From " <<ctime( &startingTime_);
-         loggerFile1 <<" to "<<ctime( &now)<<endl;
+        /*loggerFile1 <<"From " <<ctime(&startingTime_);
+         loggerFile1 <<" to "<<ctime(&now)<<endl;
          loggerFile1 << "nTotal: " << nTotal_<<endl;
          loggerFile1 << "nHit: " << nHit_<<endl;
          loggerFile1 << "hitRatio: " << hitRatio_<<endl;
@@ -200,8 +198,9 @@ public:
         startingTime_ = now;
     }
 
-    template<class Archive> void save(Archive & ar,
-                                      const unsigned int version = 0)
+    template <class Archive>
+    void save(Archive & ar,
+              const unsigned int version = 0)
     {
 
         /*DataType<KeyType,ValueType> dat;
@@ -217,8 +216,9 @@ public:
 
     }
 
-    template<class Archive> void load(Archive & ar,
-                                      const unsigned int version = 0)
+    template <class Archive>
+    void load(Archive & ar,
+              const unsigned int version = 0)
     {
         /*int num;
          ar & num;
@@ -255,26 +255,26 @@ private:
  *
  *	@return true if found, otherwise return faulse
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-Hash, LockType>::getValue(const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
+bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValue(
+        const KeyType& key, ValueType& value)
 {
     lock.acquire_write_lock();
-    nTotal_++;
+    ++nTotal_;
     ValueType* pd = hash_.find(key);
     if (pd)
         value = *pd;
-    if (cacheContainer_.find(key) )
+    if (cacheContainer_.find(key))
     {
         cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
-        nHit_++;
+        ++nHit_;
         lock.release_write_lock();
         return true;
     }
-    else if (isArchive_ && hash_.find(key) )
+    else if (isArchive_ && hash_.find(key))
     {
         cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
-        nHit_++;
+        ++nHit_;
         lock.release_write_lock();
         return true;
     }
@@ -290,15 +290,15 @@ Hash, LockType>::getValue(const KeyType& key, ValueType& value)
  *
  */
 
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, ValueType, ReplacementPolicy,
-Hash, LockType>::insertValue(const DataType<KeyType,ValueType>& dat)
+template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::insertValue(
+        const DataType<KeyType, ValueType>& dat)
 {
     lock.acquire_write_lock();
     KeyType key = dat.get_key();
-    if (hasKey(key) )
+    if (hasKey(key))
         return;
-    if (hash_.insert(dat) )
+    if (hash_.insert(dat))
     {
         if (cacheContainer_.find(key))
         {
@@ -312,7 +312,7 @@ Hash, LockType>::insertValue(const DataType<KeyType,ValueType>& dat)
     else //Insert failed, i.e. CacheHash is full.
     {
         evict(1); //evict the oldest item.
-        if (hash_.insert(dat) ) //Insert into the hash_.
+        if (hash_.insert(dat)) //Insert into the hash_.
         {
             cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.
 
@@ -329,9 +329,9 @@ Hash, LockType>::insertValue(const DataType<KeyType,ValueType>& dat)
  * 	\brief not insert even if not found
  *
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-Hash, LockType>::getValueNoInsert(const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
+bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValueNoInsert(
+        const KeyType& key, ValueType& value)
 {
     return getValue(key, value);
 }
@@ -341,12 +341,12 @@ Hash, LockType>::getValueNoInsert(const KeyType& key, ValueType& value)
  *
  *         @return true if hits, othewise reture False and insert into the new item.
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-Hash, LockType>::getValueWithInsert(const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
+bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValueWithInsert(
+        const KeyType& key, ValueType& value)
 {
 
-    if (getValue(key, value) )
+    if (getValue(key, value))
         return true;
     else
     {
@@ -360,23 +360,21 @@ Hash, LockType>::getValueWithInsert(const KeyType& key, ValueType& value)
  *	\brief to determine if an item exists in MCache.
  *
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-Hash, LockType>::hasKey(const KeyType& key)
+template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
+bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::hasKey(const KeyType& key)
 {
     lock.acquire_read_lock();
     bool isFound = cacheContainer_.find(key) || hash_.find(key);
     lock.release_read_lock();
-    return (isFound );
+    return isFound;
 }
 
 /**
  * 	\brief get the number of the items in tha MCache.
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> int MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::numItems()
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+int MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::numItems()
 {
     lock.acquire_read_lock();
     int num = hash_.numItems();
@@ -387,12 +385,11 @@ LockType>::numItems()
 /**
  *	\brief Display the number of items in memory hash and file hash.
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::displayHash()
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::displayHash()
 {
     lock.acquire_read_lock();
-    cout<<"MCache_hash numItems:"<<hash_.numItems()<<endl;
+    std::cout << "MCache_hash numItems:" << hash_.numItems() << std::endl;
     cacheContainer_.display();
     lock.release_read_lock();
 }
@@ -401,9 +398,8 @@ LockType>::displayHash()
  *	\brief display  KeyInfoMap_ inside, for Debug.
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::printKeyInfoMap()
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::printKeyInfoMap()
 {
     lock.acquire_read_lock();
     cacheContainer_.printKeyInfoMap();
@@ -414,24 +410,23 @@ LockType>::printKeyInfoMap()
  *	\brief Evict the  oldest items  overall.
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::evict(unsigned int num)
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::evict(unsigned int num)
 {
     MIT it = cacheContainer_.begin();
-    while (it != cacheContainer_.end() && num>0)
+    while (it != cacheContainer_.end() && num > 0)
     {
         //cout<<it->first.key<<endl;
         MIT it1 = it; //reserverd iterator it, or cacheContainer_.del(key) would delete it also
         it = cacheContainer_.next(it);
-        if (hash_.del(it1->first.key) ) //Remove an item from the cache.
+        if (hash_.del(it1->first.key)) //Remove an item from the cache.
         {
             cacheContainer_.del(it1->first.key); //Update the corresponding  CacheInfo.
             num--;
         }
         else
         {
-            cout<<"\nevict failed\n\n";
+            std::cout << "\nevict failed\n\n";
             exit(1);
         }
     }
@@ -441,9 +436,8 @@ LockType>::evict(unsigned int num)
  *  	\brief Flush(delete) the item that need to be updated.
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::flush(const KeyType& key)
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush(const KeyType& key)
 {
     lock.acquire_write_lock();
     if (hash_.del(key))
@@ -456,19 +450,18 @@ LockType>::flush(const KeyType& key)
  *
  */
 
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::flush()
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush()
 {
     lock.acquire_write_lock();
     UpdateKeyInfoMap();
     MIT it = cacheContainer_.begin();
-    while (it != cacheContainer_.end() )
+    while (it != cacheContainer_.end())
     {
         MIT it1 = it;
         it = cacheContainer_.next(it);
         KeyType key = it1->first.key;
-        if (cacheContainer_.isOutOfDate(key) )
+        if (cacheContainer_.isOutOfDate(key))
             flush(key);
     }
     lock.release_write_lock();
@@ -479,14 +472,13 @@ LockType>::flush()
  *
  */
 
-template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
-LockType>::clear()
+template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
+void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::clear()
 {
     lock.acquire_write_lock();
     UpdateKeyInfoMap();
     MIT it = cacheContainer_.begin();
-    while (it != cacheContainer_.end() )
+    while (it != cacheContainer_.end())
     {
         MIT it1 = it;
         it = cacheContainer_.next(it);
@@ -497,4 +489,5 @@ LockType>::clear()
 
 }
 }
+
 #endif //MCache

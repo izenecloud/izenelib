@@ -13,16 +13,11 @@
 #include "CacheInfo.h"
 #include "CacheContainer.h"
 
-#include <ctime>
-#include <list>
-#include <map>
-#include <ext/hash_map>
+#include <boost/unordered_map.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
+#include <list>
 
 
 namespace izenelib
@@ -49,9 +44,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 class FirstHash, class SecondHash, class LockType =NullLock> class MFCache
 {
     enum {EVICT_NUM = 30};
-    typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
+    typedef typename std::map<CacheInfo<KeyType>, bool, ReplacementPolicy>::iterator
     MIT;
-    typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator
+    typedef typename boost::unordered_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> >::iterator
     HIT;
 
     LockType lock;
@@ -302,7 +297,7 @@ private:
     void evict_memory(unsigned int num);//evict the oldest items in memory.
     void evict(unsigned int num);//evict the oldest items.
 
-    list<KeyType> dumpList_;
+    std::list<KeyType> dumpList_;
     DUMP_RESULT dump_f2m(const KeyType& key);
 };
 
@@ -652,7 +647,7 @@ KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
 LockType>::dump()
 {
     lock.acquire_write_lock();
-    typename list<KeyType>::iterator it, it1;
+    typename std::list<KeyType>::iterator it, it1;
     it = dumpList_.begin();
     while (it != dumpList_.end() )
     {

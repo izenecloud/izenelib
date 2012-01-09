@@ -13,13 +13,6 @@
 #include "CacheHash.h"
 #include "IzeneCacheTraits.h"
 
-#include <ctime>
-#include <list>
-#include <fstream>
-
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
 
 namespace izenelib
 {
@@ -38,8 +31,9 @@ namespace cache
  *				                No threa dsafe.
  */
 
-template < class KeyType, class ValueType, class ThreadSafeLock=NullLock,
-HASH_TYPE hash_type= RDE_HASH, REPLACEMENT_TYPE policy= LRU > class IzeneCache
+template <class KeyType, class ValueType, class ThreadSafeLock = NullLock,
+          HASH_TYPE hash_type = RDE_HASH, REPLACEMENT_TYPE policy = LRU>
+class IzeneCache
 {
     typedef IzeneCacheTrait<KeyType, ValueType, hash_type, policy>
     IzeneCacheType;
@@ -53,19 +47,27 @@ public:
     /**
      *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
      */
-    IzeneCache(unsigned int cacheSize=1000) :
-            startingTime_(time(0)), nTotal_(0), nHit_(0), hitRatio_(0.0),
-            workload_(0.0), hash_(cacheSize), cacheContainer_(), cache_(
-                hash_, cacheContainer_)
+    IzeneCache(unsigned int cacheSize = 1000)
+        : cacheSize_(cacheSize)
+        , startingTime_(time(0))
+        , nTotal_(0)
+        , nHit_(0)
+        , hitRatio_(0.0)
+        , workload_(0.0)
+        , hash_(cacheSize)
+        , cacheContainer_()
+        , cache_(hash_, cacheContainer_)
     {
-        cacheSize_ = cacheSize;
     }
 
-    IzeneCache(const IzeneCache& obj) :
-            hash_(obj.hash_), startingTime_(obj.startingTime_),
-            nTotal_(obj.nTotal_), nHit_(obj.nHit_),
-            hitRatio_(obj.hitRatio_), workload_(obj.workload_),
-            cacheSize_(obj.cacheSize_)
+    IzeneCache(const IzeneCache& obj)
+        : cacheSize_(obj.cacheSize_)
+        , hash_(obj.hash_)
+        , startingTime_(obj.startingTime_)
+        , nTotal_(obj.nTotal_)
+        , nHit_(obj.nHit_)
+        , hitRatio_(obj.hitRatio_)
+        , workload_(obj.workload_)
     {
     }
 
@@ -82,7 +84,7 @@ public:
     bool updateValue(const KeyType& key, const ValueType& val) // insert an new item into MCache
     {
         ScopedWriteLock<ThreadSafeLock> lock(lock_);
-        if (cache_.hasKey(key) )
+        if (cache_.hasKey(key))
         {
             CachedDataType **pd1 = hash_.find(key);
             (*pd1)->data = val;
@@ -90,7 +92,7 @@ public:
         }
         else
         {
-            if ( !hash_.full() )
+            if (!hash_.full())
             {
                 cache_.firstInsert_(key, val);
             }
@@ -180,7 +182,7 @@ public:
         }
         if (time(0) != startingTime_)
         {
-            workload_ = double( nTotal_) / double(time(0) - startingTime_);
+            workload_ = double(nTotal_) / double(time(0) - startingTime_);
         }
         hitRatio = hitRatio_;
         workload = workload_;
@@ -221,14 +223,14 @@ private:
  *
  *	@return true if found, otherwise return faulse
  */
-template < class KeyType, class ValueType, class ThreadSafeLock,
-HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<
-KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValue(
-    const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class ThreadSafeLock,
+          HASH_TYPE hash_type, REPLACEMENT_TYPE policy>
+bool IzeneCache<KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValue(
+        const KeyType& key, ValueType& value)
 {
     ScopedWriteLock<ThreadSafeLock> lock(lock_);
-    nTotal_++;
-    if (cache_.get(key, value) )
+    ++nTotal_;
+    if (cache_.get(key, value))
     {
         cache_.replace_(key); //Update the corresponding  CacheInfo.
         nHit_++;
@@ -245,20 +247,20 @@ KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValue(
  *
  */
 
-template < class KeyType, class ValueType, class ThreadSafeLock,
-HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<KeyType,
-ValueType, ThreadSafeLock, hash_type, policy>::insertValue(
-    const KeyType& key, const ValueType& val)
+template <class KeyType, class ValueType, class ThreadSafeLock,
+          HASH_TYPE hash_type, REPLACEMENT_TYPE policy>
+bool IzeneCache<KeyType, ValueType, ThreadSafeLock, hash_type, policy>::insertValue(
+        const KeyType& key, const ValueType& val)
 {
     ScopedWriteLock<ThreadSafeLock> lock(lock_);
-    if (cache_.hasKey(key) )
+    if (cache_.hasKey(key))
     {
         cache_.replace_(key); //Insert the corresponding CacheInfo into KeyInfoMap_.
         return false;
     }
     else //Insert failed, i.e. CacheHash is full.
     {
-        if ( !hash_.full() )
+        if (!hash_.full())
         {
             cache_.firstInsert_(key, val);
         }
@@ -276,10 +278,10 @@ ValueType, ThreadSafeLock, hash_type, policy>::insertValue(
  * 	\brief not insert even if not found
  *
  */
-template < class KeyType, class ValueType, class ThreadSafeLock,
-HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<KeyType,
-ValueType, ThreadSafeLock, hash_type, policy>::getValueNoInsert(
-    const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class ThreadSafeLock,
+          HASH_TYPE hash_type, REPLACEMENT_TYPE policy>
+bool IzeneCache<KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValueNoInsert(
+        const KeyType& key, ValueType& value)
 {
     return getValue(key, value);
 }
@@ -290,11 +292,11 @@ ValueType, ThreadSafeLock, hash_type, policy>::getValueNoInsert(
  *         @return true if hits, othewise reture False and insert into the new item.
  */
 template < class KeyType, class ValueType, class ThreadSafeLock,
-HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<KeyType,
-ValueType, ThreadSafeLock, hash_type, policy>::getValueWithInsert(
-    const KeyType& key, ValueType& value)
+HASH_TYPE hash_type, REPLACEMENT_TYPE policy>
+bool IzeneCache<KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValueWithInsert(
+        const KeyType& key, ValueType& value)
 {
-    if (getValue(key, value) )
+    if (getValue(key, value))
         return true;
     else
     {
@@ -304,32 +306,31 @@ ValueType, ThreadSafeLock, hash_type, policy>::getValueWithInsert(
 
 }
 
-template< typename KeyType =string, typename ValueType=NullType,
-typename LockType =NullLock > class ILRUCache :
-            public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU>
+template <typename KeyType = string,
+          typename ValueType = NullType,
+          typename LockType = NullLock>
+class ILRUCache : public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU>
 {
 public:
-    ILRUCache(size_t cacheSize=1000) :
-            IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU >(cacheSize)
+    ILRUCache(size_t cacheSize = 1000)
+        : IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU>(cacheSize)
     {
-
     }
 };
 
-template< typename KeyType =string, typename ValueType=NullType,
-typename LockType =NullLock > class ILFUCache :
-            public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU>
+template <typename KeyType = string,
+          typename ValueType = NullType,
+          typename LockType = NullLock>
+class ILFUCache : public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU>
 {
 public:
-    ILFUCache(size_t cacheSize=1000) :
-            IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU >(cacheSize)
+    ILFUCache(size_t cacheSize = 1000)
+        : IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU>(cacheSize)
     {
-
     }
 };
 
 }
 }
-
 
 #endif //IzeneCache

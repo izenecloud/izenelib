@@ -9,11 +9,6 @@
 #ifndef CACHEINFO_H
 #define CACHEINFO_H
 
-#include <ctime>
-
-using namespace std;
-
-
 
 namespace izenelib
 {
@@ -38,8 +33,9 @@ struct CacheInfo
     unsigned int TimeToLive;  //reserved for further use.
     unsigned int iCount;
 
-    template<class Archive> void serialize(Archive & ar,
-                                           const unsigned int version)
+    template<class Archive>
+    void serialize(Archive & ar,
+                   const unsigned int version)
     {
         ar & key;
         ar & docSize;
@@ -51,14 +47,12 @@ struct CacheInfo
     }
 };
 
-
-
 template <class KeyType>
 struct keyCmp
 {
     bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType>  &rhs) const
     {
-        return (lhs.key < rhs.key);
+        return lhs.key < rhs.key;
     }
 };
 
@@ -71,12 +65,11 @@ struct lruCmp
 {
     bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType> &rhs) const
     {
-        return (lhs.LastAccessTime < rhs.LastAccessTime)
-               || (  (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount < rhs.iCount) )
-               || (  (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount == rhs.iCount) && (lhs.key < rhs.key) );
+        return lhs.LastAccessTime < rhs.LastAccessTime
+            || (lhs.LastAccessTime == rhs.LastAccessTime && lhs.iCount < rhs.iCount)
+            || (lhs.LastAccessTime == rhs.LastAccessTime && lhs.iCount == rhs.iCount && lhs.key < rhs.key);
     }
 };
-
 
 /*
 *
@@ -87,8 +80,8 @@ struct lruCmp1
 {
     bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType> &rhs) const
     {
-        return (lhs.LastAccessTime < rhs.LastAccessTime)
-               || ( (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.key < rhs.key) );
+        return lhs.LastAccessTime < rhs.LastAccessTime
+            || (lhs.LastAccessTime == rhs.LastAccessTime && lhs.key < rhs.key);
     }
 };
 
@@ -101,9 +94,9 @@ struct lfuCmp
 {
     bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType> &rhs) const
     {
-        return (lhs.iCount < rhs.iCount)
-               || ( (lhs.iCount == rhs.iCount) && (lhs.LastAccessTime < rhs.LastAccessTime) )
-               || ( (lhs.iCount == rhs.iCount) && (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.key < rhs.key) );
+        return lhs.iCount < rhs.iCount
+            || (lhs.iCount == rhs.iCount && lhs.LastAccessTime < rhs.LastAccessTime)
+            || (lhs.iCount == rhs.iCount && lhs.LastAccessTime == rhs.LastAccessTime && lhs.key < rhs.key);
     }
 };
 
@@ -120,14 +113,14 @@ struct slruCmp
     //The item hits has higher priority than the item not hits.
     bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType> &rhs) const
     {
-        return (lhs.isHit < rhs.isHit)
-               || ( (lhs.isHit == rhs.isHit) && (lhs.LastAccessTime < rhs.LastAccessTime) )
-               || ( (lhs.isHit == rhs.isHit) && (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount < rhs.iCount) )
-               || ( (lhs.isHit == rhs.isHit) && (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount == rhs.iCount) && (lhs.key < rhs.key) );
+        return lhs.isHit < rhs.isHit
+            || (lhs.isHit == rhs.isHit && lhs.LastAccessTime < rhs.LastAccessTime)
+            || (lhs.isHit == rhs.isHit && lhs.LastAccessTime == rhs.LastAccessTime && lhs.iCount < rhs.iCount)
+            || (lhs.isHit == rhs.isHit && lhs.LastAccessTime == rhs.LastAccessTime && lhs.iCount == rhs.iCount && lhs.key < rhs.key);
     }
-
 };
 
 }
 }
+
 #endif //CacheInfo_H

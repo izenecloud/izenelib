@@ -4,29 +4,36 @@
 #include "cm_basics.h"
 #include "CacheHash.h"
 
-#include <ctime>
 #include <list>
-#include <fstream>
-
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
 
 namespace izenelib
 {
 namespace cache
 {
 
-enum HASH_TYPE {RDE_HASH, STX_BTREE, CCCR_HASH, LINEAR_HASH};
-
-enum REPLACEMENT_TYPE {LRU, LFU};
-
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU > struct IzeneCacheReplaceTrait
+enum HASH_TYPE
 {
-    typedef list<KeyType> CacheInfoListType;
-    typedef typename list<KeyType> :: iterator LIT;
+    RDE_HASH,
+    STX_BTREE,
+    CCCR_HASH,
+    LINEAR_HASH
+};
 
-    template<class D> struct _CachedData
+enum REPLACEMENT_TYPE
+{
+    LRU,
+    LFU,
+    LFU_NOUVEAU
+};
+
+template <class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU>
+struct IzeneCacheReplaceTrait
+{
+    typedef std::list<KeyType> CacheInfoListType;
+    typedef typename std::list<KeyType>::iterator LIT;
+
+    template <class D>
+    struct _CachedData
     {
         D data;
         LIT lit;
@@ -35,13 +42,14 @@ template<class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU > struct 
 
 };
 
-template<class KeyType, class ValueType> struct IzeneCacheReplaceTrait<KeyType,
-            ValueType, LFU>
+template <class KeyType, class ValueType>
+struct IzeneCacheReplaceTrait<KeyType, ValueType, LFU>
 {
-    typedef list< std::pair<KeyType, int> > CacheInfoListType;
-    typedef typename list< std::pair<KeyType, int> > :: iterator LIT;
+    typedef std::list<std::pair<KeyType, int> > CacheInfoListType;
+    typedef typename std::list<std::pair<KeyType, int> >::iterator LIT;
 
-    template<class D> struct _CachedData
+    template <class D>
+    struct _CachedData
     {
         D data;
         LIT lit;
@@ -50,8 +58,8 @@ template<class KeyType, class ValueType> struct IzeneCacheReplaceTrait<KeyType,
 
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU,
-HASH_TYPE hash_type=RDE_HASH> struct IzeneCacheContainerTrait
+template<class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU, HASH_TYPE hash_type = RDE_HASH>
+struct IzeneCacheContainerTrait
 {
 
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
@@ -64,8 +72,8 @@ HASH_TYPE hash_type=RDE_HASH> struct IzeneCacheContainerTrait
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCacheContainerTrait<
-            KeyType, ValueType, policy, CCCR_HASH>
+template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+struct IzeneCacheContainerTrait<KeyType, ValueType, policy, CCCR_HASH>
 {
 
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
@@ -77,8 +85,8 @@ template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCa
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCacheContainerTrait<
-            KeyType, ValueType, policy, LINEAR_HASH>
+template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+struct IzeneCacheContainerTrait<KeyType, ValueType, policy, LINEAR_HASH>
 {
 
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
@@ -91,8 +99,8 @@ template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCa
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCacheContainerTrait<
-            KeyType, ValueType, policy, STX_BTREE>
+template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+struct IzeneCacheContainerTrait<KeyType, ValueType, policy, STX_BTREE>
 {
 
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
@@ -106,7 +114,8 @@ template<class KeyType, class ValueType, REPLACEMENT_TYPE policy> struct IzeneCa
 };
 
 template<class KeyType, class ValueType, class ContainerType,
-class CacheInfoListType, REPLACEMENT_TYPE policy=LRU> struct IzeneCacheReplacePolicy
+         class CacheInfoListType, REPLACEMENT_TYPE policy = LRU>
+struct IzeneCacheReplacePolicy
 {
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
@@ -116,7 +125,7 @@ class CacheInfoListType, REPLACEMENT_TYPE policy=LRU> struct IzeneCacheReplacePo
                          CacheInfoListType& cacheContainer_)
     {
         CachedDataType **pd1 = hash_.find(key);
-        assert(pd1 != 0);
+        assert(pd1);
 
         LIT newit = cacheContainer_.insert(cacheContainer_.end(), key);
         cacheContainer_.erase((*pd1)->lit);
@@ -151,14 +160,13 @@ class CacheInfoListType, REPLACEMENT_TYPE policy=LRU> struct IzeneCacheReplacePo
 
 };
 
-template<class KeyType, class ValueType, class ContainerType,
-class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
-            ValueType, ContainerType, CacheInfoListType, LFU>
+template<class KeyType, class ValueType, class ContainerType, class CacheInfoListType>
+struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListType, LFU>
 {
 
-    enum {firstFit = false};
-    enum {lastFit = false};
-    enum {randFit = false};
+    enum { firstFit = false };
+    enum { lastFit = false };
+    enum { randFit = false };
 
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::LIT LIT;
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::CachedDataType
@@ -174,9 +182,9 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
 
         int freq = lit->second;
 
-        int a=0;
-        int count =rand() & 0x0f;
-        while (lit->second <= freq && lit != cacheContainer_.end() )
+        int a = 0;
+        int count = rand() & 0x0f;
+        while (lit->second <= freq && lit != cacheContainer_.end())
         {
             ++lit;
             if (firstFit && lit->second == freq)
@@ -184,11 +192,11 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
             if (randFit && lit->second == freq)
             {
                 ++a;
-                if (a>count)
+                if (a > count)
                     break;
             }
         }
-        LIT newit = cacheContainer_.insert(lit, make_pair(key, freq) );
+        LIT newit = cacheContainer_.insert(lit, make_pair(key, freq));
         cacheContainer_.erase(pd1->lit);
         pd1->lit = newit;
 
@@ -198,9 +206,9 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
                                     ContainerType& hash_, CacheInfoListType& cacheContainer_)
     {
         LIT lit = cacheContainer_.begin();
-        int a=0;
-        int count =rand() & 0x0f;
-        while (lit->second <= 1 && lit != cacheContainer_.end() )
+        int a = 0;
+        int count = rand() & 0x0f;
+        while (lit->second <= 1 && lit != cacheContainer_.end())
         {
             ++lit;
             if (firstFit && lit->second == 1)
@@ -208,13 +216,13 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
             if (randFit && lit->second == 1)
             {
                 ++a;
-                if (a>count)
+                if (a > count)
                     break;
             }
         }
         CachedDataType* cd = new CachedDataType;
         cd->data = val;
-        cd->lit = (cacheContainer_.insert(lit, make_pair(key, 1) ) );
+        cd->lit = (cacheContainer_.insert(lit, make_pair(key, 1)));
         hash_.insert(key, cd);
     }
 
@@ -235,8 +243,8 @@ class CacheInfoListType> struct IzeneCacheReplacePolicy<KeyType,
 
 };
 
-template<class KeyType, class ValueType, HASH_TYPE hash_type=RDE_HASH,
-REPLACEMENT_TYPE policy = LRU> class IzeneCacheTrait
+template<class KeyType, class ValueType, HASH_TYPE hash_type = RDE_HASH, REPLACEMENT_TYPE policy = LRU>
+class IzeneCacheTrait
 {
 public:
     typedef typename IzeneCacheContainerTrait<KeyType, ValueType, policy, hash_type>::CacheInfoListType
@@ -262,8 +270,8 @@ public:
 
     bool get(const KeyType& key, ValueType& val)
     {
-        CachedDataType *pd=0;
-        if (hash_.get(key, pd) )
+        CachedDataType *pd = 0;
+        if (hash_.get(key, pd))
         {
             val = pd->data;
             return true;
@@ -289,7 +297,7 @@ public:
 
     void clear()
     {
-        while (!cacheContainer_.empty() )
+        while (!cacheContainer_.empty())
         {
             evict_();
         }
@@ -298,7 +306,7 @@ public:
     bool hasKey(const KeyType& key)
     {
         CachedDataType* pd = 0;
-        return (hash_.get(key, pd) );
+        return hash_.get(key, pd);
     }
 
     int numItems()
@@ -330,4 +338,5 @@ private:
 
 }
 }
+
 #endif /*IZENECACHETRAITS_H_*/

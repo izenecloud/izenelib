@@ -12,16 +12,8 @@
 #include "CacheInfo.h"
 #include "cm_basics.h"
 
-#include <ctime>
-#include <list>
-#include <map>
-#include <ext/hash_map>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
-
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
 
 namespace izenelib
 {
@@ -29,13 +21,13 @@ namespace cache
 {
 
 /**
- * 	\brief  CacheDB,  file-based data structure for storage.
+ *	\brief  CacheDB,  file-based data structure for storage.
  *
  *	 It is persistent in that it stores all the key-value pairs in file. Plus, it also caches most of the items being used in memory such that
- *  	 it provides fast lookup to most of the retrieval calls. It has all the replacement policy, storage policy, and others. CacheDB can be used
- *  	 as our base DB for key-value pairs. There are many open source platforms like this, such as berkeley DB and gdbm. Our version is based on
- *  	 Linear Hashtable and supports efficient caching explicitly (instead of relying on OS virtual memory/swapping system). It also support
- *  	 multi-threads and locking/concurrency.
+ *	 it provides fast lookup to most of the retrieval calls. It has all the replacement policy, storage policy, and others. CacheDB can be used
+ *	 as our base DB for key-value pairs. There are many open source platforms like this, such as berkeley DB and gdbm. Our version is based on
+ *	 Linear Hashtable and supports efficient caching explicitly (instead of relying on OS virtual memory/swapping system). It also support
+ *	 multi-threads and locking/concurrency.
  *
  *
  *       KeyType and DataType    :   the type of what we want to cache.
@@ -47,9 +39,10 @@ namespace cache
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
-class MCache = ILRUCache<KeyType, ValueType>
-, class DataHash =izenelib::am::sdb_hash<KeyType, ValueType>
-, class LockType =NullLock> class CacheDB
+          class MCache = ILRUCache<KeyType, ValueType>,
+          class DataHash = izenelib::am::sdb_hash<KeyType, ValueType>,
+          class LockType = NullLock>
+class CacheDB
 {
 
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
@@ -62,11 +55,10 @@ public:
     {
     }
 
-    CacheDB(unsigned int cacheSize, const char* fileName) :
-            mCache_(cacheSize), dataHash_(fileName)
+    CacheDB(unsigned int cacheSize, const char* fileName)
+        : mCache_(cacheSize), dataHash_(fileName)
     {
         dataHash_.open();
-
     }
 
     void setCacheSize(unsigned int cacheSize)
@@ -151,7 +143,7 @@ protected:
 };
 
 /**
- *  	\brief Get an item from CacheDB
+ *	\brief Get an item from CacheDB
  *
  *	@return true if found, otherwise return faulse
  */
@@ -196,7 +188,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
 }
 
 /**
- * 	\brief not insert even if not found
+ *	\brief not insert even if not found
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
@@ -229,7 +221,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValueWithInsert(
 }
 
 /**
- *  	\brief delete an item from CacheDB.
+ *	\brief delete an item from CacheDB.
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
@@ -269,7 +261,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::hasKey(
 }
 
 /**
- * 	\brief get the number of the items in tha CacheDB.
+ *	\brief get the number of the items in tha CacheDB.
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
@@ -295,7 +287,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::displayHash()
 }
 
 /**
- *  	\brief Flush(delete) the item in the cache that need to be updated.
+ *	\brief Flush(delete) the item in the cache that need to be updated.
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
@@ -307,7 +299,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::flush(
 }
 
 /**
- *  	\brief Flush(delete) all the item in the cache that need to be updated.
+ *	\brief Flush(delete) all the item in the cache that need to be updated.
  *
  */
 /*template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
