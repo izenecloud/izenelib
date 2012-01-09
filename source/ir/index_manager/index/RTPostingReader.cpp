@@ -453,12 +453,12 @@ docid_t MemPostingReader::DecodeTo(
     int32_t count = 0;
     docid_t did = pDS_->lastDecodedDocID;
     count_t nSkipPCount = 0;
+    uint32_t nCurTF = 0;
     for(; count < left && did < target; ++count)
     {
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
 
-        uint32_t nCurTF = 0;
         if(did == termInfo_.lastDocID_)
         {
             nCurTF = termInfo_.currTF_;
@@ -495,7 +495,7 @@ docid_t MemPostingReader::DecodeTo(
     }
 
     pPosting[0] = ( did >= target )? did : -1;
-    pPosting[length>>1] = termInfo_.ctf_;
+    pPosting[length>>1] = nCurTF;
     decodedCount = 1;
     nCurrentPosting = 0;
     return pPosting[0];
