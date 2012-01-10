@@ -157,7 +157,7 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFi
     }
     else
     {
-        if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
+        if(pFilter)
             mergeWith_GC(pOnDiskPosting,pFilter);
         else
             mergeWith(pOnDiskPosting);
@@ -430,11 +430,10 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
             nPCount += nTF;
             nDF++;
             nLastDocID = nDocID;
-            if(pSkipListMerger_)
+            if(pSkipListMerger_ && nDF > 0 && nDF % skipInterval_ == 0)
             {
-                pSkipListMerger_->setBasePoint(0, postingDesc_.length, postingDesc_.plength);
                 if(pPOutput)
-                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer()-postingDesc_.poffset);
+                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer());
                 else
                     pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),0);
             }
