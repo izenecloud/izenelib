@@ -130,6 +130,8 @@ void IndexWriter::createBarrelInfo()
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
+    boost::lock_guard<boost::mutex> lock(indexMutex_);
+
     if(!pCurBarrelInfo_) createBarrelInfo();
 
     if(pIndexer_->isRealTime())
@@ -229,6 +231,8 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
 
 void IndexWriter::optimizeIndex()
 {
+    boost::lock_guard<boost::mutex> lock(indexMutex_);
+    flush();
     pIndexMergeManager_->optimizeIndex();
 }
 
@@ -248,6 +252,8 @@ void IndexWriter::lazyOptimizeIndex()
     int minute = du.minutes();
     if(scheduleExpression_.matches(minute, hour, day, month, dow))
     {
+        boost::lock_guard<boost::mutex> lock(indexMutex_);
+        flush();
         pIndexMergeManager_->optimizeIndex();
     }
 }

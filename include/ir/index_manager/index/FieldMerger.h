@@ -313,8 +313,11 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
             }
         }
     }
-    pPostingMerger_->endMerge();	
-    ti.set(pPostingMerger_->termInfo_);
+    fileoffset_t ret = pPostingMerger_->endMerge();	
+    if(ret != -1)
+        ti.set(pPostingMerger_->termInfo_);
+    else
+        ti.reset();
 }
 
 }

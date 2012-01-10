@@ -83,6 +83,8 @@ private:
 
     std::string optimizeJobDesc_;
 
+    boost::mutex indexMutex_;
+
     friend class IndexMerger;
 };
 
