@@ -397,7 +397,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     docid_t nLastDocID = chunkDesc_.lastdocid;
     freq_t	nTF = 0;
     count_t nCTF = 0;
-    count_t nDF = 0;
+    count_t nDF = postingDesc_.df;
     count_t nPCount = 0;
 
     OutputStream* pDocIndexOutput = 0;
