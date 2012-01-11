@@ -265,25 +265,46 @@ void VariantDataPool::reset()
 
 VariantDataPoolInput::VariantDataPoolInput(VariantDataPool* pVDataPool)
     :pVDataPool_(pVDataPool)
-    ,currPos_(0)
 {
-    setlength(pVDataPool->getLength());
-    pVDataChunk_ = pVDataPool->pHeadChunk_;
-    pData_ = pVDataChunk_->data;
+    pVHeadChunk_ = pVDataPool_->pHeadChunk_; 
+    setlength(pVDataPool_->getLength());
+
+    IndexInput::setBuffer((char*)pVHeadChunk_->data,pVHeadChunk_->size);			
+    bufferSize_ = pVHeadChunk_->size;
+
+    pVDataChunk_ = pVHeadChunk_->next;
+    if(pVDataChunk_)
+        pData_ = pVDataChunk_->data;
+    else
+        pVDataChunk_ = NULL;
+
+    currPos_ = pVHeadChunk_->size;
+    if(currPos_ > pVDataPool->getLength())
+        currPos_ = pVDataPool->getLength();
 }
 
 VariantDataPoolInput::VariantDataPoolInput(const VariantDataPoolInput& src)
     :pVDataPool_(src.pVDataPool_)
-    ,currPos_(0)
 {
+    pVHeadChunk_ = pVDataPool_->pHeadChunk_; 
     setlength(pVDataPool_->getLength());
-    pVDataChunk_ = pVDataPool_->pHeadChunk_;
-    pData_ = pVDataChunk_->data;
+
+    IndexInput::setBuffer((char*)pVHeadChunk_->data,pVHeadChunk_->size);			
+    bufferSize_ = pVHeadChunk_->size;
+
+    pVDataChunk_ = pVHeadChunk_->next;
+    if(pVDataChunk_)
+        pData_ = pVDataChunk_->data;
+    else
+        pVDataChunk_ = NULL;
+
+    currPos_ = pVHeadChunk_->size;
+    if(currPos_ > pVDataPool_->getLength())
+        currPos_ = pVDataPool_->getLength();
 }
 
 VariantDataPoolInput::~VariantDataPoolInput()
 {
-    pVDataPool_ = NULL;
 }
 
 void VariantDataPoolInput::readInternal(char* b,size_t length,bool bCheck)
@@ -293,58 +314,76 @@ void VariantDataPoolInput::readInternal(char* b,size_t length,bool bCheck)
     if(!pData_)
         SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
 
-    size_t nLen = length;
-    uint8_t* pEnd = pVDataChunk_->data + pVDataChunk_->size;				
-    while(nLen > 0)
+    if(buffer_ == b)
     {
-        if(nLen > (size_t)(pEnd - pData_))
-        {
-            memcpy(b,pData_,pEnd - pData_);
-            b += (pEnd - pData_);
-            nLen -= (pEnd - pData_);
-            pVDataChunk_ = pVDataChunk_->next;
-            if(pVDataChunk_)
-            {
-                pData_ = pVDataChunk_->data;
-                pEnd = pVDataChunk_->data + pVDataChunk_->size;
-            }
-            else
-            {
-                pData_ = NULL;
-                break;
-            }
-        }
-        else
-        {
-            memcpy(b,pData_,nLen); 					
-            if(nLen == (size_t)(pEnd - pData_))
-            {
-                pVDataChunk_ = pVDataChunk_->next;
-                if(pVDataChunk_)
-                    pData_ = pVDataChunk_->data;
-                else
-                    pData_ = NULL;
-            }						
-            else
-            {
-                pData_ += nLen;
-            }
-            nLen = 0;
-        }
-    }
-    if(nLen > 0)
-    {
-        //SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
-        currPos_ += (length - nLen);
+        ///IndexInput::refill()
+        assert(bufferSize_ == length); 
+        buffer_ = (char*)pData_;
+        bufferLength_ = bufferSize_ = (pVDataChunk_->data + pVDataChunk_->size) - pData_;
+        currPos_ += bufferSize_;
+
+        pVDataChunk_ = pVDataChunk_->next;
+        if(pVDataChunk_)
+            pData_ = pVDataChunk_->data;
+        else 
+            pData_ = NULL;				
     }
     else
-    currPos_ += length;
+    {
+        size_t nLen = length;
+        uint8_t* pEnd = pVDataChunk_->data + pVDataChunk_->size;				
+        while(nLen > 0)
+        {
+            if(nLen > (size_t)(pEnd - pData_))
+            {
+                memcpy(b,pData_,pEnd - pData_);
+                b += (pEnd - pData_);
+                nLen -= (pEnd - pData_);
+                pVDataChunk_ = pVDataChunk_->next;
+                if(pVDataChunk_)
+                {
+                    pData_ = pVDataChunk_->data;
+                    pEnd = pVDataChunk_->data + pVDataChunk_->size;
+                }
+                else
+                {
+                    pData_ = NULL;
+                    break;
+                }
+            }
+            else
+            {
+                memcpy(b,pData_,nLen); 					
+                if(nLen == (size_t)(pEnd - pData_))
+                {
+                    pVDataChunk_ = pVDataChunk_->next;
+                    if(pVDataChunk_)
+                        pData_ = pVDataChunk_->data;
+                    else
+                        pData_ = NULL;
+                }						
+                else
+                {
+                    pData_ += nLen;
+                }
+                nLen = 0;
+            }
+        }
+        if(nLen > 0)
+        {
+            SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
+        //currPos_ += (length - nLen);
+        }
+        else
+            currPos_ += length;
+    }
 }
 
 
 void VariantDataPoolInput::seekInternal(int64_t position)
 {
     int64_t nSkip = position;
+    pVDataChunk_ = pVHeadChunk_;
     pData_ = pVDataChunk_->data;
     while(nSkip > 0 && pVDataChunk_)
     {

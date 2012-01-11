@@ -49,7 +49,7 @@ RTPostingWriter::~RTPostingWriter()
 
 bool RTPostingWriter::isEmpty()
 {
-    return (pDocFreqList_->pTailChunk_==NULL);
+    return (nDF_ == 0);
 }
 
 void RTPostingWriter::getSnapShot(TermInfo& snapshot)

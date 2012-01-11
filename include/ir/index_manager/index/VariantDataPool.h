@@ -160,6 +160,7 @@ public:
     void seekInternal(int64_t position);
 private:
     VariantDataPool* pVDataPool_;
+    VariantDataChunk* pVHeadChunk_;
     VariantDataChunk* pVDataChunk_;
     int64_t currPos_;
     uint8_t* pData_;
