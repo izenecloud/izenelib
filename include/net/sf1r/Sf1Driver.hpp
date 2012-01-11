@@ -11,6 +11,12 @@
 #include <exception>
 #include <string>
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+    
+
 class RawClient;
 class Writer;
 
@@ -83,5 +89,9 @@ private:
     Writer* writer;
     unsigned sequence;
 };
+
+
+}}} /* namespace izenelib::net::sf1r */
+
 
 #endif	/* SF1DRIVER_HPP */

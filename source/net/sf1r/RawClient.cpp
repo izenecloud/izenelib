@@ -9,9 +9,16 @@
 #include <glog/logging.h>
 #include <iostream>
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 namespace ba = boost::asio;
 using ba::ip::tcp;
 using std::string;
+
 
 /**
  * Header size, i.e. two unsigned values for:
@@ -153,3 +160,6 @@ RawClient::getResponse() throw (std::exception) {
     
     return std::make_pair<unsigned, string>(sequence, response);
 }
+
+
+}}} /* namespace izenelib::net::sf1r */

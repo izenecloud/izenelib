@@ -11,7 +11,14 @@
 #include "net/sf1r/RawClient.hpp"
 #include <exception>
 #include <iostream>
+
 using namespace std;
+using namespace izenelib::net::sf1r;
+
+
+BOOST_AUTO_TEST_CASE(headerSize_test) {
+    BOOST_CHECK_EQUAL(4, sizeof(unsigned));
+}
 
 
 BOOST_AUTO_TEST_CASE(error_test) {

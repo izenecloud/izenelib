@@ -11,6 +11,7 @@
 #include "net/sf1r/JsonWriter.hpp"
 #include <iostream>
 
+using namespace izenelib::net::sf1r;
 using namespace std;
 
 typedef const char* cc;

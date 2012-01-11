@@ -10,6 +10,12 @@
 
 #include <string>
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 /**
  * Interface for request body writers.
  */
@@ -36,5 +42,7 @@ public:
     
 };
 
+
+}}} /* namespace izenelib::net::sf1r */
 
 #endif	/* WRITER_HPP */

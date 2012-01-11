@@ -10,6 +10,8 @@
 
 #include "net/sf1r/Sf1Driver.hpp"
 #include <string>
+
+using namespace izenelib::net::sf1r;
 using namespace std;
 
 

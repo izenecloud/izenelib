@@ -11,6 +11,12 @@
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 using std::string;
 
 
@@ -133,3 +139,6 @@ throw(ServerError) {
         throw ServerError(message);
     }
 }
+
+
+}}} /* namespace izenelib::net::sf1r */

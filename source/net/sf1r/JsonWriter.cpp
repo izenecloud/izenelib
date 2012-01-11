@@ -12,6 +12,12 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 namespace rj = rapidjson;
 using std::string;
 
@@ -86,3 +92,6 @@ JsonWriter::checkData(const string& data) const {
     rj::Document document;
     return not document.Parse<0>(data.c_str()).HasParseError();
 };
+
+
+}}} /* namespace izenelib::net::sf1r */

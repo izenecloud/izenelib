@@ -15,6 +15,11 @@
 #include <utility>
 
 
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 /**
  * Client of the SF1 Driver.
  * Sends raw requests and get raw responses.
@@ -101,5 +106,8 @@ private:
     boost::asio::ip::tcp::resolver::query* query;
     boost::asio::ip::tcp::socket* socket;
 };
+
+
+}}} /* namespace izenelib::net::sf1r */
 
 #endif	/* RAWCLIENT_HPP */

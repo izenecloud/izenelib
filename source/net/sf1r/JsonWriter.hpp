@@ -10,6 +10,12 @@
 
 #include "Writer.hpp"
 
+
+namespace izenelib {
+namespace net {
+namespace sf1r {
+
+
 /**
  * Class implementing the Writer interface for the JSON format.
  */
@@ -30,5 +36,9 @@ private:
     JsonWriter(const JsonWriter&);
     void operator=(const JsonWriter&);
 };
+
+
+}}} /* namespace izenelib::net::sf1r */
+
 
 #endif	/* JSONWRITER_HPP */

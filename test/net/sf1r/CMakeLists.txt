@@ -11,14 +11,6 @@ include_directories(${Glog_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Glog_LIBRARIES})
 
 
-# Utils
-set(Utils_SOURCES
-    UtilsTest.cpp   
-)
-add_executable(t_UtilsTest ${Utils_SOURCES})
-target_link_libraries(t_UtilsTest sf1r ${LIBS})
-
-
 # RawClient
 set(RawClient_SOURCES
     ${SOURCE_DIR}/RawClient.cpp
