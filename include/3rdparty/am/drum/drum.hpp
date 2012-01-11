@@ -39,6 +39,7 @@
 #include <fstream>
 #include <vector>
 
+#include <glog/logging.h>
 
 DRUM_BEGIN_NAMESPACE
 
@@ -727,11 +728,15 @@ Drum<
     dispatcher_t>::
 FeedBuckets()
 {
+    DLOG(INFO) << "start FeedBuckets (" << num_buckets_ << ")";
+
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
         this->FeedBucket(bucket_id);
 
     this->ResetNextBufferPositions();
     feed_buckets_ = false;
+
+    DLOG(INFO) << "end FeedBuckets";
 }
 
 template <
@@ -852,6 +857,8 @@ Drum<
     dispatcher_t>::
 MergeBuckets()
 {
+    DLOG(INFO) << "start MergeBuckets (" << num_buckets_ << ") ";
+
     //Merge with one-pass through disk repository.
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
     {
@@ -866,6 +873,8 @@ MergeBuckets()
 
     this->ResetFilePointers();
     merge_buckets_ = false;
+
+    DLOG(INFO) << "end MergeBuckets (" << num_buckets_ << ")";
 }
 
 template <
