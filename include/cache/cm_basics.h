@@ -22,7 +22,7 @@
 using namespace izenelib::am;
 
 /**
- *	\brief namespace for Search Formula 1(product SF-1) library.
+ *  \brief namespace for Search Formula 1(product SF-1) library.
  */
 
 namespace izenelib
@@ -62,9 +62,9 @@ enum DUMP_OPTION
     DUMP_LATER
 };
 
-/*
- *	Hash function object for hash_map. For different KeyType,
- *	should have different hash function object. It is used in Class CacheDB, MCache, and MFCache.
+/**
+ *  Hash function object for hash_map. For different KeyType,
+ *  should have different hash function object. It is used in Class CacheDB, MCache, and MFCache.
  *
  */
 

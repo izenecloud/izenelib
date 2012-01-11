@@ -29,8 +29,10 @@ namespace cache
  *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then
  *				                No threa dsafe.
  */
-template <class KeyType, class ValueType, class Hash=izenelib::am::rde_hash<KeyType, ValueType>,
-class ThreadSafeLock=NullLock> class MLRUCache
+template <class KeyType, class ValueType,
+          class Hash = izenelib::am::rde_hash<KeyType, ValueType>,
+          class ThreadSafeLock = NullLock>
+class MLRUCache
 {
 
     typedef std::list<KeyType> CacheInfoList;
@@ -56,16 +58,25 @@ public:
     /**
      *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
      */
-    MLRUCache(unsigned int cacheSize=1000) :
-            hash_(cacheSize, 1.0), startingTime_(time(0)), nTotal_(0), nHit_(0), hitRatio_(0.0), workload_(0.0)
+    MLRUCache(unsigned int cacheSize=1000)
+        : hash_(cacheSize, 1.0)
+        , cacheSize_(cacheSize)
+        , startingTime_(time(0))
+        , nTotal_(0)
+        , nHit_(0)
+        , hitRatio_(0.0)
+        , workload_(0.0)
     {
-        cacheSize_ = cacheSize;
-        //	isArchive_ = 0;
     } //CacheExtHash with ratio = 1.0.
 
-    MLRUCache(const MLRUCache& obj) :
-            hash_(obj.hash_), startingTime_(obj.startingTime_), nTotal_(obj.nTotal_), nHit_(obj.nHit_),
-            hitRatio_(obj.hitRatio_), workload_(obj.workload_), cacheSize_( obj.cacheSize_ )
+    MLRUCache(const MLRUCache& obj)
+        : hash_(obj.hash_)
+        , cacheSize_(obj.cacheSize_)
+        , startingTime_(obj.startingTime_)
+        , nTotal_(obj.nTotal_)
+        , nHit_(obj.nHit_)
+        , hitRatio_(obj.hitRatio_)
+        , workload_(obj.workload_)
     {
     }
 
@@ -78,7 +89,7 @@ public:
         cacheSize_ = cacheSize;
         hash_.setHashSize(cacheSize_);
     }
-    bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
+    bool updateValue(const DataType<KeyType, ValueType>& dat) // insert an new item into MCache
     {
         lock.acquire_write_lock();
         KeyType key = dat.get_key();
@@ -190,7 +201,7 @@ private:
     int nHit_;
     double hitRatio_;
     double workload_;
-    //	bool isArchive_;
+    //bool isArchive_;
     ThreadSafeLock lock;
 private:
     inline void replace_(const KeyType& key)
@@ -239,9 +250,9 @@ private:
  *
  *	@return true if found, otherwise return faulse
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::getValue(const KeyType& key,
-        ValueType& value)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValue(
+        const KeyType& key, ValueType& value)
 {
     lock.acquire_write_lock();
     nTotal_++;
@@ -267,9 +278,9 @@ KeyType, ValueType, Hash, ThreadSafeLock>::getValue(const KeyType& key,
  *
  */
 
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> void MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
-    const DataType<KeyType,ValueType>& dat)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
+        const DataType<KeyType, ValueType>& dat)
 {
     lock.acquire_write_lock();
     KeyType key = dat.get_key();
@@ -298,9 +309,9 @@ KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
  * 	\brief not insert even if not found
  *
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::getValueNoInsert(
-    const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValueNoInsert(
+        const KeyType& key, ValueType& value)
 {
     return getValue(key, value);
 }
@@ -310,9 +321,9 @@ KeyType, ValueType, Hash, ThreadSafeLock>::getValueNoInsert(
  *
  *         @return true if hits, othewise reture False and insert into the new item.
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::getValueWithInsert(
-    const KeyType& key, ValueType& value)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValueWithInsert(
+        const KeyType& key, ValueType& value)
 {
     if (getValue(key, value) )
         return true;
@@ -328,8 +339,8 @@ KeyType, ValueType, Hash, ThreadSafeLock>::getValueWithInsert(
  *	\brief to determine if an item exists in MLRUCache.
  *
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::hasKey(const KeyType& key)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::hasKey(const KeyType& key)
 {
     lock.acquire_read_lock();
     CachedData* pd = hash_.find(key);
@@ -341,8 +352,8 @@ KeyType, ValueType, Hash, ThreadSafeLock>::hasKey(const KeyType& key)
  * 	\brief get the number of the items in tha MLRUCache.
  *
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> int MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::numItems()
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+int MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::numItems()
 {
     lock.acquire_read_lock();
     int num = hash_.numItems();
@@ -354,8 +365,8 @@ KeyType, ValueType, Hash, ThreadSafeLock>::numItems()
  *	\brief Evict the  oldest items  overall.
  *
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> void MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::evict_()
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::evict_()
 {
     KeyType key = cacheContainer_.front();
     cacheContainer_.pop_front();
@@ -367,8 +378,8 @@ KeyType, ValueType, Hash, ThreadSafeLock>::evict_()
  *  	\brief Flush(delete) the item that need to be updated.
  *
  */
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> void MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::flush(const KeyType& key)
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::flush(const KeyType& key)
 {
     lock.acquire_write_lock();
     CachedData* pd = hash_.find(key);
@@ -385,8 +396,8 @@ KeyType, ValueType, Hash, ThreadSafeLock>::flush(const KeyType& key)
  *
  */
 
-template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> void MLRUCache<
-KeyType, ValueType, Hash, ThreadSafeLock>::clear()
+template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
+void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::clear()
 {
     lock.acquire_write_lock();
     KeyType key;
@@ -401,4 +412,5 @@ KeyType, ValueType, Hash, ThreadSafeLock>::clear()
 
 }
 }
+
 #endif //MLRUCache

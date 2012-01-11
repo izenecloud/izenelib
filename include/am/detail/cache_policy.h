@@ -17,9 +17,9 @@ NS_IZENELIB_AM_BEGIN
 namespace detail
 {
 
-template<typename KeyType,
-         typename LockType = izenelib::util::ReadWriteLock>
-class policy_lfu_nouveau
+template <class KeyType,
+          class LockType = izenelib::util::ReadWriteLock>
+class policy_lrlfu
 {
     struct freq_node;
     struct cache_entry
@@ -100,12 +100,12 @@ class policy_lfu_nouveau
     mutable LockType lock_;
 
 public:
-    policy_lfu_nouveau()
+    policy_lrlfu()
         : _freq_list_head(NULL)
     {
     }
 
-    ~policy_lfu_nouveau()
+    ~policy_lrlfu()
     {
         clear();
     }
@@ -283,12 +283,12 @@ private:
     }
 };
 
-template<typename KeyType,
-         typename LockType = izenelib::util::ReadWriteLock>
+template <class KeyType,
+          class LockType = izenelib::util::ReadWriteLock>
 class policy_lfu
 {
     typedef ::stx::btree_set<KeyType> keyset_type;
-    typedef ::stx::btree_map<unsigned long, keyset_type > entry_type;
+    typedef ::stx::btree_map<unsigned long, keyset_type> entry_type;
     typedef ::rde::hash_map<KeyType, unsigned long> backentry_type;
     entry_type _entries;
     backentry_type _backEntries;
@@ -302,14 +302,14 @@ public:
     {
         ScopedWriteLock lock(lock_);
 
-        unsigned long ref = _backEntries[k];
-        if(ref > 0 )
+        typename backentry_type::iterator it = _backEntries.find(k);
+        if (it != _backEntries.end())
         {
-            keyset_type& pad = _entries[ref];
+            keyset_type& pad = _entries[it->second];
             pad.erase(k);
-            if(pad.empty())
+            if (pad.empty())
             {
-                _entries.erase(ref);
+                _entries.erase(it->second);
             }
             _backEntries.erase(k);
         }
@@ -320,17 +320,16 @@ public:
         ScopedWriteLock lock(lock_);
 
         unsigned long& ref = _backEntries[k];
-        if(ref > 0)
+        if (ref)
         {
             keyset_type& pad = _entries[ref];
             pad.erase(k);
-            if(pad.empty())
+            if (pad.empty())
             {
                 _entries.erase(ref);
             }
         }
-        ref++;
-        keyset_type& new_pad = _entries[ref];
+        keyset_type& new_pad = _entries[++ref];
         new_pad.insert(k);
     }
 
@@ -346,12 +345,14 @@ public:
         ScopedReadLock lock(lock_);
 
         size_t count = 0;
-        for(typename entry_type::iterator it = _entries.begin(); it != _entries.end(); ++it)
+        for (typename entry_type::iterator it = _entries.begin();
+                it != _entries.end(); ++it)
         {
-            count += sizeof(KeyType)*it.data().size();
+            count += sizeof(KeyType) * it.data().size();
             count += sizeof(unsigned long);
         }
-        for(typename backentry_type::iterator it = _backEntries.begin(); it != _backEntries.end(); ++it)
+        for (typename backentry_type::iterator it = _backEntries.begin();
+                it != _backEntries.end(); ++it)
         {
             count += sizeof(KeyType);
             count += sizeof(unsigned long);
@@ -363,22 +364,22 @@ public:
     {
         ScopedWriteLock lock(lock_);
 
+        if (_entries.empty()) return false;
+
         typename entry_type::iterator iter = _entries.begin();
-        if (iter == _entries.end())
-            return false;
 
         keyset_type& pad = iter.data();
         k = *(pad.begin());
         pad.erase(k);
-        if(pad.empty())
+        if (pad.empty())
             _entries.erase(iter);
         _backEntries.erase(k);
         return true;
     }
 };
 
-template<typename KeyType,
-         typename LockType = izenelib::util::ReadWriteLock>
+template <class KeyType,
+          class LockType = izenelib::util::ReadWriteLock>
 class policy_lru
 {
     std::list<KeyType> _entries;
@@ -417,7 +418,7 @@ public:
     {
         ScopedWriteLock lock(lock_);
 
-        if(_entries.empty())
+        if (_entries.empty())
             return false;
         k = _entries.back();
         _entries.remove(k);

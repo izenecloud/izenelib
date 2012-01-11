@@ -24,14 +24,12 @@ NS_IZENELIB_AM_BEGIN
 //     only to the cache. A modified cache block is written back to the store, just before it is replaced.
 //
 ////////////////////////////////////////////////////////////////////////////////
-template<
-typename KeyType,
-typename ElementType,
-typename RowType = ::google::sparse_hash_map<KeyType, ElementType>,
-typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock>,
-typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
-typename Policy = detail::policy_lfu_nouveau<KeyType>
->
+template<class KeyType,
+         class ElementType,
+         class RowType = ::google::sparse_hash_map<KeyType, ElementType>,
+         class StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock>,
+         class IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
+         class Policy = detail::policy_lrlfu<KeyType> >
 class MatrixDB
 {
     typedef MatrixCache<KeyType, RowType> CacheType;
@@ -45,8 +43,8 @@ public:
     typedef RowType row_type;
     typedef IteratorType iterator; // first is KeyType, second is RowType
 
-    explicit MatrixDB(size_t size, const std::string& path)
-        : _max_cache_elem(size/CacheType::ELEM_SIZE)
+    MatrixDB(size_t size, const std::string& path)
+        : _max_cache_elem(size / CacheType::ELEM_SIZE)
         , _db_storage(path)
     {
         _db_storage.open();
@@ -81,7 +79,7 @@ public:
     ElementType elem(KeyType x, KeyType y)
     {
         boost::shared_ptr<const RowType> row_data = row(x);
-        typename RowType::const_iterator it = row_data->find(y); 
+        typename RowType::const_iterator it = row_data->find(y);
 
         if(it == row_data->end())
             return ElementType();
@@ -130,7 +128,7 @@ public:
      * @param x the row to read
      * @param func the function @c func(const RowType&) would be called with the row as argument
      */
-    template <typename Func>
+    template <class Func>
     void read_row_with_func(KeyType x, Func& func)
     {
         if (! _cache.read_with_func(x, func))
@@ -151,7 +149,7 @@ public:
      * @param x the row to update
      * @param func the function @c func(RowType&) would be called with the row as argument
      */
-    template <typename Func>
+    template <class Func>
     void update_row_with_func(KeyType x, Func& func)
     {
         _evict();
@@ -220,17 +218,17 @@ private:
     {
         KeyType key;
         boost::shared_ptr<RowType> row;
-        while ((row = _cache.reset_dirty_flag(key)))
+        while (row = _cache.reset_dirty_flag(key))
         {
             _db_storage.update(key, *row);
         }
     }
 };
 
-template<typename KeyType, typename ElementType, typename RowType, typename StorageType, typename IteratorType, typename Policy>
+template<class KeyType, class ElementType, class RowType, class StorageType, class IteratorType, class Policy>
 std::ostream& operator<<(
-    std::ostream& out,
-    const MatrixDB<KeyType, ElementType, RowType, StorageType, IteratorType, Policy>& matrix
+        std::ostream& out,
+        const MatrixDB<KeyType, ElementType, RowType, StorageType, IteratorType, Policy>& matrix
 )
 {
     matrix.print(out);
@@ -243,12 +241,17 @@ namespace izenelib{namespace util{
 
 struct pod_tag{};
 
-template <typename T1,typename T2>
-struct IsFebirdSerial< ::google::sparse_hash_map<T1, T2 >  >{
+template <class T1, class T2>
+struct IsFebirdSerial< ::google::sparse_hash_map<T1, T2 > >
+{
     //enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes, no= !yes};
     //for compatibility issue, is_pod is not used within the definition of IsFebirdSerial
-    enum {yes =( boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value )
-                  && ( boost::is_pod<T2>::value || boost::is_base_of<pod_tag, T2>::value) , no= !yes};
+    enum
+    {
+        yes = (boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value)
+            && (boost::is_pod<T2>::value || boost::is_base_of<pod_tag, T2>::value),
+        no = !yes
+    };
 };
 
 }}
