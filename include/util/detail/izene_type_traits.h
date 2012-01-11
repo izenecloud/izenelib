@@ -194,7 +194,9 @@ namespace util \
 }
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
+MAKE_MEMCPY_SERIALIZATION(std::vector<uint128_t>)
 MAKE_FEBIRD_SERIALIZATION(std::vector<std::string>)
+MAKE_FEBIRD_SERIALIZATION(std::vector<uint128_t>)
 
 //////////////////////////////////////////////////////
 
