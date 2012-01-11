@@ -3,6 +3,7 @@
 
 #include "cm_basics.h"
 #include "CacheHash.h"
+#include "LRLFUCacheContainer.h"
 
 #include <list>
 
@@ -23,14 +24,14 @@ enum REPLACEMENT_TYPE
 {
     LRU,
     LFU,
-    LFU_NOUVEAU
+    LRLFU
 };
 
 template <class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU>
 struct IzeneCacheReplaceTrait
 {
     typedef std::list<KeyType> CacheInfoListType;
-    typedef typename std::list<KeyType>::iterator LIT;
+    typedef typename CacheInfoListType::iterator LIT;
 
     template <class D>
     struct _CachedData
@@ -46,7 +47,7 @@ template <class KeyType, class ValueType>
 struct IzeneCacheReplaceTrait<KeyType, ValueType, LFU>
 {
     typedef std::list<std::pair<KeyType, int> > CacheInfoListType;
-    typedef typename std::list<std::pair<KeyType, int> >::iterator LIT;
+    typedef typename CacheInfoListType::iterator LIT;
 
     template <class D>
     struct _CachedData
@@ -58,7 +59,23 @@ struct IzeneCacheReplaceTrait<KeyType, ValueType, LFU>
 
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU, HASH_TYPE hash_type = RDE_HASH>
+template <class KeyType, class ValueType>
+struct IzeneCacheReplaceTrait<KeyType, ValueType, LRLFU>
+{
+    typedef LRLFUCacheContainer<KeyType> CacheInfoListType;
+    typedef typename CacheInfoListType::iterator LIT;
+
+    template <class D>
+    struct _CachedData
+    {
+        D data;
+        LIT lit;
+    };
+    typedef _CachedData<ValueType> CachedDataType;
+
+};
+
+template <class KeyType, class ValueType, REPLACEMENT_TYPE policy = LRU, HASH_TYPE hash_type = RDE_HASH>
 struct IzeneCacheContainerTrait
 {
 
@@ -72,7 +89,7 @@ struct IzeneCacheContainerTrait
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
 struct IzeneCacheContainerTrait<KeyType, ValueType, policy, CCCR_HASH>
 {
 
@@ -81,11 +98,12 @@ struct IzeneCacheContainerTrait<KeyType, ValueType, policy, CCCR_HASH>
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
     CachedDataType;
+
     typedef CacheHash<KeyType, CachedDataType*, izenelib::am::cccr_hash<KeyType, CachedDataType*> >
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
 struct IzeneCacheContainerTrait<KeyType, ValueType, policy, LINEAR_HASH>
 {
 
@@ -99,7 +117,7 @@ struct IzeneCacheContainerTrait<KeyType, ValueType, policy, LINEAR_HASH>
     ContainerType;
 };
 
-template<class KeyType, class ValueType, REPLACEMENT_TYPE policy>
+template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
 struct IzeneCacheContainerTrait<KeyType, ValueType, policy, STX_BTREE>
 {
 
@@ -113,16 +131,16 @@ struct IzeneCacheContainerTrait<KeyType, ValueType, policy, STX_BTREE>
     ContainerType;
 };
 
-template<class KeyType, class ValueType, class ContainerType,
-         class CacheInfoListType, REPLACEMENT_TYPE policy = LRU>
+template <class KeyType, class ValueType, class ContainerType,
+          class CacheInfoListType, REPLACEMENT_TYPE policy = LRU>
 struct IzeneCacheReplacePolicy
 {
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
     CachedDataType;
 
-    static void replace_(const KeyType& key, ContainerType& hash_,
-                         CacheInfoListType& cacheContainer_)
+    static inline void replace_(const KeyType& key, ContainerType& hash_,
+                                CacheInfoListType& cacheContainer_)
     {
         CachedDataType **pd1 = hash_.find(key);
         assert(pd1);
@@ -132,8 +150,9 @@ struct IzeneCacheReplacePolicy
         (*pd1)->lit = newit;
 
     }
-    static void firstInsert_(const KeyType& key, const ValueType& val,
-                             ContainerType& hash_, CacheInfoListType& cacheContainer_)
+
+    static inline void firstInsert_(const KeyType& key, const ValueType& val,
+                                    ContainerType& hash_, CacheInfoListType& cacheContainer_)
     {
         //assert(hash_.find(key) == NULL);
         LIT newit = cacheContainer_.insert(cacheContainer_.end(), key);
@@ -146,8 +165,9 @@ struct IzeneCacheReplacePolicy
     static inline void evict_(ContainerType& hash_,
                               CacheInfoListType& cacheContainer_)
     {
-        KeyType key = cacheContainer_.front();
-        cacheContainer_.pop_front();
+        if (cacheContainer_.empty()) return;
+
+        const KeyType& key = cacheContainer_.front();
         CachedDataType* cd = 0;
         hash_.get(key, cd);
         if (cd)
@@ -156,31 +176,30 @@ struct IzeneCacheReplacePolicy
             cd = 0;
         }
         hash_.del(key);
+        cacheContainer_.pop_front();
     }
 
 };
 
-template<class KeyType, class ValueType, class ContainerType, class CacheInfoListType>
+template <class KeyType, class ValueType, class ContainerType, class CacheInfoListType>
 struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListType, LFU>
 {
-
-    enum { firstFit = false };
-    enum { lastFit = false };
-    enum { randFit = false };
-
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::LIT LIT;
     typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::CachedDataType
     CachedDataType;
 
+    static const bool firstFit = true;
+    static const bool lastFit = false;
+    static const bool randFit = false;
+
     static inline void replace_(const KeyType& key, ContainerType& hash_,
                                 CacheInfoListType& cacheContainer_)
     {
-        CachedDataType *pd1 = 0;
-        hash_.get(key, pd1);
-        LIT lit = pd1->lit;
-        ++lit->second;
+        CachedDataType **pd1 = hash_.find(key);
+        assert(pd1);
 
-        int freq = lit->second;
+        LIT lit = (*pd1)->lit;
+        int freq = ++lit->second;
 
         int a = 0;
         int count = rand() & 0x0f;
@@ -196,10 +215,9 @@ struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListT
                     break;
             }
         }
-        LIT newit = cacheContainer_.insert(lit, make_pair(key, freq));
-        cacheContainer_.erase(pd1->lit);
-        pd1->lit = newit;
-
+        LIT newit = cacheContainer_.insert(lit, std::make_pair(key, freq));
+        cacheContainer_.erase((*pd1)->lit);
+        (*pd1)->lit = newit;
     }
 
     static inline void firstInsert_(const KeyType& key, const ValueType& val,
@@ -229,8 +247,9 @@ struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListT
     static inline void evict_(ContainerType& hash_,
                               CacheInfoListType& cacheContainer_)
     {
-        std::pair<KeyType, int> kp = cacheContainer_.front();
-        cacheContainer_.pop_front();
+        if (cacheContainer_.empty()) return;
+
+        const std::pair<KeyType, int>& kp = cacheContainer_.front();
         CachedDataType* cd = 0;
         hash_.get(kp.first, cd);
         if (cd)
@@ -239,11 +258,57 @@ struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListT
             cd = 0;
         }
         hash_.del(kp.first);
+        cacheContainer_.pop_front();
     }
 
 };
 
-template<class KeyType, class ValueType, HASH_TYPE hash_type = RDE_HASH, REPLACEMENT_TYPE policy = LRU>
+template <class KeyType, class ValueType, class ContainerType, class CacheInfoListType>
+struct IzeneCacheReplacePolicy<KeyType, ValueType, ContainerType, CacheInfoListType, LRLFU>
+{
+    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LRLFU>::LIT LIT;
+    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LRLFU>::CachedDataType
+    CachedDataType;
+
+    static inline void replace_(const KeyType& key, ContainerType& hash_,
+                                CacheInfoListType& cacheContainer_)
+    {
+        CachedDataType **pd1 = hash_.find(key);
+        assert(pd1);
+
+        cacheContainer_._replace((*pd1)->lit);
+    }
+
+    static inline void firstInsert_(const KeyType& key, const ValueType& val,
+                                    ContainerType& hash_, CacheInfoListType& cacheContainer_)
+    {
+        LIT newit = cacheContainer_._firstInsert(key);
+
+        CachedDataType* cd = new CachedDataType;
+        cd->data = val;
+        cd->lit = newit;
+        hash_.insert(key, cd);
+    }
+
+    static inline void evict_(ContainerType& hash_,
+                              CacheInfoListType& cacheContainer_)
+    {
+        KeyType key;
+        if (!cacheContainer_._evict(key)) return;
+
+        CachedDataType* cd = 0;
+        hash_.get(key, cd);
+        if (cd)
+        {
+            delete cd;
+            cd = 0;
+        }
+        hash_.del(key);
+    }
+
+};
+
+template <class KeyType, class ValueType, HASH_TYPE hash_type = RDE_HASH, REPLACEMENT_TYPE policy = LRU>
 class IzeneCacheTrait
 {
 public:
@@ -259,8 +324,8 @@ public:
     ReplacePolicy;
 
 public:
-    IzeneCacheTrait(ContainerType& hash, CacheInfoListType& cacheContainer) :
-            hash_(hash), cacheContainer_(cacheContainer)
+    IzeneCacheTrait(ContainerType& hash, CacheInfoListType& cacheContainer)
+        : hash_(hash), cacheContainer_(cacheContainer)
     {
     }
     ~IzeneCacheTrait()
@@ -327,7 +392,6 @@ public:
     void evict_()
     {
         ReplacePolicy::evict_(hash_, cacheContainer_);
-
     }
 
 private:
