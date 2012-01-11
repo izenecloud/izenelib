@@ -1,7 +1,12 @@
 include_directories(${IZENELIB_SOURCE_DIR}/source)
 set(SOURCE_DIR ${IZENELIB_SOURCE_DIR}/source/net/sf1r)
 
-find_package(Boost ${Boost_FIND_VERSION} COMPONENTS unit_test_framework system)
+find_package(Boost ${Boost_FIND_VERSION}
+  COMPONENTS
+  system
+  unit_test_framework
+  )
+
 add_definitions(-DBOOST_TEST_DYN_LINK)
 include_directories(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
@@ -17,7 +22,7 @@ set(RawClient_SOURCES
     RawClientTest.cpp
 )
 add_executable(t_RawClientTest ${RawClient_SOURCES})
-target_link_libraries(t_RawClientTest sf1r ${LIBS})
+target_link_libraries(t_RawClientTest sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
 
 # Rapidjson
@@ -34,7 +39,7 @@ set(JsonWriter_SOURCES
     JsonWriterTest.cpp
 )
 add_executable(t_JsonWriterTest ${JsonWriter_SOURCES})
-target_link_libraries(t_JsonWriterTest ${LIBS})
+target_link_libraries(t_JsonWriterTest ${LIBS}   ${CMAKE_THREAD_LIBS_INIT} )
 
 
 # Sf1Driver
@@ -43,5 +48,5 @@ set(Sf1Driver_SOURCES
     ${SOURCE_DIR}/Sf1Driver.cpp
     Sf1DriverTest.cpp
 )
-add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES})
-target_link_libraries(t_Sf1DriverTest sf1r ${LIBS})
+add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES} )
+target_link_libraries(t_Sf1DriverTest sf1r ${LIBS}   ${CMAKE_THREAD_LIBS_INIT} )
