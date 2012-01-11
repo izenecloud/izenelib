@@ -29,10 +29,10 @@ using std::string;
  * It is also the upper limit of the number of requests in a batch request.
  * @see \ref limits
  */
-const int MAX_SEQUENCE = std::numeric_limits<unsigned>::max() - 1;
+const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
-Sf1Driver::Sf1Driver(const string& host, const unsigned& port, 
+Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
         const Format& format) throw(ServerError) : sequence(1) {
     try {
         client = new RawClient(host, boost::lexical_cast<string>(port));
@@ -119,7 +119,7 @@ throw(ServerError) {
     
     try {
         client->sendRequest(sequence, request);
-        std::pair<unsigned, string> response = client->getResponse();
+        std::pair<uint32_t, string> response = client->getResponse();
 
         if (sequence != response.first) {
             LOG(ERROR) << "Unmatched sequence number: "

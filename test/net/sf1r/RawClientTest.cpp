@@ -17,7 +17,7 @@ using namespace izenelib::net::sf1r;
 
 
 BOOST_AUTO_TEST_CASE(headerSize_test) {
-    BOOST_CHECK_EQUAL(4, sizeof(unsigned));
+    BOOST_CHECK_EQUAL(4, sizeof(uint32_t));
 }
 
 
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(connection_test) {
 
 
 BOOST_AUTO_TEST_CASE(send_receive_test) {
-    const unsigned sequence = 1234567890;
+    const uint32_t sequence = 1234567890;
     const string message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(send_receive_test) {
     BOOST_CHECK(client.isConnected() == true);
      
     client.sendRequest(sequence, message);
-    pair<unsigned, string> response =  client.getResponse();
+    pair<uint32_t, string> response =  client.getResponse();
     BOOST_CHECK_EQUAL(sequence, response.first);
     BOOST_CHECK_EQUAL(expected, response.second);
 }

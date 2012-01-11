@@ -9,6 +9,7 @@
 #define	RAWCLIENT_HPP
 
 
+#include "types.h"
 #include <boost/asio.hpp> 
 #include <exception>
 #include <string>
@@ -76,7 +77,7 @@ public:
      * @param data request data.
      * @throw std::exception errors occur
      */
-    void sendRequest(const unsigned& sequence, const std::string& data)
+    void sendRequest(const uint32_t& sequence, const std::string& data)
     throw(std::exception);
     
     /**
@@ -85,7 +86,7 @@ public:
      *          request and the response
      * @throw std::exception errors occur
      */
-    std::pair<unsigned, std::string> getResponse()
+    std::pair<uint32_t, std::string> getResponse()
     throw(std::exception);
     
 private:

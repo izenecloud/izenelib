@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(error_test) {
 #if 0 // don't know if there is a running SF1
 
 static const string HOST = "localhost";
-static const int PORT = 18181;
+static const uint32_t PORT = 18181;
 
 
 BOOST_AUTO_TEST_CASE(echo_test) {
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(badRequest_test) {
 
     Sf1Driver driver(HOST, PORT);
     
-    unsigned seq = 1;
+    uint32_t seq = 1;
     for (vector<string>::iterator it = requests.begin(); it < requests.end(); it++) {
         BOOST_CHECK_EQUAL(seq++, driver.getSequence());
         string request = "{\"message\":\"Ciao! 你好！\"}";
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(ServerError_test) {
     
     Sf1Driver driver(HOST, PORT);
     
-    unsigned seq = 1;
+    uint32_t seq = 1;
     for (vector<string>::iterator it = requests.begin(); it < requests.end(); it++) {
         BOOST_CHECK_EQUAL(seq++, driver.getSequence());
         string request = "{\"message\":\"Ciao! 你好！\"}";

@@ -27,7 +27,7 @@ using std::string;
  * <li>message length</li>
  * </ul>
  */
-const size_t HEADER_SIZE = 2 * sizeof(unsigned);
+const size_t HEADER_SIZE = 2 * sizeof(uint32_t);
 
 
 RawClient::RawClient(const string& h, const string& p) 
@@ -84,7 +84,7 @@ RawClient::close() {
 
 
 void
-RawClient::sendRequest(const unsigned& sequence, const string& data)
+RawClient::sendRequest(const uint32_t& sequence, const string& data)
 throw (std::exception) {
     if (!isConnected()) {
         throw std::runtime_error("Not connected");
@@ -96,8 +96,8 @@ throw (std::exception) {
     DLOG(INFO) << "length\t:" << data.length();
     DLOG(INFO) << "data\t:" << data;
     
-    unsigned seq = htonl(sequence);         // TODO: boost functions
-    unsigned len = htonl(data.length());    // TODO: boost functions
+    uint32_t seq = htonl(sequence);         // TODO: boost functions
+    uint32_t len = htonl(data.length());    // TODO: boost functions
     
     std::vector<ba::const_buffer> buffers;
     buffers.push_back(ba::buffer(&seq, sizeof(seq)));
@@ -114,7 +114,7 @@ throw (std::exception) {
 }
 
 
-std::pair<unsigned, string>
+std::pair<uint32_t, string>
 RawClient::getResponse() throw (std::exception) {
     if (!isConnected()) {
         throw std::runtime_error("Not connected");
@@ -132,13 +132,13 @@ RawClient::getResponse() throw (std::exception) {
     }
 
     //warning: dereferencing type-punned pointer will break strict-aliasing rules
-    // -fno-strict-aliasing 
-    //unsigned sequence = ntohl(*(unsigned*)(header));
-    //unsigned length = ntohl(*(unsigned*)(header + sizeof(unsigned)));
+    //         (-fno-strict-aliasing)
+    //uint32_t sequence = ntohl(*(uint32_t*)(header));
+    //uint32_t length = ntohl(*(uint32_t*)(header + sizeof(uint32_t)));
 
-    unsigned sequence, length;
-    memcpy(&sequence, header, sizeof(unsigned));
-    memcpy(&length, header + sizeof(unsigned), sizeof(unsigned));
+    uint32_t sequence, length;
+    memcpy(&sequence, header, sizeof(uint32_t));
+    memcpy(&length, header + sizeof(uint32_t), sizeof(uint32_t));
 
     sequence = ntohl(sequence);
     length = ntohl(length);
@@ -158,7 +158,7 @@ RawClient::getResponse() throw (std::exception) {
 
     LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
     
-    return std::make_pair<unsigned, string>(sequence, response);
+    return std::make_pair<uint32_t, string>(sequence, response);
 }
 
 

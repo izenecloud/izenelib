@@ -8,6 +8,7 @@
 #ifndef SF1DRIVER_HPP
 #define	SF1DRIVER_HPP
 
+#include "types.h"
 #include <exception>
 #include <string>
 
@@ -47,7 +48,7 @@ public:
      * @param format the format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server
      */
-    Sf1Driver(const std::string& host, const unsigned& port = 18181,
+    Sf1Driver(const std::string& host, const uint32_t& port = 18181,
         const Format& format = JSON) throw(ServerError);
     
     /// Destructor.
@@ -71,7 +72,7 @@ public:
         std::string& request) throw(ServerError);
     
     /// Get the sequence number of the next request.
-    unsigned getSequence() const {
+    uint32_t getSequence() const {
         return sequence;
     }
     
@@ -87,7 +88,7 @@ private:
     
     RawClient* client;
     Writer* writer;
-    unsigned sequence;
+    uint32_t sequence;
 };
 
 
