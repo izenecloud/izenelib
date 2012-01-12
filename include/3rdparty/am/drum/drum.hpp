@@ -728,7 +728,7 @@ Drum<
     dispatcher_t>::
 FeedBuckets()
 {
-    DLOG(INFO) << "start FeedBuckets (" << num_buckets_ << ")";
+    std::cout << "start FeedBuckets (" << num_buckets_ << ")" << std::endl;
 
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
         this->FeedBucket(bucket_id);
@@ -736,7 +736,7 @@ FeedBuckets()
     this->ResetNextBufferPositions();
     feed_buckets_ = false;
 
-    DLOG(INFO) << "end FeedBuckets";
+    std::cout << "end FeedBuckets" << std::endl;
 }
 
 template <
@@ -857,7 +857,7 @@ Drum<
     dispatcher_t>::
 MergeBuckets()
 {
-    DLOG(INFO) << "start MergeBuckets (" << num_buckets_ << ") ";
+    std::cout << "start MergeBuckets (" << num_buckets_ << ") " << std::endl;
 
     //Merge with one-pass through disk repository.
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
@@ -874,7 +874,7 @@ MergeBuckets()
     this->ResetFilePointers();
     merge_buckets_ = false;
 
-    DLOG(INFO) << "end MergeBuckets (" << num_buckets_ << ")";
+    std::cout << "end MergeBuckets" << std::endl;
 }
 
 template <

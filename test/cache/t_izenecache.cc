@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
                 cout<<endl;
             }
             if (cm.insertValue(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
         while (inf>>ystr) {
             sum++;
             if (cm.getValue(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
             sum++;
             val++;
             if (cm.getValueWithInsert(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
             sum++;
             val++;
             if (cm.updateValue(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
         while (inf>>ystr) {
             sum++;
             if (cm.del(ystr))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -203,13 +203,12 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
         cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
         cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
         cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-
     }
-
 }
 
 BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 {
+    cout<<"\n=================LRU==================="<<endl;
     trace = 0;
     {
         izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
@@ -224,7 +223,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
             sum++;
             val++;
             if (cm.getValueWithInsert(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -261,7 +260,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
             sum++;
             val++;
             if (cm.getValueWithInsert(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -286,43 +285,43 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
     }
 
     /*{
-        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*10);
+      izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*10);
 
-        int sum =0;
-        int hit =0;
-        clock_t t1 = clock();
-        ifstream inf(inputFile1.c_str());
-        string ystr;
-        ValueType val = 0;
-        while (inf>>ystr) {
-            sum++;
-            val++;
-            if (cm.getValueWithInsert(ystr, val))
-            hit++;
-            else {
-                //	outf<<ystr<<endl;
-            }
-            if (trace) {
-                cout<< "get: "<<ystr<<" -> "<<val<<endl;
-                cout<< "MCache numItem = "<<cm.numItems()<<endl;
-                cm.displayHash();
-                cout<<endl;
-            }
-        }
+      int sum =0;
+      int hit =0;
+      clock_t t1 = clock();
+      ifstream inf(inputFile1.c_str());
+      string ystr;
+      ValueType val = 0;
+      while (inf>>ystr) {
+      sum++;
+      val++;
+      if (cm.getValueWithInsert(ystr, val))
+      hit++;
+      else {
+    //	outf<<ystr<<endl;
+    }
+    if (trace) {
+    cout<< "get: "<<ystr<<" -> "<<val<<endl;
+    cout<< "MCache numItem = "<<cm.numItems()<<endl;
+    cm.displayHash();
+    cout<<endl;
+    }
+    }
 
-        cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
-        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-        unsigned long vm = 0, rss = 0;
+    cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
+    cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+    cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+    unsigned long vm = 0, rss = 0;
 
-        ProcMemInfo::getProcMemInfo(vm, rss);
+    ProcMemInfo::getProcMemInfo(vm, rss);
 
-        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+    //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+    cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
     }*/
 
-/*	{
+    /*	{
         izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*10);
 
         int sum =0;
@@ -332,10 +331,89 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
         string ystr;
         ValueType val = 0;
         while (inf>>ystr) {
+        sum++;
+        val++;
+        if (cm.getValueWithInsert(ystr, val))
+        hit++;
+        else {
+    //	outf<<ystr<<endl;
+    }
+    if (trace) {
+    cout<< "get: key="<<ystr<<"->"<<val<<endl;
+    cout<< "MCache numItem = "<<cm.numItems()<<endl;
+    cm.displayHash();
+    cout<<endl;
+    }
+    }
+
+    cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+    cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+    cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+    unsigned long vm = 0, rss = 0;
+
+    ProcMemInfo::getProcMemInfo(vm, rss);
+
+    //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+    cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+    }*/
+
+    trace = 0;
+    {
+        izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
+
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        izenelib::util::UString ystr;
+        string str;
+        ValueType val = 0;
+        while (inf>>str) {
+            sum++;
+            val++;
+            ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
+            if (cm.getValueWithInsert(ystr, val))
+                hit++;
+            else {
+                //	outf<<ystr<<endl;
+            }
+            if (trace) {
+                cout<< "get: key="<<str<<"->"<<val<<endl;
+                cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
+            }
+        }
+
+        cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*10<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
+
+        ProcMemInfo::getProcMemInfo(vm, rss);
+
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+    }
+
+    cout<<"\n=================LFU==================="<<endl;
+    trace = 0;
+    {
+        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        string ystr;
+        ValueType val = 0;
+        while (inf>>ystr) {
             sum++;
             val++;
             if (cm.getValueWithInsert(ystr, val))
-            hit++;
+                hit++;
             else {
                 //	outf<<ystr<<endl;
             }
@@ -347,7 +425,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
             }
         }
 
-        cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+        cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*2<<endl;
         cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
         cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
         unsigned long vm = 0, rss = 0;
@@ -357,239 +435,274 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
         //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
         cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
+    }
+
+    {
+        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH, LFU> cm(cacheSize*2);
+
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        string ystr;
+        ValueType val = 0;
+        while (inf>>ystr) {
+            sum++;
+            val++;
+            if (cm.getValueWithInsert(ystr, val))
+                hit++;
+            else {
+                //	outf<<ystr<<endl;
+            }
+            if (trace) {
+                cout<< "get: key="<<ystr<<"->"<<val<<endl;
+                cout<< "MCache numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
+            }
+        }
+
+        cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
+
+        ProcMemInfo::getProcMemInfo(vm, rss);
+
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+    }
+
+    /*{
+      izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*2);
+
+      int sum =0;
+      int hit =0;
+      clock_t t1 = clock();
+      ifstream inf(inputFile1.c_str());
+      string ystr;
+      ValueType val = 0;
+      while (inf>>ystr) {
+      sum++;
+      val++;
+      if (cm.getValueWithInsert(ystr, val))
+      hit++;
+      else {
+    //	outf<<ystr<<endl;
+    }
+    if (trace) {
+    cout<< "get: "<<ystr<<" -> "<<val<<endl;
+    cout<< "MCache numItem = "<<cm.numItems()<<endl;
+    cm.displayHash();
+    cout<<endl;
+    }
+    }
+
+    cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
+    cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+    cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+    unsigned long vm = 0, rss = 0;
+
+    ProcMemInfo::getProcMemInfo(vm, rss);
+
+    //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+    cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+    }*/
+
+    /*	{
+        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*2);
+
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        string ystr;
+        ValueType val = 0;
+        while (inf>>ystr) {
+        sum++;
+        val++;
+        if (cm.getValueWithInsert(ystr, val))
+        hit++;
+        else {
+    //	outf<<ystr<<endl;
+    }
+    if (trace) {
+    cout<< "get: key="<<ystr<<"->"<<val<<endl;
+    cout<< "MCache numItem = "<<cm.numItems()<<endl;
+    cm.displayHash();
+    cout<<endl;
+    }
+    }
+
+    cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+    cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+    cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+    unsigned long vm = 0, rss = 0;
+
+    ProcMemInfo::getProcMemInfo(vm, rss);
+
+    //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+    cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
     }*/
 
     trace = 0;
-        {
-            izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
+    {
+        izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
 
-            int sum =0;
-            int hit =0;
-            clock_t t1 = clock();
-            ifstream inf(inputFile1.c_str());
-            izenelib::util::UString ystr;
-            string str;
-            ValueType val = 0;
-            while (inf>>str) {
-                sum++;
-                val++;
-                ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
-                if (cm.getValueWithInsert(ystr, val))
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        izenelib::util::UString ystr;
+        string str;
+        ValueType val = 0;
+        while (inf>>str) {
+            sum++;
+            val++;
+            ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
+            if (cm.getValueWithInsert(ystr, val))
                 hit++;
-                else {
-                    //	outf<<ystr<<endl;
-                }
-                if (trace) {
-                    cout<< "get: key="<<str<<"->"<<val<<endl;
-                    cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
-                    cm.displayHash();
-                    cout<<endl;
-                }
+            else {
+                //	outf<<ystr<<endl;
             }
-
-            cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*10<<endl;
-            cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-            cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-            unsigned long vm = 0, rss = 0;
-
-            ProcMemInfo::getProcMemInfo(vm, rss);
-
-            //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-            cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
-
+            if (trace) {
+                cout<< "get: key="<<str<<"->"<<val<<endl;
+                cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
+            }
         }
 
-    cout<<"\n=================LFU==================="<<endl;
-        trace = 0;
-            {
-                izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+        cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*2<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
 
-                int sum =0;
-                int hit =0;
-                clock_t t1 = clock();
-                ifstream inf(inputFile1.c_str());
-                string ystr;
-                ValueType val = 0;
-                while (inf>>ystr) {
-                    sum++;
-                    val++;
-                    if (cm.getValueWithInsert(ystr, val))
-                    hit++;
-                    else {
-                        //	outf<<ystr<<endl;
-                    }
-                    if (trace) {
-                        cout<< "get: key="<<ystr<<"->"<<val<<endl;
-                        cout<< "MCache numItem = "<<cm.numItems()<<endl;
-                        cm.displayHash();
-                        cout<<endl;
-                    }
-                }
+        ProcMemInfo::getProcMemInfo(vm, rss);
 
-                cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*2<<endl;
-                cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-                cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-                unsigned long vm = 0, rss = 0;
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-                ProcMemInfo::getProcMemInfo(vm, rss);
+    }
 
-                //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-                cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+    cout<<"\n=================LRLFU==================="<<endl;
+    trace = 0;
+    {
+        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LRLFU> cm(cacheSize*20);
 
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        string ystr;
+        ValueType val = 0;
+        while (inf>>ystr) {
+            sum++;
+            val++;
+            if (cm.getValueWithInsert(ystr, val))
+                hit++;
+            else {
+                //	outf<<ystr<<endl;
             }
-
-            {
-                izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH, LFU> cm(cacheSize*2);
-
-                int sum =0;
-                int hit =0;
-                clock_t t1 = clock();
-                ifstream inf(inputFile1.c_str());
-                string ystr;
-                ValueType val = 0;
-                while (inf>>ystr) {
-                    sum++;
-                    val++;
-                    if (cm.getValueWithInsert(ystr, val))
-                    hit++;
-                    else {
-                        //	outf<<ystr<<endl;
-                    }
-                    if (trace) {
-                        cout<< "get: key="<<ystr<<"->"<<val<<endl;
-                        cout<< "MCache numItem = "<<cm.numItems()<<endl;
-                        cm.displayHash();
-                        cout<<endl;
-                    }
-                }
-
-                cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
-                cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-                cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-                unsigned long vm = 0, rss = 0;
-
-                ProcMemInfo::getProcMemInfo(vm, rss);
-
-                //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-                cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
-
+            if (trace) {
+                cout<< "get: key="<<ystr<<"->"<<val<<endl;
+                cout<< "MCache numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
             }
+        }
 
-            /*{
-                izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*2);
+        cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*2<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
 
-                int sum =0;
-                int hit =0;
-                clock_t t1 = clock();
-                ifstream inf(inputFile1.c_str());
-                string ystr;
-                ValueType val = 0;
-                while (inf>>ystr) {
-                    sum++;
-                    val++;
-                    if (cm.getValueWithInsert(ystr, val))
-                    hit++;
-                    else {
-                        //	outf<<ystr<<endl;
-                    }
-                    if (trace) {
-                        cout<< "get: "<<ystr<<" -> "<<val<<endl;
-                        cout<< "MCache numItem = "<<cm.numItems()<<endl;
-                        cm.displayHash();
-                        cout<<endl;
-                    }
-                }
+        ProcMemInfo::getProcMemInfo(vm, rss);
 
-                cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
-                cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-                cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-                unsigned long vm = 0, rss = 0;
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-                ProcMemInfo::getProcMemInfo(vm, rss);
+    }
 
-                //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-                cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+    {
+        izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH, LRLFU> cm(cacheSize*20);
 
-            }*/
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        string ystr;
+        ValueType val = 0;
+        while (inf>>ystr) {
+            sum++;
+            val++;
+            if (cm.getValueWithInsert(ystr, val))
+                hit++;
+            else {
+                //	outf<<ystr<<endl;
+            }
+            if (trace) {
+                cout<< "get: key="<<ystr<<"->"<<val<<endl;
+                cout<< "MCache numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
+            }
+        }
 
-        /*	{
-                izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*2);
+        cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
 
-                int sum =0;
-                int hit =0;
-                clock_t t1 = clock();
-                ifstream inf(inputFile1.c_str());
-                string ystr;
-                ValueType val = 0;
-                while (inf>>ystr) {
-                    sum++;
-                    val++;
-                    if (cm.getValueWithInsert(ystr, val))
-                    hit++;
-                    else {
-                        //	outf<<ystr<<endl;
-                    }
-                    if (trace) {
-                        cout<< "get: key="<<ystr<<"->"<<val<<endl;
-                        cout<< "MCache numItem = "<<cm.numItems()<<endl;
-                        cm.displayHash();
-                        cout<<endl;
-                    }
-                }
+        ProcMemInfo::getProcMemInfo(vm, rss);
 
-                cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
-                cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-                cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-                unsigned long vm = 0, rss = 0;
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-                ProcMemInfo::getProcMemInfo(vm, rss);
+    }
 
-                //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-                cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+    trace = 0;
+    {
+        izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LRLFU> cm(cacheSize*20);
 
-            }*/
+        int sum =0;
+        int hit =0;
+        clock_t t1 = clock();
+        ifstream inf(inputFile1.c_str());
+        izenelib::util::UString ystr;
+        string str;
+        ValueType val = 0;
+        while (inf>>str) {
+            sum++;
+            val++;
+            ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
+            if (cm.getValueWithInsert(ystr, val))
+                hit++;
+            else {
+                //	outf<<ystr<<endl;
+            }
+            if (trace) {
+                cout<< "get: key="<<str<<"->"<<val<<endl;
+                cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
+                cm.displayHash();
+                cout<<endl;
+            }
+        }
 
-            trace = 0;
-                {
-                    izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+        cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*2<<endl;
+        cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+        cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+        unsigned long vm = 0, rss = 0;
 
-                    int sum =0;
-                    int hit =0;
-                    clock_t t1 = clock();
-                    ifstream inf(inputFile1.c_str());
-                    izenelib::util::UString ystr;
-                    string str;
-                    ValueType val = 0;
-                    while (inf>>str) {
-                        sum++;
-                        val++;
-                        ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
-                        if (cm.getValueWithInsert(ystr, val))
-                        hit++;
-                        else {
-                            //	outf<<ystr<<endl;
-                        }
-                        if (trace) {
-                            cout<< "get: key="<<str<<"->"<<val<<endl;
-                            cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
-                            cm.displayHash();
-                            cout<<endl;
-                        }
-                    }
+        ProcMemInfo::getProcMemInfo(vm, rss);
 
-                    cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*2<<endl;
-                    cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
-                    cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-                    unsigned long vm = 0, rss = 0;
+        //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
+        cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-                    ProcMemInfo::getProcMemInfo(vm, rss);
-
-                    //cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
-                    cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
-
-                }
-
-
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

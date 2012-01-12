@@ -128,16 +128,16 @@ public:
         hash_.displayHash();
     }
 
-    void displayCacheInfos(std::ostream& os=cout)
+    void displayCacheInfos(std::ostream& os = std::cout)
     {
         ScopedReadLock<ThreadSafeLock> lock(lock_);
-        LIT it = cacheContainer_.begin();
-        for (; it != cacheContainer_.end(); it++)
+        for (LIT it = cacheContainer_.begin();
+                it != cacheContainer_.end(); it++)
         {
             //os<<"("<<it->first<<", "<<it->second<<")->";
             //os<<*it<<" -> ";
         }
-        os<<std::endl;
+        os << std::endl;
         hash_.displayHash();
     }
 
@@ -306,9 +306,9 @@ bool IzeneCache<KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValue
 
 }
 
-template <typename KeyType = string,
-          typename ValueType = NullType,
-          typename LockType = NullLock>
+template <class KeyType = string,
+          class ValueType = NullType,
+          class LockType = NullLock>
 class ILRUCache : public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU>
 {
 public:
@@ -318,9 +318,9 @@ public:
     }
 };
 
-template <typename KeyType = string,
-          typename ValueType = NullType,
-          typename LockType = NullLock>
+template <class KeyType = string,
+          class ValueType = NullType,
+          class LockType = NullLock>
 class ILFUCache : public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU>
 {
 public:
