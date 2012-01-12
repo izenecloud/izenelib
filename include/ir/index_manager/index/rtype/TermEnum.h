@@ -292,7 +292,8 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         
         bool next(DataType& kvp)
         {
-            kvp.second.clear();
+            //kvp.second.clear();
+            kvp.second.resize(0);
 #ifdef TE_DEBUG
             std::cout<<"[TE] next ";
 #endif
