@@ -44,6 +44,12 @@ public:
         return queue_.empty();
     }
 
+    std::size_t size()
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        return queue_.size();
+    }
+
 private:
     std::deque<T> queue_;
 
