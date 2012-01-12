@@ -64,7 +64,7 @@ public:
 
     protected:
         Slice* pHeadSlice_; ///head slice
-        Slice* pTailSlice_;	///current slice
+        Slice* pTailSlice_; ///current slice
         size_t nUpto_; ///start address of free space in current slice
         size_t nSliceSize_;
     };
@@ -285,7 +285,7 @@ public:
             // get copy of free list pointer
             FreeListPtr old_free_ptr(pool_ptr->free_ptr_);
             if (! old_free_ptr)
-                break;	// use pool alloc if free list is empty
+                break; // use pool alloc if free list is empty
 
             // use CAS operation to swap the free list pointer
             if (pool_ptr->free_ptr_.cas(old_free_ptr, old_free_ptr->next.get_ptr()))
@@ -349,7 +349,7 @@ public:
                     break; // all done: free list is empty
                 // use CAS operation to swap the free list pointer
                 if (pool_ptr->free_ptr_.cas(pool_ptr->free_ptr_, old_free_ptr->next.get_ptr()))
-                    pool_ptr->pool_.free(old_free_ptr.get_ptr());	// release memory from pool
+                    pool_ptr->pool_.free(old_free_ptr.get_ptr()); // release memory from pool
             }
         }
 #endif
@@ -424,7 +424,7 @@ protected:
 private:
 
     /// a collection of fixed-size pool allocators
-    boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs>	pools_;
+    boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs> pools_;
 };
 
 
@@ -432,4 +432,3 @@ private:
 
 
 #endif
-
