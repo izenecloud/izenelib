@@ -57,9 +57,13 @@ class BTreeIndexer
     
     typedef BTTermEnum<KeyType, CacheValueType> MemEnumType;
     typedef AMTermEnum<DbType> AMEnumType;
-    typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
-    typedef TermEnum<KeyType, BitVector> BaseEnumType;
-    typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
+    //typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
+    //typedef TermEnum<KeyType, BitVector> BaseEnumType;
+    //typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
+
+    typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, ValueType> EnumType;
+    typedef TermEnum<KeyType, ValueType> BaseEnumType;
+    typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
 public:
     typedef izenelib::am::AMIterator<DbType> iterator;
@@ -177,40 +181,19 @@ public:
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::size_t result = 0;
 
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+        std::pair<KeyType, ValueType> kvp;
+        docid_t docid = 0;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(lowKey));
-            std::pair<KeyType, ValueType> kvp;
-            docid_t docid = 0;
-            while(term_enum->next(kvp))
+            if( compare_(kvp.first,highKey)>0 ) break;
+            for(uint32_t i=0;i<kvp.second.size();i++)
             {
-                if( compare_(kvp.first,highKey)>0 ) break;
-                for(uint32_t i=0;i<kvp.second.size();i++)
-                {
-                    docid = kvp.second[i];
-                    if (docid >= maxDoc) break;
-                    data[docid] = kvp.first;
-                    ++result;
-                }
+                docid = kvp.second[i];
+                if (docid >= maxDoc) break;
+                data[docid] = kvp.first;
+                ++result;
             }
-        }
-        else
-        {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,highKey)>0 ) break;
-                for(std::size_t docid=1;docid<kvp.second.size();docid++)
-                {
-                    if (docid >= maxDoc) break;
-                    if(kvp.second.test(docid))
-                    {
-                        data[docid] = kvp.first;
-                        ++result;
-                    }
-                }
-            }        
         }
 
         return result;
@@ -221,27 +204,12 @@ public:
         if( compare_(key1,key2)>0 ) return;
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key1));
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key2)>0 ) break;
-                decompress_(kvp.second, docs);
-            }
-            
-        }
-        else
-        {
-        
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key2)>0 ) break;
-                docs |= kvp.second;
-            }
+            if( compare_(kvp.first,key2)>0 ) break;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -251,28 +219,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)>=0 ) break;
-                decompress_(kvp.second, docs);
-            }
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)>=0 ) break;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if( compare_(kvp.first,key)>=0 ) break;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -282,29 +234,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)>0 ) break;
-                decompress_(kvp.second, docs);
-            }
-            
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)>0 ) break;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if( compare_(kvp.first,key)>0 ) break;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -314,30 +249,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)==0 ) continue;
-                decompress_(kvp.second, docs);
-            }
-            
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if( compare_(kvp.first,key)==0 ) continue;
-    //             std::cout<<"getValueGreat key : "<<kvp.first<<std::endl;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if( compare_(kvp.first,key)==0 ) continue;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -347,28 +264,11 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                decompress_(kvp.second, docs);
-            }
-            
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
-            std::pair<KeyType, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-    //             std::cout<<"getValueGreatEqual key : "<<kvp.first<<std::endl;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -379,29 +279,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(key));
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
-                decompress_(kvp.second, docs);
-            }
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
-            std::pair<izenelib::util::UString, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
-    //             if(kvp.first.find(key)!=0) break;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -411,28 +294,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
-                decompress_(kvp.second, docs);
-            }
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-            std::pair<izenelib::util::UString, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -442,29 +309,12 @@ public:
         std::cout<<"[start] "<<docs<<std::endl;
 #endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        if(cache_.empty())
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, ValueType> kvp;
+        while(term_enum->next(kvp))
         {
-            std::auto_ptr<AMEnumType> term_enum(getAMEnum_());
-            std::pair<KeyType, ValueType> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
-                decompress_(kvp.second, docs);
-            }
-            
-        }
-        else {
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-            std::pair<izenelib::util::UString, BitVector> kvp;
-            while(term_enum->next(kvp))
-            {
-                if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
-                docs |= kvp.second;
-    #ifdef DOCS_INFO
-                std::cout<<"[this] "<<kvp.second<<std::endl;
-                std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
-    #endif
-            }
+            if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
+            decompress_(kvp.second, docs);
         }
     }
 
@@ -487,16 +337,36 @@ private:
         return Compare<T>::compare(t1, t2);
     }
     
+    bool cacheEmpty_()
+    {
+        return cache_.empty();
+    }
     
     BaseEnumType* getEnum_(const KeyType& lowKey)
     {
-        BaseEnumType* term_enum = new EnumType(cache_.getAM(), db_, lowKey, func_);
+        BaseEnumType* term_enum = NULL;
+        if(cacheEmpty_())
+        {
+            term_enum = getAMEnum_(lowKey);
+        }
+        else
+        {
+            term_enum = new EnumType(cache_.getAM(), db_, lowKey, func_);
+        }
         return term_enum;
     }
     
     BaseEnumType* getEnum_()
     {
-        BaseEnumType* term_enum = new EnumType(cache_.getAM(), db_, func_);
+        BaseEnumType* term_enum = NULL;
+        if(cacheEmpty_())
+        {
+            term_enum = getAMEnum_();
+        }
+        else
+        {
+            term_enum = new EnumType(cache_.getAM(), db_, func_);
+        }
         return term_enum;
     }
     
@@ -668,10 +538,10 @@ private:
         else {
             std::size_t count = 0;
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-            std::pair<KeyType, BitVector> kvp;
+            std::pair<KeyType, ValueType> kvp;
             while(term_enum->next(kvp))
             {
-                if(kvp.second.count()>0)
+                if(kvp.second.size()>0)
                 {
                     ++count;
                 }
@@ -747,14 +617,15 @@ private:
     
     
     /// Be called in range search function.
-    static void combineValue_(const CacheValueType& cacheValue, const ValueType& value, BitVector& result)
+    static void combineValue_(const CacheValueType& cacheValue, const ValueType& value, ValueType& result)
     {
 #ifdef BT_DEBUG
         std::cout<<"before decompress"<<std::endl;
         std::cout<<result<<std::endl;
         std::cout<<cbitmap<<std::endl;
 #endif
-        decompress_(value, result);
+        //decompress_(value, result);
+        result = value;
         
 #ifdef BT_DEBUG
         std::cout<<"after decompress"<<std::endl;
@@ -770,7 +641,7 @@ private:
     }
     
     /// called only in cacheIterator_, one thread, common_bv_ is safe.
-    void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
+    static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
         
         for(std::size_t i=0;i<cacheValue.item.size();i++)
@@ -784,7 +655,9 @@ private:
                 VectorRemove_(value, cacheValue.item[i]);
             }
         }
-        
+        //duplicate
+        std::sort(value.begin(), value.end());
+        value.erase(std::unique(value.begin(), value.end()), value.end());
     }
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)

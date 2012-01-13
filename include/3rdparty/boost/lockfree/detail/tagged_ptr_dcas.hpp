@@ -11,15 +11,13 @@
 #ifndef BOOST_LOCKFREE_TAGGED_PTR_DCAS_HPP_INCLUDED
 #define BOOST_LOCKFREE_TAGGED_PTR_DCAS_HPP_INCLUDED
 
-#include <boost/lockfree/detail/cas.hpp>
 #include <boost/lockfree/detail/branch_hints.hpp>
 
 #include <cstddef>              /* for std::size_t */
 
-namespace boost
-{
-namespace lockfree
-{
+namespace boost {
+namespace lockfree {
+namespace detail {
 
 template <class T>
 class BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
@@ -27,59 +25,23 @@ class BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
 public:
     typedef std::size_t tag_t;
 
-    static const bool is_lockfree = boost::lockfree::atomic_cas<tagged_ptr>::is_lockfree;
-
     /** uninitialized constructor */
     tagged_ptr(void)//: ptr(0), tag(0)
     {}
 
-    /** copy constructor */
-    tagged_ptr(tagged_ptr const & p)//: ptr(0), tag(0)
-    {
-        set(p);
-    }
+    tagged_ptr(tagged_ptr const & p):
+        ptr(p.ptr), tag(p.tag)
+    {}
 
     explicit tagged_ptr(T * p, tag_t t = 0):
         ptr(p), tag(t)
     {}
 
-    /** atomic set operations */
+    /** unsafe set operation */
     /* @{ */
     void operator= (tagged_ptr const & p)
     {
-        set(p);
-    }
-
-    void atomic_set(tagged_ptr const & p)
-    {
-        for (;;)
-        {
-            tagged_ptr old;
-            old.set(*this);
-            if(likely(cas(old, p.ptr, p.tag)))
-                return;
-        }
-    }
-
-    void atomic_set(T * p, tag_t t)
-    {
-        for (;;)
-        {
-            tagged_ptr old;
-            old.set(*this);
-
-            if(likely(cas(old, p, t)))
-                return;
-        }
-    }
-    /* @} */
-
-    /** unsafe set operation */
-    /* @{ */
-    void set(tagged_ptr const & p)
-    {
-        ptr = p.ptr;
-        tag = p.tag;
+        set(p.ptr, p.tag);
     }
 
     void set(T * p, tag_t t)
@@ -91,12 +53,12 @@ public:
 
     /** comparing semantics */
     /* @{ */
-    bool operator== (tagged_ptr const & p) const
+    bool operator== (volatile tagged_ptr const & p) const
     {
         return (ptr == p.ptr) && (tag == p.tag);
     }
 
-    bool operator!= (tagged_ptr const & p) const
+    bool operator!= (volatile tagged_ptr const & p) const
     {
         return !operator==(p);
     }
@@ -104,12 +66,12 @@ public:
 
     /** pointer access */
     /* @{ */
-    T * get_ptr() const
+    T * get_ptr(void) const volatile
     {
         return ptr;
     }
 
-    void set_ptr(T * p)
+    void set_ptr(T * p) volatile
     {
         ptr = p;
     }
@@ -117,28 +79,14 @@ public:
 
     /** tag access */
     /* @{ */
-    tag_t get_tag() const
+    tag_t get_tag() const volatile
     {
         return tag;
     }
 
-    void set_tag(tag_t t)
+    void set_tag(tag_t t) volatile
     {
         tag = t;
-    }
-    /* @} */
-
-    /** compare and swap  */
-    /* @{ */
-    bool cas(tagged_ptr const & oldval, T * newptr)
-    {
-        return cas(oldval, newptr, oldval.tag + 1);
-    }
-
-    bool cas(tagged_ptr const & oldval, T * newptr, tag_t t)
-    {
-        tagged_ptr newval(newptr, t);
-        return boost::lockfree::atomic_cas<tagged_ptr>::cas(this, oldval, newval);
     }
     /* @} */
 
@@ -165,6 +113,7 @@ protected:
     tag_t tag;
 };
 
+} /* namespace detail */
 } /* namespace lockfree */
 } /* namespace boost */
 

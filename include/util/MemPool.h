@@ -64,7 +64,7 @@ public:
 
     protected:
         Slice* pHeadSlice_; ///head slice
-        Slice* pTailSlice_;	///current slice
+        Slice* pTailSlice_; ///current slice
         size_t nUpto_; ///start address of free space in current slice
         size_t nSliceSize_;
     };
@@ -282,14 +282,13 @@ public:
 
         while (true)
         {
-            // get copy of free list pointer
-            FreeListPtr old_free_ptr(pool_ptr->free_ptr_);
-            if (! old_free_ptr)
-                break;	// use pool alloc if free list is empty
+            if (pool_ptr->free_ptr_.empty())
+                break; // use pool alloc if free list is empty
 
             // use CAS operation to swap the free list pointer
-            if (pool_ptr->free_ptr_.cas(old_free_ptr, old_free_ptr->next.get_ptr()))
-                return reinterpret_cast<void*>(old_free_ptr.get_ptr());
+            FreeListNode freelistNode;
+            if (pool_ptr->free_ptr_.dequeue(freelistNode))
+                return freelistNode;
         }
         boost::unique_lock<boost::mutex> pool_lock(pool_ptr->mutex_);
         return pool_ptr->pool_.malloc();
@@ -312,16 +311,7 @@ public:
         FixedSizeAlloc *pool_ptr = getPool(n);
         while (true)
         {
-            // get copy of free list pointer
-            FreeListPtr old_free_ptr(pool_ptr->free_ptr_);
-
-            // cast memory being released to a free list node
-            // and point its next pointer to the current free list
-            FreeListNode *node_ptr = reinterpret_cast<FreeListNode*>(ptr);
-            node_ptr->next.set_ptr(old_free_ptr.get_ptr());
-
-            // use CAS operation to swap the free list pointer
-            if (pool_ptr->free_ptr_.cas(old_free_ptr, node_ptr))
+            if (pool_ptr->free_ptr_.enqueue(ptr))
                 break;
         }
         boost::unique_lock<boost::mutex> pool_lock(pool_ptr->mutex_);
@@ -333,7 +323,6 @@ public:
      */
     inline void release_memory()
     {
-#if 0
         ///can not work right now
         for (std::size_t n = 0; n < NumberOfAllocs; ++n)
         {
@@ -343,29 +332,22 @@ public:
             boost::unique_lock<boost::mutex> pool_lock(pool_ptr->mutex_);
             while (true)
             {
-                // get copy of free list pointer
-                FreeListPtr old_free_ptr(pool_ptr->free_ptr_);
-                if (! old_free_ptr)
+                if (pool_ptr->free_ptr_.empty())
                     break; // all done: free list is empty
-                // use CAS operation to swap the free list pointer
-                if (pool_ptr->free_ptr_.cas(pool_ptr->free_ptr_, old_free_ptr->next.get_ptr()))
-                    pool_ptr->pool_.free(old_free_ptr.get_ptr());	// release memory from pool
+                FreeListNode freelistNode;
+                if (pool_ptr->free_ptr_.dequeue(freelistNode))
+                    pool_ptr->pool_.free(freelistNode); // release memory from pool
             }
         }
-#endif
     }
 
 
 protected:
 
     /// data structure used to represent a free node
-    struct FreeListNode
-    {
-        boost::lockfree::tagged_ptr<struct FreeListNode> next;
-    };
-
+    typedef void* FreeListNode;
     /// data type for a tagged free-list pointer
-    typedef boost::lockfree::tagged_ptr<struct FreeListNode> FreeListPtr;
+    typedef boost::lockfree::fifo<FreeListNode> FreeList;
 
     /// ensure that:
     ///   a) MaxSize >= MinSize
@@ -390,7 +372,7 @@ protected:
          * @param size size of memory blocks managed by this allocator, in bytes
          */
         FixedSizeAlloc(std::size_t size)
-                : size_(size), pool_(size), free_ptr_(NULL)
+                : size_(size), pool_(size)
         {}
 
         /// used to protect access to the memory pool
@@ -403,7 +385,7 @@ protected:
         boost::pool<> pool_;
 
         /// pointer to a list of free nodes (for lock-free cache)
-        FreeListPtr free_ptr_;
+        FreeList free_ptr_;
     };
 
 
@@ -424,7 +406,7 @@ protected:
 private:
 
     /// a collection of fixed-size pool allocators
-    boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs>	pools_;
+    boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs> pools_;
 };
 
 
@@ -432,4 +414,3 @@ private:
 
 
 #endif
-
