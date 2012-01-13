@@ -11,19 +11,18 @@
 #ifndef BOOST_LOCKFREE_TAGGED_PTR_DCAS_HPP_INCLUDED
 #define BOOST_LOCKFREE_TAGGED_PTR_DCAS_HPP_INCLUDED
 
-#include <boost/lockfree/detail/cas.hpp>
 #include <boost/lockfree/detail/branch_hints.hpp>
 
 #include <cstddef>              /* for std::size_t */
 
-namespace boost
-{
-namespace lockfree
-{
+namespace boost {
+namespace lockfree {
+namespace detail {
 
 template <class T>
-struct BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
+class BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
 {
+public:
     typedef std::size_t tag_t;
 
     /** uninitialized constructor */
@@ -34,31 +33,21 @@ struct BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
         ptr(p.ptr), tag(p.tag)
     {}
 
-    explicit tagged_ptr(T * p):
-        ptr(p), tag(0)
-    {}
-
-    tagged_ptr(T * p, tag_t t):
+    explicit tagged_ptr(T * p, tag_t t = 0):
         ptr(p), tag(t)
     {}
 
     /** unsafe set operation */
     /* @{ */
-    tagged_ptr& operator= (tagged_ptr const & p)
+    void operator= (tagged_ptr const & p)
     {
         set(p.ptr, p.tag);
-        return *this;
     }
 
     void set(T * p, tag_t t)
     {
         ptr = p;
         tag = t;
-    }
-
-    void reset(T * p, tag_t t)
-    {
-        set(p, t);
     }
     /* @} */
 
@@ -101,20 +90,6 @@ struct BOOST_LOCKFREE_DCAS_ALIGNMENT tagged_ptr
     }
     /* @} */
 
-    /** compare and swap  */
-    /* @{ */
-    bool cas(tagged_ptr const & oldval, T * newptr)
-    {
-        return cas(oldval, newptr, oldval.tag + 1);
-    }
-
-    bool cas(tagged_ptr const & oldval, T * newptr, tag_t t)
-    {
-        tagged_ptr newval(newptr, t);
-        return boost::lockfree::atomic_cas<tagged_ptr>::cas(this, oldval, newval);
-    }
-    /* @} */
-
     /** smart pointer support  */
     /* @{ */
     T & operator*() const
@@ -138,6 +113,7 @@ protected:
     tag_t tag;
 };
 
+} /* namespace detail */
 } /* namespace lockfree */
 } /* namespace boost */
 

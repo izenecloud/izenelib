@@ -233,7 +233,7 @@ inline char* Arena::Allocate(size_t bytes)
     return AllocateFallback(bytes);
 }
 
-
+#if 0
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 ///
@@ -426,7 +426,7 @@ private:
     /// a collection of fixed-size pool allocators
     boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs> pools_;
 };
-
+#endif
 
 }}
 

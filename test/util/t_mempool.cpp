@@ -27,6 +27,7 @@ BOOST_AUTO_TEST_SUITE( t_mempool )
 
 BOOST_AUTO_TEST_CASE(allocate)
 {
+/*
     izenelib::util::MemPoolAllocator<4096,4096>& alloc = *(izenelib::util::MemPoolAllocator<4096,4096>::get());
     for(int i = 0; i < 1000000; i ++)
     {
@@ -34,6 +35,7 @@ BOOST_AUTO_TEST_CASE(allocate)
         alloc.free(p,16);
     }
     alloc.release_memory();
+*/	
 }
 
 BOOST_AUTO_TEST_SUITE_END()
