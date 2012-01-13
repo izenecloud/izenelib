@@ -44,6 +44,14 @@ public:
         return queue_.empty();
     }
 
+    template<typename Predicate>
+    void remove_if(Predicate pred)
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        std::remove_if(queue_.begin(), queue_.end(), pred);
+    }
+
+
     std::size_t size()
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
