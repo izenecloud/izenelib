@@ -655,7 +655,9 @@ private:
                 VectorRemove_(value, cacheValue.item[i]);
             }
         }
-        
+        //duplicate
+        std::sort(value.begin(), value.end());
+        value.erase(std::unique(value.begin(), value.end()), value.end());
     }
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
