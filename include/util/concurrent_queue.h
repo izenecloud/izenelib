@@ -20,6 +20,11 @@ template<typename T>
 class concurrent_queue
 {
 public:
+    explicit concurrent_queue(std::size_t capacity = -1)
+        : capacity_(capacity)
+    {
+    }
+
     /**
      * @brief gets one element from queue
      * @param[out] t
@@ -34,8 +39,11 @@ public:
 
     void clear()
     {
-        boost::unique_lock<boost::mutex> lock(mutex_);
-        queue_.clear();
+        {
+            boost::unique_lock<boost::mutex> lock(mutex_);
+            queue_.clear();
+        }
+        write_cond_.notify_all();
     }
 
     bool empty()
@@ -44,29 +52,46 @@ public:
         return queue_.empty();
     }
 
+    template<typename Predicate>
+    void remove_if(Predicate pred)
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        std::remove_if(queue_.begin(), queue_.end(), pred);
+    }
+
     std::size_t size()
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
         return queue_.size();
     }
 
+    void resize(std::size_t capacity = -1)
+    {
+        capacity_ = capacity;
+    }
+
 private:
     std::deque<T> queue_;
+    const std::size_t capacity_;
 
     boost::mutex mutex_;
-    boost::condition_variable cond_;
+    boost::condition_variable read_cond_;
+    boost::condition_variable write_cond_;
 };
 
 template<typename T>
 void concurrent_queue<T>::pop(T& t)
 {
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while(queue_.empty())
     {
-        cond_.wait(lock);
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        while (queue_.empty())
+        {
+            read_cond_.wait(lock);
+        }
+        t = queue_.front();
+        queue_.pop_front();
     }
-    t = queue_.front();
-    queue_.pop_front();
+    write_cond_.notify_one();
 }
 
 template<typename T>
@@ -74,9 +99,13 @@ void concurrent_queue<T>::push(const T& t)
 {
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
+        while (queue_.size() >= capacity_)
+        {
+            write_cond_.wait(lock);
+        }
         queue_.push_back(t);
     }
-    cond_.notify_one();
+    read_cond_.notify_one();
 }
 
 }} // namespace izenelib::util
