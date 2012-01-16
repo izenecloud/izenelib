@@ -34,6 +34,7 @@ void CassandraConnectionManager::clear()
     {
         delete *it;
     }
+    clients_.clear();
 }
 
 MyCassandraClient * CassandraConnectionManager::borrowClient()
