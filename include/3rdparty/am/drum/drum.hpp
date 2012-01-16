@@ -32,6 +32,8 @@
 
 //Boost.
 #include <boost/tuple/tuple.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
 
 //STL.
 #include <cassert>
@@ -124,13 +126,13 @@ private:
     void CheckTimeToFeed();
     void CheckTimeToMerge();
     void FeedBuckets();
-    void FeedBucket(std::size_t bucket_id);
+    void FeedBucket(std::size_t);
     void MergeBuckets();
-    void ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id);
+    void ReadInfoBucketIntoMergeBuffer(std::size_t);
     void SortMergeBuffer();
     void UnsortMergeBuffer();
     void SynchronizeWithDisk();
-    void ReadAuxBucketForDispatching(std::size_t bucket_id);
+    void ReadAuxBucketForDispatching(std::size_t);
     void Dispatch();
 
 public:
@@ -143,15 +145,17 @@ public:
     ~Drum(); //Not intended to be inherited.
 
     //Check/update operations.
-    void Check(key_t const& key);
-    void Check(key_t const& key, aux_t const& aux);
-    void Update(key_t const& key, value_t const& value);
-    void Update(key_t const& key, value_t const& value, aux_t const& aux);
-    void CheckUpdate(key_t const& key, value_t const& value);
-    void CheckUpdate(key_t const& key, value_t const& value, aux_t const& aux);
+    void Check(key_t const&);
+    void Check(key_t const&, aux_t const&);
+    void Update(key_t const&, value_t const&);
+    void Update(key_t const&, value_t const&, aux_t const&);
+    void CheckUpdate(key_t const&, value_t const&);
+    void CheckUpdate(key_t const&, value_t const&, aux_t const&);
 
     void Synchronize(); //Force synchronization (merge).
     void Dispose(); //Done with Drum.
+
+    bool GetValue(key_t const&, value_t &);
 
 private:
     bool merge_buckets_;
@@ -184,6 +188,8 @@ private:
 
     BucketFileNamesContainer file_names_;
     BucketFilePointersContainer current_pointers_;
+
+    boost::mutex mutex_;
 };
 
 template <
@@ -991,6 +997,8 @@ SynchronizeWithDisk()
         if (CHECK == op || CHECK_UPDATE == op)
         {
             ValueType value;
+
+            boost::lock_guard<boost::mutex> lock(mutex_);
             if (!db_.get(key, value))
                 element.template get<4>() = UNIQUE_KEY;
             else
@@ -1010,12 +1018,14 @@ SynchronizeWithDisk()
         {
             ValueType const& value = element.template get<1>();
 
+            boost::lock_guard<boost::mutex> lock(mutex_);
             if (!db_.update(key, value)) //Overwrite if the key is already present.
                 throw DrumException("Error merging with repository.");
         }
     }
 
     //Persist.
+    boost::lock_guard<boost::mutex> lock(mutex_);
     if (!db_.flush()) throw DrumException("Error persisting repository.");
 }
 
@@ -1113,7 +1123,7 @@ Dispatch()
         char op = element.template get<2>();
         char result = element.template get<4>();
 
-        ValueType const& value = boost::tuples::get<1>(element);
+        ValueType const& value = element.template get<1>();
         AuxType const& aux = unsorted_aux_buffer_[i];
 
         switch (op)
@@ -1289,6 +1299,32 @@ Synchronize()
 {
     this->FeedBuckets();
     this->MergeBuckets();
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+bool
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+GetValue(key_t const& key, value_t & value)
+{
+    bool ret;
+    {
+        boost::lock_guard<boost::mutex> lock(mutex_);
+        ret = db_.get(key, value);
+    }
+
+    return ret;
 }
 
 DRUM_END_NAMESPACE
