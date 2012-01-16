@@ -59,11 +59,15 @@ public:
         std::remove_if(queue_.begin(), queue_.end(), pred);
     }
 
-
     std::size_t size()
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
         return queue_.size();
+    }
+
+    void resize(std::size_t capacity = -1)
+    {
+        capacity_ = capacity;
     }
 
 private:
