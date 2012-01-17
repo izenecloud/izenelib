@@ -5,6 +5,8 @@
 #include <ir/index_manager/utility/Utilities.h>
 #include <util/izene_log.h>
 
+#include <boost/filesystem.hpp>
+
 #include <dirent.h>
 #include <map>
 
@@ -41,16 +43,7 @@ FSDirectory::~FSDirectory(void)
 
 void FSDirectory::create()
 {
-    if ( !Utilities::dirExists(directoryName_.c_str()) )
-    {
-        if ( mkdir(directoryName_.c_str(),0777) == -1 )
-        {
-            string s = "Couldn't create directoryName_: ";
-            s += directoryName_;
-            SF1V5_THROW(ERROR_FILEIO,s);
-        }
-        return;
-    }
+    boost::filesystem::create_directories(directoryName_);
 }
 
 void FSDirectory::deleteFile(const string& filename,bool throwError)
