@@ -8,6 +8,8 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
   SET(t_am_SRC
     Runner.cpp
 
+    concurrent/t_skiplist.cpp
+
     #IntString.cpp
     #IntNull.cpp
     OpenClose.cpp
