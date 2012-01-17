@@ -151,6 +151,10 @@ public:
     void Update(key_t const&, value_t const&, aux_t const&);
     void CheckUpdate(key_t const&, value_t const&);
     void CheckUpdate(key_t const&, value_t const&, aux_t const&);
+    void Delete(key_t const&);
+    void Delete(key_t const&, aux_t const&);
+    void CheckDelete(key_t const&);
+    void CheckDelete(key_t const&, aux_t const&);
 
     void Synchronize(); //Force synchronization (merge).
     void Dispose(); //Done with Drum.
@@ -168,10 +172,13 @@ private:
     //According to Effective C++ it's not necessary to provide definitions for such integral constant
     //variables as long as their addresses are not taken.
     static const char CHECK = 0;
-    static const char CHECK_UPDATE = 1;
-    static const char UPDATE = 2;
-    static const char UNIQUE_KEY = 3;
-    static const char DUPLICATE_KEY = 4;
+    static const char UPDATE = 1;
+    static const char CHECK_UPDATE = 2;
+    static const char DELETE = 3;
+    static const char CHECK_DELETE = 4;
+
+    static const char UNIQUE_KEY = 0;
+    static const char DUPLICATE_KEY = 1;
 
     std::size_t const num_buckets_;
     std::size_t const bucket_buff_elem_size_;
@@ -992,9 +999,9 @@ SynchronizeWithDisk()
         KeyType const& key = element.template get<0>();
 
         char op = element.template get<2>();
-        assert((op == CHECK || op == CHECK_UPDATE || op == UPDATE) && "Impossible operation.");
+        assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE) && "Impossible operation.");
 
-        if (CHECK == op || CHECK_UPDATE == op)
+        if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op)
         {
             ValueType value;
 
@@ -1006,7 +1013,7 @@ SynchronizeWithDisk()
                 element.template get<4>() = DUPLICATE_KEY;
 
                 //Retrieve the value associated to the key only if it's a check operation.
-                if (CHECK == op)
+                if (CHECK_UPDATE != op)
                 {
                     //Set the info.
                     element.template get<1>() = value;
@@ -1021,6 +1028,12 @@ SynchronizeWithDisk()
             boost::lock_guard<boost::mutex> lock(mutex_);
             if (!db_.update(key, value)) //Overwrite if the key is already present.
                 throw DrumException("Error merging with repository.");
+        }
+
+        if (DELETE == op || CHECK_DELETE == op)
+        {
+            boost::lock_guard<boost::mutex> lock(mutex_);
+            db_.del(key);
         }
     }
 
@@ -1135,6 +1148,10 @@ Dispatch()
                     dispatcher_.DuplicateKeyCheck(key, value, aux);
                 break;
 
+            case UPDATE:
+                dispatcher_.Update(key, value, aux);
+                break;
+
             case CHECK_UPDATE:
                 if (UNIQUE_KEY == result)
                     dispatcher_.UniqueKeyUpdate(key, value, aux);
@@ -1142,8 +1159,15 @@ Dispatch()
                     dispatcher_.DuplicateKeyUpdate(key, value, aux);
                 break;
 
-            case UPDATE:
-                dispatcher_.Update(key, value, aux);
+            case DELETE:
+                dispatcher_.Delete(key, aux);
+                break;
+
+            case CHECK_DELETE:
+                if (UNIQUE_KEY == result)
+                    dispatcher_.UniqueKeyDelete(key, aux);
+                else
+                    dispatcher_.DuplicateKeyDelete(key, value, aux);
                 break;
 
             default:
@@ -1211,6 +1235,48 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
+Update(key_t const& key, value_t const& value)
+{
+    Update(key, value, aux_t());
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+Update(key_t const& key, value_t const& value, aux_t const& aux)
+{
+    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, UPDATE);
+    aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
+    this->CheckTimeToFeed();
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
 CheckUpdate(key_t const& key, value_t const& value)
 {
     CheckUpdate(key, value, aux_t());
@@ -1253,9 +1319,9 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
-Update(key_t const& key, value_t const& value)
+Delete(key_t const& key)
 {
-    Update(key, value, aux_t());
+    Delete(key, aux_t());
 }
 
 template <
@@ -1273,9 +1339,51 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t>::
-Update(key_t const& key, value_t const& value, aux_t const& aux)
+Delete(key_t const& key, aux_t const& aux)
 {
-    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, UPDATE);
+    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, DELETE);
+    aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
+    this->CheckTimeToFeed();
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+CheckDelete(key_t const& key)
+{
+    CheckDelete(key, aux_t());
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+CheckDelete(key_t const& key, aux_t const& aux)
+{
+    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, CHECK_DELETE);
     aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
     this->CheckTimeToFeed();
 }
