@@ -1033,7 +1033,8 @@ SynchronizeWithDisk()
         if (DELETE == op || CHECK_DELETE == op)
         {
             boost::lock_guard<boost::mutex> lock(mutex_);
-            db_.del(key);
+            if (!db_.del(key) && DUPLICATE_KEY == element.template get<4>())
+                throw DrumException("Error merging with repository.");
         }
     }
 
