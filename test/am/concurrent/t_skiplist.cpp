@@ -236,13 +236,13 @@ BOOST_AUTO_TEST_CASE(Bench)
     boost::thread ins3(boost::bind(&inserter<random_type>, nodes/4, random_type(gen3, dst), 3));
     boost::thread ins4(boost::bind(&inserter<random_type>, nodes/4, random_type(gen4, dst), 4));
 //	usleep(1000000);
-    ins1.join();ins2.join();ins3.join();ins4.join();
     boost::thread del1(boost::bind(&deleter<random_type>, nodes/4, random_type(gen5, dst), 5));
     boost::thread del2(boost::bind(&deleter<random_type>, nodes/4, random_type(gen6, dst), 6));
     boost::thread del3(boost::bind(&deleter<random_type>, nodes/4, random_type(gen7, dst), 7));
     boost::thread del4(boost::bind(&deleter<random_type>, nodes/4, random_type(gen8, dst), 8));
 
 //	skiplist.dump();
+    ins1.join();ins2.join();ins3.join();ins4.join();
     del1.join();del2.join();del3.join();del4.join();
 	
     int time = t.elapsed();
