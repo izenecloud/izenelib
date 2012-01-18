@@ -192,7 +192,7 @@ private:
 private:
     std::string dir_;
     Directory* pDirectory_;
-    concurrent::hashmap<std::string, void*> instance_map_;
+    ::concurrent::hashmap<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
     boost::shared_ptr<BitVector> pFilter_;
     boost::shared_mutex mutex_;
