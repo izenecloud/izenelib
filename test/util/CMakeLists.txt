@@ -27,6 +27,7 @@ ADD_EXECUTABLE(t_util
   t_url_util.cpp
   t_id_util.cpp
   t_math.cpp
+  t_criterion.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
