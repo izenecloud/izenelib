@@ -22,10 +22,27 @@ class RawClient;
 class Writer;
 
 
-/// Exception thrown by the Sf1Driver.
+/**
+ * Exception thrown by the Sf1Driver on server errors.
+ * Server errors occur when:
+ * - SF1 not reachable
+ * - SF1 errors (e.g. unmatched sequence number, malformed response)
+ */
 class ServerError : public std::runtime_error {
 public:
     ServerError(const std::string& m = "") : std::runtime_error(m) {}
+};
+
+
+/** 
+ * Exception thrown by the Sf1Driver on client errors.
+ * Client errors occur when:
+ * - missing or wrong URI in request
+ * - malformed request
+ */
+class ClientError : public std::runtime_error {
+public:
+    ClientError(const std::string& m = "") : std::runtime_error(m) {}
 };
 
 
@@ -50,6 +67,9 @@ public:
     Sf1Driver(const std::string& host, const uint32_t& port = 18181,
         const Format& format = JSON) throw(ServerError);
     
+    /// Default empty constructor.
+    Sf1Driver();
+    
     /// Destructor.
     ~Sf1Driver();
     
@@ -65,12 +85,19 @@ public:
      * @param uri the requested URI.
      * @param tokens 
      * @param request the request body.
+     * @throws ClientError errors due to client request occur
+     * @throws ServerError errors due to server response occur
      * @return the response body.
      */ 
     std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(ServerError);
+        std::string& request) throw(ClientError, ServerError);
     
-    /// Get the sequence number of the next request.
+    /**
+     * Get the sequence number of the next request.
+     * Note that if the request is discarded due to client error
+     * (i.e. \ref call throws \ref ClientError, the sequence number
+     * is not incremented because no request has been sent to the server.
+     */
     uint32_t getSequence() const {
         return sequence;
     }

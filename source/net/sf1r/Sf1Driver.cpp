@@ -88,7 +88,7 @@ split(const string &s, char delim, std::vector<string> &elems) {
 
 string
 Sf1Driver::call(const string& uri, const string& tokens, string& request) 
-throw(ServerError) {
+throw(ClientError, ServerError) {
     // parse uri for controller and action
     std::vector<string> elems;
     split(uri, '/', elems);
@@ -96,7 +96,7 @@ throw(ServerError) {
     // controller is mandatory
     if (elems.size() < 1) {
         LOG(ERROR) << "Require controller name: [" << uri << "]";
-        throw ServerError("Require controller name");
+        throw ClientError("Require controller name");
     }
     
     string controller = elems.at(0);
@@ -112,7 +112,7 @@ throw(ServerError) {
     // check request
     if (not writer->checkData(request)) {
         LOG(ERROR) << "Malformed request: [" << request << "]";
-        throw ServerError("Malformed request");
+        throw ClientError("Malformed request");
     }
     
     writer->setHeader(controller, action, tokens, request);
@@ -132,20 +132,23 @@ throw(ServerError) {
                        << "in = [" << sequence << "] out = [" << response.first << "]";
             throw ServerError("Unmatched sequence number");
         }
-        // TODO:
+        
         if (not writer->checkData(response.second)) { // This should never happen
             LOG(ERROR) << "Malformed response: [" << response.second << "]";
             throw ServerError("Malformed response");
         }
 
         return response.second;
+    } catch (ClientError& e) {
+        // do not intercept ClientErrors
+        throw e;
     } catch (ServerError& e) {
         // do not intercept ServerErrors
         throw e;
     } catch (std::exception& e) {
         string message = e.what();
         LOG(ERROR) << message;
-        throw ServerError(message);
+        throw e;
     }
 }
 
