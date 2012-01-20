@@ -9,7 +9,7 @@
 #define	SF1DRIVER_HPP
 
 #include "types.h"
-#include <exception>
+#include <stdexcept>
 #include <string>
 
 
@@ -23,10 +23,9 @@ class Writer;
 
 
 /// Exception thrown by the Sf1Driver.
-class ServerError : public std::exception {
+class ServerError : public std::runtime_error {
 public:
-    ServerError(const std::string& m = "") throw() {}
-    ~ServerError() throw() {}
+    ServerError(const std::string& m = "") : std::runtime_error(m) {}
 };
 
 

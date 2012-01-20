@@ -75,6 +75,8 @@ BOOST_AUTO_TEST_CASE(checkData_invalid_test) {
     types.push_back("{\"hello\":}");
     types.push_back("{:\"hello\"}");
     types.push_back("{hello:world}");
+    types.push_back("trail{\"hello\":\"world\"}");
+    types.push_back("{\"hello\":\"world\"}trail");
     
     for (vector<string>::iterator it = types.begin(); it < types.end(); it++) {
         BOOST_CHECK(not writer.checkData(*it));

@@ -109,6 +109,12 @@ throw(ServerError) {
     } 
     DLOG(INFO) << "action    : " << action;
     
+    // check request
+    if (not writer->checkData(request)) {
+        LOG(ERROR) << "Malformed request: [" << request << "]";
+        throw ServerError("Malformed request");
+    }
+    
     writer->setHeader(controller, action, tokens, request);
     LOG(INFO) << "sending request: " << request;
     
@@ -127,12 +133,15 @@ throw(ServerError) {
             throw ServerError("Unmatched sequence number");
         }
         // TODO:
-        if (not writer->checkData(response.second)) {
+        if (not writer->checkData(response.second)) { // This should never happen
             LOG(ERROR) << "Malformed response: [" << response.second << "]";
             throw ServerError("Malformed response");
         }
 
         return response.second;
+    } catch (ServerError& e) {
+        // do not intercept ServerErrors
+        throw e;
     } catch (std::exception& e) {
         string message = e.what();
         LOG(ERROR) << message;

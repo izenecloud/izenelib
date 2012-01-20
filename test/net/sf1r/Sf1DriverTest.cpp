@@ -34,6 +34,26 @@ static const string HOST = "localhost";
 static const uint32_t PORT = 18181;
 
 
+BOOST_AUTO_TEST_CASE(bad_request) {
+    const string requestUri    = "/test/echo"; 
+    const string requestTokens = "token";
+          string requestBody   = "{\"message\":\"Ciao! 你好！\"}trailing";
+    const string expected      = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
+
+    Sf1Driver driver(HOST, PORT);
+    BOOST_CHECK_EQUAL(1, driver.getSequence());
+    
+    try {
+        driver.call(requestUri, requestTokens, requestBody);
+        BOOST_FAIL("ServerError expected");
+    } catch(ServerError& e) {
+        BOOST_CHECK_EQUAL("Malformed request", e.what());
+    } catch(...) {
+        BOOST_FAIL("Unexpected exception");
+    }
+}
+
+
 BOOST_AUTO_TEST_CASE(echo_test) {
     const string requestUri    = "/test/echo"; 
     const string requestTokens = "token";
