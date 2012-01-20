@@ -18,4 +18,8 @@ if (sf1r_SHOULD_BUILD)
 
     add_library(sf1r SHARED ${libsf1r_SOURCES})
     target_link_libraries(sf1r ${LIBS})
+    install(TARGETS sf1r
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            COMPONENT sf1r)
 endif(sf1r_SHOULD_BUILD)
