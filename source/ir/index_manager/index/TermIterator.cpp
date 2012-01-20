@@ -230,7 +230,7 @@ bool MemTermIterator::next()
 {
     if(postingIterator_ == postingIteratorEnd_) return false;
     if(pCurTermPosting_)
-        postingIterator_++;
+        ++postingIterator_;
 
     boost::shared_ptr<RTPostingWriter> pPostingWriter;
     if(postingIterator_ != postingIteratorEnd_)
@@ -238,7 +238,7 @@ bool MemTermIterator::next()
         pPostingWriter = postingIterator_->second;
         while (pPostingWriter->isEmpty())
         {
-            postingIterator_++;
+            ++postingIterator_;
             if(postingIterator_ != postingIteratorEnd_)
                 pPostingWriter = postingIterator_->second;
             else return false;

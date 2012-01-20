@@ -191,7 +191,7 @@ public:
 
 
     /**
-     *   get the num of items
+     *  get the num of items
      */
     uint64_t num_items() const
     {
@@ -225,7 +225,7 @@ public:
         return ret;
     }
     /**
-     *   db should be closed after open, and  it will automatically called in deconstuctor.
+     *  db should be closed after open, and  it will automatically called in deconstuctor.
      */
     bool close()
     {
@@ -245,9 +245,9 @@ public:
     }
 
     /**
-    *  write the dirty buckets to disk, not release the memory
-    *
-    */
+     *  write the dirty buckets to disk, not release the memory
+     *
+     */
     void commit()
     {
         if ( !isOpen() ) return;
@@ -262,11 +262,10 @@ public:
         }
     }
     /**
-    *   Write the dirty buckets to disk.
-    */
+     *  Write the dirty buckets to disk.
+     */
     void flush()
     {
-        if ( !isOpen() ) return;
         commit();
     }
 
@@ -275,6 +274,23 @@ public:
         return tcfdbecode(fdb_);
     }
 
+    /**
+     *  Remove all records of a fixed-length database
+     */
+    bool clear()
+    {
+        if ( !isOpen() ) return false;
+        bool ret = tcfdbvanish(fdb_);
+        if ( !ret )
+        {
+            int errcode = ecode();
+            //if ( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_fixdb clear on "+fileName_+" : "+tcfdberrmsg(errcode));
+            }
+        }
+        return ret;
+    }
     /**
      *  We can directly process fdb_ by this handle.
      */

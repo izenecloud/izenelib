@@ -7,6 +7,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/random.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -15,9 +17,6 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/rtype/BTreeIndexer.h>
-
-#include <3rdparty/boost/uuid/random_generator.hpp>
-#include <3rdparty/boost/uuid/uuid_io.hpp>
 
 #include "BTreeTestFramework.h"
 
@@ -37,17 +36,17 @@ class DirController
             }
             boost::filesystem::create_directories(dir_);
         }
-        
+
         ~DirController()
         {
             boost::filesystem::remove_all(dir_);
         }
-        
+
         const std::string& path() const
         {
             return dir_;
         }
-        
+
     private:
         std::string dir_;
 };
@@ -60,17 +59,17 @@ class FileController
         {
             boost::filesystem::remove_all(file_);
         }
-        
+
         ~FileController()
         {
             boost::filesystem::remove_all(file_);
         }
-        
+
         const std::string& path() const
         {
             return file_;
         }
-        
+
     private:
         std::string file_;
 };
@@ -97,7 +96,7 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 //     typedef izenelib::am::EWAHBoolArray<uint32_t> ValueType;
 //     typedef izenelib::am::luxio::BTree<int, int> DbType;
 //     typedef izenelib::am::AMIterator<DbType> ForwardIterator;
-//     
+//
 // }
 
 BOOST_AUTO_TEST_CASE(bitvector)
@@ -110,7 +109,7 @@ BOOST_AUTO_TEST_CASE(bitvector)
 //     bv.compressed(compressed);
 //     for(uint32_t i=0;i<32;i++) compressed.set(i);
 //     compressed.add(4);
-    
+
     compressed.set(31);
     compressed.add(0);
     std::vector<uint32_t> out;
@@ -132,13 +131,13 @@ BOOST_AUTO_TEST_CASE(compare)
     BOOST_CHECK( comp(3, 2)==false );
     BOOST_CHECK( comp(2, 2)==false );
     BOOST_CHECK( comp(1, 2)==true );
-    
+
     //compare functor gives opposite result
     izenelib::am::CompareFunctor<uint32_t> compf;
     BOOST_CHECK( compf(3, 2)>0 );
     BOOST_CHECK( compf(2, 2)==0 );
     BOOST_CHECK( compf(1, 2)<0 );
-    
+
 }
 
 BOOST_AUTO_TEST_CASE(ustring)
@@ -156,7 +155,7 @@ BOOST_AUTO_TEST_CASE(flush)
     DirController dir("./t_bt_flush");
     BTreeIndexer<izenelib::util::UString> indexer(dir.path()+"/test", "flush_test");
     indexer.open();
-    
+
     for(uint32_t docid = 1; docid<=500000;docid++)
     {
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -170,13 +169,13 @@ BOOST_AUTO_TEST_CASE(flush)
         }
     }
     indexer.flush();
-    
+
 }
 
 BOOST_AUTO_TEST_CASE(simple)
 {
     DirController dir("./tbtreeindexer");
-    
+
     BTreeIndexer<uint32_t> bt(dir.path()+"/test", "int");
     BOOST_CHECK( bt.open() );
     bt.add(1, 1);
@@ -184,19 +183,19 @@ BOOST_AUTO_TEST_CASE(simple)
     bt.add(2, 2);
     bt.add(2, 3);
 //     {
-//         
+//
 //         BitVector docs;
 //         bt.getValueLess(2, docs);
 //         PrintBitVector(docs);
 //     }
-//     
+//
 //     {
 //         std::cout<<"test 2"<<std::endl;
 //         BitVector docs;
 //         bt.getValueGreatEqual(1, docs);
 //         PrintBitVector(docs);
 //     }
-    
+
     bt.flush();
     {
         std::cout<<"test 11"<<std::endl;
@@ -204,7 +203,7 @@ BOOST_AUTO_TEST_CASE(simple)
         bt.getValueLess(2, docs);
         PrintBitVector(docs);
     }
-    
+
 //     {
 //         std::cout<<"test 21"<<std::endl;
 //         BitVector docs;
@@ -217,35 +216,30 @@ BOOST_AUTO_TEST_CASE(simple)
 BOOST_AUTO_TEST_CASE(framework_int)
 {
     DirController dir("./t_bt_framework_int");
-    
+
     BTreeTestRunner<uint32_t> runner(dir.path()+"/test");
     runner.start();
-    
+
 }
 
 BOOST_AUTO_TEST_CASE(framework_double)
 {
     DirController dir("./t_bt_framework_double");
-    
+
     BTreeTestRunner<double> runner(dir.path()+"/test");
     runner.start();
-    
+
 }
 
 BOOST_AUTO_TEST_CASE(framework_str)
 {
     DirController dir("./t_bt_framework_str");
-    
+
     BTreeTestRunner<izenelib::util::UString> runner(dir.path()+"/test");
     runner.start();
-    
+
 }
 
 
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-
-
-
