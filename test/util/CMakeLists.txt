@@ -28,6 +28,7 @@ ADD_EXECUTABLE(t_util
   t_id_util.cpp
   t_math.cpp
   t_criterion.cpp
+  t_timsort.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
