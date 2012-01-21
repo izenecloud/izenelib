@@ -18,17 +18,18 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(t_util
   Runner.cpp
-  t_ClockTimer.cpp
+#  t_ClockTimer.cpp
   t_IdMapper.cpp
   t_bzip.cpp
   t_scheduler.cpp
-  #t_serialization.cpp
+  t_serialization.cpp
   #t_log.cpp
   t_url_util.cpp
   t_id_util.cpp
   t_math.cpp
   t_criterion.cpp
   t_timsort.cpp
+  t_fileno.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
