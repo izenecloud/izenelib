@@ -15,6 +15,12 @@ find_package(Glog)
 include_directories(${Glog_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Glog_LIBRARIES})
 
+option(ENABLE_SF1_TEST "Enable compilation of SF1 tests" false)
+if (ENABLE_SF1_TEST)
+    message(STATUS "enabling SF1 tests")
+    add_definitions(-DENABLE_SF1_TEST)
+endif()
+
 
 # RawClient
 set(RawClient_SOURCES

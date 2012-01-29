@@ -8,6 +8,7 @@
 #ifndef WRITER_HPP
 #define	WRITER_HPP
 
+#include <boost/noncopyable.hpp>
 #include <string>
 
 
@@ -19,7 +20,7 @@ namespace sf1r {
 /**
  * Interface for request body writers.
  */
-class Writer {
+class Writer : private boost::noncopyable {
 public:
     
     /**

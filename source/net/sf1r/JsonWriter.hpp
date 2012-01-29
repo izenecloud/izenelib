@@ -31,10 +31,6 @@ public:
 
     bool checkData(const std::string& data) const;
     
-private:
-    // Disable copy
-    JsonWriter(const JsonWriter&);
-    void operator=(const JsonWriter&);
 };
 
 

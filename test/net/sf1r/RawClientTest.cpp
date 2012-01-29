@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(error_test) {
 }
 
 
-#if 0 // don't know if there is a running SF1
+#ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
 
 static const string HOST = "localhost";
 static const string PORT = "18181";

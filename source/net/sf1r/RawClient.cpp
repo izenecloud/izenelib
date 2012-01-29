@@ -20,14 +20,14 @@ using ba::ip::tcp;
 using std::string;
 
 
+static const size_t UINT_SIZE = sizeof(uint32_t);
+
 /**
  * Header size, i.e. two unsigned values for:
- * <ul>
- * <li>sequence number</li>
- * <li>message length</li>
- * </ul>
+ * - sequence number
+ * - message length
  */
-const size_t HEADER_SIZE = 2 * sizeof(uint32_t);
+static const size_t HEADER_SIZE = 2 * UINT_SIZE;
 
 
 RawClient::RawClient(const string& h, const string& p) 
@@ -52,16 +52,15 @@ RawClient::~RawClient() {
 void
 RawClient::connect() throw (std::exception) {
     try {
-        LOG(INFO) << "connecting to " << serverName() << " ...";
+        DLOG(INFO) << "connecting to " << serverName() << " ...";
         
         socket = new tcp::socket(service);
         ba::connect(*socket, resolver->resolve(*query)); 
         
-        LOG(INFO) << "connected";
+        DLOG(INFO) << "connected";
     } catch (std::exception& e) {
         string message = "Unable to connect to " + serverName();
-        LOG(ERROR) << message;
-        LOG(ERROR) << e.what();
+        LOG(ERROR) << message << ": " << e.what();
         throw std::runtime_error(message);
     }
 }
@@ -70,13 +69,13 @@ RawClient::connect() throw (std::exception) {
 void
 RawClient::close() {
     try {
-        LOG(INFO) << "closing ...";
+        DLOG(INFO) << "closing ...";
     
         socket->shutdown(socket->shutdown_both);
         socket->close();
         socket = NULL;
     
-        LOG(INFO) << "connection closed";
+        DLOG(INFO) << "connection closed";
     } catch (std::exception& e) {
         LOG(WARNING) << e.what();
     }
@@ -90,23 +89,24 @@ throw (std::exception) {
         throw std::runtime_error("Not connected");
     }
     
-    LOG(INFO) << "sending request ...";
+    DLOG(INFO) << "sending request ...";
     
-    DLOG(INFO) << "sequence\t:" << sequence;
-    DLOG(INFO) << "length\t:" << data.length();
-    DLOG(INFO) << "data\t:" << data;
+    DLOG(INFO) << "request: [" 
+               << sequence << ", " 
+               << data.length() << ", "
+               << data << "]";
     
-    uint32_t seq = htonl(sequence);         // TODO: boost functions
-    uint32_t len = htonl(data.length());    // TODO: boost functions
+    uint32_t seq = htonl(sequence);
+    uint32_t len = htonl(data.length());
     
     std::vector<ba::const_buffer> buffers;
-    buffers.push_back(ba::buffer(&seq, sizeof(seq)));
-    buffers.push_back(ba::buffer(&len, sizeof(len)));
+    buffers.push_back(ba::buffer(&seq, UINT_SIZE));
+    buffers.push_back(ba::buffer(&len, UINT_SIZE));
     buffers.push_back(ba::buffer(data));
 
     size_t n = ba::write(*socket, buffers);
     if (n != HEADER_SIZE + data.length()) {
-        string message = "Connection to " + serverName() + "lost";
+        const string message = "Connection to " + serverName() + "lost";
         throw std::runtime_error(message);
     }   
     
@@ -131,14 +131,9 @@ RawClient::getResponse() throw (std::exception) {
         throw std::runtime_error(message);
     }
 
-    //warning: dereferencing type-punned pointer will break strict-aliasing rules
-    //         (-fno-strict-aliasing)
-    //uint32_t sequence = ntohl(*(uint32_t*)(header));
-    //uint32_t length = ntohl(*(uint32_t*)(header + sizeof(uint32_t)));
-
     uint32_t sequence, length;
-    memcpy(&sequence, header, sizeof(uint32_t));
-    memcpy(&length, header + sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&sequence, header, UINT_SIZE);
+    memcpy(&length, header + UINT_SIZE, UINT_SIZE);
 
     sequence = ntohl(sequence);
     length = ntohl(length);

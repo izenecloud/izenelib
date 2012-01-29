@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(rapidjson_test) {
     string ctrl = "test";
     const int len = 5;
     char actn[len] = "echo";
-    cout << "Original: " << body << endl;
+    //cout << "Original: " << body << endl;
     
     // parse
     Document document;
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(rapidjson_test) {
     StringBuffer stream;
     Writer<StringBuffer> writer(stream);
     document.Accept(writer);
-    cout << "Edited: " << string(stream.GetString(), stream.GetSize()) << endl;
+    //cout << "Edited: " << string(stream.GetString(), stream.GetSize()) << endl;
 }
 
 

@@ -23,9 +23,13 @@ namespace sf1r {
 
 /**
  * Client of the SF1 Driver.
- * Sends raw requests and get raw responses.
+ * Sends requests and get responses using the custom SF1 protocol:
+ * - header
+ * -- sequence number (4 bytes)
+ * -- body length (4 bytes)
+ * - body
  */
-class RawClient {
+class RawClient : private boost::noncopyable {
 public:
     
     /**
@@ -90,10 +94,6 @@ public:
     throw(std::exception);
     
 private:
-    
-    // Disable copy
-    RawClient(const RawClient&);
-    void operator=(const RawClient&);
     
     /// Host of the SF1 Driver Server (BA or proxy)
     std::string host;

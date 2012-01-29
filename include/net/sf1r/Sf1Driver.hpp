@@ -9,6 +9,7 @@
 #define	SF1DRIVER_HPP
 
 #include "types.h"
+#include <boost/noncopyable.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -49,7 +50,7 @@ public:
 /**
  * SF1 driver.
  */
-class Sf1Driver {
+class Sf1Driver : private boost::noncopyable {
 public:
 
     /// Available data formats for request/response body.
@@ -104,10 +105,6 @@ public:
     
 private:
     // TODO: autoconnect
-    
-    // Disable copy
-    Sf1Driver(const Sf1Driver&);
-    void operator=(const Sf1Driver&);
     
     /// Set data format used for request and responses.
     void setFormat(const Format& format);

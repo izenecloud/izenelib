@@ -33,13 +33,15 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
-        const Format& format) throw(ServerError) : sequence(1) {
+        const Format& format) throw(ServerError) : writer(NULL), sequence(1) {
     try {
+        // TODO: init a pool of sockets instead of creating RawClient
+        
         client = new RawClient(host, boost::lexical_cast<string>(port));
         client->connect();
     
         setFormat(format);
-    
+        
         LOG(INFO) << "Driver ready";
     } catch (std::exception& e) {
         string message = e.what();
@@ -61,6 +63,10 @@ Sf1Driver::~Sf1Driver() {
 
 void
 Sf1Driver::setFormat(const Format& format) {
+    if (writer != NULL) {
+        delete writer;
+    }
+    
     switch (format) {
     case JSON:
     default:
@@ -71,8 +77,9 @@ Sf1Driver::setFormat(const Format& format) {
 
 
 /// Split a string on delimiter character into a vector.
+static
 std::vector<string>&
-split(const string &s, char delim, std::vector<string> &elems) {
+split(const string& s, const char& delim, std::vector<string>& elems) {
     std::stringstream ss(s);
     string item;
     while(getline(ss, item, delim)) {
@@ -124,8 +131,15 @@ throw(ClientError, ServerError) {
     }
     
     try {
+        // TODO: get a socket from the pool and pass it to a newly created RawClient
+        
         client->sendRequest(sequence, request);
         std::pair<uint32_t, string> response = client->getResponse();
+        
+        if (sequence == 0) {
+            LOG(ERROR) << "Zero sequence";
+            throw ServerError("Zero Sequence");
+        }
 
         if (sequence != response.first) {
             LOG(ERROR) << "Unmatched sequence number: "
