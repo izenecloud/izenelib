@@ -9,82 +9,59 @@
 #include <boost/test/unit_test.hpp>
 
 #include "net/sf1r/RawClient.hpp"
+#include <boost/asio.hpp>
 #include <exception>
 #include <iostream>
 
-using namespace std;
 using namespace izenelib::net::sf1r;
+using ba::ip::tcp;
+using namespace std;
 
 
+/** Check number of bytes used in the header. */
 BOOST_AUTO_TEST_CASE(headerSize_test) {
     BOOST_CHECK_EQUAL(4, sizeof(uint32_t));
 }
 
 
-BOOST_AUTO_TEST_CASE(error_test) {
-    string host = "somewhere";
-    string port = "port";
-    RawClient client(host, port);
-    try {
-        client.connect();
-        BOOST_FAIL("Exception expected");
-    } catch (exception& e) {
-        BOOST_MESSAGE(e.what());
-    } catch (...) {
-        BOOST_FAIL("Unexpected exception");
-    }
-}
-
-
 #ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
 
-static const string HOST = "localhost";
-static const string PORT = "18181";
+/** Test fixture. */
+struct AsioService {
+    AsioService() : host("localhost"), port("18181"), resolver(service) {}
+    ~AsioService() {}
+    
+    tcp::resolver::iterator
+    resolve() {
+        tcp::resolver::query query(host, port);
+        return resolver.resolve(query);
+    }
+    
+    const string host;
+    const string port;
+    ba::io_service service;
+    tcp::resolver resolver;
+    
+};
 
-BOOST_AUTO_TEST_CASE(connection_test) {
-    RawClient client(HOST, PORT);
-    BOOST_CHECK(client.isConnected() == false);
+
+BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
+    tcp::resolver::iterator endpoint = resolve();
     
-    client.connect();
-    BOOST_CHECK(client.isConnected() == true);
-    BOOST_CHECK_EQUAL("localhost:18181", client.serverName());
-    
-    client.reconnect();
-    BOOST_CHECK(client.isConnected() == true);
-    
-    client.close();
-    BOOST_CHECK(client.isConnected() == false);
+    RawClient client(service, endpoint);
+    BOOST_CHECK(client.isConnected());
 }
 
 
-BOOST_AUTO_TEST_CASE(send_receive_test) {
+BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     const uint32_t sequence = 1234567890;
-    const string message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
-    const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
+    const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
+    const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(HOST, PORT);
+    tcp::resolver::iterator endpoint = resolve();
+    RawClient client(service, endpoint);
+    BOOST_CHECK(client.isConnected());
     
-    try {
-        client.sendRequest(sequence, message);
-        BOOST_FAIL("Exception expected");
-    } catch (exception& e) {
-        BOOST_MESSAGE(e.what());
-    } catch (...) {
-        BOOST_FAIL("Unexpected exception");
-    }
-    
-    try {
-        client.getResponse();
-        BOOST_FAIL("Exception expected");
-    } catch (exception& e) {
-        BOOST_MESSAGE(e.what());
-    } catch (...) {
-        BOOST_FAIL("Unexpected exception");
-    }
-    
-    client.connect();
-    BOOST_CHECK(client.isConnected() == true);
-     
     client.sendRequest(sequence, message);
     pair<uint32_t, string> response =  client.getResponse();
     BOOST_CHECK_EQUAL(sequence, response.first);

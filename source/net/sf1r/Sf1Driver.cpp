@@ -5,8 +5,8 @@
  * Created on January 10, 2012, 10:07 AM
  */
 
-#include "JsonWriter.hpp"
 #include "net/sf1r/Sf1Driver.hpp"
+#include "JsonWriter.hpp"
 #include "RawClient.hpp"
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
@@ -17,6 +17,8 @@ namespace net {
 namespace sf1r {
 
 
+using ba::ip::tcp;
+using boost::system::system_error;
 using std::string;
 
 
@@ -33,17 +35,20 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
-        const Format& format) throw(ServerError) : writer(NULL), sequence(1) {
+        const Format& format) throw(ServerError) 
+        : sequence(1), resolver(service), 
+          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)), // TODO: restrict to v4?
+          writer(NULL) {
     try {
-        // TODO: init a pool of sockets instead of creating RawClient
-        
-        client = new RawClient(host, boost::lexical_cast<string>(port));
-        client->connect();
-    
         setFormat(format);
         
+        // TODO: init a pool of sockets instead of creating RawClient
+        
+        iterator = resolver.resolve(query);
+        client = new RawClient(service, iterator);
+        
         LOG(INFO) << "Driver ready";
-    } catch (std::exception& e) {
+    } catch (system_error& e) {
         string message = e.what();
         LOG(ERROR) << message;
         throw ServerError(message);
@@ -53,10 +58,8 @@ Sf1Driver::Sf1Driver(const string& host, const uint32_t& port,
 
 Sf1Driver::~Sf1Driver() {
     delete writer;
-    
-    client->close();
     delete client;
-    
+
     LOG(INFO) << "Driver closed";
 }
 

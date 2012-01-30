@@ -16,6 +16,9 @@
 #include <utility>
 
 
+namespace ba = boost::asio;
+
+
 namespace izenelib {
 namespace net {
 namespace sf1r {
@@ -33,53 +36,32 @@ class RawClient : private boost::noncopyable {
 public:
     
     /**
-     * Create the driver client.
-     * @param host Host of the SF1 Driver Server.
-     * @param port Port of the SF1 Driver Server.
+     * Creates the driver client.
+     * @param service a reference to the IO service.
+     * @param iterator a reference to the endpoint iterator
+     * @throw boost::system::system_error if cannot connect.
      */
-    RawClient(const std::string& host, const std::string& port);
+    RawClient(ba::io_service& service, 
+              ba::ip::tcp::resolver::iterator& iterator);
     
     /// Destructor.
-    virtual ~RawClient();
+    ~RawClient();
     
-    /// Return the string host:port.
-    std::string serverName() const {
-        return host + ":" + port;
-    }
+    // TODO: keepalive
     
     /**
-     * Connect to the SF1 Server.
-     * @throw std::exception if cannot connect.
-     */
-    void connect() throw(std::exception);
-    
-    /**
-     * Close connection to the SF1 Server.
-     */
-    void close();
-    
-    /**
-     * Reconnect to the SF1 Server.
-     * Actually it is an alias for \ref close and \ref connect.
-     */
-    void reconnect() {
-        close();
-        connect();
-    }
-    
-    /**
-     * Check the connection status.
+     * Checks the connection status.
      * @return true if connected, false otherwise.
      */
     bool isConnected() const {
-        return socket != NULL;
+        return socket.is_open();
     }
     
     /**
      * Send a request to SF1.
      * @param sequence request sequence number.
      * @param data request data.
-     * @throw std::exception errors occur
+     * @throw std::exception if errors occur
      */
     void sendRequest(const uint32_t& sequence, const std::string& data)
     throw(std::exception);
@@ -88,24 +70,15 @@ public:
      * Get a response from SF1.
      * @returns a std::pair containg the sequence number of the corresponding 
      *          request and the response
-     * @throw std::exception errors occur
+     * @throw std::exception if errors occur
      */
     std::pair<uint32_t, std::string> getResponse()
     throw(std::exception);
     
 private:
+
+    ba::ip::tcp::socket socket;
     
-    /// Host of the SF1 Driver Server (BA or proxy)
-    std::string host;
-    
-    /// Port of the SF1 Driver Server (BA or Proxy)
-    std::string port;
-    
-    // Asio Socket
-    boost::asio::io_service service;
-    boost::asio::ip::tcp::resolver* resolver;
-    boost::asio::ip::tcp::resolver::query* query;
-    boost::asio::ip::tcp::socket* socket;
 };
 
 

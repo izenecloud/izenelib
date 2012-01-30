@@ -16,14 +16,12 @@ using namespace std;
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    string host = "somewhere";
-    Sf1Driver* driver;
+    const string host = "somewhere";
+    
     try {
-        driver = new Sf1Driver(host);
+        Sf1Driver driver(host);
         BOOST_FAIL("ServerError expected");
     } catch(ServerError& e) {
-    } catch(...) {
-        BOOST_FAIL("Unexpected exception");
     }
 }
 
@@ -52,8 +50,6 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
             driver.call(*it, tokens, request);
             BOOST_FAIL("ClientError expected");
         } catch (ClientError& e) {
-        } catch (...) {
-            BOOST_FAIL("Unexpected exception");
         }
     }
 }
@@ -77,8 +73,6 @@ BOOST_AUTO_TEST_CASE(malformed_request_body) {
             BOOST_FAIL("ClientError expected");
         } catch(ClientError& e) {
             BOOST_CHECK_EQUAL("Malformed request", e.what());
-        } catch(...) {
-            BOOST_FAIL("Unexpected exception");
         }
     }
 }

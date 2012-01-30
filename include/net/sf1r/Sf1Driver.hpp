@@ -10,8 +10,13 @@
 
 #include "types.h"
 #include <boost/noncopyable.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <stdexcept>
 #include <string>
+
+
+namespace ba = boost::asio;
 
 
 namespace izenelib {
@@ -68,7 +73,7 @@ public:
     Sf1Driver(const std::string& host, const uint32_t& port = 18181,
         const Format& format = JSON) throw(ServerError);
     
-    /// Default empty constructor.
+    /// Default constructor (needed for C compatibility).
     Sf1Driver();
     
     /// Destructor.
@@ -104,14 +109,19 @@ public:
     }
     
 private:
-    // TODO: autoconnect
-    
     /// Set data format used for request and responses.
     void setFormat(const Format& format);
     
-    RawClient* client;
-    Writer* writer;
     uint32_t sequence;
+    
+    ba::io_service service;
+    ba::ip::tcp::resolver resolver;
+    ba::ip::tcp::resolver::iterator iterator;
+    ba::ip::tcp::resolver::query query;
+    
+    Writer* writer;
+    RawClient* client; // TODO: pool
+    
 };
 
 

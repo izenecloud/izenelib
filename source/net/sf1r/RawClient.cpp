@@ -15,11 +15,13 @@ namespace net {
 namespace sf1r {
 
 
-namespace ba = boost::asio;
 using ba::ip::tcp;
 using std::string;
 
 
+/**
+ * Size of unsigned integer (32 bits).
+ */
 static const size_t UINT_SIZE = sizeof(uint32_t);
 
 /**
@@ -30,55 +32,36 @@ static const size_t UINT_SIZE = sizeof(uint32_t);
 static const size_t HEADER_SIZE = 2 * UINT_SIZE;
 
 
-RawClient::RawClient(const string& h, const string& p) 
-        : host(h), port(p)  {
-    resolver = new tcp::resolver(service);
-    query = new tcp::resolver::query(/*tcp::v4(),*/ host, port); // TODO: restrict to v4?
-    socket = NULL;
-    
-    DLOG(INFO) << "instantiated";
+RawClient::RawClient(ba::io_service& service, 
+                     tcp::resolver::iterator& iterator) 
+        : socket(service) {
+    try {
+        DLOG(INFO) << "connecting ...";
+        ba::connect(socket, iterator); 
+        
+        DLOG(INFO) << "connected";
+    } catch (boost::system::system_error& e) {
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+
+    DLOG(INFO) << "correctly instantiated";
 }
 
 
 RawClient::~RawClient() {
-    delete socket;
-    delete query;
-    delete resolver;
-    
-    DLOG(INFO) << "destroyed";
-}
-
-
-void
-RawClient::connect() throw (std::exception) {
-    try {
-        DLOG(INFO) << "connecting to " << serverName() << " ...";
-        
-        socket = new tcp::socket(service);
-        ba::connect(*socket, resolver->resolve(*query)); 
-        
-        DLOG(INFO) << "connected";
-    } catch (std::exception& e) {
-        string message = "Unable to connect to " + serverName();
-        LOG(ERROR) << message << ": " << e.what();
-        throw std::runtime_error(message);
-    }
-}
-
-
-void
-RawClient::close() {
     try {
         DLOG(INFO) << "closing ...";
     
-        socket->shutdown(socket->shutdown_both);
-        socket->close();
-        socket = NULL;
-    
+        socket.shutdown(socket.shutdown_both);
+        socket.close();
+        
         DLOG(INFO) << "connection closed";
-    } catch (std::exception& e) {
+    } catch (boost::system::system_error& e) {
         LOG(WARNING) << e.what();
     }
+    
+    DLOG(INFO) << "correctly destroyed";
 }
 
 
@@ -86,6 +69,7 @@ void
 RawClient::sendRequest(const uint32_t& sequence, const string& data)
 throw (std::exception) {
     if (!isConnected()) {
+        // TODO: keep alive?
         throw std::runtime_error("Not connected");
     }
     
@@ -104,9 +88,9 @@ throw (std::exception) {
     buffers.push_back(ba::buffer(&len, UINT_SIZE));
     buffers.push_back(ba::buffer(data));
 
-    size_t n = ba::write(*socket, buffers);
+    size_t n = ba::write(socket, buffers);
     if (n != HEADER_SIZE + data.length()) {
-        const string message = "Connection to " + serverName() + "lost";
+        const string message = "Connection lost";
         throw std::runtime_error(message);
     }   
     
@@ -117,17 +101,18 @@ throw (std::exception) {
 std::pair<uint32_t, string>
 RawClient::getResponse() throw (std::exception) {
     if (!isConnected()) {
+        // TODO: keep alive?
         throw std::runtime_error("Not connected");
     }
     
-    LOG(INFO) << "receiving response ...";
+    DLOG(INFO) << "receiving response ...";
 
     char header[HEADER_SIZE];
     size_t n = 0;
 
-    n += ba::read(*socket, ba::buffer(header));
+    n += ba::read(socket, ba::buffer(header));
     if (n != sizeof(HEADER_SIZE)) {
-        string message = "Connection to " + serverName() + "lost";
+        string message = "Connection lost";
         throw std::runtime_error(message);
     }
 
@@ -142,13 +127,13 @@ RawClient::getResponse() throw (std::exception) {
     DLOG(INFO) << "length\t:" << length;
 
     char data[length];
-    n = ba::read(*socket, ba::buffer(data, length));
+    n = ba::read(socket, ba::buffer(data, length));
     if (n != length) {
-        string message = "Connection to " + serverName() + "lost";
+        string message = "Connection to lost";
         throw std::runtime_error(message);
     }
 
-    string response(data, length - 1); // skip the final '\n'
+    string response(data, length - 1); // skip the final '\0'
     DLOG(INFO) << "data\t:[" << response << "]";
 
     LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
