@@ -11,9 +11,9 @@
 
 #include "types.h"
 #include <boost/asio.hpp> 
+#include <boost/tuple/tuple.hpp>
 #include <exception>
 #include <string>
-#include <utility>
 
 
 namespace ba = boost::asio;
@@ -22,6 +22,19 @@ namespace ba = boost::asio;
 namespace izenelib {
 namespace net {
 namespace sf1r {
+
+/**
+ * Alias for response objects.
+ */
+typedef boost::tuple<uint32_t, std::string> Response;
+
+/**
+ * Enumeration for \ref Response fields.
+ */
+enum {
+    RESPONSE_SEQUENCE,
+    RESPONSE_BODY
+};
 
 
 /**
@@ -38,7 +51,7 @@ public:
     /**
      * Creates the driver client.
      * @param service a reference to the IO service.
-     * @param iterator a reference to the endpoint iterator
+     * @param iterator a reference to the endpoint iterator.
      * @throw boost::system::system_error if cannot connect.
      */
     RawClient(ba::io_service& service, 
@@ -61,18 +74,18 @@ public:
      * Send a request to SF1.
      * @param sequence request sequence number.
      * @param data request data.
-     * @throw std::exception if errors occur
+     * @throw std::exception if errors occur.
      */
     void sendRequest(const uint32_t& sequence, const std::string& data)
     throw(std::exception);
     
     /**
      * Get a response from SF1.
-     * @returns a std::pair containg the sequence number of the corresponding 
-     *          request and the response
-     * @throw std::exception if errors occur
+     * @returns the \ref Response containing the sequence number of the 
+     *          corresponding request and the response body.
+     * @throw std::exception if errors occur.
      */
-    std::pair<uint32_t, std::string> getResponse()
+    Response getResponse()
     throw(std::exception);
     
 private:

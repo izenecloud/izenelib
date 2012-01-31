@@ -37,8 +37,7 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
         const Format& format) throw(ServerError) 
         : sequence(1), resolver(service), 
-          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)), // TODO: restrict to v4?
-          writer(NULL) {
+          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)) { // TODO: restrict to v4?
     try {
         setFormat(format);
         
@@ -57,23 +56,18 @@ Sf1Driver::Sf1Driver(const string& host, const uint32_t& port,
 
 
 Sf1Driver::~Sf1Driver() {
-    delete writer;
     delete client;
-
+    
     LOG(INFO) << "Driver closed";
 }
 
 
 void
 Sf1Driver::setFormat(const Format& format) {
-    if (writer != NULL) {
-        delete writer;
-    }
-    
     switch (format) {
     case JSON:
     default:
-        writer = new JsonWriter;
+        writer.reset(new JsonWriter);
         LOG(INFO) << "Using JSON data format";
     }
 }
@@ -137,25 +131,29 @@ throw(ClientError, ServerError) {
         // TODO: get a socket from the pool and pass it to a newly created RawClient
         
         client->sendRequest(sequence, request);
-        std::pair<uint32_t, string> response = client->getResponse();
+        Response response = client->getResponse();
         
-        if (sequence == 0) {
+        uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();
+        
+        if (responseSequence == 0) {
             LOG(ERROR) << "Zero sequence";
             throw ServerError("Zero Sequence");
         }
 
-        if (sequence != response.first) {
+        if (sequence != responseSequence) {
             LOG(ERROR) << "Unmatched sequence number: "
-                       << "in = [" << sequence << "] out = [" << response.first << "]";
+                       << "in = [" << sequence << "] out = [" << responseSequence << "]";
             throw ServerError("Unmatched sequence number");
         }
         
-        if (not writer->checkData(response.second)) { // This should never happen
-            LOG(ERROR) << "Malformed response: [" << response.second << "]";
+        string responseBody = response.get<RESPONSE_BODY>();
+        
+        if (not writer->checkData(responseBody)) { // This should never happen
+            LOG(ERROR) << "Malformed response: [" << responseBody << "]";
             throw ServerError("Malformed response");
         }
 
-        return response.second;
+        return responseBody;
     } catch (ClientError& e) {
         // do not intercept ClientErrors
         throw e;

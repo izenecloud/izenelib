@@ -6,8 +6,8 @@
  */
 
 #include "RawClient.hpp"
+#include <boost/array.hpp>
 #include <glog/logging.h>
-#include <iostream>
 
 
 namespace izenelib {
@@ -83,10 +83,10 @@ throw (std::exception) {
     uint32_t seq = htonl(sequence);
     uint32_t len = htonl(data.length());
     
-    std::vector<ba::const_buffer> buffers;
-    buffers.push_back(ba::buffer(&seq, UINT_SIZE));
-    buffers.push_back(ba::buffer(&len, UINT_SIZE));
-    buffers.push_back(ba::buffer(data));
+    boost::array<ba::const_buffer,3> buffers;
+    buffers[0] = ba::buffer(&seq, UINT_SIZE);
+    buffers[1] = ba::buffer(&len, UINT_SIZE);
+    buffers[2] = ba::buffer(data);
 
     size_t n = ba::write(socket, buffers);
     if (n != HEADER_SIZE + data.length()) {
@@ -98,7 +98,7 @@ throw (std::exception) {
 }
 
 
-std::pair<uint32_t, string>
+Response
 RawClient::getResponse() throw (std::exception) {
     if (!isConnected()) {
         // TODO: keep alive?
@@ -138,7 +138,7 @@ RawClient::getResponse() throw (std::exception) {
 
     LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
     
-    return std::make_pair<uint32_t, string>(sequence, response);
+    return boost::make_tuple(sequence, response);
 }
 
 

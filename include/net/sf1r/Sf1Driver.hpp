@@ -12,6 +12,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -119,8 +120,10 @@ private:
     ba::ip::tcp::resolver::iterator iterator;
     ba::ip::tcp::resolver::query query;
     
-    Writer* writer;
-    RawClient* client; // TODO: pool
+    boost::scoped_ptr<Writer> writer;
+    RawClient* client;
+    
+    // TODO: pool
     
 };
 

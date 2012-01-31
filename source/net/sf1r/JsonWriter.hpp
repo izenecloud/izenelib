@@ -22,7 +22,7 @@ namespace sf1r {
 class JsonWriter : public Writer {
 public:
     JsonWriter();
-    virtual ~JsonWriter();
+    virtual ~JsonWriter() throw();
 
     void setHeader(const std::string& controller, 
                    const std::string& action,

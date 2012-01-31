@@ -63,9 +63,9 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     BOOST_CHECK(client.isConnected());
     
     client.sendRequest(sequence, message);
-    pair<uint32_t, string> response =  client.getResponse();
-    BOOST_CHECK_EQUAL(sequence, response.first);
-    BOOST_CHECK_EQUAL(expected, response.second);
+    Response response =  client.getResponse();
+    BOOST_CHECK_EQUAL(sequence, response.get<RESPONSE_SEQUENCE>());
+    BOOST_CHECK_EQUAL(expected, response.get<RESPONSE_BODY>());
 }
 
 #endif
