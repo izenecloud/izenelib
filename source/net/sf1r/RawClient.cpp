@@ -34,31 +34,34 @@ static const size_t HEADER_SIZE = 2 * UINT_SIZE;
 
 RawClient::RawClient(ba::io_service& service, 
                      tcp::resolver::iterator& iterator) 
-        : socket(service) {
+        : socket(service), status(Idle) {
     try {
         DLOG(INFO) << "connecting ...";
         ba::connect(socket, iterator); 
         
         DLOG(INFO) << "connected";
     } catch (boost::system::system_error& e) {
+        status = Invalid;
         LOG(ERROR) << e.what();
         throw e;
     }
 
+    CHECK_EQ(Idle, status) << "not Idle";
     DLOG(INFO) << "correctly instantiated";
 }
 
 
-RawClient::~RawClient() {
+RawClient::~RawClient() throw() {
+    CHECK_EQ(Idle, status) << "not Idle";
     try {
         DLOG(INFO) << "closing ...";
-    
+        
         socket.shutdown(socket.shutdown_both);
         socket.close();
         
         DLOG(INFO) << "connection closed";
     } catch (boost::system::system_error& e) {
-        LOG(WARNING) << e.what();
+        LOG(WARNING) << "WARNING: " << e.what();
     }
     
     DLOG(INFO) << "correctly destroyed";
@@ -68,10 +71,14 @@ RawClient::~RawClient() {
 void
 RawClient::sendRequest(const uint32_t& sequence, const string& data)
 throw (std::exception) {
-    if (!isConnected()) {
+    if (not isConnected()) {
         // TODO: keep alive?
+        status = Invalid;
         throw std::runtime_error("Not connected");
     }
+    
+    CHECK_EQ(Idle, status) << "not Idle";
+    status = Busy;
     
     DLOG(INFO) << "sending request ...";
     
@@ -90,21 +97,27 @@ throw (std::exception) {
 
     size_t n = ba::write(socket, buffers);
     if (n != HEADER_SIZE + data.length()) {
+        status = Invalid;
         const string message = "Connection lost";
         throw std::runtime_error(message);
     }   
     
+    // XXX: do not change the status
+    CHECK_EQ(Busy, status) << "not Busy";
     LOG(INFO) << "request sent (" << n << " bytes)";
 }
 
 
 Response
 RawClient::getResponse() throw (std::exception) {
-    if (!isConnected()) {
+    if (not isConnected()) {
         // TODO: keep alive?
+        status = Invalid;
         throw std::runtime_error("Not connected");
     }
     
+    CHECK_EQ(Busy, status) << "not Busy";
+    // XXX: do not change the status
     DLOG(INFO) << "receiving response ...";
 
     char header[HEADER_SIZE];
@@ -112,6 +125,7 @@ RawClient::getResponse() throw (std::exception) {
 
     n += ba::read(socket, ba::buffer(header));
     if (n != sizeof(HEADER_SIZE)) {
+        status = Invalid;
         string message = "Connection lost";
         throw std::runtime_error(message);
     }
@@ -129,6 +143,7 @@ RawClient::getResponse() throw (std::exception) {
     char data[length];
     n = ba::read(socket, ba::buffer(data, length));
     if (n != length) {
+        status = Invalid;
         string message = "Connection to lost";
         throw std::runtime_error(message);
     }
@@ -138,6 +153,7 @@ RawClient::getResponse() throw (std::exception) {
 
     LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
     
+    status = Idle;
     return boost::make_tuple(sequence, response);
 }
 

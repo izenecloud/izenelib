@@ -5,8 +5,10 @@ macro_check_should_build(
 )
 
 if (sf1r_SHOULD_BUILD)
+
     set(libsf1r_SOURCES
         RawClient.cpp
+        ConnectionPool.cpp
         Sf1Driver.cpp
         JsonWriter.cpp
     )

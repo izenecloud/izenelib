@@ -28,28 +28,27 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 
 /** Test fixture. */
 struct AsioService {
-    AsioService() : host("localhost"), port("18181"), resolver(service) {}
-    ~AsioService() {}
-    
-    tcp::resolver::iterator
-    resolve() {
-        tcp::resolver::query query(host, port);
-        return resolver.resolve(query);
+    AsioService() : host("localhost"), port("18181"), 
+                    resolver(service), query(host, port) {
+        iterator = resolver.resolve(query);
     }
+    ~AsioService() {}
     
     const string host;
     const string port;
+    
     ba::io_service service;
     tcp::resolver resolver;
-    
+    tcp::resolver::query query;
+    tcp::resolver::iterator iterator;
 };
 
 
 BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
-    tcp::resolver::iterator endpoint = resolve();
-    
-    RawClient client(service, endpoint);
+    RawClient client(service, iterator);
     BOOST_CHECK(client.isConnected());
+    BOOST_CHECK(client.idle());
+    BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
 }
 
 
@@ -58,12 +57,17 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    tcp::resolver::iterator endpoint = resolve();
-    RawClient client(service, endpoint);
+    RawClient client(service, iterator);
     BOOST_CHECK(client.isConnected());
+    BOOST_CHECK(client.idle());
     
     client.sendRequest(sequence, message);
+    BOOST_CHECK(not client.idle());
+    BOOST_CHECK_EQUAL(RawClient::Busy, client.getStatus());
+    
     Response response =  client.getResponse();
+    BOOST_CHECK(client.idle());
+    
     BOOST_CHECK_EQUAL(sequence, response.get<RESPONSE_SEQUENCE>());
     BOOST_CHECK_EQUAL(expected, response.get<RESPONSE_BODY>());
 }

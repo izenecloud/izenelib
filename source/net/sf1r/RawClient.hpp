@@ -49,6 +49,15 @@ class RawClient : private boost::noncopyable {
 public:
     
     /**
+     * Client status.
+     */
+    enum Status {
+        Idle,           ///< Waiting for operation
+        Busy,           ///< Performing send/receive
+        Invalid         ///< Connection error occurred
+    };
+
+    /**
      * Creates the driver client.
      * @param service a reference to the IO service.
      * @param iterator a reference to the endpoint iterator.
@@ -57,8 +66,8 @@ public:
     RawClient(ba::io_service& service, 
               ba::ip::tcp::resolver::iterator& iterator);
     
-    /// Destructor.
-    ~RawClient();
+    /// Destructor. Must not throw any exception.
+    ~RawClient() throw();
     
     // TODO: keepalive
     
@@ -69,7 +78,23 @@ public:
     bool isConnected() const {
         return socket.is_open();
     }
+
+    /**
+     * Reads the client status.
+     * \ref Status
+     */
+    Status getStatus() const {
+        return status;
+    }
     
+    /**
+     * Checks if the client is idle.
+     * \ref Status
+     */
+    bool idle() const {
+        return status == Idle;
+    }
+
     /**
      * Send a request to SF1.
      * @param sequence request sequence number.
@@ -91,6 +116,7 @@ public:
 private:
 
     ba::ip::tcp::socket socket;
+    Status status;
     
 };
 

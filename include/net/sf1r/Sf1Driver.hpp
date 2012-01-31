@@ -25,7 +25,7 @@ namespace net {
 namespace sf1r {
     
 
-class RawClient;
+class ConnectionPool;
 class Writer;
 
 
@@ -53,6 +53,26 @@ public:
 };
 
 
+const size_t INITIAL_SIZE = 5;
+const bool RESIZE = false;
+const size_t MAX_SIZE = 25;
+
+
+/**
+ * Container for the driver configuration parameters.
+ */
+struct Sf1Config {
+    Sf1Config(const size_t& s = INITIAL_SIZE, 
+              const bool r = RESIZE, 
+              const size_t& ms = MAX_SIZE)
+            : initialSize(s), resize(r), maxSize(ms) {}
+    
+    size_t initialSize;
+    bool resize;
+    size_t maxSize;
+};
+
+
 /**
  * SF1 driver.
  */
@@ -67,12 +87,13 @@ public:
     /**
      * Creates a new instance of the driver and connects to the server. 
      * @param host hostname or IP address of the SF1 server.
-     * @param port TCP port on which the SF1 is listening (defaults to 18181).
+     * @param port TCP port on which the SF1 is listening.
      * @param format the format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server
      */
-    Sf1Driver(const std::string& host, const uint32_t& port = 18181,
-        const Format& format = JSON) throw(ServerError);
+    Sf1Driver(const std::string& host, const uint32_t& port,
+              const Sf1Config& parameters, 
+              const Format& format = JSON) throw(ServerError);
     
     /// Default constructor (needed for C compatibility).
     Sf1Driver();
@@ -113,6 +134,9 @@ private:
     /// Set data format used for request and responses.
     void setFormat(const Format& format);
     
+    /// Initializes the connection pool.
+    void initPool(const Sf1Config& parameters);
+    
     uint32_t sequence;
     
     ba::io_service service;
@@ -120,10 +144,9 @@ private:
     ba::ip::tcp::resolver::iterator iterator;
     ba::ip::tcp::resolver::query query;
     
-    boost::scoped_ptr<Writer> writer;
-    RawClient* client;
+    ConnectionPool* pool;
     
-    // TODO: pool
+    boost::scoped_ptr<Writer> writer;
     
 };
 
