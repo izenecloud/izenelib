@@ -134,6 +134,13 @@ public:
     {
         return size() == 0;
     }
+
+    /*
+    * @brief TODO
+    * attention: the recommended closing behavior of LevelDB is to delete the database instance
+    * however, if the iterator has not been destroyed, cursor_type will still hold such instance, it will lead to corruption.
+    * Be sure to destoy iterator before calling this method
+    */
     bool clear()
     {
         if (isOpened())
