@@ -13,9 +13,7 @@
 #include <rapidjson/writer.h>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 namespace rj = rapidjson;
@@ -94,4 +92,4 @@ JsonWriter::checkData(const string& data) const {
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END

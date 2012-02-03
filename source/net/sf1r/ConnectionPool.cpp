@@ -12,9 +12,8 @@
 #include <boost/tuple/tuple_io.hpp>
 #include <glog/logging.h>
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+
+NS_IZENELIB_SF1R_BEGIN
 
 
 ConnectionPool::ConnectionPool(ba::io_service& serv, 
@@ -101,4 +100,4 @@ ConnectionPool::release() {
 }
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END

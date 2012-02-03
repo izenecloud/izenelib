@@ -8,15 +8,15 @@
 #define BOOST_TEST_MODULE ConnectionPoolTest
 #include <boost/test/unit_test.hpp>
 
+#include "common.h"
 #include "net/sf1r/ConnectionPool.hpp"
 #include "net/sf1r/RawClient.hpp"
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/thread.hpp>
-#include <glog/logging.h>
 
-using namespace izenelib::net::sf1r;
+using namespace NS_IZENELIB_SF1R;
 using ba::ip::tcp;
 using namespace std;
 

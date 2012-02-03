@@ -8,12 +8,11 @@
 #ifndef JSONWRITER_HPP
 #define	JSONWRITER_HPP
 
+#include "net/sf1r/config.h"
 #include "Writer.hpp"
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 /**
@@ -34,7 +33,7 @@ public:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 
 #endif	/* JSONWRITER_HPP */

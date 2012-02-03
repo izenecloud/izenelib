@@ -8,6 +8,7 @@
 #ifndef SF1DRIVER_HPP
 #define	SF1DRIVER_HPP
 
+#include "config.h"
 #include "types.h"
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
@@ -20,9 +21,7 @@
 namespace ba = boost::asio;
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
     
 
 class ConnectionPool;
@@ -151,7 +150,7 @@ private:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 
 #endif	/* SF1DRIVER_HPP */

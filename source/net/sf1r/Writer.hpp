@@ -12,9 +12,7 @@
 #include <string>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 /**
@@ -47,6 +45,6 @@ public:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 #endif	/* WRITER_HPP */

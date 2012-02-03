@@ -13,9 +13,7 @@
 #include <glog/logging.h>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 using ba::ip::tcp;
@@ -178,4 +176,4 @@ throw(ClientError, ServerError) {
 }
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END

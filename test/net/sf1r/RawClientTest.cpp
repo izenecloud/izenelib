@@ -8,12 +8,11 @@
 #define BOOST_TEST_MODULE RawClientTest
 #include <boost/test/unit_test.hpp>
 
+#include "common.h"
 #include "net/sf1r/RawClient.hpp"
 #include <boost/asio.hpp>
-#include <exception>
-#include <iostream>
 
-using namespace izenelib::net::sf1r;
+using namespace NS_IZENELIB_SF1R
 using ba::ip::tcp;
 using namespace std;
 

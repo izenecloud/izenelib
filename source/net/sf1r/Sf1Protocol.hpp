@@ -8,9 +8,7 @@
 #ifndef SF1PROTOCOL_HPP
 #define	SF1PROTOCOL_HPP
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
     
 
 const char* SF1_HEADER                  = "header";
@@ -20,6 +18,6 @@ const char* SF1_HEADER_TOKENS           = "acl_tokens";
 const char* SF1_HEADER_CHECKTIME        = "check_time";
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 #endif	/* SF1PROTOCOL_HPP */

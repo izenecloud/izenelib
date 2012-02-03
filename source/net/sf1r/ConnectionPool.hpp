@@ -8,6 +8,7 @@
 #ifndef CONNECTIONPOOL_HPP
 #define	CONNECTIONPOOL_HPP
 
+#include "net/sf1r/config.h"
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -19,9 +20,7 @@
 namespace ba = boost::asio;
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 class RawClient;
@@ -128,7 +127,7 @@ ConnectionPool::getInfo() const {
 }
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 
 #endif	/* CONNECTIONPOOL_HPP */

@@ -8,11 +8,13 @@
 #define BOOST_TEST_MODULE Sf1DriverTest
 #include <boost/test/unit_test.hpp>
 
+#include "common.h"
 #include "net/sf1r/Sf1Driver.hpp"
-#include "boost/regex.hpp"
+#include <boost/regex.hpp>
+#include <glog/logging.h>
 #include <string>
 
-using namespace izenelib::net::sf1r;
+using namespace NS_IZENELIB_SF1R
 using namespace std;
 
 

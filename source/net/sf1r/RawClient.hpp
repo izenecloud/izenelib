@@ -9,6 +9,7 @@
 #define	RAWCLIENT_HPP
 
 
+#include "net/sf1r/config.h"
 #include "types.h"
 #include <boost/asio.hpp> 
 #include <boost/tuple/tuple.hpp>
@@ -19,9 +20,7 @@
 namespace ba = boost::asio;
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 /**
  * Alias for response objects.
@@ -121,6 +120,6 @@ private:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 #endif	/* RAWCLIENT_HPP */

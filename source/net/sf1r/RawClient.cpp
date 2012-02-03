@@ -10,9 +10,7 @@
 #include <glog/logging.h>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 using ba::ip::tcp;
@@ -158,4 +156,4 @@ RawClient::getResponse() throw (std::exception) {
 }
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
