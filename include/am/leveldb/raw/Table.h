@@ -17,7 +17,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <iostream>
+#include <list>
 namespace izenelib {
 namespace am {
 namespace leveldb {
@@ -35,6 +35,7 @@ public:
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
     typedef boost::shared_ptr< ::leveldb::Iterator> cursor_type;
+    typedef ::leveldb::DB*  raw_type_ptr;
 
     explicit Table(const std::string& file = "")
         : db_(NULL),comp_(), isOpened_(false), file_(file)
@@ -43,7 +44,7 @@ public:
 
     ~Table()
     {
-        close();
+        close(true);
     }
 
     bool open(const std::string& file)
@@ -65,7 +66,10 @@ public:
         status = ::leveldb::DB::Open(options, file_, &db_);
 
         if (status.ok())
+        {
             isOpened_ = true;
+            pendingDeletions_.push_back(db_);
+        }
 
         return isOpened_;
     }
@@ -73,14 +77,19 @@ public:
     {
         return file_;
     }
-    void close()
+    void close(bool safeDelete=false)
     {
         if (db_ && isOpened_)
         {
             flush();
-            delete db_;
             db_ = NULL;
             isOpened_ = false;
+        }
+        if(safeDelete)
+        {
+            std::list< raw_type_ptr >::iterator delIter = pendingDeletions_.begin();
+            for(;delIter != pendingDeletions_.end();++delIter)
+                delete *delIter;
         }
     }
 
@@ -130,12 +139,6 @@ public:
         return size() == 0;
     }
 
-    /*
-    * @brief TODO
-    * attention: the recommended closing behavior of LevelDB is to delete the database instance
-    * however, if the iterator has not been destroyed, cursor_type will still hold such instance, it will lead to corruption.
-    * Be sure to destoy iterator before calling this method
-    */
     bool clear()
     {
         if (isOpened())
@@ -317,6 +320,7 @@ private:
     }
 
     ::leveldb::DB* db_;
+    std::list< raw_type_ptr > pendingDeletions_;
 
     Comp comp_;
 

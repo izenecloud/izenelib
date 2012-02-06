@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(Simple_test)
         ++iterStep;
     }
     BOOST_CHECK_EQUAL(iterStep, size);
-    
+    table.clear();
     destroy_data();
 }
 
