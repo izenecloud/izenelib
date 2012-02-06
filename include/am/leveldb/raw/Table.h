@@ -37,7 +37,7 @@ public:
     typedef boost::shared_ptr< ::leveldb::Iterator> cursor_type;
 
     explicit Table(const std::string& file = "")
-        : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file)
+        : db_(NULL),comp_(), isOpened_(false), file_(file)
     {
     }
 
@@ -78,11 +78,6 @@ public:
         if (db_ && isOpened_)
         {
             flush();
-            if (dbIt_)
-            {
-                delete dbIt_;
-                dbIt_ = NULL;
-            }
             delete db_;
             db_ = NULL;
             isOpened_ = false;
@@ -235,81 +230,6 @@ public:
                     ::leveldb::Slice(key.data(),key.size())).ok();
     }
 
-    bool iterInit()
-    {
-        if (checkHandle_(db_) && isOpened())
-        {
-            if (dbIt_)
-            {
-                delete dbIt_;
-                dbIt_ = NULL;
-            }
-            ::leveldb::ReadOptions options;
-            options.fill_cache = false;
-            dbIt_ = db_->NewIterator(options);
-            dbIt_->SeekToFirst();
-            return true;
-        }
-        else return false;
-    }
-
-    bool iterInit(const Buffer& key)
-    {
-        if (checkHandle_(db_) && isOpened())
-        {
-            if (dbIt_)
-            {
-                delete dbIt_;
-                dbIt_ = NULL;
-            }
-            ::leveldb::ReadOptions options;
-            options.fill_cache = false;
-            dbIt_ = db_->NewIterator(options);
-            dbIt_->Seek(::leveldb::Slice(key.data(),key.size()));
-            return true;
-        }
-        else return false;
-    }
-
-    bool iterNext(Buffer& key)
-    {
-        if (! (checkHandle_(db_) && isOpened() && dbIt_))
-        {
-            return false;
-        }
-        if (dbIt_->Valid())
-        {
-            key.attach(const_cast<char*>(dbIt_->key().data()),
-                    static_cast<std::size_t>(dbIt_->key().size()));
-            dbIt_->Next();
-            return true;
-        }
-        return false;
-    }
-
-    bool iterNext(Buffer& key, Buffer& value)
-    {
-        if (! (checkHandle_(db_) && isOpened() && dbIt_))
-        {
-            return false;
-        }
-        if (dbIt_->Valid())
-        {
-            key.attach(const_cast<char*>(dbIt_->key().data()),
-                    static_cast<std::size_t>(dbIt_->key().size()));
-            value.attach(const_cast<char*>(dbIt_->value().data()),
-                    static_cast<std::size_t>(dbIt_->value().size()));
-            dbIt_->Next();
-            return true;
-        }
-        return false;
-    }
-
-    bool iterNext(data_type& data)
-    {
-        return iterNext(data.get_key(), data.get_value());
-    }
-
     cursor_type begin() const
     {
         if (isOpened())
@@ -397,7 +317,6 @@ private:
     }
 
     ::leveldb::DB* db_;
-    ::leveldb::Iterator* dbIt_;
 
     Comp comp_;
 

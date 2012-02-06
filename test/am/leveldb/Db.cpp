@@ -95,21 +95,10 @@ BOOST_AUTO_TEST_CASE(Simple_test)
     }
     cout<<"start iterating"<<endl;
 
-    typedef izenelib::sdb::SDBCursorIterator<LevelDBType> SDBIterator;
-    SDBIterator dbBegin(table);
-    SDBIterator dbEnd;
-    int iterStep = 0;
-    for (SDBIterator tableIt = dbBegin;	tableIt != dbEnd; ++tableIt)
-    {
-        BOOST_CHECK_EQUAL(tableIt->second, tableIt->first*100);
-        ++iterStep;
-    }
-    BOOST_CHECK_EQUAL(iterStep, size);
-
     typedef AMIterator<LevelDBType > AMIteratorType;
     AMIteratorType iter(table);
     AMIteratorType end;
-    iterStep = 0;
+    int iterStep = 0;
     for(; iter != end; ++iter)
     {
 	BOOST_CHECK_EQUAL(iter->second, iter->first*100);
@@ -127,7 +116,7 @@ BOOST_AUTO_TEST_CASE(Simple_test)
         ++iterStep;
     }
     BOOST_CHECK_EQUAL(iterStep, size);
-    
+    table.clear();
     destroy_data();
 }
 
