@@ -14,7 +14,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/tuple/tuple.hpp>
 
 
 namespace ba = boost::asio;
@@ -36,23 +35,6 @@ public:
 
 
 /**
- * Container of connection pool information.
- */
-typedef boost::tuple<size_t, size_t, size_t, bool, size_t> PoolInfo;
-
-/**
- * Enumeration for \ref PoolInfo fields.
- */
-enum {
-    POOL_SIZE,
-    POOL_AVAILABLE,
-    POOL_BUSY,
-    POOL_RESIZE_FLAG,
-    POOL_MAXSIZE
-};
-
-
-/**
  * Connection pool to the SF1.
  */
 class ConnectionPool : private boost::noncopyable {
@@ -63,22 +45,18 @@ public:
      * @param service 
      * @param iterator
      * @param size the initial pool size. (non-zero)
-     * @param resize enable automatic size increment if all the clients are busy.
-     * @param maxSize maximum pool size. Must hold that: maxSize >= size.
+     * @param resize enable automatic size increment if all the clients
+     *          are busy. (default = false)
+     * @param maxSize maximum pool size. It is mandatory if \ref resize 
+     *          is \c true. Must hold that: maxSize >= size.
      */
     ConnectionPool(ba::io_service& service, 
                    ba::ip::tcp::resolver::iterator& iterator,
-                   const size_t& size, const bool resize,
-                   const size_t& maxSize);
+                   const size_t& size, const bool resize = false,
+                   const size_t& maxSize = 0);
     
     /// Destructor.
     ~ConnectionPool();
-    
-    /**
-     * @return The actual pool information.
-     * @see PoolInfo
-     */
-    PoolInfo getInfo() const;
     
     /**
      * Get an available client from the pool.
@@ -92,6 +70,41 @@ public:
      */
     void release();
     
+    /**
+     * @return The actual pool size (number of connections).
+     */
+    size_t getSize() const {
+        return size;
+    }
+    
+    /**
+     * @return The number of available connections.
+     */
+    size_t getAvailableSize() const {
+        return available.size();
+    }
+    
+    /**
+     * @return The number of connections currently busy.
+     */
+    size_t getReservedSize() const {
+        return reserved.size();
+    }
+    
+    /**
+     * @return \c true if the pool can automatically increase its size.
+     */
+    bool isResizable() const {
+        return resize;
+    }
+    
+    /**
+     * @return The maximum number of connections that can be used by the pool.
+     */
+    size_t getMaxSize() const {
+        return maxSize;
+    }
+    
 private:
     
     boost::mutex mutex;
@@ -99,7 +112,7 @@ private:
     ba::io_service& service;
     ba::ip::tcp::resolver::iterator& iterator;
     
-    size_t poolSize;
+    size_t size;
     const bool resize;
     const size_t maxSize;
     
@@ -115,16 +128,6 @@ public:
     /// Check the representation invariant (for tests only).
     bool invariant() const;
 };
-
-
-inline PoolInfo
-ConnectionPool::getInfo() const {
-    return boost::make_tuple(poolSize,
-                             available.size(),
-                             reserved.size(),
-                             resize,
-                             maxSize);
-}
 
 
 NS_IZENELIB_SF1R_END

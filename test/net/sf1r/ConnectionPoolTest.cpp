@@ -51,62 +51,68 @@ getMessage(const uint32_t& seq) {
 BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     const size_t SIZE = 2;
     
-    ConnectionPool pool(service, iterator, SIZE, false, SIZE);
+    ConnectionPool pool(service, iterator, SIZE, false);
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(0, pool.getInfo().get<POOL_BUSY>());
-    BOOST_CHECK_EQUAL(false, pool.getInfo().get<POOL_RESIZE_FLAG>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(0, pool.getReservedSize());
+    BOOST_CHECK(not pool.isResizable());
     
     // acquire
     
     RawClient& c1 = pool.acquire();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 1, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(1, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     BOOST_CHECK(c1.isConnected() and c1.idle());
     
     RawClient& c2 = pool.acquire();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 2, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(2, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     BOOST_CHECK(c2.isConnected() and c2.idle());
     
     // use
     
     c1.sendRequest(1u, getMessage(1u));
     BOOST_CHECK_EQUAL(RawClient::Busy, c1.getStatus());
+    BOOST_CHECK(pool.invariant());
     
     c2.sendRequest(2u, getMessage(2u));
     BOOST_CHECK_EQUAL(RawClient::Busy, c2.getStatus());
+    BOOST_CHECK(pool.invariant());
+    
     c2.getResponse();
     BOOST_CHECK_EQUAL(RawClient::Idle, c2.getStatus());
+    BOOST_CHECK(pool.invariant());
     
     c1.getResponse();
     BOOST_CHECK_EQUAL(RawClient::Idle, c1.getStatus());
+    BOOST_CHECK(pool.invariant());
     
     try {
         pool.acquire();
         BOOST_FAIL("ConnectionPoolError expected");
     } catch (ConnectionPoolError& e) {
         BOOST_CHECK_EQUAL("No available client (no resize)", e.what());
+        BOOST_CHECK(pool.invariant());
     }
     
     // release
     
     pool.release();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 1, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(1, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     
     pool.release();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(0, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(0, pool.getReservedSize());
 }
 
 
@@ -116,34 +122,34 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     
     ConnectionPool pool(service, iterator, SIZE, true, MAX_SIZE);
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(0, pool.getInfo().get<POOL_BUSY>());
-    BOOST_CHECK_EQUAL(true, pool.getInfo().get<POOL_RESIZE_FLAG>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(0, pool.getReservedSize());
+    BOOST_CHECK(pool.isResizable());
     
     // acquire
 
     RawClient& c1 = pool.acquire();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 1, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(1, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     BOOST_CHECK(c1.isConnected() and c1.idle());
     
     RawClient& c2 = pool.acquire();
     BOOST_CHECK(pool.invariant());
     SIZE++; // auto incremented
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 2, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(2, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     BOOST_CHECK(c2.isConnected() and c2.idle());
 
     RawClient& c3 = pool.acquire();
     BOOST_CHECK(pool.invariant());
     SIZE++; // auto increment
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 3, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(3, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 3, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(3, pool.getReservedSize());
     BOOST_CHECK(c3.isConnected() and c3.idle());
     
     // use
@@ -168,9 +174,9 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
         BOOST_CHECK_EQUAL("No available client (max size reached)", e.what());
         // pool status unchanged
         BOOST_CHECK(pool.invariant());
-        BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-        BOOST_CHECK_EQUAL(SIZE - 3, pool.getInfo().get<POOL_AVAILABLE>());
-        BOOST_CHECK_EQUAL(3, pool.getInfo().get<POOL_BUSY>());
+        BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+        BOOST_CHECK_EQUAL(SIZE - 3, pool.getAvailableSize());
+        BOOST_CHECK_EQUAL(3, pool.getReservedSize());
     }
     
     c3.getResponse();
@@ -180,21 +186,21 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     
     pool.release();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 2, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(2, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     
     pool.release();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE - 1, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(1, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     
     pool.release();
     BOOST_CHECK(pool.invariant());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_SIZE>());
-    BOOST_CHECK_EQUAL(SIZE, pool.getInfo().get<POOL_AVAILABLE>());
-    BOOST_CHECK_EQUAL(0, pool.getInfo().get<POOL_BUSY>());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(0, pool.getReservedSize());
 }
 
 struct Worker {

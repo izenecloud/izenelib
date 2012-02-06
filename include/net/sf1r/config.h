@@ -8,7 +8,7 @@
 #ifndef CONFIG_H
 #define	CONFIG_H
 
-
+// SF1 Driver namespace
 #define NS_IZENELIB_SF1R izenelib::net::sf1r;
 
 #define NS_IZENELIB_SF1R_BEGIN \

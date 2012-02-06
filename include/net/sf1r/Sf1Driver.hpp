@@ -52,23 +52,16 @@ public:
 };
 
 
-const size_t INITIAL_SIZE = 5;
-const bool RESIZE = false;
-const size_t MAX_SIZE = 25;
-
-
 /**
  * Container for the driver configuration parameters.
  */
 struct Sf1Config {
-    Sf1Config(const size_t& s = INITIAL_SIZE, 
-              const bool r = RESIZE, 
-              const size_t& ms = MAX_SIZE)
+    Sf1Config(const size_t& s, const bool r, const size_t& ms = 0)
             : initialSize(s), resize(r), maxSize(ms) {}
     
-    size_t initialSize;
-    bool resize;
-    size_t maxSize;
+    const size_t initialSize;           ///< Initial pool size.
+    const bool resize;                  ///< Automatic pool resize.
+    const size_t maxSize;               ///< Maximum pool size.
 };
 
 
@@ -128,6 +121,11 @@ public:
     uint32_t getSequence() const {
         return sequence;
     }
+
+    /**
+     * @return The actual pool size.
+     */
+    size_t getPoolSize() const;
     
 private:
     /// Set data format used for request and responses.

@@ -20,7 +20,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
-    const Sf1Config conf;
+    const Sf1Config conf(1, false);
     try {
         Sf1Driver driver(host, 18181, conf);
         BOOST_FAIL("ServerError expected");
@@ -31,9 +31,12 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 #ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
 
+
 const string HOST = "localhost";
 const uint32_t PORT = 18181;
-const Sf1Config CONF;
+const size_t POOL_SIZE = 1;
+const bool POOL_RESIZE = false;
+const Sf1Config CONF(POOL_SIZE, POOL_RESIZE);
 
 
 BOOST_AUTO_TEST_CASE(malformed_request_uri) {

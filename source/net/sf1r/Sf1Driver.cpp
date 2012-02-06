@@ -176,4 +176,9 @@ throw(ClientError, ServerError) {
 }
 
 
+inline size_t 
+Sf1Driver::getPoolSize() const {
+    return pool->getSize();
+}
+
 NS_IZENELIB_SF1R_END

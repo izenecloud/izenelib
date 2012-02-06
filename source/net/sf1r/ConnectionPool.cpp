@@ -18,13 +18,13 @@ NS_IZENELIB_SF1R_BEGIN
 
 ConnectionPool::ConnectionPool(ba::io_service& serv, 
                                ba::ip::tcp::resolver::iterator& it,
-                               const size_t& size, const bool rz, 
+                               const size_t& sz, const bool rz, 
                                const size_t& ms) 
             : service(serv), iterator(it), 
-              poolSize(size), resize(rz), maxSize(ms),
+              size(sz), resize(rz), maxSize(ms),
               busy(0) {
     DLOG(INFO) << "Initializing pool ...";
-    DLOG(INFO) << " poolSize   : " << poolSize;
+    DLOG(INFO) << " poolSize   : " << size;
     DLOG(INFO) << " resize     : " << (resize ? "true" : "false");
     DLOG(INFO) << " maxSize    : " << maxSize;
     
@@ -32,6 +32,7 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
         available.push_back(new RawClient(service, iterator));
     }
     
+    invariant();
     LOG(INFO) << "Initialized pool of " << size << " clients.";
 }
 
@@ -43,10 +44,10 @@ ConnectionPool::~ConnectionPool() {
 
 bool
 ConnectionPool::invariant() const {
-    CHECK(poolSize > 0) << "poolsize == 0";
-    CHECK(maxSize >= poolSize) << "maxSize < poolSize";
-    CHECK_EQ(busy, reserved.size()) << "busy counter mismatch";
-    CHECK_EQ(poolSize, available.size() + reserved.size()) << "poolSize counter mismatch";
+    CHECK(size > 0) << "invariant: poolsize == 0";
+    if (resize) CHECK(maxSize >= size) << "invariant: maxSize < poolSize";
+    CHECK_EQ(busy, reserved.size()) << "invariant: busy counter mismatch";
+    CHECK_EQ(size, available.size() + reserved.size()) << "invariant: poolSize counter mismatch";
     return true;
 }
 
@@ -66,7 +67,7 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
     
     LOG(INFO) << "No available client";
     
-    if (not resize or poolSize == maxSize) {
+    if (not resize or size == maxSize) {
         const std::string msg = resize ? 
                 "No available client (max size reached)" :
                 "No available client (no resize)" ;
@@ -76,7 +77,7 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
     
     LOG(INFO) << "Grow pool";
     reserved.push_back(new RawClient(service, iterator));
-    ++poolSize;
+    ++size;
     ++busy;
     
     return reserved.back();
