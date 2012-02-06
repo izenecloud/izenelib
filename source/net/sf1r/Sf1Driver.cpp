@@ -35,16 +35,17 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
         const Sf1Config& parameters, 
-        const Format& format) throw(ServerError) 
-        : sequence(1), resolver(service), 
-          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)) { // TODO: restrict to v4?
+        const Format& fmt) throw(ServerError) 
+        : sequence(1), resolver(service),
+          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)),
+          format(fmt) {
     try {
-        setFormat(format);
+        setFormat();
         
         iterator = resolver.resolve(query);
         initPool(parameters);
         
-        LOG(INFO) << "Driver ready";
+        LOG(INFO) << "Driver ready.";
     } catch (system_error& e) {
         string message = e.what();
         LOG(ERROR) << message;
@@ -56,17 +57,17 @@ Sf1Driver::Sf1Driver(const string& host, const uint32_t& port,
 Sf1Driver::~Sf1Driver() {
     delete pool;
     
-    LOG(INFO) << "Driver closed";
+    LOG(INFO) << "Driver closed.";
 }
 
 
 void
-Sf1Driver::setFormat(const Format& format) {
+Sf1Driver::setFormat() {
     switch (format) {
     case JSON:
     default:
         writer.reset(new JsonWriter);
-        LOG(INFO) << "Using JSON data format";
+        LOG(INFO) << "Using JSON data format.";
     }
 }
 
@@ -97,7 +98,7 @@ split(const string& s, const char& delim, std::vector<string>& elems) {
 
 string
 Sf1Driver::call(const string& uri, const string& tokens, string& request) 
-throw(ClientError, ServerError) {
+throw(ClientError, ServerError, ConnectionPoolError) {
     // parse uri for controller and action
     std::vector<string> elems;
     split(uri, '/', elems);
@@ -125,54 +126,42 @@ throw(ClientError, ServerError) {
     }
     
     writer->setHeader(controller, action, tokens, request);
-    LOG(INFO) << "sending request: " << request;
+    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
     
     // increment sequence
     if (++sequence == MAX_SEQUENCE) {
         sequence = 1; // sequence == 0 means server error
     }
     
-    try {
-        RawClient& client = pool->acquire(); // FIXME: this throws ConnectionPoolError
-        
-        client.sendRequest(sequence, request);
-        Response response = client.getResponse();
-        uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();
-        
-        if (responseSequence == 0) {
-            LOG(ERROR) << "Zero sequence";
-            pool->release();
-            throw ServerError("Zero Sequence");
-        }
+    RawClient& client = pool->acquire();
 
-        if (sequence != responseSequence) {
-            LOG(ERROR) << "Unmatched sequence number: "
-                       << "in = [" << sequence << "] out = [" << responseSequence << "]";
-            pool->release();
-            throw ServerError("Unmatched sequence number");
-        }
-        
-        string responseBody = response.get<RESPONSE_BODY>();
-        
-        if (not writer->checkData(responseBody)) { // This should never happen
-            LOG(ERROR) << "Malformed response: [" << responseBody << "]";
-            pool->release();
-            throw ServerError("Malformed response");
-        }
+    client.sendRequest(sequence, request);
+    Response response = client.getResponse();
+    uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();
 
+    if (responseSequence == 0) {
+        LOG(ERROR) << "Zero sequence";
         pool->release();
-        return responseBody;
-    } catch (ClientError& e) {
-        // do not intercept ClientErrors
-        throw e;
-    } catch (ServerError& e) {
-        // do not intercept ServerErrors
-        throw e;
-    } catch (std::exception& e) {
-        string message = e.what();
-        LOG(ERROR) << message;
-        throw e;
+        throw ServerError("Zero Sequence");
     }
+
+    if (sequence != responseSequence) {
+        LOG(ERROR) << "Unmatched sequence number: "
+                    << "in = [" << sequence << "] out = [" << responseSequence << "]";
+        pool->release();
+        throw ServerError("Unmatched sequence number");
+    }
+
+    string responseBody = response.get<RESPONSE_BODY>();
+
+    if (not writer->checkData(responseBody)) { // This should never happen
+        LOG(ERROR) << "Malformed response: [" << responseBody << "]";
+        pool->release();
+        throw ServerError("Malformed response");
+    }
+
+    pool->release();
+    return responseBody;
 }
 
 
@@ -180,5 +169,16 @@ inline size_t
 Sf1Driver::getPoolSize() const {
     return pool->getSize();
 }
+
+
+inline std::string
+Sf1Driver::getFormatString() const {
+    switch (format) {
+    case JSON:
+    default:
+        return "JSON";
+    }
+}
+
 
 NS_IZENELIB_SF1R_END

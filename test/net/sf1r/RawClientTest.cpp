@@ -12,7 +12,7 @@
 #include "net/sf1r/RawClient.hpp"
 #include <boost/asio.hpp>
 
-using namespace NS_IZENELIB_SF1R
+using namespace NS_IZENELIB_SF1R;
 using ba::ip::tcp;
 using namespace std;
 

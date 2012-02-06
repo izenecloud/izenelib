@@ -211,20 +211,19 @@ struct Worker {
         
         c.sendRequest(i, getMessage(i));
         int sleepTime = (std::rand() % 5) + 1;
-        DLOG(INFO) << "worker " << i << " sleeping for " << sleepTime << " secs";
+        LOG(INFO) << "worker " << i << " sleeping for " << sleepTime << " secs";
         boost::this_thread::sleep(boost::posix_time::seconds(sleepTime));
         c.getResponse();
         
         pool.release();
         BOOST_CHECK(pool.invariant());
         
-        DLOG(INFO) << "worker " << i << " done";
+        LOG(INFO) << "worker " << i << " done";
     }
 private:    
     ConnectionPool& pool;
 };
-    
-    
+
 
 BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
     using boost::thread;

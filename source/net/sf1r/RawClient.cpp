@@ -45,7 +45,7 @@ RawClient::RawClient(ba::io_service& service,
     }
 
     CHECK_EQ(Idle, status) << "not Idle";
-    DLOG(INFO) << "correctly instantiated";
+    DLOG(INFO) << "Correctly instantiated";
 }
 
 
@@ -62,7 +62,7 @@ RawClient::~RawClient() throw() {
         LOG(WARNING) << "WARNING: " << e.what();
     }
     
-    DLOG(INFO) << "correctly destroyed";
+    DLOG(INFO) << "Correctly destroyed.";
 }
 
 
@@ -78,12 +78,10 @@ throw (std::exception) {
     CHECK_EQ(Idle, status) << "not Idle";
     status = Busy;
     
-    DLOG(INFO) << "sending request ...";
-    
-    DLOG(INFO) << "request: [" 
+    DLOG(INFO) << "Sending raw request ["
                << sequence << ", " 
                << data.length() << ", "
-               << data << "]";
+               << data << "] ...";
     
     uint32_t seq = htonl(sequence);
     uint32_t len = htonl(data.length());
@@ -102,7 +100,7 @@ throw (std::exception) {
     
     // XXX: do not change the status
     CHECK_EQ(Busy, status) << "not Busy";
-    LOG(INFO) << "request sent (" << n << " bytes)";
+    DLOG(INFO) << "Request sent (" << n << " bytes).";
 }
 
 
@@ -115,8 +113,8 @@ RawClient::getResponse() throw (std::exception) {
     }
     
     CHECK_EQ(Busy, status) << "not Busy";
-    // XXX: do not change the status
-    DLOG(INFO) << "receiving response ...";
+    // do not change the status
+    DLOG(INFO) << "Receiving response ...";
 
     char header[HEADER_SIZE];
     size_t n = 0;
@@ -135,9 +133,6 @@ RawClient::getResponse() throw (std::exception) {
     sequence = ntohl(sequence);
     length = ntohl(length);
 
-    DLOG(INFO) << "sequence\t:" << sequence;
-    DLOG(INFO) << "length\t:" << length;
-
     char data[length];
     n = ba::read(socket, ba::buffer(data, length));
     if (n != length) {
@@ -147,9 +142,12 @@ RawClient::getResponse() throw (std::exception) {
     }
 
     string response(data, length - 1); // skip the final '\0'
-    DLOG(INFO) << "data\t:[" << response << "]";
+    DLOG(INFO) << "Response: ["
+               << sequence << ", "
+               << length << ", "
+               << response << "]";
 
-    LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
+    DLOG(INFO) << "Response received (" << n + HEADER_SIZE << " bytes)";
     
     status = Idle;
     return boost::make_tuple(sequence, response);

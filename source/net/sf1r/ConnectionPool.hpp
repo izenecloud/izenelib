@@ -9,6 +9,7 @@
 #define	CONNECTIONPOOL_HPP
 
 #include "net/sf1r/config.h"
+#include "net/sf1r/Errors.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -23,15 +24,6 @@ NS_IZENELIB_SF1R_BEGIN
 
 
 class RawClient;
-
-
-/**
- * Exception thrown on connection pool errors.
- */
-class ConnectionPoolError : public std::runtime_error {
-public:
-    ConnectionPoolError(const std::string& m = "") : std::runtime_error(m) {}
-};
 
 
 /**
@@ -61,7 +53,7 @@ public:
     /**
      * Get an available client from the pool.
      * @return a reference to a \ref RawClient.
-     * @throws ConnectionPoolError if there is no available client.
+     * @throw ConnectionPoolError if there is no available client.
      */
     RawClient& acquire() throw(ConnectionPoolError);
     

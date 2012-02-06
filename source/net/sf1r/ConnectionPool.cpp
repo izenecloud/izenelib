@@ -24,9 +24,9 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
               size(sz), resize(rz), maxSize(ms),
               busy(0) {
     DLOG(INFO) << "Initializing pool ...";
-    DLOG(INFO) << " poolSize   : " << size;
-    DLOG(INFO) << " resize     : " << (resize ? "true" : "false");
-    DLOG(INFO) << " maxSize    : " << maxSize;
+    DLOG(INFO) << "  size       : " << size;
+    DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
+    DLOG(INFO) << "  maxSize    : " << maxSize;
     
     for (unsigned i = 0; i < size; ++i) {
         available.push_back(new RawClient(service, iterator));
@@ -54,7 +54,7 @@ ConnectionPool::invariant() const {
 
 RawClient&
 ConnectionPool::acquire() throw(ConnectionPoolError) {
-    DLOG(INFO) << "connection requested";
+    DLOG(INFO) << "Connection requested.";
     boost::lock_guard<boost::mutex> lock(mutex);
     
     if (not available.empty()) {
@@ -65,7 +65,7 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
         return reserved.back();
     } 
     
-    LOG(INFO) << "No available client";
+    LOG(INFO) << "No available client.";
     
     if (not resize or size == maxSize) {
         const std::string msg = resize ? 
@@ -75,10 +75,11 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
         throw ConnectionPoolError(msg);
     }
     
-    LOG(INFO) << "Grow pool";
+    LOG(INFO) << "Growing pool ...";
     reserved.push_back(new RawClient(service, iterator));
     ++size;
     ++busy;
+    LOG(INFO) << "Growed pool size: " << size;
     
     return reserved.back();
 }
@@ -86,7 +87,7 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
 
 void
 ConnectionPool::release() {
-    DLOG(INFO) << "connection released";
+    DLOG(INFO) << "Connection released";
     boost::lock_guard<boost::mutex> lock(mutex); 
     
     for (Iterator it = reserved.begin(); it != reserved.end(); ++it) {

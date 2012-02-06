@@ -58,8 +58,8 @@ public:
 
     /**
      * Creates the driver client.
-     * @param service a reference to the IO service.
-     * @param iterator a reference to the endpoint iterator.
+     * @param service A reference to the IO service.
+     * @param iterator A reference to the endpoint iterator.
      * @throw boost::system::system_error if cannot connect.
      */
     RawClient(ba::io_service& service, 

@@ -14,7 +14,7 @@
 #include <glog/logging.h>
 #include <string>
 
-using namespace NS_IZENELIB_SF1R
+using namespace NS_IZENELIB_SF1R;
 using namespace std;
 
 

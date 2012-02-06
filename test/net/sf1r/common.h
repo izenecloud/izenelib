@@ -10,12 +10,21 @@
 
 #include <glog/logging.h>
 #include <boost/test/unit_test_suite.hpp>
-
+#include <iostream>
 
 /** Fixture initializing the logging library. */
 struct Glog {
     Glog() { 
         google::InitGoogleLogging("test");
+#if 0
+        google::SetLogDestination(google::FATAL, "pippo");
+        
+        std::cout << "logdirs: ";
+        std::vector<std::string> dirs = google::GetLoggingDirectories();
+        for (std::vector<std::string>::iterator i = dirs.begin(); i != dirs.end(); ++i)
+            std::cout << "  " << *i;
+        std::cout << std::endl;
+#endif   
         google::LogToStderr();
     }
     
