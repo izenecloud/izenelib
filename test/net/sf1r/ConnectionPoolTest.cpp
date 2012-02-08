@@ -21,6 +21,11 @@ using ba::ip::tcp;
 using namespace std;
 
 
+BOOST_AUTO_TEST_CASE(dummy) {
+    BOOST_TEST_MESSAGE("dummy empty test");
+}
+
+
 #ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
 
 /** Test fixture. */
