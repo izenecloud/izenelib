@@ -8,12 +8,11 @@
 #ifndef JSONWRITER_HPP
 #define	JSONWRITER_HPP
 
+#include "net/sf1r/config.h"
 #include "Writer.hpp"
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 /**
@@ -22,7 +21,7 @@ namespace sf1r {
 class JsonWriter : public Writer {
 public:
     JsonWriter();
-    virtual ~JsonWriter();
+    virtual ~JsonWriter() throw();
 
     void setHeader(const std::string& controller, 
                    const std::string& action,
@@ -34,7 +33,7 @@ public:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 
 #endif	/* JSONWRITER_HPP */

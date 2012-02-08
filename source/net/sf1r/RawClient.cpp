@@ -6,13 +6,11 @@
  */
 
 #include "RawClient.hpp"
+#include <boost/array.hpp>
 #include <glog/logging.h>
-#include <iostream>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 using ba::ip::tcp;
@@ -34,84 +32,96 @@ static const size_t HEADER_SIZE = 2 * UINT_SIZE;
 
 RawClient::RawClient(ba::io_service& service, 
                      tcp::resolver::iterator& iterator) 
-        : socket(service) {
+        : socket(service), status(Idle) {
     try {
         DLOG(INFO) << "connecting ...";
         ba::connect(socket, iterator); 
         
         DLOG(INFO) << "connected";
     } catch (boost::system::system_error& e) {
+        status = Invalid;
         LOG(ERROR) << e.what();
         throw e;
     }
 
-    DLOG(INFO) << "correctly instantiated";
+    CHECK_EQ(Idle, status) << "not Idle";
+    DLOG(INFO) << "Correctly instantiated";
 }
 
 
-RawClient::~RawClient() {
+RawClient::~RawClient() throw() {
+    CHECK_EQ(Idle, status) << "not Idle";
     try {
         DLOG(INFO) << "closing ...";
-    
+        
         socket.shutdown(socket.shutdown_both);
         socket.close();
         
         DLOG(INFO) << "connection closed";
     } catch (boost::system::system_error& e) {
-        LOG(WARNING) << e.what();
+        LOG(WARNING) << "WARNING: " << e.what();
     }
     
-    DLOG(INFO) << "correctly destroyed";
+    DLOG(INFO) << "Correctly destroyed.";
 }
 
 
 void
 RawClient::sendRequest(const uint32_t& sequence, const string& data)
 throw (std::exception) {
-    if (!isConnected()) {
+    if (not isConnected()) {
         // TODO: keep alive?
+        status = Invalid;
         throw std::runtime_error("Not connected");
     }
     
-    DLOG(INFO) << "sending request ...";
+    CHECK_EQ(Idle, status) << "not Idle";
+    status = Busy;
     
-    DLOG(INFO) << "request: [" 
+    DLOG(INFO) << "Sending raw request ["
                << sequence << ", " 
                << data.length() << ", "
-               << data << "]";
+               << data << "] ...";
     
     uint32_t seq = htonl(sequence);
     uint32_t len = htonl(data.length());
     
-    std::vector<ba::const_buffer> buffers;
-    buffers.push_back(ba::buffer(&seq, UINT_SIZE));
-    buffers.push_back(ba::buffer(&len, UINT_SIZE));
-    buffers.push_back(ba::buffer(data));
+    boost::array<ba::const_buffer,3> buffers;
+    buffers[0] = ba::buffer(&seq, UINT_SIZE);
+    buffers[1] = ba::buffer(&len, UINT_SIZE);
+    buffers[2] = ba::buffer(data);
 
     size_t n = ba::write(socket, buffers);
     if (n != HEADER_SIZE + data.length()) {
+        status = Invalid;
         const string message = "Connection lost";
         throw std::runtime_error(message);
     }   
     
-    LOG(INFO) << "request sent (" << n << " bytes)";
+    // XXX: do not change the status
+    CHECK_EQ(Busy, status) << "not Busy";
+    DLOG(INFO) << "Request sent (" << n << " bytes).";
 }
 
 
-std::pair<uint32_t, string>
+Response
 RawClient::getResponse() throw (std::exception) {
-    if (!isConnected()) {
+    if (not isConnected()) {
         // TODO: keep alive?
+        status = Invalid;
         throw std::runtime_error("Not connected");
     }
     
-    DLOG(INFO) << "receiving response ...";
+    CHECK_EQ(Busy, status) << "not Busy";
+    // do not change the status
+    DLOG(INFO) << "Receiving response ...";
 
     char header[HEADER_SIZE];
     size_t n = 0;
 
     n += ba::read(socket, ba::buffer(header));
     if (n != sizeof(HEADER_SIZE)) {
+        status = Invalid;
         string message = "Connection lost";
         throw std::runtime_error(message);
     }
@@ -123,23 +133,25 @@ RawClient::getResponse() throw (std::exception) {
     sequence = ntohl(sequence);
     length = ntohl(length);
 
-    DLOG(INFO) << "sequence\t:" << sequence;
-    DLOG(INFO) << "length\t:" << length;
-
     char data[length];
     n = ba::read(socket, ba::buffer(data, length));
     if (n != length) {
+        status = Invalid;
         string message = "Connection to lost";
         throw std::runtime_error(message);
     }
 
     string response(data, length - 1); // skip the final '\0'
-    DLOG(INFO) << "data\t:[" << response << "]";
+    DLOG(INFO) << "Response: ["
+               << sequence << ", "
+               << length << ", "
+               << response << "]";
 
-    LOG(INFO) << "response received (" << n + HEADER_SIZE << " bytes)";
+    DLOG(INFO) << "Response received (" << n + HEADER_SIZE << " bytes)";
     
-    return std::make_pair<uint32_t, string>(sequence, response);
+    status = Idle;
+    return boost::make_tuple(sequence, response);
 }
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END

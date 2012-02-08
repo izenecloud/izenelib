@@ -5,8 +5,10 @@ macro_check_should_build(
 )
 
 if (sf1r_SHOULD_BUILD)
+
     set(libsf1r_SOURCES
         RawClient.cpp
+        ConnectionPool.cpp
         Sf1Driver.cpp
         JsonWriter.cpp
     )
@@ -20,6 +22,5 @@ if (sf1r_SHOULD_BUILD)
     target_link_libraries(sf1r ${LIBS})
     install(TARGETS sf1r
             LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
             COMPONENT sf1r)
 endif(sf1r_SHOULD_BUILD)

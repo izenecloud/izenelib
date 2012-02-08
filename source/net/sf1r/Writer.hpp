@@ -12,9 +12,7 @@
 #include <string>
 
 
-namespace izenelib {
-namespace net {
-namespace sf1r {
+NS_IZENELIB_SF1R_BEGIN
 
 
 /**
@@ -22,6 +20,9 @@ namespace sf1r {
  */
 class Writer : private boost::noncopyable {
 public:
+    
+    /// Destructor must not throw any exception.
+    virtual ~Writer() throw() {};
     
     /**
      * Adds SF1 header into the body of the request.
@@ -44,6 +45,6 @@ public:
 };
 
 
-}}} /* namespace izenelib::net::sf1r */
+NS_IZENELIB_SF1R_END
 
 #endif	/* WRITER_HPP */
