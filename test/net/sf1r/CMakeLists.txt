@@ -2,9 +2,10 @@ include_directories(${IZENELIB_SOURCE_DIR}/source)
 set(SOURCE_DIR ${IZENELIB_SOURCE_DIR}/source/net/sf1r)
 
 find_package(Boost ${Boost_FIND_VERSION}
-  COMPONENTS
-  system
-  unit_test_framework
+    REQUIRED COMPONENTS
+    system
+    thread
+    unit_test_framework
 )
 
 add_definitions(-DBOOST_TEST_DYN_LINK)
@@ -46,6 +47,16 @@ set(JsonWriter_SOURCES
 )
 add_executable(t_JsonWriterTest ${JsonWriter_SOURCES})
 target_link_libraries(t_JsonWriterTest ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+
+
+# ConnectionPool
+set(ConnectionPool_SOURCES
+    ${SOURCE_DIR}/RawClient.cpp
+    ${SOURCE_DIR}/ConnectionPool.cpp
+    ConnectionPoolTest.cpp
+)
+add_executable(t_ConnectionPoolTest ${ConnectionPool_SOURCES})
+target_link_libraries(t_ConnectionPoolTest ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 
 # Sf1Driver

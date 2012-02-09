@@ -8,18 +8,21 @@
 #define BOOST_TEST_MODULE Sf1DriverTest
 #include <boost/test/unit_test.hpp>
 
+#include "common.h"
 #include "net/sf1r/Sf1Driver.hpp"
+#include <boost/regex.hpp>
+#include <glog/logging.h>
 #include <string>
 
-using namespace izenelib::net::sf1r;
+using namespace NS_IZENELIB_SF1R;
 using namespace std;
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
-    
+    const Sf1Config conf(1, false);
     try {
-        Sf1Driver driver(host);
+        Sf1Driver driver(host, 18181, conf);
         BOOST_FAIL("ServerError expected");
     } catch(ServerError& e) {
     }
@@ -28,8 +31,12 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 #ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
 
-static const string HOST = "localhost";
-static const uint32_t PORT = 18181;
+
+const string HOST = "localhost";
+const uint32_t PORT = 18181;
+const size_t POOL_SIZE = 1;
+const bool POOL_RESIZE = false;
+const Sf1Config CONF(POOL_SIZE, POOL_RESIZE);
 
 
 BOOST_AUTO_TEST_CASE(malformed_request_uri) {
@@ -40,7 +47,7 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
     const string tokens = "";
     string request = "{\"message\":\"Ciao! 你好！\"}";
     
-    Sf1Driver driver(HOST, PORT);
+    Sf1Driver driver(HOST, PORT, CONF);
     
     BOOST_CHECK_EQUAL(1, driver.getSequence());
     
@@ -64,7 +71,7 @@ BOOST_AUTO_TEST_CASE(malformed_request_body) {
     const string uri    = "/test/echo"; 
     const string tokens = "token";
           
-    Sf1Driver driver(HOST, PORT);
+    Sf1Driver driver(HOST, PORT, CONF);
     
     for (vector<string>::iterator it = bodies.begin(); it < bodies.end(); ++it) {
         try {
@@ -87,15 +94,16 @@ BOOST_AUTO_TEST_CASE(bad_uri) {
     uris.push_back("test");
     
     const string tokens = "";
-    string request = "{\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"errors\":[\"Handler not found\"],\"header\":{\"success\":false}}";
 
-    Sf1Driver driver(HOST, PORT);
+    Sf1Driver driver(HOST, PORT, CONF);
     
     uint32_t seq = 1;
     BOOST_CHECK_EQUAL(seq, driver.getSequence());
     
     for (vector<string>::iterator it = uris.begin(); it < uris.end(); ++it) {
+        string request = "{\"message\":\"Ciao! 你好！\"}";
+    
         BOOST_CHECK_EQUAL(seq++, driver.getSequence()); // request sent to SF1
         string response = driver.call(*it, tokens, request);
         BOOST_CHECK_EQUAL(expected, response);
@@ -109,7 +117,7 @@ BOOST_AUTO_TEST_CASE(test_echo) {
           string body   = "{\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
 
-    Sf1Driver driver(HOST, PORT);
+    Sf1Driver driver(HOST, PORT, CONF);
     BOOST_CHECK_EQUAL(1, driver.getSequence());
     
     string response = driver.call(uri, tokens, body);
@@ -118,6 +126,12 @@ BOOST_AUTO_TEST_CASE(test_echo) {
     BOOST_CHECK(driver.getSequence() != 0);
 }
 
+bool
+match(const string& s) {
+    size_t pos = s.find("\"success\":");
+    return "true" == s.substr(pos + 10, 4);
+    
+}
 
 BOOST_AUTO_TEST_CASE(documents_search) {
     const string uri    = "/documents/search"; 
@@ -128,11 +142,10 @@ BOOST_AUTO_TEST_CASE(documents_search) {
                           "  \"limit\":10"
                           "}";
     
-    Sf1Driver driver(HOST, PORT);
+    Sf1Driver driver(HOST, PORT, CONF);
     string response = driver.call(uri, tokens, body);
     BOOST_CHECK_EQUAL(2, driver.getSequence());
-    //BOOST_CHECK_EQUAL(expected, response);
-    BOOST_CHECK(driver.getSequence() != 0);
+    BOOST_CHECK_PREDICATE(match, (response));    
 }
 
 #endif
