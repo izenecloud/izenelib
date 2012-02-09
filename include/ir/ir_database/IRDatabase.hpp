@@ -310,7 +310,6 @@ namespace irdb
             
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer);
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.indexMode_ = "default";
@@ -346,7 +345,19 @@ namespace irdb
                 }
                 indexManagerConfig.addCollectionMeta(indexCollectionMeta);
                 
-                indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                try {
+                    indexer.reset(new iii::Indexer);
+                    indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                }
+                catch(std::exception& ex)
+                {
+                    indexer.reset();
+                    std::cout<<"index at "<<path_<<" broken, clear"<<std::endl;
+                    boost::filesystem::remove_all(path_);
+                    boost::filesystem::create_directories(path_);
+                    indexer.reset(new iii::Indexer);
+                    indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                }
             }
             
             
@@ -771,7 +782,6 @@ namespace irdb
            
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer);
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.indexMode_ = "default";
@@ -804,8 +814,18 @@ namespace irdb
                     
                 }
                 indexManagerConfig.addCollectionMeta(indexCollectionMeta);
-                
-                indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                try {
+                    indexer.reset(new iii::Indexer);
+                    indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                }
+                catch(std::exception& ex)
+                {
+                    indexer.reset();
+                    boost::filesystem::remove_all(path_);
+                    boost::filesystem::create_directories(path_);
+                    indexer.reset(new iii::Indexer);
+                    indexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+                }
             }
             
             
