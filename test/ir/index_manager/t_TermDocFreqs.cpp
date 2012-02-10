@@ -367,9 +367,9 @@ void TermDocFreqsTestFixture::queryCollection(int threadNum)
         return;
     }
 
-    vector<boost::thread*> threadVec;
-    // launch threads
+    boost::thread_group threads;
     const docid_t avgDocNum = static_cast<docid_t>(ceil(static_cast<double>(maxDocID_) / threadNum));
+
     for(int i=0; i<threadNum; ++i)
     {
         docid_t startDocID = avgDocNum * i + 1;
@@ -380,19 +380,14 @@ void TermDocFreqsTestFixture::queryCollection(int threadNum)
         else if(endDocID > maxDocID_)
             endDocID = maxDocID_; // limit the doc range for the last thread
 
-        boost::thread* pThread = new boost::thread(boost::bind(&TermDocFreqsTestFixture::queryDocs, this, startDocID, endDocID));
-        threadVec.push_back(pThread);
+        threads.create_thread(boost::bind(&TermDocFreqsTestFixture::queryDocs,
+                                          this, startDocID, endDocID));
     }
 
-    // wait for threads ending
-    for(unsigned int i=0; i<threadVec.size(); ++i)
-    {
-        threadVec[i]->join();
-        delete threadVec[i];
-    }
+    threads.join_all();
 
 #ifdef LOG_QUERY_OPERATION
-    BOOST_TEST_MESSAGE("TermDocFreqsTestFixture::queryCollection() created " << threadVec.size() << " threads in collection query.");
+    BOOST_TEST_MESSAGE("TermDocFreqsTestFixture::queryCollection() created " << threads.size() << " threads in collection query.");
 #endif
 
     VLOG(2) << "<= TermDocFreqsTestFixture::queryCollection()";
