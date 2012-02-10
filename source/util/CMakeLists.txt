@@ -1,5 +1,5 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
-  COMPONENTS serialization filesystem system thread regex)
+  COMPONENTS serialization filesystem system thread regex unit_test_framework)
 
 SET(_NOT_WIN32 TRUE)
 IF(WIN32)
@@ -161,10 +161,7 @@ IF(izene_util_SHOULD_BUILD)
   MACRO_ADD_LIBRARY(izene_util SRCS ${util_SRC})
 
   TARGET_LINK_LIBRARIES(izene_util
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_LIBRARIES}
     json
     ${CMAKE_THREAD_LIBS_INIT}
     dl
