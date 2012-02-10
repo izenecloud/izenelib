@@ -10,6 +10,7 @@
 #define T_TERM_DOC_FREQS_H
 
 #include "IndexerTestFixture.h"
+#include <boost/test/unit_test.hpp>
 
 namespace t_TermDocFreqs
 {

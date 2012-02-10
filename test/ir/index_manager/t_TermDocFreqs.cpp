@@ -1,8 +1,8 @@
+#include "t_TermDocFreqs.h"
+
 #include <sstream> // std::ostringstream
 #include <iostream>
-#include <boost/test/unit_test.hpp>
 #include <boost/bind.hpp>
-#include <boost/ref.hpp>
 #include <boost/thread.hpp>
 
 #include <ir/index_manager/index/IndexReader.h>
@@ -10,9 +10,7 @@
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
-
-#include "t_TermDocFreqs.h"
-#include "BoostTestThreadSafety.h"
+#include <util/test/BoostTestThreadSafety.h>
 
 //#define LOG_TERM_ID
 //#define LOG_QUERY_OPERATION

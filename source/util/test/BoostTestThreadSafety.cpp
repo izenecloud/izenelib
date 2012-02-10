@@ -1,4 +1,4 @@
-#include "BoostTestThreadSafety.h"
+#include <util/test/BoostTestThreadSafety.h>
 
 namespace izenelib
 {

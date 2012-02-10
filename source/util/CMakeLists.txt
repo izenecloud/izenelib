@@ -147,6 +147,8 @@ IF(izene_util_SHOULD_BUILD)
     osgi/util/LoggerFactory.cpp
 
     string/StringUtils.cpp
+
+    test/BoostTestThreadSafety.cpp
     )
 
   INCLUDE_DIRECTORIES(
