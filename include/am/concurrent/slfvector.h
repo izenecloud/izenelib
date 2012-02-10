@@ -22,11 +22,13 @@ namespace izenelib{ namespace am { namespace concurrent {
                 size_t size()const;
                 const T& at(size_t n)const;
                 T& at(size_t n);
+                const T& operator[](const size_t n)const;
+                T& operator[](const size_t n);
                 void reserve(size_t s);
 
             private:
                 inline T& internal_at(size_t n);
-                inline size_t highest_bit(size_t n);
+                inline int highest_bit(size_t n);
             private:
                 T** data_;
                 size_t size_;
@@ -52,7 +54,7 @@ namespace izenelib{ namespace am { namespace concurrent {
         void slfvector<T>::push_back(const T& elem){
             size_t bucket = highest_bit(size_ + INITIAL_SIZE) - init_bit;
             if(data_[bucket] == NULL){
-                size_t bucket_size = INITIAL_SIZE * (1 << bucket + 1);
+                size_t bucket_size = INITIAL_SIZE * (1 << (bucket + 1));
                 data_[bucket] = new T[bucket_size];
             }
             internal_at(size_) = elem;
@@ -83,6 +85,20 @@ namespace izenelib{ namespace am { namespace concurrent {
             return internal_at(n);
         }
 
+        template<typename T>
+        inline const T& slfvector<T>::operator[](const size_t n)const{
+            if(n < 0 || n >= size_)
+                throw std::out_of_range("out of vector range.");
+            return internal_at(n);
+        }
+
+        template<typename T>
+        inline T& slfvector<T>::operator[](const size_t n){
+            if(n < 0 || n >= size_)
+                throw std::out_of_range("out of vector range.");
+            return internal_at(n);
+        }
+
         //resize the vector, delete the unnecessory memory
         template<typename T>
         void slfvector<T>::reserve(size_t s){
@@ -106,17 +122,32 @@ namespace izenelib{ namespace am { namespace concurrent {
         }
 
         template<typename T>
-        inline size_t slfvector<T>::highest_bit(size_t n){
-            int b = 0;
-             __asm__ __volatile__(
-                "movl %0, %%eax\n\
-                movl %1, %%ebx\n\
-                bsr %%eax, %%ebx\n\
-                movl %%ebx, %1"
-                :
-                :"g"(n),"g"(b)
-            );
-            return b;
+        inline int slfvector<T>::highest_bit(size_t n){
+//            int b = 0;
+//             __asm__ __volatile__(
+//                "movl %0, %%eax\n\
+//                movl %1, %%ebx\n\
+//                bsr %%eax, %%ebx\n\
+//                movl %%ebx, %1"
+//                :"=g"(n),"=g"(b)
+//                :"1"(b)
+//            );
+//            return b;
+            int b_start = 0;
+            int b_end = sizeof(size_t) * 8;
+            while(b_start != b_end){
+                int mid = (b_start + b_end) >> 1;
+                if((n>>mid) != 0){
+                    if(b_start == b_end - 1 )
+                        ++b_start;
+                    else
+                        b_start = mid;
+                }
+                else
+                    b_end = mid;
+
+            }
+            return b_start;
         }
 }}}
 
