@@ -9,6 +9,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     Runner.cpp
 
     concurrent/t_skiplist.cpp
+    concurrent/t_slfvector.cpp
 
     #IntString.cpp
     #IntNull.cpp
