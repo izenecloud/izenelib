@@ -37,30 +37,30 @@ BOOST_AUTO_TEST_CASE(reserve){
     BOOST_CHECK(vc.size() == 10);
 }
 
-void push(slfvector<int>& vc){
+slfvector<int> vcbench;
+void push(){
     for(int i = 0; i < 100000; ++i){
-        vc.push_back(i);
+        vcbench.push_back(i);
     }
 }
 
-void read(slfvector<int>& vc){
+void read(){
     for(int i = 0; i < 10000; ++i){
-        vc.at((i * 97) % vc.size());
+        vcbench.at((i * 97) % vcbench.size());
     }
 }
 
 BOOST_AUTO_TEST_CASE(Bench){
-    slfvector<int> vc;
-    boost::thread push_t1(boost::bind(&push, vc));
-    boost::thread read_t2(boost::bind(&read, vc));
-    boost::thread read_t3(boost::bind(&read, vc));
-    boost::thread read_t4(boost::bind(&read, vc));
-    boost::thread read_t5(boost::bind(&read, vc));
-    boost::thread read_t6(boost::bind(&read, vc));
-    boost::thread read_t7(boost::bind(&read, vc));
-    boost::thread read_t8(boost::bind(&read, vc));
-    boost::thread read_t9(boost::bind(&read, vc));
-    boost::thread read_t10(boost::bind(&read, vc));
+    boost::thread push_t1(boost::bind(&push));
+    boost::thread read_t2(boost::bind(&read));
+    boost::thread read_t3(boost::bind(&read));
+    boost::thread read_t4(boost::bind(&read));
+    boost::thread read_t5(boost::bind(&read));
+    boost::thread read_t6(boost::bind(&read));
+    boost::thread read_t7(boost::bind(&read));
+    boost::thread read_t8(boost::bind(&read));
+    boost::thread read_t9(boost::bind(&read));
+    boost::thread read_t10(boost::bind(&read));
 
     push_t1.join();
     read_t2.join();
