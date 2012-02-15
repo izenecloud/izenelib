@@ -68,7 +68,7 @@ public:
 
     virtual void close() = 0;
 
-    virtual TermReader*	clone() = 0;
+    virtual TermReader* clone() = 0;
     ///Return all the information of a certain term on the vocabulary
     virtual TermInfo* termInfo(Term* term) { return NULL;}
 
