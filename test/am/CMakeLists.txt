@@ -8,23 +8,24 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
   SET(t_am_SRC
     Runner.cpp
 
-    concurrent/t_skiplist.cpp
+    #concurrent/t_skiplist.cpp
+    concurrent/t_slfvector.cpp
 
     #IntString.cpp
     #IntNull.cpp
-    OpenClose.cpp
+    #OpenClose.cpp
    # am_perf.cpp
 
-    raw/Buffer.cpp
+    #raw/Buffer.cpp
 
-    tc/String.cpp
-    tc/Iter.cpp
-    tc/Db.cpp
+    #tc/String.cpp
+    #tc/Iter.cpp
+    #tc/Db.cpp
     #tc/raw/Db.cpp
     #tc/raw/Iter.cpp
 
-    luxio/Db.cpp
-    leveldb/Db.cpp
+    #luxio/Db.cpp
+    #leveldb/Db.cpp
     )
 
   ADD_EXECUTABLE(t_am ${t_am_SRC})
