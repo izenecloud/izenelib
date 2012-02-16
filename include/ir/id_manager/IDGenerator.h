@@ -55,6 +55,14 @@ public:
         return false;
 	}
 
+    /**
+     * @brief Always return 0, which means failure to generate ID.
+     */
+    NameID maxConvID() const
+    {
+        return 0;
+    }
+
 	void flush(){}
 
 	void close(){}
@@ -101,6 +109,14 @@ public:
         nameID = NameIDTraits<NameID>::hash(nameString);
         return false;
 	}
+
+    /**
+     * @brief Always return 0, which means this function is not supported
+     */
+    NameID maxConvID() const
+    {
+        return 0;
+    }
 
 	void flush(){}
 
@@ -164,6 +180,18 @@ public:
 	 * @return false otherwise
 	 */
 	inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID);
+
+    /**
+     * @brief Get the maximum converted id.
+     * @return max converted id, 0 for no id converted before.
+     */
+    NameID maxConvID() const
+    {
+        if (newID_ != MinIDValue)
+            return newID_ - 1;
+
+        return 0;
+    }
 
 	void flush()
 	{
