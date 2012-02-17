@@ -100,6 +100,15 @@ public:
 	 */
 	inline bool getNameStringByNameID(const NameID& nameID, NameString& nameString);
 
+    /**
+     * @brief Get the maximum converted id.
+     * @return max converted id, 0 for no id converted before or this function is not supported
+     */
+    NameID getMaxNameID() const
+    {
+        return idGenerator_.maxConvID();
+    }
+
 	void flush()
 	{
 	    idGenerator_.flush();

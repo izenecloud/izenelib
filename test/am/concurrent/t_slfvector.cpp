@@ -2,6 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 #include<iostream>
+#include<stdexcept>
 
 using namespace std;
 using namespace izenelib::am::concurrent;
@@ -33,7 +34,7 @@ BOOST_AUTO_TEST_CASE(reserve){
     for(int i = 0; i < 100; ++i){
         vc.push_back(i);
     }
-    vc.reserve(10);
+    vc.resize(10);
     BOOST_CHECK(vc.size() == 10);
 }
 
@@ -46,11 +47,15 @@ void push(){
 
 void read(){
     for(int i = 0; i < 10000; ++i){
-        vcbench.at((i * 97) % vcbench.size());
+		try{
+			vcbench.at((i * 97) % (vcbench.size() + 1) - 1);
+		}catch(const std::out_of_range& e){
+		}
     }
 }
 
 BOOST_AUTO_TEST_CASE(Bench){
+slfvector<int> vcbench;
     boost::thread push_t1(boost::bind(&push));
     boost::thread read_t2(boost::bind(&read));
     boost::thread read_t3(boost::bind(&read));

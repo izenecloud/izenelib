@@ -266,6 +266,15 @@ public:
     }
 
     /**
+    * @brief Get the maximum doc id.
+    * @return max doc id, 0 for no doc id exists or this function is not supported
+    */
+    NameID getMaxDocId() const
+    {
+        return docIdManager_.getMaxDocId();
+    }
+
+    /**
      * @brief Start a standalone thread to insert all cached terms and ids into RegexpManager.
      */
     void startWildcardProcess(const int threadNumber = 1)

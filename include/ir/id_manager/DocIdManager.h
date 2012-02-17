@@ -92,6 +92,15 @@ namespace idmanager {
 		 */
 		bool getDocNameByDocId(NameID docId, NameString& docName);
 
+        /**
+        * @brief Get the maximum doc id.
+        * @return max doc id, 0 for no doc id exists or this function is not supported
+        */
+        NameID getMaxDocId() const
+        {
+            return idFactory_.getMaxNameID();
+        }
+
 		void flush()
 		{
 		    idFactory_.flush();

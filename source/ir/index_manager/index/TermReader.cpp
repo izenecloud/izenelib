@@ -655,10 +655,8 @@ TermIterator* MemTermReader::termIterator(const char* field)
 bool MemTermReader::seek(Term* term)
 {
     try{
-        termInfo(term);
-    if ((curTermInfo_.docFreq() > 0))
-        return true;
-    return false;
+        TermInfo* pInfo = termInfo(term);
+    return pInfo ? true:false;
     }catch(std::exception& e)
     {
         return false;
@@ -705,14 +703,16 @@ TermInfo* MemTermReader::termInfo(Term* term)
         boost::shared_lock<boost::shared_mutex> lock(pIndexer_->rwLock_);
         postingIter = pIndexer_->postingMap_.find(tid);
         if(postingIter == pIndexer_->postingMap_.end())
+        {
+            pCurPosting_.reset();
             return NULL;
+        }
         pCurPosting_ = postingIter->second;
     }	
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
-
     pCurPosting_->getSnapShot(curTermInfo_);
-    return NULL;
+    return &curTermInfo_;
 }
 
 void MemTermReader::close()
