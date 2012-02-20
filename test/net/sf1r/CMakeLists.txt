@@ -22,6 +22,16 @@ if (ENABLE_SF1_TEST)
     add_definitions(-DENABLE_SF1_TEST)
 endif()
 
+option(ENABLE_ZK_TEST "Enable compilation of ZooKeeper and SF1 tests" false)
+if (ENABLE_ZK_TEST)
+    message(STATUS "enabling ZooKeeper and SF1 tests")
+    add_definitions(-DENABLE_ZK_TEST)
+endif()
+
+# Utils
+set(Utils_SOURCES UtilsTest.cpp)
+add_executable(t_UtilsTest ${Utils_SOURCES})
+target_link_libraries(t_UtilsTest ${LIBS})
 
 # RawClient
 set(RawClient_SOURCES

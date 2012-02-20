@@ -9,6 +9,7 @@
 #include "ConnectionPool.hpp"
 #include "JsonWriter.hpp"
 #include "RawClient.hpp"
+#include "Utils.hpp"
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
 
@@ -19,7 +20,7 @@ NS_IZENELIB_SF1R_BEGIN
 using ba::ip::tcp;
 using boost::system::system_error;
 using std::string;
-
+using std::vector;
 
 /**
  * Max sequence number.
@@ -79,28 +80,11 @@ Sf1Driver::initPool(const Sf1Config& params) {
 }
 
 
-/// Split a string on delimiter character into a vector.
-static
-std::vector<string>&
-split(const string& s, const char& delim, std::vector<string>& elems) {
-    std::stringstream ss(s);
-    string item;
-    while(getline(ss, item, delim)) {
-        if (item.empty()) {
-            // skip empty elements
-            continue;
-        }
-        elems.push_back(item);
-    }
-    return elems;
-}
-
-
 string
 Sf1Driver::call(const string& uri, const string& tokens, string& request) 
 throw(ClientError, ServerError, ConnectionPoolError) {
     // parse uri for controller and action
-    std::vector<string> elems;
+    vector<string> elems;
     split(uri, '/', elems);
     
     // controller is mandatory
@@ -171,7 +155,7 @@ Sf1Driver::getPoolSize() const {
 }
 
 
-inline std::string
+inline string
 Sf1Driver::getFormatString() const {
     switch (format) {
     case JSON:
