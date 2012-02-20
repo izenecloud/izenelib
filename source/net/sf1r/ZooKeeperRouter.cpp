@@ -53,8 +53,6 @@ const string SEARCH_TOPOLOGY = "/SearchTopology";
 
 void
 ZooKeeperRouter::setSf1List() {
-    kv2string parser;
-    
     strvector clusters;
     client.getZNodeChildren(ROOT_NODE, clusters);
     
@@ -73,16 +71,10 @@ ZooKeeperRouter::setSf1List() {
                 for (iterator it = nodes.begin(); it != nodes.end(); ++it) {
                     string data;
                     client.getZNodeData(*it, data);
-                    DLOG(INFO) << "node: " << *it << "=" << data;
                     
-                    // parse node data and save information
-                    parser.loadKvString(data);
-                    Sf1Node node(parser.getStrValue("host"), 
-                                 parser.getUInt32Value("baport"),
-                                 parser.getUInt32Value("dataport"),
-                                 parser.getUInt32Value("masterport"),
-                                 parser.getStrValue("collection")
-                            );
+                    Sf1Node node(*it, data);
+                    DLOG(INFO) << "node: " << node;
+                    
                     sf1List.push_back(node);
                 }
             }

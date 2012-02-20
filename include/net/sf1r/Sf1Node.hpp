@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "types.h"
+#include "util/kv2string.h"
 #include <boost/foreach.hpp>
 #include <ostream>
 #include <vector>
@@ -24,37 +25,57 @@ class Sf1Node {
 public:
     /**
      * Constructor.
-     * @param host
-     * @param baPort
-     * @param dataPort
-     * @param masterPort
-     * @param collections
+     * @param nodePath
+     * @param data
      */
-    Sf1Node(const std::string& host,
-            const uint32_t& baPort,
-            const uint32_t& dataPort,
-            const uint32_t& masterPort,
-            const std::string& collections);
+    Sf1Node(const std::string& nodePath,
+            const std::string& data);
     
     /**
      * Destructor.
      */
     ~Sf1Node();
     
+    /**
+     * @return The ZooKeeper path of this node.
+     */
+    std::string getPath() const {
+        return path;
+    }
+    
+    /**
+     * @return The hostname of this node.
+     */
     std::string getHost() const {
         return host;
     }
     
+    /**
+     * @return TODO
+     */
     uint32_t getBaPort() const {
         return baPort;
     }
     
+    /**
+     * @return TODO
+     */
     uint32_t getDataPort() const {
         return dataPort;
     }
     
+    /**
+     * @return TODO
+     */
     uint32_t getMasterPort() const {
         return masterPort;
+    }
+    
+    /**
+     * @return The collections associated to this node.
+     */
+    std::vector<std::string> getCollections() const {
+        return collections;
     }
     
     friend std::ostream& operator<< (std::ostream& os, const Sf1Node& n) {
@@ -67,7 +88,10 @@ public:
         return os;
     }
     
-private:    
+private:
+    static izenelib::util::kv2string parser;
+    
+    std::string path;
     std::string host;
     uint32_t dataPort;
     uint32_t baPort;

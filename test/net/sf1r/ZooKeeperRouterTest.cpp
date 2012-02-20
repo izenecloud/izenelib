@@ -42,6 +42,7 @@ BOOST_AUTO_TEST_CASE(sanity) {
     BOOST_FOREACH(Sf1Node n, preList) {
         cout << n << endl;
         BOOST_CHECK_EQUAL(18181, n.getBaPort());
+        BOOST_CHECK(not n.getCollections().empty());
     }
     
 #if 0        
