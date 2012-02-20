@@ -77,3 +77,14 @@ set(Sf1Driver_SOURCES
 )
 add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES})
 target_link_libraries(t_Sf1DriverTest sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+
+
+# ZooKeeperRouter
+set(ZooKeeperRouter_SOURCES
+    ${SOURCE_DIR}/Sf1Node.cpp
+    ${SOURCE_DIR}/ZooKeeperRouter.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    ZooKeeperRouterTest.cpp
+)
+add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})
+target_link_libraries(t_ZooKeeperRouterTest sf1r zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
