@@ -6,8 +6,12 @@
  */
 
 #include "net/sf1r/ZooKeeperRouter.hpp"
+#include "Sf1Watcher.hpp"
+#include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
+#include <boost/foreach.hpp>
 #include <glog/logging.h>
+
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -16,69 +20,106 @@ using izenelib::util::kv2string;
 using std::string;
 using std::vector;
 
-const bool AUTO_RECONNECT = true;
+
+namespace {
+    const bool AUTO_RECONNECT = true;
+    typedef vector<string> strvector;
+}
+
 
 ZooKeeperRouter::ZooKeeperRouter(const string& hosts, int recvTimeout) 
         : client(hosts, recvTimeout, AUTO_RECONNECT) {
-    // TODO
+    // 1. register a watcher that will control the Sf1Driver instances
+    LOG(INFO) << "Registering watcher ...";
+    watcher = new Sf1Watcher(this);
+    client.registerEventHandler(watcher);
     
-    // 1. obtain the list of actually running SF1 servers
+    // 2. obtain the list of actually running SF1 servers
+    LOG(INFO) << "Getting actual topology ...";
     setSf1List();
     
-    // 2. connect to each of them using the Sf1Driver class
-    // 3. register a watcher that will control the Sf1Driver instances
+    // 3. connect to each of them using the Sf1Driver class
+    // TODO
 }
 
 
 ZooKeeperRouter::~ZooKeeperRouter() {
-    // free resources
+    // XXX deleting the watcher while it is still used by the client?
+    delete watcher;
 }
 
 
-namespace {
-typedef vector<string> strvector;
-typedef strvector::iterator iterator;
-
-const string ROOT_NODE = "/";
-const string SEARCH_TOPOLOGY = "/SearchTopology";
+Sf1List
+ZooKeeperRouter::getSf1List() const {
+    Sf1List list;
+    BOOST_FOREACH(Sf1Topology::value_type pair, topology) {
+        list.push_back(pair.second);
+    }
+    return list;
 }
 
-/*
- * /                                # ZooKeeper Root
- * |-- SF1R-[CLUSTERID]             # Root of distributed SF1 namespace, [CLUSTERID] is specified by user configuration.
- *     |--- SearchTopology          # Topology of distributed search cluster
- *          |--- ReplicaN           # A replica of search cluster
- *               |--- NodeN         # A SF1 node in the replica of search cluster, it can be a Master or Worker or both.
- */
+
+void 
+ZooKeeperRouter::updateNodeData(const std::string& path) {
+    boost::lock_guard<boost::mutex> lock(mutex);
+
+    string data;
+    client.getZNodeData(path, data, ZooKeeper::WATCH);
+
+    Sf1Topology::iterator it = topology.find(path);
+    CHECK(it != topology.end()) << "Node " << path << " not found!";
+    
+    it->second.update(data);
+}
+
+
+void
+ZooKeeperRouter::addClusterNode(const string& cluster) {
+    if (client.isZNodeExists(cluster, ZooKeeper::WATCH)) {
+        DLOG(INFO) << "cluster: " << cluster;
+        
+        strvector replicas;
+        client.getZNodeChildren(cluster, replicas, ZooKeeper::WATCH);
+
+        BOOST_FOREACH(string replica, replicas) {
+            DLOG(INFO) << "replica: " << replica;
+            strvector nodes;
+            client.getZNodeChildren(replica, nodes, ZooKeeper::WATCH);
+
+            BOOST_FOREACH(string n, nodes) {
+                boost::lock_guard<boost::mutex> lock(mutex);
+
+                string data;
+                client.getZNodeData(n, data, ZooKeeper::WATCH);
+
+                Sf1Node node(n, data);
+                LOG(INFO) << "node: " << node;
+
+                topology.insert(Sf1Topology::value_type(n, node));
+            }
+        }
+    }
+}
+
+
+void
+ZooKeeperRouter::removeClusterNode(const string& cluster) {
+    boost::lock_guard<boost::mutex> lock(mutex);
+    
+    DLOG(INFO) << "cluster: " << cluster;
+    topology.erase(cluster);
+}
+
 
 void
 ZooKeeperRouter::setSf1List() {
     strvector clusters;
-    client.getZNodeChildren(ROOT_NODE, clusters);
+    //client.isZNodeExists(ROOT_NODE, ZooKeeper::WATCH);
+    client.getZNodeChildren(ROOT_NODE, clusters, ZooKeeper::WATCH);
     
-    for (iterator it = clusters.begin(); it != clusters.end(); ++it) {
-        string cluster = *it + SEARCH_TOPOLOGY;
-        if (client.isZNodeExists(cluster)) {
-            DLOG(INFO) << "got: " << cluster;
-            strvector replicas;
-            client.getZNodeChildren(cluster, replicas);
-            
-            for (iterator it = replicas.begin(); it != replicas.end(); ++it) {
-                DLOG(INFO) << "replica: " << *it;
-                strvector nodes;
-                client.getZNodeChildren(*it, nodes);
-                
-                for (iterator it = nodes.begin(); it != nodes.end(); ++it) {
-                    string data;
-                    client.getZNodeData(*it, data);
-                    
-                    Sf1Node node(*it, data);
-                    DLOG(INFO) << "node: " << node;
-                    
-                    sf1List.push_back(node);
-                }
-            }
-        }
+    BOOST_FOREACH(string s, clusters) {
+        string cluster = s + SEARCH_TOPOLOGY;
+        addClusterNode(cluster);
     }
 }
 

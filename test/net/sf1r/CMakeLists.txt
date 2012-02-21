@@ -3,6 +3,7 @@ set(SOURCE_DIR ${IZENELIB_SOURCE_DIR}/source/net/sf1r)
 
 find_package(Boost ${Boost_FIND_VERSION}
     REQUIRED COMPONENTS
+    regex
     system
     thread
     unit_test_framework
@@ -90,6 +91,7 @@ list(APPEND ALL_TESTS t_Sf1DriverTest)
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
     ${SOURCE_DIR}/Sf1Node.cpp
+    ${SOURCE_DIR}/Sf1Watcher.cpp
     ${SOURCE_DIR}/ZooKeeperRouter.cpp
     ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     ZooKeeperRouterTest.cpp

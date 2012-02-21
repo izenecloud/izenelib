@@ -37,6 +37,11 @@ public:
     ~Sf1Node();
     
     /**
+     * Updates the node information.
+     */
+    void update(const std::string& data);
+    
+    /**
      * @return The ZooKeeper path of this node.
      */
     std::string getPath() const {
@@ -84,7 +89,7 @@ public:
         BOOST_FOREACH(std::string coll, n.collections) {
             os << coll << " ";
         }
-        os << "]";
+        os << "] (" << n.path << ")";
         return os;
     }
     

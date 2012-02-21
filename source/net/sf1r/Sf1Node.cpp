@@ -29,6 +29,15 @@ kv2string Sf1Node::parser;
 
 Sf1Node::Sf1Node(const string& nodePath, const string& data) 
         : path(nodePath) {
+    update(data);
+}
+
+
+Sf1Node::~Sf1Node() {}
+
+
+void 
+Sf1Node::update(const std::string& data) {
     parser.loadKvString(data);
     
     host = parser.getStrValue(HOST_KEY);
@@ -36,11 +45,8 @@ Sf1Node::Sf1Node(const string& nodePath, const string& data)
     dataPort = parser.getUInt32Value(DATAPORT_KEY);
     masterPort = parser.getUInt32Value(MASTERPORT_KEY);
     
+    collections.clear();
     split(parser.getStrValue(COLLECTION_KEY), DELIMITER_CHAR, collections);
 }
-
-
-Sf1Node::~Sf1Node() {}
-
 
 NS_IZENELIB_SF1R_END
