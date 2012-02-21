@@ -18,7 +18,7 @@
 #ifndef MSGPACK_TYPE_TUPLE_HPP__
 #define MSGPACK_TYPE_TUPLE_HPP__
 
-#include "../object.hpp"
+#include "msgpack/object.hpp"
 
 namespace msgpack {
 
@@ -26,7 +26,7 @@ namespace type {
 
 // FIXME operator==
 // FIXME operator!=
-<% GENERATION_LIMIT = 31 %>
+<% GENERATION_LIMIT = 39 %>
 
 template <typename A0 = void<%1.upto(GENERATION_LIMIT+1) {|i|%>, typename A<%=i%> = void<%}%>>
 struct tuple;
