@@ -6,11 +6,21 @@ macro_check_should_build(
 
 if (sf1r_SHOULD_BUILD)
 
+    find_package(Boost ${Boost_FIND_VERSION}
+        REQUIRED COMPONENTS
+        regex
+    )
+
     set(libsf1r_SOURCES
         RawClient.cpp
         ConnectionPool.cpp
         Sf1Driver.cpp
         JsonWriter.cpp
+        Sf1Node.cpp
+        Sf1Watcher.cpp
+        ZooKeeperRouter.cpp
+
+        ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     )
 
     include_directories(
@@ -19,7 +29,7 @@ if (sf1r_SHOULD_BUILD)
     )
 
     add_library(sf1r SHARED ${libsf1r_SOURCES})
-    target_link_libraries(sf1r ${LIBS})
+    target_link_libraries(sf1r zookeeper ${LIBS} ${Boost_LIBRARIES})
     install(TARGETS sf1r
             LIBRARY DESTINATION lib
             COMPONENT sf1r)

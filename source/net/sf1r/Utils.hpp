@@ -24,7 +24,7 @@ using std::vector;
  * @param delim The delimiter character.
  * @param elems The output vector.
  */
-vector<string>&
+static vector<string>&
 split(const string& input, const char& delim, vector<string>& elems) {
     stringstream ss(input);
     string item;

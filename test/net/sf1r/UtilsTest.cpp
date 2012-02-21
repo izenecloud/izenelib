@@ -18,12 +18,14 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(test_split)
 
 BOOST_AUTO_TEST_CASE(split_string) {
-    const string input   = "this,is,a string,to,be splitted";
+    const string input   = "this,is,a, ,string,,to,be splitted";
     vector<string> output;
     vector<string> expected;
     expected.push_back("this");
     expected.push_back("is");
-    expected.push_back("a string");
+    expected.push_back("a");
+    expected.push_back(" ");
+    expected.push_back("string");
     expected.push_back("to");
     expected.push_back("be splitted");
         
