@@ -48,32 +48,43 @@ namespace DrumAppender
 {
 
 template <class T>
-void Append(T& left, const T& right)
+bool Append(T& left, const T& right)
 {
+    return false;
 }
 
 template <class T1, class T2>
-void Append(std::basic_string<T1, T2>& left, const std::basic_string<T1, T2>& right)
+bool Append(std::basic_string<T1, T2>& left, const std::basic_string<T1, T2>& right)
 {
     left.append(right);
+
+    return true;
 }
 
 template <class T1, class T2>
-void Append(std::vector<T1, T2>& left, const std::vector<T1, T2>& right)
+bool Append(std::vector<T1, T2>& left, const std::vector<T1, T2>& right)
 {
     left.insert(left.end(), right.begin(), right.end());
+
+    return true;
 }
 
 template <class T1, class T2, class T3>
-void Append(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right)
+bool Append(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right)
 {
+    std::size_t old_size = left.size();
     left.insert(right.begin(), right.end());
+
+    return left.size() == old_size;
 }
 
 template <class T1, class T2, class T3, class T4>
-void Append(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right)
+bool Append(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right)
 {
+    std::size_t old_size = left.size();
     left.insert(right.begin(), right.end());
+
+    return left.size() == old_size;
 }
 
 }
@@ -215,8 +226,8 @@ private:
     static const char CHECK_DELETE = 4;
     static const char APPEND = 5;
 
-    static const char UNIQUE_KEY = 0;
-    static const char DUPLICATE_KEY = 1;
+    static const char UNIQUE_KEY = 100;
+    static const char DUPLICATE_KEY = 101;
 
     std::size_t const num_buckets_;
     std::size_t const bucket_buff_elem_size_;
@@ -1030,6 +1041,9 @@ SynchronizeWithDisk()
     //Fast Berkeley DB queries are expected due to the locality of the keys in the bucket (and
     //consequently in the merge buffer).
 
+    KeyType append_key;
+    ValueType append_value;
+
     for (typename std::vector<CompoundType>::size_type i = 0; i < sorted_merge_buffer_.size(); ++i)
     {
         CompoundType & element = sorted_merge_buffer_[i];
@@ -1039,7 +1053,7 @@ SynchronizeWithDisk()
         char op = element.template get<2>();
         assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE || op == APPEND) && "Impossible operation.");
 
-        if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op || APPEND == op)
+        if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op)
         {
             ValueType value;
 
@@ -1051,11 +1065,7 @@ SynchronizeWithDisk()
                 element.template get<4>() = DUPLICATE_KEY;
 
                 //Retrieve the value associated to the key only if it's a check operation.
-                if (APPEND == op)
-                {
-                    DrumAppender::Append(element.template get<1>(), value);
-                }
-                else if (CHECK_UPDATE != op)
+                if (CHECK_UPDATE != op)
                 {
                     //Set the info.
                     element.template get<1>() = value;
@@ -1083,9 +1093,83 @@ SynchronizeWithDisk()
         {
             ValueType const& value = element.template get<1>();
 
-            boost::lock_guard<boost::mutex> lock(mutex_);
-            if (!db_.update(key, value) && DUPLICATE_KEY == element.template get<4>())
-                throw DrumException("Error merging with repository.");
+            if (i == 0)
+            {
+                append_key = key;
+                append_value = value;
+            }
+            else if (append_key == key)
+            {
+                DrumAppender::Append(append_value, value);
+            }
+            else
+            {
+                ValueType old_value;
+
+                bool ret;
+                {
+                    boost::lock_guard<boost::mutex> lock(mutex_);
+                    ret = db_.get(append_key, old_value);
+                }
+
+                if (ret)
+                {
+                    if (DrumAppender::Append(old_value, append_value))
+                    {
+                        sorted_merge_buffer_[i - 1].template get<1>() = old_value;
+                        sorted_merge_buffer_[i - 1].template get<4>() = DUPLICATE_KEY;
+
+                        boost::lock_guard<boost::mutex> lock(mutex_);
+                        if (!db_.update(append_key, old_value))
+                            throw DrumException("Error merging with repository.");
+                    }
+                }
+                else
+                {
+                    sorted_merge_buffer_[i - 1].template get<1>() = append_value;
+                    sorted_merge_buffer_[i - 1].template get<4>() = UNIQUE_KEY;
+
+                    boost::lock_guard<boost::mutex> lock(mutex_);
+                    if (!db_.update(append_key, append_value))
+                        throw DrumException("Error merging with repository.");
+                }
+
+                append_key = key;
+                append_value = value;
+            }
+
+            if (i == sorted_merge_buffer_.size() - 1)
+            {
+                ValueType old_value;
+
+                bool ret;
+                {
+                    boost::lock_guard<boost::mutex> lock(mutex_);
+                    ret = db_.get(append_key, old_value);
+                }
+
+                if (ret)
+                {
+                    if (DrumAppender::Append(old_value, append_value))
+                    {
+                        element.template get<1>() = old_value;
+                        element.template get<4>() = DUPLICATE_KEY;
+
+                        boost::lock_guard<boost::mutex> lock(mutex_);
+                        if (!db_.update(append_key, old_value))
+                            throw DrumException("Error merging with repository.");
+                    }
+                }
+                else
+                {
+                    element.template get<1>() = append_value;
+                    element.template get<4>() = UNIQUE_KEY;
+
+                    boost::lock_guard<boost::mutex> lock(mutex_);
+                    if (!db_.update(append_key, append_value))
+                        throw DrumException("Error merging with repository.");
+                }
+            }
         }
     }
 
@@ -1196,7 +1280,7 @@ Dispatch()
             case CHECK:
                 if (UNIQUE_KEY == result)
                     dispatcher_.UniqueKeyCheck(key, aux);
-                else
+                else if (DUPLICATE_KEY == result)
                     dispatcher_.DuplicateKeyCheck(key, value, aux);
                 break;
 
@@ -1207,7 +1291,7 @@ Dispatch()
             case CHECK_UPDATE:
                 if (UNIQUE_KEY == result)
                     dispatcher_.UniqueKeyUpdate(key, value, aux);
-                else
+                else if (DUPLICATE_KEY == result)
                     dispatcher_.DuplicateKeyUpdate(key, value, aux);
                 break;
 
@@ -1218,14 +1302,14 @@ Dispatch()
             case CHECK_DELETE:
                 if (UNIQUE_KEY == result)
                     dispatcher_.UniqueKeyDelete(key, aux);
-                else
+                else if (DUPLICATE_KEY == result)
                     dispatcher_.DuplicateKeyDelete(key, value, aux);
                 break;
 
             case APPEND:
                 if (UNIQUE_KEY == result)
                     dispatcher_.UniqueKeyAppend(key, value, aux);
-                else
+                else if (DUPLICATE_KEY == result)
                     dispatcher_.DuplicateKeyAppend(key, value, aux);
                 break;
 
