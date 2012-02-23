@@ -43,6 +43,41 @@
 
 #include <glog/logging.h>
 
+
+namespace DrumAppender
+{
+
+template <class T>
+void Append(T& left, const T& right)
+{
+}
+
+template <class T1, class T2>
+void Append(std::basic_string<T1, T2>& left, const std::basic_string<T1, T2>& right)
+{
+    left.append(right);
+}
+
+template <class T1, class T2>
+void Append(std::vector<T1, T2>& left, const std::vector<T1, T2>& right)
+{
+    left.insert(left.end(), right.begin(), right.end());
+}
+
+template <class T1, class T2, class T3>
+void Append(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right)
+{
+    left.insert(right.begin(), right.end());
+}
+
+template <class T1, class T2, class T3, class T4>
+void Append(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right)
+{
+    left.insert(right.begin(), right.end());
+}
+
+}
+
 DRUM_BEGIN_NAMESPACE
 
 /*
@@ -155,6 +190,8 @@ public:
     void Delete(key_t const&, aux_t const&);
     void CheckDelete(key_t const&);
     void CheckDelete(key_t const&, aux_t const&);
+    void Append(key_t const&, value_t const&);
+    void Append(key_t const&, value_t const&, aux_t const&);
 
     void Synchronize(); //Force synchronization (merge).
     void Dispose(); //Done with Drum.
@@ -176,6 +213,7 @@ private:
     static const char CHECK_UPDATE = 2;
     static const char DELETE = 3;
     static const char CHECK_DELETE = 4;
+    static const char APPEND = 5;
 
     static const char UNIQUE_KEY = 0;
     static const char DUPLICATE_KEY = 1;
@@ -999,9 +1037,9 @@ SynchronizeWithDisk()
         KeyType const& key = element.template get<0>();
 
         char op = element.template get<2>();
-        assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE) && "Impossible operation.");
+        assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE || op == APPEND) && "Impossible operation.");
 
-        if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op)
+        if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op || APPEND == op)
         {
             ValueType value;
 
@@ -1013,7 +1051,11 @@ SynchronizeWithDisk()
                 element.template get<4>() = DUPLICATE_KEY;
 
                 //Retrieve the value associated to the key only if it's a check operation.
-                if (CHECK_UPDATE != op)
+                if (APPEND == op)
+                {
+                    DrumAppender::Append(element.template get<1>(), value);
+                }
+                else if (CHECK_UPDATE != op)
                 {
                     //Set the info.
                     element.template get<1>() = value;
@@ -1034,6 +1076,15 @@ SynchronizeWithDisk()
         {
             boost::lock_guard<boost::mutex> lock(mutex_);
             if (!db_.del(key) && DUPLICATE_KEY == element.template get<4>())
+                throw DrumException("Error merging with repository.");
+        }
+
+        if (APPEND == op)
+        {
+            ValueType const& value = element.template get<1>();
+
+            boost::lock_guard<boost::mutex> lock(mutex_);
+            if (!db_.update(key, value) && DUPLICATE_KEY == element.template get<4>())
                 throw DrumException("Error merging with repository.");
         }
     }
@@ -1169,6 +1220,13 @@ Dispatch()
                     dispatcher_.UniqueKeyDelete(key, aux);
                 else
                     dispatcher_.DuplicateKeyDelete(key, value, aux);
+                break;
+
+            case APPEND:
+                if (UNIQUE_KEY == result)
+                    dispatcher_.UniqueKeyAppend(key, value, aux);
+                else
+                    dispatcher_.DuplicateKeyAppend(key, value, aux);
                 break;
 
             default:
@@ -1385,6 +1443,48 @@ Drum<
 CheckDelete(key_t const& key, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, CHECK_DELETE);
+    aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
+    this->CheckTimeToFeed();
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+Append(key_t const& key, value_t const& value)
+{
+    Append(key, value, aux_t());
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t>::
+Append(key_t const& key, value_t const& value, aux_t const& aux)
+{
+    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, APPEND);
     aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
     this->CheckTimeToFeed();
 }

@@ -46,6 +46,9 @@ public:
     virtual void Delete(key_t const&, aux_t const&) const {}
     virtual void UniqueKeyDelete(key_t const&, aux_t const&) const {}
     virtual void DuplicateKeyDelete(key_t const&, value_t const&, aux_t const&) const {}
+
+    virtual void UniqueKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
+    virtual void DuplicateKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
 };
 
 DRUM_END_NAMESPACE
