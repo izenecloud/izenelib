@@ -132,9 +132,12 @@ uint32_t slfvector<T>::size()const
 
 template<typename T>
 void slfvector<T>::swap(slfvector<T>& vec) {
-    slfvector<T> temp = vec;
-    vec = *this;
-    *this = temp;
+    T** temp_ptr = vec.data_;
+    vec.data_ = data_;
+    data_ = temp_ptr;
+    uint32_t temp_size = vec.size_;
+    vec.size_ = size_;
+    size_ = temp_size;
 }
 
 template<typename T>
