@@ -8,9 +8,13 @@
 #define SLFVECTOR_H
 
 #include<stdexcept>
+#include<boost/serialization/access.hpp>
+#include<boost/serialization/array.hpp>
 #include<stdint.h>
 #include <iostream>
-namespace izenelib{namespace am{namespace concurrent{
+namespace izenelib {
+namespace am {
+namespace concurrent {
 
 template<typename T>
 class slfvector
@@ -21,21 +25,37 @@ public:
     static uint32_t const init_bit = 3;
     slfvector();
     slfvector(uint32_t n);
+    slfvector(const slfvector<T>& orig);
     ~slfvector();
+    slfvector<T>& operator=(const slfvector<T>&);
+    friend inline bool operator==(const slfvector<T>& lhs, const slfvector<T>& rhs) {
+        return (lhs.size_ == rhs.size_) && (lhs.data_ == rhs.data_);
+    }
+    friend inline bool operator!=(const slfvector<T>& lhs, const slfvector<T>& rhs) {
+        return !(lhs == rhs);
+    }
     void push_back(const T&);
     bool empty()const;
     uint32_t size()const;
+    void swap(slfvector<T>& vec);
     const T& at(uint32_t n)const;
     T& at(uint32_t n);
     const T& operator[](const uint32_t n)const;
     T& operator[](const uint32_t n);
     void resize(uint32_t s);
+    void reserve(uint32_t s) {}
+    inline T& back();
+    inline const T& back()const;
     void clear();
 
+    friend class boost::serialization::access;
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version);
 private:
     inline T& internal_at(uint32_t n);
     inline const T& internal_at(uint32_t n)const;
     uint32_t highest_bit(uint32_t n)const;
+    void init_memory(uint32_t n);
 private:
     T** data_;
     uint32_t size_;
@@ -45,25 +65,21 @@ template<typename T>
 slfvector<T>::slfvector():size_(0)
 {
     data_ = new T*[INITIAL_CAPACITY];
-    data_[0] = new T[INITIAL_SIZE];
-    for(uint32_t i = 1; i < INITIAL_CAPACITY; ++i)
+    for(uint32_t i = 0; i < INITIAL_CAPACITY; ++i)
         data_[i] = NULL;
 }
 
 template<typename T>
-slfvector<T>::slfvector(uint32_t n):size_(n)
-{
-    data_ = new T*[INITIAL_CAPACITY];
-    uint32_t bucket = highest_bit(size_ + INITIAL_SIZE - 1) - init_bit;
-    for(uint32_t i = 0; i <= bucket; ++i)
-    {
-        uint32_t bucket_size = INITIAL_SIZE * (1 << bucket);
-        data_[i] = new T[bucket_size];
+slfvector<T>::slfvector(const slfvector<T>& orig):size_(orig.size_) {
+    init_memory(size_);
+    for(uint32_t idx = 0; idx < size_; ++idx) {
+        internal_at(idx) = orig.internal_at(idx);
     }
-    for(uint32_t i = bucket + 1; i < INITIAL_CAPACITY; ++i)
-    {
-        data_[i] = NULL;
-    }
+}
+
+template<typename T>
+slfvector<T>::slfvector(uint32_t n):size_(n) {
+    init_memory(n);
 }
 
 template<typename T>
@@ -74,6 +90,20 @@ slfvector<T>::~slfvector()
             delete[] data_[i];
     delete[] data_;
 }
+
+template<typename T>
+slfvector<T>& slfvector<T>::operator=(const slfvector<T>& rhs) {
+    if(*this == rhs)
+        return *this;
+    clear();
+    init_memory(rhs.size_);
+    for(uint32_t idx = 0; idx < rhs.size_; ++idx) {
+        internal_at(idx) = rhs.internal_at(idx);
+    }
+    size_ = rhs.size_;
+    return *this;
+}
+
 
 template<typename T>
 void slfvector<T>::push_back(const T& elem)
@@ -101,6 +131,13 @@ uint32_t slfvector<T>::size()const
 }
 
 template<typename T>
+void slfvector<T>::swap(slfvector<T>& vec) {
+    slfvector<T> temp = vec;
+    vec = *this;
+    *this = temp;
+}
+
+template<typename T>
 inline const T& slfvector<T>::at(uint32_t n)const
 {
     if(n < 0 || n >= size_)
@@ -121,7 +158,6 @@ inline const T& slfvector<T>::operator[](const uint32_t n)const
 {
     if(n < 0 || n >= size_)
         throw std::out_of_range("out of vector range.");
-    std::cout<<"abc"<<std::endl;
     return internal_at(n);
 }
 
@@ -133,27 +169,39 @@ inline T& slfvector<T>::operator[](const uint32_t n)
     return internal_at(n);
 }
 
+template<typename T>
+inline T& slfvector<T>::back() {
+    if(size_ == 0)
+        throw std::out_of_range("back() out of vector range:0.");
+    return internal_at(size_ - 1);
+}
+
+template<typename T>
+inline const T& slfvector<T>::back()const {
+    if(size_ == 0)
+        throw std::out_of_range("back() out of vector range:0.");
+    return internal_at(size_ - 1);
+}
+
 //resize the vector
 template<typename T>
 void slfvector<T>::resize(uint32_t s)
 {
-    if(s < 0)
+    if(s < 0 || s == size_)
         return;
-    const uint32_t expect_bucket = highest_bit(s + INITIAL_SIZE - 1) - init_bit;
-    const uint32_t current_bucket = highest_bit(size_ + INITIAL_SIZE - 1) - init_bit;
+    const int32_t expect_bucket = highest_bit(s + INITIAL_SIZE - 1) - init_bit;
+    const int32_t current_bucket = highest_bit(size_ + INITIAL_SIZE - 1) - init_bit;
     if(current_bucket > expect_bucket)
     {
         size_ = s;
-        for(uint32_t bucket = expect_bucket + 1 ; ++bucket <= current_bucket; )
-            if(data_[bucket] != NULL)
-            {
-                delete[] data_[bucket];
-                data_[bucket] = NULL;
-            }
+        for(int32_t bucket = expect_bucket + 1 ; bucket <= current_bucket; ++bucket ) {
+            delete[] data_[bucket];
+            data_[bucket] = NULL;
+        }
     }
     else
     {
-        for(uint32_t bucket = current_bucket + 1; ++bucket <= expect_bucket; )
+        for(int32_t bucket = current_bucket + 1; bucket <= expect_bucket; ++bucket )
         {
             uint32_t bucket_size = INITIAL_SIZE * (1 << bucket);
             data_[bucket] = new T[bucket_size];
@@ -167,10 +215,24 @@ void slfvector<T>::clear()
 {
     size_ = 0;
     for(uint32_t i = 0; i < INITIAL_CAPACITY; ++i)
-        if(data_[i] != NULL)
+        if(data_[i] != NULL) {
             delete[] data_[i];
-    delete[] data_;
+            data_[i] = NULL;
+        }
 }
+
+template<typename T> template<typename Archive>
+void slfvector<T>::serialize(Archive& ar, const unsigned int version) {
+    ar & size_;
+    int32_t bucket = highest_bit(size_ + INITIAL_SIZE - 1) - init_bit;
+    for(int32_t i = 0; i <= bucket; ++i) {
+        uint32_t bucket_size = INITIAL_SIZE * (1 << i);
+        if(data_[i] == NULL)
+            data_[i] = new T[bucket_size];
+        ar & boost::serialization::make_array(data_[i], bucket_size);
+    }
+}
+
 
 template<typename T>
 inline const T& slfvector<T>::internal_at(uint32_t n)const
@@ -188,6 +250,21 @@ inline T& slfvector<T>::internal_at(uint32_t n)
     uint32_t hi_bit = highest_bit(pos);
     uint32_t idx = pos ^ (1 << hi_bit);
     return data_[hi_bit - init_bit][idx];
+}
+
+template<typename T>
+void slfvector<T>::init_memory(uint32_t n) {
+    data_ = new T*[INITIAL_CAPACITY];
+    int32_t bucket = highest_bit(n + INITIAL_SIZE - 1) - init_bit;
+    for(int32_t i = 0; i <= bucket; ++i)
+    {
+        uint32_t bucket_size = INITIAL_SIZE * (1 << bucket);
+        data_[i] = new T[bucket_size];
+    }
+    for(uint32_t i = bucket + 1; i < INITIAL_CAPACITY; ++i)
+    {
+        data_[i] = NULL;
+    }
 }
 
 template<typename T>
@@ -217,10 +294,12 @@ uint32_t slfvector<T>::highest_bit(uint32_t n)const
             b_end = mid;
 
     }
-    b = b_start;
+    b = b_start - 1;
 #endif
     return b;
 }
 
-}}}
+}
+}
+}
 #endif
