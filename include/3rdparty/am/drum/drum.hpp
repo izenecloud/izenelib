@@ -181,6 +181,8 @@ private:
     void SynchronizeWithDisk();
     void ReadAuxBucketForDispatching(std::size_t);
     void Dispatch();
+    void CaptureBufferSpace();
+    void ReleaseBufferSpace();
 
 public:
     Drum(std::string const& name,
@@ -284,8 +286,6 @@ Drum(std::string const& name,
     , bucket_buff_elem_size_(bucket_buff_elem_size)
     , bucket_byte_size_(bucket_byte_size)
     , num_bucket_bits_(0)
-    , kv_buffers_(num_buckets_)
-    , aux_buffers_(num_buckets_)
     , next_positions_(num_buckets_)
     , file_names_(num_buckets_)
     , current_pointers_(num_buckets_)
@@ -297,11 +297,6 @@ Drum(std::string const& name,
     if (num_buckets_ != static_cast<std::size_t>(1) << num_bucket_bits_)
         ++num_bucket_bits_;
 
-    for (std::size_t i = 0; i < num_buckets_; i++)
-    {
-        kv_buffers_[i].resize(bucket_buff_elem_size);
-        aux_buffers_[i].resize(bucket_buff_elem_size);
-    }
     this->SetUp();
 }
 
@@ -671,6 +666,7 @@ Drum<
 Add(key_t const& key, char op)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->GetBucketAndBufferPos(key);
+    if (kv_buffers_.empty()) this->CaptureBufferSpace();
     CompoundType & element = kv_buffers_[bucket_pos.first][bucket_pos.second];
     this->Make(element, key, op);
     return bucket_pos;
@@ -696,6 +692,7 @@ Drum<
 Add(key_t const& key, value_t const& value, char op)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->GetBucketAndBufferPos(key);
+    if (kv_buffers_.empty()) this->CaptureBufferSpace();
     CompoundType & element = kv_buffers_[bucket_pos.first][bucket_pos.second];
     this->Make(element, key, value, op);
     return bucket_pos;
@@ -1706,6 +1703,7 @@ Synchronize()
 {
     this->FeedBuckets();
     this->MergeBuckets();
+    this->ReleaseBufferSpace();
 }
 
 template <
@@ -1734,6 +1732,58 @@ GetValue(key_t const& key, value_t & value)
     }
 
     return ret;
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t,
+    class appender_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t,
+    appender_t>::
+CaptureBufferSpace()
+{
+    kv_buffers_.resize(num_buckets_);
+    aux_buffers_.resize(num_buckets_);
+
+    for (std::size_t i = 0; i < num_buckets_; i++)
+    {
+        kv_buffers_[i].resize(bucket_buff_elem_size_);
+        aux_buffers_[i].resize(bucket_buff_elem_size_);
+    }
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t,
+    class appender_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t,
+    appender_t>::
+ReleaseBufferSpace()
+{
+    CompoundBucketBufferContainer().swap(kv_buffers_);
+    AuxBucketBufferContainer().swap(aux_buffers_);
 }
 
 DRUM_END_NAMESPACE
