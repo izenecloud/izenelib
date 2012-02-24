@@ -454,7 +454,6 @@ Init()
 {
     this->ResetFilePointers();
     this->ResetNextBufferPositions();
-    this->ResetSynchronizationBuffers();
 }
 
 template <
@@ -525,11 +524,8 @@ Drum<
 ResetSynchronizationBuffers()
 {
     sorted_merge_buffer_.clear();
-    sorted_merge_buffer_.reserve(bucket_buff_elem_size_); //At least.
     unsorting_helper_.clear();
-    unsorting_helper_.reserve(bucket_buff_elem_size_);
     unsorted_aux_buffer_.clear();
-    unsorted_aux_buffer_.reserve(bucket_buff_elem_size_);
 }
 
 template <
@@ -1761,6 +1757,10 @@ CaptureBufferSpace()
         kv_buffers_[i].resize(bucket_buff_elem_size_);
         aux_buffers_[i].resize(bucket_buff_elem_size_);
     }
+
+    sorted_merge_buffer_.reserve(bucket_buff_elem_size_);
+    unsorting_helper_.reserve(bucket_buff_elem_size_);
+    unsorted_aux_buffer_.reserve(bucket_buff_elem_size_);
 }
 
 template <
@@ -1784,6 +1784,10 @@ ReleaseBufferSpace()
 {
     CompoundBucketBufferContainer().swap(kv_buffers_);
     AuxBucketBufferContainer().swap(aux_buffers_);
+
+    std::vector<CompoundType>().swap(sorted_merge_buffer_);
+    std::vector<std::size_t>().swap(unsorting_helper_);
+    std::vector<AuxType>().swap(unsorted_aux_buffer_);
 }
 
 DRUM_END_NAMESPACE
