@@ -1095,6 +1095,7 @@ SynchronizeWithDisk()
 
     KeyType append_key;
     ValueType append_value;
+    bool append_dirty = false;
 
     for (typename std::vector<CompoundType>::size_type i = 0; i < sorted_merge_buffer_.size(); ++i)
     {
@@ -1148,104 +1149,42 @@ SynchronizeWithDisk()
             if (i == 0)
             {
                 append_key = key;
-                append_value = value;
+
+                boost::lock_guard<boost::mutex> lock(mutex_);
+                db_.get(append_key, append_value);
             }
-            else if (append_key == key)
+            else if (append_key != key)
             {
-                appender_(append_value, value);
-            }
-            else
-            {
-                ValueType old_value;
-
-                bool ret;
+                if (append_dirty)
                 {
-                    boost::lock_guard<boost::mutex> lock(mutex_);
-                    ret = db_.get(append_key, old_value);
-                }
-
-                if (ret)
-                {
-                    if (appender_(old_value, append_value))
-                    {
-                        for (typename std::vector<CompoundType>::size_type j = i - 1; j < i; --j)
-                        {
-                            if (sorted_merge_buffer_[j].template get<0>() == append_key)
-                                sorted_merge_buffer_[j].template get<4>() = DUPLICATE_KEY;
-                            else
-                                break;
-                        }
-
-                        boost::lock_guard<boost::mutex> lock(mutex_);
-                        if (!db_.update(append_key, old_value))
-                            throw DrumException("Error merging with repository.");
-                    }
-                }
-                else
-                {
-                    for (typename std::vector<CompoundType>::size_type j = i - 1; j < i; --j)
-                    {
-                        if (sorted_merge_buffer_[j].template get<0>() == append_key)
-                            sorted_merge_buffer_[j].template get<4>() = UNIQUE_KEY;
-                        else
-                            break;
-                    }
-
+                    append_dirty = false;
                     boost::lock_guard<boost::mutex> lock(mutex_);
                     if (!db_.update(append_key, append_value))
                         throw DrumException("Error merging with repository.");
                 }
 
                 append_key = key;
-                append_value = value;
+                append_value = ValueType();
+
+                boost::lock_guard<boost::mutex> lock(mutex_);
+                db_.get(append_key, append_value);
             }
 
-            if (i == sorted_merge_buffer_.size() - 1)
+            if (appender_(append_value, value))
             {
-                ValueType old_value;
-
-                bool ret;
-                {
-                    boost::lock_guard<boost::mutex> lock(mutex_);
-                    ret = db_.get(append_key, old_value);
-                }
-
-                if (ret)
-                {
-                    if (appender_(old_value, append_value))
-                    {
-                        for (typename std::vector<CompoundType>::size_type j = i; j <= i; --j)
-                        {
-                            if (sorted_merge_buffer_[j].template get<0>() == append_key)
-                                sorted_merge_buffer_[j].template get<4>() = DUPLICATE_KEY;
-                            else
-                                break;
-                        }
-
-                        element.template get<1>() = old_value;
-                        element.template get<4>() = DUPLICATE_KEY;
-
-                        boost::lock_guard<boost::mutex> lock(mutex_);
-                        if (!db_.update(append_key, old_value))
-                            throw DrumException("Error merging with repository.");
-                    }
-                }
-                else
-                {
-                    for (typename std::vector<CompoundType>::size_type j = i; j <= i; --j)
-                    {
-                        if (sorted_merge_buffer_[j].template get<0>() == append_key)
-                            sorted_merge_buffer_[j].template get<4>() = UNIQUE_KEY;
-                        else
-                            break;
-                    }
-
-                    boost::lock_guard<boost::mutex> lock(mutex_);
-                    if (!db_.update(append_key, append_value))
-                        throw DrumException("Error merging with repository.");
-                }
+                append_dirty = true;
+                element.template get<4>() = UNIQUE_KEY;
             }
+            else
+                element.template get<4>() = DUPLICATE_KEY;
         }
+    }
+
+    if (append_dirty)
+    {
+        boost::lock_guard<boost::mutex> lock(mutex_);
+        if (!db_.update(append_key, append_value))
+            throw DrumException("Error merging with repository.");
     }
 
     //Persist.
