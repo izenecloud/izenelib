@@ -14,20 +14,16 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-using std::string;
-using std::stringstream;
-using std::vector;
-
 /**
  * Split a string on delimiter character into a vector.
  * @param input The input string.
  * @param delim The delimiter character.
  * @param elems The output vector.
  */
-static vector<string>&
-split(const string& input, const char& delim, vector<string>& elems) {
-    stringstream ss(input);
-    string item;
+static std::vector<std::string>&
+split(const std::string& input, const char& delim, std::vector<std::string>& elems) {
+    std::stringstream ss(input);
+    std::string item;
     while(getline(ss, item, delim)) {
         if (item.empty()) {
             // skip empty elements

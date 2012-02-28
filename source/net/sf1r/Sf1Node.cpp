@@ -6,6 +6,7 @@
  */
 
 #include "net/sf1r/Sf1Node.hpp"
+#include "util/kv2string.h"
 #include "Utils.hpp"
 
 NS_IZENELIB_SF1R_BEGIN
@@ -18,35 +19,43 @@ using std::ostream;
 namespace {
     const string       HOST_KEY = "host";
     const string     BAPORT_KEY = "baport";
-    const string   DATAPORT_KEY = "dataport";
-    const string MASTERPORT_KEY = "masterport";
+    //const string   DATAPORT_KEY = "dataport";
+    //const string MASTERPORT_KEY = "masterport";
     const string COLLECTION_KEY = "collection";
     const char   DELIMITER_CHAR = ',';
 }
 
-kv2string Sf1Node::parser;
 
-
-Sf1Node::Sf1Node(const string& nodePath, const string& data) 
-        : path(nodePath) {
-    update(data);
-}
-
-
-Sf1Node::~Sf1Node() {}
-
-
-void 
-Sf1Node::update(const std::string& data) {
+Sf1Node::Sf1Node(const string& path_, const string& data) 
+        : path(path_) {
+    kv2string parser;
     parser.loadKvString(data);
     
     host = parser.getStrValue(HOST_KEY);
-    baPort = parser.getUInt32Value(BAPORT_KEY);
-    dataPort = parser.getUInt32Value(DATAPORT_KEY);
-    masterPort = parser.getUInt32Value(MASTERPORT_KEY);
+    port = parser.getUInt32Value(BAPORT_KEY);
+    
+    split(parser.getStrValue(COLLECTION_KEY), DELIMITER_CHAR, collections);
+}
+
+
+Sf1Node::Sf1Node(const string& path_, const string& host_,
+            const uint32_t port_, const string& colls) 
+        : path(path_), host(host_), port(port_) {
+    split(colls, DELIMITER_CHAR, collections);
+}
+
+
+void 
+Sf1Node::update(const string& data) {
+    kv2string parser;
+    parser.loadKvString(data);
+    
+    host = parser.getStrValue(HOST_KEY);
+    port = parser.getUInt32Value(BAPORT_KEY);
     
     collections.clear();
     split(parser.getStrValue(COLLECTION_KEY), DELIMITER_CHAR, collections);
 }
+
 
 NS_IZENELIB_SF1R_END

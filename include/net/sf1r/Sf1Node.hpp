@@ -10,7 +10,6 @@
 
 #include "config.h"
 #include "types.h"
-#include "util/kv2string.h"
 #include <boost/foreach.hpp>
 #include <ostream>
 #include <vector>
@@ -25,16 +24,22 @@ class Sf1Node {
 public:
     /**
      * Constructor.
-     * @param nodePath
+     * @param path
      * @param data
      */
-    Sf1Node(const std::string& nodePath,
-            const std::string& data);
+    Sf1Node(const std::string& path, const std::string& data);
     
     /**
-     * Destructor.
+     * Constructor.
+     * @param path
+     * @param host
+     * @param port
+     * @param collections
      */
-    ~Sf1Node();
+    Sf1Node(const std::string& path, const std::string& host,
+            const uint32_t port, const std::string& collections);
+    
+    ~Sf1Node() {}
     
     /**
      * Updates the node information.
@@ -56,35 +61,40 @@ public:
     }
     
     /**
-     * @return TODO
+     * @return The port on which the SF1 accepts requests on this node.
      */
-    uint32_t getBaPort() const {
-        return baPort;
+    uint32_t getPort() const {
+        return port;
     }
     
-    /**
-     * @return TODO
-     */
-    uint32_t getDataPort() const {
-        return dataPort;
-    }
-    
-    /**
-     * @return TODO
-     */
-    uint32_t getMasterPort() const {
-        return masterPort;
-    }
-    
-    /**
+   /**
      * @return The collections associated to this node.
      */
     std::vector<std::string> getCollections() const {
         return collections;
     }
     
+    
+    friend bool operator==(const Sf1Node& left, const Sf1Node& right) {
+        return (left.path == right.path and
+                left.host == right.host and
+                left.port == right.port and
+                left.collections == right.collections);
+    }
+    
+    
+    friend bool operator!=(const Sf1Node& left, const Sf1Node& right) {
+        return (left.path != right.path or
+                left.host != right.host or
+                left.port != right.port or
+                left.collections != right.collections);
+    }
+    
+    /**
+     * Prints this instance in the format: "host:port [ collection collection ]"
+     */
     friend std::ostream& operator<< (std::ostream& os, const Sf1Node& n) {
-        os << n.host << ":" << n.baPort;
+        os << n.host << ":" << n.port;
         os << " [ ";
         BOOST_FOREACH(std::string coll, n.collections) {
             os << coll << " ";
@@ -94,13 +104,9 @@ public:
     }
     
 private:
-    static izenelib::util::kv2string parser;
-    
     std::string path;
     std::string host;
-    uint32_t dataPort;
-    uint32_t baPort;
-    uint32_t masterPort;
+    uint32_t port;
     std::vector<std::string> collections;
     
 };
