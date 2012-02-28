@@ -8,6 +8,7 @@
 #ifndef SF1TOPOLOGY_HPP
 #define	SF1TOPOLOGY_HPP
 
+#include "net/sf1r/config.h"
 #include <boost/regex.hpp>
 #include <string>
 
@@ -24,15 +25,18 @@
  *  sf1r-engine/source/core/node-manager/ZooKeeperNamespace.h
  */
 
-namespace {
-    const std::string       ROOT_NODE = "/";
-    const std::string SEARCH_TOPOLOGY = "/SearchTopology";
-    const std::string         REPLICA = "Replica";
-    const std::string            NODE = "Node";
+NS_IZENELIB_SF1R_BEGIN
     
-    const boost::regex CLUSTER_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
-    const boost::regex    NODE_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
-}
+//const std::string ROOT_NODE = "/";
+//const std::string  TOPOLOGY = "/SearchTopology";
+//const std::string   REPLICA = "Replica";
+//const std::string      NODE = "Node";
+
+const boost::regex    TPLG_REGEX("\\/SF1R-\\w+\\d?");
+const boost::regex CLUSTER_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
+const boost::regex    NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
+
+NS_IZENELIB_SF1R_END
 
 #endif	/* SF1TOPOLOGY_HPP */
 

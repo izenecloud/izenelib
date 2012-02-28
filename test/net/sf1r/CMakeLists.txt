@@ -103,7 +103,7 @@ list(APPEND ALL_TESTS t_Sf1TopologyTest)
 set(ZooKeeperRouter_SOURCES
     ${SOURCE_DIR}/Sf1Watcher.cpp
     ${SOURCE_DIR}/ZooKeeperRouter.cpp
-    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    ${SOURCE_DIR}/Sf1Topology.cpp
     ZooKeeperRouterTest.cpp
 )
 add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})

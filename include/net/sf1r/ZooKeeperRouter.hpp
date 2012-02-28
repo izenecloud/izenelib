@@ -24,24 +24,12 @@ NS_IZENELIB_SF1R_BEGIN
 namespace iz = izenelib::zookeeper;
 
 class Sf1Watcher;
+class Sf1Topology;
 
 
 /**
- * Actual SF1 cluster topology.
- * Each SF1 node is accessible through its ZooKeeper path.
- */
-typedef std::map<std::string, Sf1Node> Sf1Topology;
-
-
-/**
- * A list view on the \ref Sf1Topology.
- */
-typedef std::vector<Sf1Node> Sf1List;
-
-
-/**
- * ZooKeeper proxy class, acting as a router to actual SF1 instances.
- * It contains a map of all the running SF1 nodes as a \ref Sf1Topology.
+ * ZooKeeper proxy class, acting as a router to the actual SF1 instances.
+ * It contains a mapping of all the running SF1 nodes as a \ref Sf1Topology.
  * The \ref Sf1Watcher class is the event handler managing changes in
  * the actual topology.
  */
@@ -64,13 +52,20 @@ public:
      * @return true if connected to ZooKeeper, false otherwise.
      */
     bool isConnected() /*const*/ { 
-        return client.isConnected();
+        return client->isConnected();
     }
     
     /**
-     * @return the list of all known SF1 instances.
+     * @return The list of all known SF1 instances.
      */
-    Sf1List getSf1List() const;
+    std::vector<Sf1Node>* getSf1Nodes() const;
+    
+    /**
+     * @param collection The collection to be searched.
+     * @return The list of all known SF1 instances hosting the given collection.
+     */
+    std::vector<Sf1Node>* getSf1Nodes(const std::string& collection) const;
+    
     
     /**
      * The watcher need to access private member functions.
@@ -79,36 +74,38 @@ public:
     
 private:
     
+    /** Adds a new cluster node. */
+    void addClusterNode(const std::string& path);
+    
+    /** Add a new SF1 node in the topology. */
+    void addSf1Node(const std::string& path);
+    
     /** Updates the SF1 node information. */
     void updateNodeData(const std::string& path);
     
-    /** Add a new SF1 node. */
-    void addClusterNode(const std::string& path);
-    
     /** Removes an existing SF1 node. */
     void removeClusterNode(const std::string& path);
+    
+    /** Watch a node for changes. */
+    void watchChildren(const std::string& path);
+    
+    /** Get the actual SF1 topology (called during initialization) */
+    void loadTopology();
     
 private:
     
     boost::mutex mutex;
     
-    /**
-     * Get the list of running SF1 instances.
-     * Called during initialization.
-     */
-    void setSf1List();
+    /// ZooKeeper client.
+    iz::ZooKeeper* client;
     
-    /// ZooKeeper client
-    iz::ZooKeeper client;
-    
-    /// actual SF1 instances.
-    Sf1Topology topology;
-    
-    /// Watcher
+    /// ZooKeeper event handler.
     Sf1Watcher* watcher;
+    
+    /// Actual SF1 instances.
+    Sf1Topology* topology;
 };
 
 NS_IZENELIB_SF1R_END
 
 #endif	/* ZOOKEEPERROUTER_HPP */
-

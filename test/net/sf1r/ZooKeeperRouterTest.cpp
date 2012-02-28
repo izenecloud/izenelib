@@ -11,34 +11,28 @@
 #include "common.h"
 #include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include "net/sf1r/ZooKeeperRouter.hpp"
+#include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
 using namespace izenelib::zookeeper;
 using namespace NS_IZENELIB_SF1R;
 using namespace std;
 
+
 BOOST_AUTO_TEST_CASE(dummy) {
     BOOST_TEST_MESSAGE("dummy empty test");
     cout << "For this test you need an SF1 running on you machine." << endl;
 }
 
-/*
- * Example of use
- * ===
- * 
- * Test for new node:
- * 1. start this test executable
- * 2. start a new SF1 which connects to the ZooKeeper hosts specified below
- * 3. check post = pre + 1
- * 
- */
 
 #ifdef ENABLE_ZK_TEST
 
-
-void printList(const Sf1List& list) {
+void printList(const vector<Sf1Node>& list, const string& name = "") {
+    if (not name.empty())
+        cout << name << ":" << endl;
+    
     if (list.empty()) {
-        cout << "*** no SF1 ***" << endl;
+        cout << "*** empty ***" << endl;
         return;
     }
         
@@ -49,49 +43,129 @@ void printList(const Sf1List& list) {
 }
 
 
-void sleep(const int& time) {
-    cout << "Sleeping for " << time << " seconds (so that you can start/stop your SF1) ..." << endl;
-    for (int i = 0; i < time; i++) {
-        //cout << "." << flush;
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+/** Test fixtures. */
+struct ZooKeeperClient {
+    ZooKeeperClient() : hosts("localhost:2181"), recvTimeout(2000), 
+                        client(hosts, recvTimeout, true) {}
+    
+    inline string getName(const string& name) {
+        return "/SF1R-" + name;
     }
-    cout << " Awaked!" << endl;
+    
+    /** Simulates the connection of a new SF1. */
+    void addSf1(const string& name) {
+        string sf1name = getName(name);
+        cout << "adding fake SF1 " << sf1name << " ... ";
+        
+        
+        createNode(sf1name);
+        createNode(sf1name + "/SearchTopology");
+        createNode(sf1name + "/SearchTopology/Replica1");
+        createNode(sf1name + "/SearchTopology/Replica1/Node1", 
+                   "collection#foo$dataport#18121$baport#18181$masterport#18131$host#localhost");
+        
+        cout << "done" << endl;
+    }
+    
+    void change(const string& name) {
+        string sf1name = getName(name);
+        cout << "changing fake SF1 " << sf1name << " ... ";
+        
+        client.setZNodeData(sf1name + "/SearchTopology/Replica1/Node1", 
+                   "collection#bar$dataport#18121$baport#18181$masterport#18131$host#localhost");
+        sleep(1);
+        
+        cout << "done" << endl;
+    }
+    
+    /** Simulates the disconnection of a new SF1. */
+    void removeSf1(const string& name, bool keep = true) {
+        string sf1name = getName(name);
+        cout << "removing fake SF1 " << sf1name << " ... ";
+        
+        keep ? removeNode(sf1name + "/SearchTopology") : removeNode(sf1name);
+        sleep(1);
+        
+        cout << "done" << endl;
+    }
+    
+    string hosts;
+    int recvTimeout;
+    ZooKeeper client;
+    
+private:
+    void createNode(const string& path, const string& data = "") {
+        client.createZNode(path, data);
+        BOOST_CHECK(client.isZNodeExists(path));
+        string tmp;
+        client.getZNodeData(path, tmp);
+        BOOST_CHECK_EQUAL(data, tmp);
+        sleep(1);
+    }
+    
+    void removeNode(const string& path) {
+        client.deleteZNode(path, true);
+        BOOST_CHECK(not client.isZNodeExists(path));
+        sleep(1);
+    }
+};
+
+void
+checkNodes(vector<Sf1Node>* list, const size_t& size) {
+    printList(*list, "nodes");
+    BOOST_CHECK_EQUAL(size, list->size());
+    delete list;
 }
 
+void
+checkCollections(vector<Sf1Node>* list, const size_t& size, 
+        const string& path1 = "", const string& path2 = "") {
+    printList(*list, "colls");
+    BOOST_CHECK_EQUAL(size, list->size());
+    if (not path1.empty())
+        BOOST_CHECK_EQUAL(path1, (*list)[0].getPath());
+    if (not path2.empty())
+        BOOST_CHECK_EQUAL(path2, (*list)[1].getPath());
+    delete list;
+}
 
-BOOST_AUTO_TEST_CASE(sanity) {
-    string hosts = "localhost:2181";
-            //"180.153.140.110:2181,180.153.140.111:2181,180.153.140.112:2181";
-    int recvTimeout = 2000;
-    
-    int interval = 20;
-    
-    // out router, defining watchers on SF1 nodes
+BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
+    BOOST_TEST_CHECKPOINT("Connecting to ZooKeeper ...");
     ZooKeeperRouter router(hosts, recvTimeout);
-    BOOST_CHECK(router.isConnected());
+    if (not router.isConnected()) throw runtime_error("ZooKeeper not found");
     
-    Sf1List pre = router.getSf1List();
-    printList(pre);
+    checkNodes(router.getSf1Nodes(), 0);
     
-    sleep(interval); // here you should start a local SF1
+    addSf1("fake1");
+    checkNodes(router.getSf1Nodes(), 1);
+    checkCollections(router.getSf1Nodes("foo"), 1, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1");
+    checkCollections(router.getSf1Nodes("bar"), 0);
     
-    Sf1List post = router.getSf1List();
-    printList(post);
-    BOOST_CHECK_EQUAL(pre.size() + 1, post.size());
+    addSf1("fake2");
+    checkNodes(router.getSf1Nodes(), 2);
+    checkCollections(router.getSf1Nodes("foo"), 2, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1",
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
+    checkCollections(router.getSf1Nodes("bar"), 0);
     
-    vector<string> coll = post.front().getCollections();
-    sleep(interval); // here you should change the data of your SF1 with zkCli
-                     // $ set /SF1R-XXX/SearchTopology/Replica1/Node1 
-                     //   collection#dummy$dataport#18121$baport#18181$masterport#18131$host#localhost
+    change("fake2");
+    checkNodes(router.getSf1Nodes(), 2);
+    checkCollections(router.getSf1Nodes("foo"), 1, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1");
+    checkCollections(router.getSf1Nodes("bar"), 1, 
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
     
-    post = router.getSf1List();\
-    BOOST_CHECK(coll.size() != post.front().getCollections().size());
+    removeSf1("fake1", false);
+    checkNodes(router.getSf1Nodes(), 1);
+    checkCollections(router.getSf1Nodes("foo"), 0);
+    checkCollections(router.getSf1Nodes("bar"), 1, 
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
     
-    sleep(interval); // here you should stop your local SF1
-    
-    post = router.getSf1List();
-    printList(post);
-    BOOST_CHECK_EQUAL(pre.size(), post.size());
+    removeSf1("fake2");
+    checkNodes(router.getSf1Nodes(), 0);
+    checkCollections(router.getSf1Nodes("foo"), 0);
+    checkCollections(router.getSf1Nodes("bar"), 0);
     
     // FIXME: on destruction, serverside there is the following exception
     // Unexpected Exception: java.nio.channels.CancelledKeyException

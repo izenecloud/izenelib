@@ -111,8 +111,7 @@ public:
      * @param nodes The list that will contain the requested nodes.
      * @param collection The collection name.
      */
-    void
-    getNodes(std::vector<Sf1Node>& nodes, const std::string& collection);
+    void getNodes(std::vector<Sf1Node>& nodes, const std::string& collection);
     
     /**
      * Get the list of all the nodes in the actual topology.

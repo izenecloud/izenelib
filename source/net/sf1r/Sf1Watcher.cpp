@@ -73,6 +73,9 @@ Sf1Watcher::onDataChanged(const string& path) {
 void 
 Sf1Watcher::onChildrenChanged(const string& path) {
     DLOG(INFO) << WATCHER_NAME << "children changed: " << path;
+    if (not boost::regex_match(path, NODE_REGEX)) {
+        router->watchChildren(path);
+    }
 }
 
 
