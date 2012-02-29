@@ -89,7 +89,7 @@ public:
         std::size_t old_size = left.size();
         left.insert(right.begin(), right.end());
 
-        return left.size() == old_size;
+        return left.size() > old_size;
     }
 
     template <class T1, class T2, class T3, class T4>
@@ -98,7 +98,7 @@ public:
         std::size_t old_size = left.size();
         left.insert(right.begin(), right.end());
 
-        return left.size() == old_size;
+        return left.size() > old_size;
     }
 };
 
