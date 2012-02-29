@@ -183,6 +183,7 @@ private:
     void Dispatch();
     void CaptureBufferSpace();
     void ReleaseBufferSpace();
+    void TruncateBuckets();
 
 public:
     Drum(std::string const& name,
@@ -1639,6 +1640,7 @@ Synchronize()
     this->FeedBuckets();
     this->MergeBuckets();
     this->ReleaseBufferSpace();
+    this->TruncateBuckets();
 }
 
 template <
@@ -1727,6 +1729,50 @@ ReleaseBufferSpace()
     std::vector<CompoundType>().swap(sorted_merge_buffer_);
     std::vector<std::size_t>().swap(unsorting_helper_);
     std::vector<AuxType>().swap(unsorted_aux_buffer_);
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t,
+    class appender_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t,
+    appender_t>::
+TruncateBuckets()
+{
+    for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
+    {
+        std::ofstream out_f;
+        const std::pair<std::string, std::string>& file_name = file_names_[bucket_id];
+
+        out_f.open(file_name.first.c_str(), std::ios_base::trunc);
+        if (!out_f.good())
+        {
+            std::string ex("Error truncating disk bucket: ");
+            ex.append(file_name.first);
+            throw DrumException(ex.c_str());
+        }
+        out_f.close();
+
+        out_f.open(file_name.second.c_str(), std::ios_base::trunc);
+        if (!out_f.good())
+        {
+            std::string ex("Error truncating disk bucket: ");
+            ex.append(file_name.second);
+            throw DrumException(ex.c_str());
+        }
+        out_f.close();
+    }
 }
 
 DRUM_END_NAMESPACE
