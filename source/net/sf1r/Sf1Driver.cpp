@@ -28,7 +28,6 @@ using std::vector;
  * \code 
  * MAX_SEQUENCE = (1 << 31) - 2
  * \endcode
- * It is also the upper limit of the number of requests in a batch request.
  * @see \ref limits
  */
 const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
@@ -109,7 +108,9 @@ throw(ClientError, ServerError, ConnectionPoolError) {
         throw ClientError("Malformed request");
     }
     
-    writer->setHeader(controller, action, tokens, request);
+    // process header: set action, controller, tokens and get collections
+    string collection;
+    writer->setHeader(controller, action, tokens, request, collection);
     LOG(INFO) << "Send " << getFormatString() << " request: " << request;
     
     // increment sequence
@@ -118,7 +119,7 @@ throw(ClientError, ServerError, ConnectionPoolError) {
     }
     
     RawClient& client = pool->acquire();
-
+    
     client.sendRequest(sequence, request);
     Response response = client.getResponse();
     uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();

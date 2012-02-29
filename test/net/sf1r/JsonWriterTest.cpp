@@ -20,43 +20,46 @@ struct TestRequest {
     string action;
     string tokens;
     string request;
+    string collection;
     string expected;
-    TestRequest(cc c, cc a, cc t, cc r, cc e)
-            : controller(c), action(a), tokens(t), request(r), expected(e) {};
+    TestRequest(cc c, cc a, cc t, cc r, cc x, cc e)
+            : controller(c), action(a), tokens(t), request(r), collection(x), expected(e) {};
 };
 
 BOOST_AUTO_TEST_CASE(setHeader_test) {
     vector<TestRequest> tests;
     // all data present
     tests.push_back(TestRequest("test","echo","token",
-            "{\"message\":\"Ciao! 你好！\"}",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"controller\":\"test\",\"action\":\"echo\",\"acl_tokens\":\"token\"}}"));
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"test\"}", "test",
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"test\",\"header\":{\"controller\":\"test\",\"action\":\"echo\",\"acl_tokens\":\"token\"}}"));
     // no tokens
     tests.push_back(TestRequest("test","echo","",
-            "{\"message\":\"Ciao! 你好！\"}",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"controller\":\"test\",\"action\":\"echo\"}}"));
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"test\"}", "test",
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"test\",\"header\":{\"controller\":\"test\",\"action\":\"echo\"}}"));
     // no action
     tests.push_back(TestRequest("test","","token",
-            "{\"message\":\"Ciao! 你好！\"}",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"controller\":\"test\",\"acl_tokens\":\"token\"}}"));
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"tost\"}", "tost",
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"tost\",\"header\":{\"controller\":\"test\",\"acl_tokens\":\"token\"}}"));
     // no action no tokens
     tests.push_back(TestRequest("test","","",
-            "{\"message\":\"Ciao! 你好！\"}",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"controller\":\"test\"}}"));
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"tost\"}", "tost",
+            "{\"message\":\"Ciao! 你好！\",\"collection\":\"tost\",\"header\":{\"controller\":\"test\"}}"));
     // header already present
     tests.push_back(TestRequest("test","","",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true}}",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true,\"controller\":\"test\"}}"));
+            "{\"collection\":\"\",\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true}}", "",
+            "{\"collection\":\"\",\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true,\"controller\":\"test\"}}"));
     // header already present
     tests.push_back(TestRequest("test","","token",
-            "{\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true}}",
+            "{\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true}}", "",
             "{\"message\":\"Ciao! 你好！\",\"header\":{\"check_time\":true,\"controller\":\"test\",\"acl_tokens\":\"token\"}}"));
     
     
     JsonWriter writer;
     for (vector<TestRequest>::iterator it = tests.begin(); it < tests.end(); it++) {
-        writer.setHeader(it->controller, it->action, it->tokens, it->request);
+        string coll;
+        writer.setHeader(it->controller, it->action, it->tokens, it->request, coll);
         BOOST_CHECK_EQUAL(it->expected, it->request);
+        BOOST_CHECK_EQUAL(it->collection, coll);
     }
 }
 
