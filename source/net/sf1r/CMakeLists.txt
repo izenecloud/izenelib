@@ -12,9 +12,10 @@ if (sf1r_SHOULD_BUILD)
     )
 
     set(libsf1r_SOURCES
+        Sf1DriverBase.cpp
+        Sf1Driver.cpp
         RawClient.cpp
         ConnectionPool.cpp
-        Sf1Driver.cpp
         JsonWriter.cpp
         
         distributed/Sf1Node.cpp
@@ -35,4 +36,5 @@ if (sf1r_SHOULD_BUILD)
     install(TARGETS sf1r
             LIBRARY DESTINATION lib
             COMPONENT sf1r)
+
 endif(sf1r_SHOULD_BUILD)

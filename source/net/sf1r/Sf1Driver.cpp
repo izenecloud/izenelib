@@ -34,14 +34,10 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
-        const Sf1Config& parameters, 
-        const Format& fmt) throw(ServerError) 
-        : sequence(1), resolver(service),
-          query(/*tcp::v4(),*/ host, boost::lexical_cast<string>(port)),
-          format(fmt) {
+        const Sf1Config& parameters, const Format& fmt) throw(ServerError) 
+        : Sf1DriverBase(parameters, fmt), resolver(service),
+          query(host, boost::lexical_cast<string>(port)) {
     try {
-        setFormat();
-        
         iterator = resolver.resolve(query);
         initPool(parameters);
         
@@ -55,27 +51,14 @@ Sf1Driver::Sf1Driver(const string& host, const uint32_t& port,
 
 
 Sf1Driver::~Sf1Driver() {
-    delete pool;
-    
     LOG(INFO) << "Driver closed.";
 }
 
 
 void
-Sf1Driver::setFormat() {
-    switch (format) {
-    case JSON:
-    default:
-        writer.reset(new JsonWriter);
-        LOG(INFO) << "Using JSON data format.";
-    }
-}
-
-
-void
 Sf1Driver::initPool(const Sf1Config& params) {
-    pool = new ConnectionPool(service, iterator, 
-                params.initialSize, params.resize, params.maxSize);
+    pool.reset(new ConnectionPool(service, iterator, 
+                params.initialSize, params.resize, params.maxSize));
 }
 
 
@@ -153,16 +136,6 @@ throw(ClientError, ServerError, ConnectionPoolError) {
 inline size_t 
 Sf1Driver::getPoolSize() const {
     return pool->getSize();
-}
-
-
-inline string
-Sf1Driver::getFormatString() const {
-    switch (format) {
-    case JSON:
-    default:
-        return "JSON";
-    }
 }
 
 

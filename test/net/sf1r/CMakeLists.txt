@@ -81,6 +81,7 @@ list(APPEND ALL_TESTS t_ConnectionPoolTest)
 set(Sf1Driver_SOURCES
     ${SOURCE_DIR}/RawClient.cpp
     ${SOURCE_DIR}/Sf1Driver.cpp
+    ${SOURCE_DIR}/Sf1DriverBase.cpp
     Sf1DriverTest.cpp
 )
 add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES})
