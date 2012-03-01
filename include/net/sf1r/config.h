@@ -8,14 +8,18 @@
 #ifndef CONFIG_H
 #define	CONFIG_H
 
-// SF1 Driver namespace
+#include "types.h"
+
+/** SF1 Driver namespace. */
 #define NS_IZENELIB_SF1R izenelib::net::sf1r
 
+/** SF1 Driver namespace begin. */
 #define NS_IZENELIB_SF1R_BEGIN \
-                namespace izenelib { namespace net { namespace sf1r {
+        namespace izenelib { namespace net { namespace sf1r {
+
+/** SF1 Driver namespace end. */
 #define NS_IZENELIB_SF1R_END \
-                }}} /* namespace izenelib::net::sf1r */
+        }}} /* namespace izenelib::net::sf1r */
 
 
 #endif	/* CONFIG_H */
-

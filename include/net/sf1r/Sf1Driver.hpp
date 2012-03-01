@@ -10,7 +10,7 @@
 
 #include "config.h"
 #include "Errors.hpp"
-#include "types.h"
+#include "Sf1Config.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -25,22 +25,6 @@ NS_IZENELIB_SF1R_BEGIN
 
 class ConnectionPool;
 class Writer;
-
-
-/**
- * Container for the driver configuration parameters:
- * - initial pool size
- * - automatic pool resize
- * - maximum pool size
- */
-struct Sf1Config {
-    Sf1Config(const size_t& s, const bool r, const size_t& ms = 0)
-            : initialSize(s), resize(r), maxSize(ms) {}
-    
-    const size_t initialSize;           ///< Initial pool size.
-    const bool resize;                  ///< Automatic pool resize.
-    const size_t maxSize;               ///< Maximum pool size.
-};
 
 
 /**
