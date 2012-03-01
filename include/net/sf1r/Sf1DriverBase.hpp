@@ -13,11 +13,15 @@
 #include "Sf1Config.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 
 NS_IZENELIB_SF1R_BEGIN
     
+namespace ba = boost::asio;
 
+class PoolFactory;
 class Writer;
 
 
@@ -95,6 +99,9 @@ protected:
     /// Set data format used for request and responses.
     void setFormat();
     
+    ba::io_service service;
+    ba::ip::tcp::resolver resolver;
+    
     /// Request sequence number.
     uint32_t sequence;
     
@@ -106,6 +113,9 @@ protected:
     
     /// Pointer to the actual request/response format handler.
     boost::scoped_ptr<Writer> writer;
+    
+    /// ConnectionPool factory.
+    boost::scoped_ptr<PoolFactory> factory;
 };
 
 

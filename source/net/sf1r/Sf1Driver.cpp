@@ -8,6 +8,7 @@
 #include "net/sf1r/Sf1Driver.hpp"
 #include "ConnectionPool.hpp"
 #include "JsonWriter.hpp"
+#include "PoolFactory.hpp"
 #include "RawClient.hpp"
 #include "Utils.hpp"
 #include <boost/lexical_cast.hpp>
@@ -35,11 +36,9 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
         const Sf1Config& parameters, const Format& fmt) throw(ServerError) 
-        : Sf1DriverBase(parameters, fmt), resolver(service),
-          query(host, boost::lexical_cast<string>(port)) {
+        : Sf1DriverBase(parameters, fmt) {
     try {
-        iterator = resolver.resolve(query);
-        initPool(parameters);
+        pool.reset(factory->newConnectionPool(host, port));
         
         LOG(INFO) << "Driver ready.";
     } catch (system_error& e) {
@@ -52,13 +51,6 @@ Sf1Driver::Sf1Driver(const string& host, const uint32_t& port,
 
 Sf1Driver::~Sf1Driver() {
     LOG(INFO) << "Driver closed.";
-}
-
-
-void
-Sf1Driver::initPool(const Sf1Config& params) {
-    pool.reset(new ConnectionPool(service, iterator, 
-                params.initialSize, params.resize, params.maxSize));
 }
 
 

@@ -17,8 +17,6 @@
 NS_IZENELIB_SF1R_BEGIN
     
 
-namespace ba = boost::asio;
-
 class ConnectionPool;
 
 
@@ -55,14 +53,6 @@ public:
     size_t getPoolSize() const;
     
 private:
-    
-    /// Initializes the connection pool.
-    void initPool(const Sf1Config& parameters);
-    
-    ba::io_service service;
-    ba::ip::tcp::resolver resolver;
-    ba::ip::tcp::resolver::iterator iterator;
-    ba::ip::tcp::resolver::query query;
     
     boost::scoped_ptr<ConnectionPool> pool;
 };

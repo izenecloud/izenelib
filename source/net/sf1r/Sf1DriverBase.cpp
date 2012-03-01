@@ -6,8 +6,11 @@
  */
 
 #include "net/sf1r/Sf1DriverBase.hpp"
+#include "ConnectionPool.hpp"
 #include "JsonWriter.hpp"
+#include "PoolFactory.hpp"
 #include "RawClient.hpp"
+#include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
 
 
@@ -28,8 +31,9 @@ using std::vector;
 const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
-Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, 
-        const Format& fmt) : sequence(1), config(parameters), format(fmt) {
+Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt) 
+        : resolver(service), sequence(1), config(parameters), format(fmt),
+        factory(new PoolFactory(service, resolver, config)) {
     setFormat();
 }
 
