@@ -5,9 +5,9 @@
  * Created on February 20, 2012, 10:41 AM
  */
 
-#include "net/sf1r/Sf1Node.hpp"
+#include "net/sf1r/distributed/Sf1Node.hpp"
 #include "util/kv2string.h"
-#include "Utils.hpp"
+#include "../Utils.hpp"
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -19,8 +19,6 @@ using std::ostream;
 namespace {
     const string       HOST_KEY = "host";
     const string     BAPORT_KEY = "baport";
-    //const string   DATAPORT_KEY = "dataport";
-    //const string MASTERPORT_KEY = "masterport";
     const string COLLECTION_KEY = "collection";
     const char   DELIMITER_CHAR = ',';
 }

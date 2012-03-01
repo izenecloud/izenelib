@@ -8,9 +8,9 @@
 #define BOOST_TEST_MODULE ZookeeperRouterTest
 #include <boost/test/unit_test.hpp>
 
-#include "common.h"
+#include "../common.h"
 #include "3rdparty/zookeeper/ZooKeeper.hpp"
-#include "net/sf1r/ZooKeeperRouter.hpp"
+#include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
@@ -130,7 +130,6 @@ checkCollections(vector<Sf1Node>* list, const size_t& size,
 }
 
 BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
-    BOOST_TEST_CHECKPOINT("Connecting to ZooKeeper ...");
     ZooKeeperRouter router(hosts, recvTimeout);
     if (not router.isConnected()) throw runtime_error("ZooKeeper not found");
     

@@ -16,9 +16,11 @@ if (sf1r_SHOULD_BUILD)
         ConnectionPool.cpp
         Sf1Driver.cpp
         JsonWriter.cpp
-        Sf1Node.cpp
-        Sf1Watcher.cpp
-        ZooKeeperRouter.cpp
+        
+        distributed/Sf1Node.cpp
+        distributed/Sf1Topology.cpp
+        distributed/Sf1Watcher.cpp
+        distributed/ZooKeeperRouter.cpp
 
         ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     )

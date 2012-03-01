@@ -91,9 +91,9 @@ list(APPEND ALL_TESTS t_Sf1DriverTest)
 # Sf1Topology
 set(Sf1Topology_SOURCES
     ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
-    ${SOURCE_DIR}/Sf1Node.cpp
-    ${SOURCE_DIR}/Sf1Topology.cpp
-    Sf1TopologyTest.cpp)
+    ${SOURCE_DIR}/distributed/Sf1Node.cpp
+    ${SOURCE_DIR}/distributed/Sf1Topology.cpp
+    distributed/Sf1TopologyTest.cpp)
 add_executable(t_Sf1TopologyTest ${Sf1Topology_SOURCES})
 target_link_libraries(t_Sf1TopologyTest ${LIBS})
 list(APPEND ALL_TESTS t_Sf1TopologyTest)
@@ -101,10 +101,10 @@ list(APPEND ALL_TESTS t_Sf1TopologyTest)
 
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
-    ${SOURCE_DIR}/Sf1Watcher.cpp
-    ${SOURCE_DIR}/ZooKeeperRouter.cpp
-    ${SOURCE_DIR}/Sf1Topology.cpp
-    ZooKeeperRouterTest.cpp
+    ${SOURCE_DIR}/distributed/Sf1Watcher.cpp
+    ${SOURCE_DIR}/distributed/ZooKeeperRouter.cpp
+    ${SOURCE_DIR}/distributed/Sf1Topology.cpp
+    distributed/ZooKeeperRouterTest.cpp
 )
 add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})
 target_link_libraries(t_ZooKeeperRouterTest sf1r zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})

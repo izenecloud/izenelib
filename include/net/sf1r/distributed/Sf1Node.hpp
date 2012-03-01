@@ -8,14 +8,14 @@
 #ifndef SF1NODE_HPP
 #define	SF1NODE_HPP
 
-#include "config.h"
-#include "types.h"
+#include "../config.h"
 #include <boost/foreach.hpp>
 #include <ostream>
 #include <vector>
 #include <string>
 
 NS_IZENELIB_SF1R_BEGIN
+
 
 /**
  * Data structure representing a running SF1 instance.
@@ -93,7 +93,7 @@ public:
     /**
      * Prints this instance in the format: "host:port [ collection collection ]"
      */
-    friend std::ostream& operator<< (std::ostream& os, const Sf1Node& n) {
+    friend std::ostream& operator<<(std::ostream& os, const Sf1Node& n) {
         os << n.host << ":" << n.port;
         os << " [ ";
         BOOST_FOREACH(std::string coll, n.collections) {

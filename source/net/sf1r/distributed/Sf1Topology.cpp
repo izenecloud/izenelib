@@ -5,7 +5,7 @@
  * Created on February 22, 2012, 11:17 AM
  */
 
-#include "net/sf1r/Sf1Topology.hpp"
+#include "net/sf1r/distributed/Sf1Topology.hpp"
 #include <boost/foreach.hpp>
 #include <glog/logging.h>
 
@@ -85,6 +85,8 @@ Sf1Topology::getNodes(vector<Sf1Node>& nn, const string& collection) {
         string node = it->second;
         nn.push_back(*(nodes.find(node)));
     }
+    
+    // TODO: add here a routing policy (e.g. round robin)
 }
 
 
@@ -97,6 +99,8 @@ Sf1Topology::getNodes(vector<Sf1Node>& nn) {
     for(; it != index.end(); ++it) {
         nn.push_back(*it);
     }
+    
+    // TODO: add here a routing policy (e.g. round robin)
 }
 
         

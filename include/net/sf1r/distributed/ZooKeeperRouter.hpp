@@ -8,8 +8,7 @@
 #ifndef ZOOKEEPERROUTER_HPP
 #define	ZOOKEEPERROUTER_HPP
 
-#include "config.h"
-#include "types.h"
+#include "../config.h"
 #include "Sf1Node.hpp"
 #include <3rdparty/zookeeper/ZooKeeper.hpp>
 #include <boost/noncopyable.hpp>
@@ -65,7 +64,6 @@ public:
      * @return The list of all known SF1 instances hosting the given collection.
      */
     std::vector<Sf1Node>* getSf1Nodes(const std::string& collection) const;
-    
     
     /**
      * The watcher need to access private member functions.

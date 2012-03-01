@@ -7,7 +7,7 @@
 
 #include "Sf1Watcher.hpp"
 #include "ZooKeeperNamespace.hpp"
-#include "net/sf1r/ZooKeeperRouter.hpp"
+#include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include <boost/regex.hpp>
 #include <glog/logging.h>
 

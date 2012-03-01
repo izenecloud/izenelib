@@ -8,7 +8,8 @@
 #define BOOST_TEST_MODULE Sf1TopologyTest
 #include <boost/test/unit_test.hpp>
 
-#include "net/sf1r/Sf1Topology.hpp"
+#include "../common.h"
+#include "net/sf1r/distributed/Sf1Topology.hpp"
 #include <boost/foreach.hpp>
 #include <iostream>
 

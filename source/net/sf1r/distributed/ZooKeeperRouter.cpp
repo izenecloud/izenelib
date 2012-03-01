@@ -5,8 +5,8 @@
  * Created on February 17, 2012, 2:32 PM
  */
 
-#include "net/sf1r/ZooKeeperRouter.hpp"
-#include "net/sf1r/Sf1Topology.hpp"
+#include "net/sf1r/distributed/ZooKeeperRouter.hpp"
+#include "net/sf1r/distributed/Sf1Topology.hpp"
 #include "Sf1Watcher.hpp"
 #include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
@@ -51,9 +51,6 @@ ZooKeeperRouter::ZooKeeperRouter(const string& hosts, int recvTimeout) {
     LOG(INFO) << "Getting actual topology ...";
     topology = new Sf1Topology;
     loadTopology();
-    
-    // 3. connect to each of them using the Sf1Driver class
-    // TODO
     
     LOG(INFO) << "ZooKeeperRouter ready";
 }
@@ -164,7 +161,7 @@ ZooKeeperRouter::getSf1Nodes() const {
 
 
 vector<Sf1Node>*
-ZooKeeperRouter::getSf1Nodes(const std::string& collection) const {
+ZooKeeperRouter::getSf1Nodes(const string& collection) const {
     vector<Sf1Node>* nodes = new vector<Sf1Node>;
     topology->getNodes(*nodes, collection);
     return nodes;
