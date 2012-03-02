@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 
 /** Test the multi-indexed container. */
-BOOST_AUTO_TEST_SUITE(NodesContainerTest)
+BOOST_AUTO_TEST_SUITE(NodeContainerTest)
 
 /** Test fixture. */
 struct Nodes {
@@ -49,7 +49,7 @@ struct Nodes {
         container.insert(Sf1Node("/test/node4", "host4", 18181, "dummy"));
     }
     
-    NodesContainer container;
+    NodeContainer container;
 };
 
 /** Access using different indices. */
@@ -62,7 +62,7 @@ BOOST_FIXTURE_TEST_CASE(access_test, Nodes) {
     BOOST_CHECK_EQUAL("host1", container.find("/test/node1")->getHost());
     
     // by path (explicit)
-    NodesPathIndex& path_index = container.get<path>();
+    NodePathIndex& path_index = container.get<path>();
     BOOST_CHECK_EQUAL(1, path_index.count("/test/node1"));
     BOOST_CHECK_EQUAL(1, path_index.count("/test/node2"));
     BOOST_CHECK_EQUAL(1, path_index.count("/test/node3"));
@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(access_test, Nodes) {
     BOOST_CHECK_EQUAL("host1", path_index.find("/test/node1")->getHost());
     
     // random access (explicit)
-    NodesListIndex& list_index = container.get<list>();
+    NodeListIndex& list_index = container.get<list>();
     BOOST_CHECK_EQUAL(4, list_index.size());
     BOOST_CHECK_EQUAL("/test/node1", list_index[0].getPath());
     BOOST_CHECK_EQUAL("/test/node2", list_index[1].getPath());
@@ -85,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE(erase_path_test, Nodes) {
     BOOST_CHECK_EQUAL(0, container.count("/test/node4"));
     
     // by path (explicit)
-    NodesPathIndex& path_index =  container.get<path>();
+    NodePathIndex& path_index =  container.get<path>();
     path_index.erase("/test/node3");
     BOOST_CHECK_EQUAL(0, container.count("/test/node3"));
 }
@@ -96,11 +96,10 @@ BOOST_AUTO_TEST_SUITE_END()
 /** Test the wrapper class Sf1Topology. */
 BOOST_AUTO_TEST_SUITE(Sf1TopologyTest)
 
-void
+inline void
 checkCollections(Sf1Topology& topology, const std::string& collection,
                  const size_t expectedSize) {
-    vector<Sf1Node> nodes;
-    topology.getNodes(nodes, collection);
+    NodeList nodes = topology.getNodesFor(collection);
     BOOST_CHECK_EQUAL(expectedSize, nodes.size());
 }
 
@@ -108,7 +107,7 @@ checkCollections(Sf1Topology& topology, const std::string& collection,
 //#define DUMP
 
 void 
-dumpNodes(NodesContainer& nodes) {
+dumpNodes(NodeContainer& nodes) {
 #ifdef DUMP
     cout << "=== dump nodes ===" << endl;
     BOOST_FOREACH(Sf1Node node, nodes) {
@@ -123,11 +122,10 @@ dumpCollections(set<string>& index, CollectionsContainer& colls) {
 #ifdef DUMP    
     cout << "--- dump collections ---" << endl;
     BOOST_FOREACH(string col, index) {
-        pair<CollectionsContainer::iterator, CollectionsContainer::iterator> range
-                = colls.equal_range(col);
+        CollectionsRange range = colls.equal_range(col);
         cout << col << " =>";
         for (CollectionsContainer::iterator it = range.first; it != range.second; ++it) {
-            cout << " " << it->second;
+            cout << " " << it->second->getPath();
         }
         cout << endl;
     }
@@ -212,35 +210,40 @@ struct Nodes {
 
 /** Use node-collections relationship. */
 BOOST_FIXTURE_TEST_CASE(nodes_collections_test, Nodes) {
-    vector<Sf1Node> nodes;
+    NodeList nodes;
     
-    topology.getNodes(nodes, "coll1");
+    nodes = topology.getNodesFor("coll1");
     BOOST_CHECK_EQUAL(3, nodes.size());
-    BOOST_FOREACH(Sf1Node n, nodes) {
-        BOOST_CHECK(n.getPath() == "/test/node1" or n.getPath() == "/test/node3" or n.getPath() == "/test/node4");
+    BOOST_FOREACH(Sf1NodePtr n, nodes) {
+        BOOST_CHECK(n->getPath() == "/test/node1" or n->getPath() == "/test/node3" or n->getPath() == "/test/node4");
     }
     
-    topology.getNodes(nodes, "coll2");
+    nodes = topology.getNodesFor("coll2");
     BOOST_CHECK_EQUAL(2, nodes.size());
-    BOOST_FOREACH(Sf1Node n, nodes) {
-        BOOST_CHECK(n.getPath() == "/test/node2" or n.getPath() == "/test/node3");
+    BOOST_FOREACH(Sf1NodePtr n, nodes) {
+        BOOST_CHECK(n->getPath() == "/test/node2" or n->getPath() == "/test/node3");
     }
     
-    topology.getNodes(nodes, "coll3");
+    nodes = topology.getNodesFor("coll3");
     BOOST_CHECK_EQUAL(1, nodes.size());
-    BOOST_FOREACH(Sf1Node n, nodes) {
-        BOOST_CHECK(n.getPath() == "/test/node4");
+    BOOST_FOREACH(Sf1NodePtr n, nodes) {
+        BOOST_CHECK(n->getPath() == "/test/node4");
     }
     
-    topology.getNodes(nodes, "coll5");
+    nodes = topology.getNodesFor("coll5");
     BOOST_CHECK_EQUAL(0, nodes.size());
 }
 
 /** Use nodes. */
 BOOST_FIXTURE_TEST_CASE(all_collections_test, Nodes) {
-    vector<Sf1Node> nodes;
-    topology.getNodes(nodes);
-    BOOST_CHECK_EQUAL(4, nodes.size());
+    NodeListRange range = topology.getNodes();
+    BOOST_CHECK_EQUAL(4, range.second - range.first);
+}
+
+/** Use node-collections relationship. */
+BOOST_FIXTURE_TEST_CASE(routing_test, Nodes) {
+    //Sf1Node& node = topology.getNodeFor("coll1");
+    //BOOST_CHECK_EQUAL("/test/node1", node.getPath());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

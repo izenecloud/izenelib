@@ -1,12 +1,12 @@
 /* 
- * File:   NodesContainer.hpp
+ * File:   NodeContainer.hpp
  * Author: paolo
  *
  * Created on February 29, 2012, 4:42 PM
  */
 
-#ifndef NODESCONTAINER_HPP
-#define	NODESCONTAINER_HPP
+#ifndef NODECONTAINER_HPP
+#define	NODECONTAINER_HPP
 
 #include "../config.h"
 #include "Sf1Node.hpp"
@@ -44,19 +44,24 @@ typedef boost::multi_index_container<
             bm::tag<list>
         >
     >
-> NodesContainer;
+> NodeContainer;
 
 /** Index on tag path. */
-typedef NodesContainer::index<path>::type NodesPathIndex;
+typedef NodeContainer::index<path>::type NodePathIndex;
 /** Iterator on tag path. */
-typedef NodesPathIndex::iterator NodesPathIterator;
+typedef NodePathIndex::iterator NodePathIterator;
 
 /** Index on tag list.*/
-typedef NodesContainer::index<list>::type NodesListIndex;
+typedef NodeContainer::index<list>::type NodeListIndex;
 /** Iterator on tag list. */
-typedef NodesListIndex::iterator NodesListIterator;
+typedef NodeListIndex::iterator NodeListIterator;
+/** Iterator range on \ref NodeListIndex. */
+typedef std::pair<NodeListIterator, NodeListIterator> NodeListRange;
+
+/** List of pointers to nodes. */
+typedef std::vector<Sf1NodePtr> NodeList;
 
 
 NS_IZENELIB_SF1R_END
 
-#endif	/* NODESCONTAINER_HPP */
+#endif	/* NODECONTAINER_HPP */

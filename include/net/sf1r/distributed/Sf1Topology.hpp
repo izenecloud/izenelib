@@ -11,7 +11,7 @@
 #include "../config.h"
 #include "Sf1Node.hpp"
 #include "CollectionsContainer.hpp"
-#include "NodesContainer.hpp"
+#include "NodeContainer.hpp"
 #include <vector>
 
 NS_IZENELIB_SF1R_BEGIN
@@ -50,19 +50,29 @@ public:
     * @param path The path of the node to be removed.
     */
     void removeNode(const std::string& path);
-
-    /**
-     * Get the list of nodes in the actual topology having the specified collection.
-     * @param nodes The list that will contain the requested nodes.
-     * @param collection The collection name.
-     */
-    void getNodes(std::vector<Sf1Node>& nodes, const std::string& collection);
+    
+public:
     
     /**
-     * Get the list of all the nodes in the actual topology.
-     * @param nodes The list that will contain the requested nodes.
+     * Retrieve a node at a given path.
+     * @param path The path of the node be retrieved
+     * @return The iterator to the searched node.
      */
-    void getNodes(std::vector<Sf1Node>& nodes);
+    NodePathIterator getNodeAt(const std::string& path);
+
+    /**
+     * Get a view on all the nodes in the actual topology 
+     * hosting the specified collection.
+     * @param collection The collection name.
+     * @return A list of iterators.
+     */
+    NodeList getNodesFor(const std::string& collection);
+        
+    /**
+     * Get a view on all the nodes in the actual topology.
+     * @return An iterator range.
+     */
+    NodeListRange getNodes();
     
     /**
      * @return The number of actual nodes.
@@ -82,7 +92,7 @@ public:
     
 private:
     // nodes in topology
-    NodesContainer nodes;
+    NodeContainer nodes;
     
     // collections by node
     CollectionsContainer collections;
@@ -93,7 +103,7 @@ private:
 #ifdef ENABLE_ZK_TEST
     
 public: // for tests only 
-    NodesContainer& _nodes() { return nodes; }
+    NodeContainer& _nodes() { return nodes; }
     CollectionsContainer& _colls() { return collections; }
     CollectionsIndex& _index() { return index; }
     

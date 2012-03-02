@@ -18,7 +18,7 @@ using std::vector;
 
 void
 Sf1Topology::addNode(const string& path, const string& data) {
-    DLOG(INFO) << "adding node: " << path << "...";
+    DLOG(INFO) << "adding node: " << path << " ...";
     
     Sf1Node node(path, data);
     // add node
@@ -26,7 +26,7 @@ Sf1Topology::addNode(const string& path, const string& data) {
     // add collections
     BOOST_FOREACH(string collection, node.getCollections()) {
         index.insert(collection);
-        collections.insert(CollectionsContainer::value_type(collection, node.getPath()));
+        collections.insert(CollectionsContainer::value_type(collection, &*nodes.find(path)));
     }
 }
 
@@ -35,7 +35,7 @@ void
 Sf1Topology::updateNode(const string& path, const string& data) {
     DLOG(INFO) << "updating node: " << path << "...";
     
-    // XXX tricky: remove and add
+    // quick & dirty (TM)
     removeNode(path);
     addNode(path, data);
 }
@@ -46,7 +46,7 @@ Sf1Topology::removeNode(const string& path) {
     DLOG(INFO) << "removing node: " << path << "...";
     
     // remove collections
-    NodesPathIterator node = nodes.find(path);
+    NodePathIterator node = nodes.find(path);
     BOOST_FOREACH(string col, node->getCollections()) {
         size_t n = collections.count(col);
         if (n == 1) { // only one node handling that collection
@@ -58,7 +58,7 @@ Sf1Topology::removeNode(const string& path) {
         
         CollectionsRange range = collections.equal_range(col);
         for (CollectionsIterator it = range.first; it != range.second; ++it) {
-            if (it->second == path) {
+            if (it->second->getPath() == path) {
                 collections.erase(it);
             }
         }
@@ -69,38 +69,29 @@ Sf1Topology::removeNode(const string& path) {
 }
 
 
-inline void
-ensureEmpty(vector<Sf1Node>& nn) {
-    if (not nn.empty()) {
-        nn.clear();
-    }
+NodePathIterator
+Sf1Topology::getNodeAt(const std::string& path) {
+    return nodes.find(path);
 }
 
-void
-Sf1Topology::getNodes(vector<Sf1Node>& nn, const string& collection) {
-    ensureEmpty(nn);
+
+NodeList
+Sf1Topology::getNodesFor(const string& collection) {
+    NodeList list;
     
     CollectionsRange range = collections.equal_range(collection);
     for (CollectionsIterator it = range.first; it != range.second; ++it) {
-        string node = it->second;
-        nn.push_back(*(nodes.find(node)));
+        list.push_back(it->second);
     }
     
-    // TODO: add here a routing policy (e.g. round robin)
+    return list;
 }
 
 
-void 
-Sf1Topology::getNodes(vector<Sf1Node>& nn) {
-    ensureEmpty(nn);
-    
-    NodesContainer::index<list>::type& index = nodes.get<list>();
-    NodesContainer::index<list>::type::iterator it = index.begin();
-    for(; it != index.end(); ++it) {
-        nn.push_back(*it);
-    }
-    
-    // TODO: add here a routing policy (e.g. round robin)
+NodeListRange 
+Sf1Topology::getNodes() {
+    NodeListIndex& index = nodes.get<list>();
+    return std::make_pair(index.begin(), index.end());
 }
 
         

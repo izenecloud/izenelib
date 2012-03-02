@@ -15,6 +15,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <glog/logging.h>
 #include <string>
 
 NS_IZENELIB_SF1R_BEGIN
@@ -32,15 +33,19 @@ public:
      * Instantiates a new factory. 
      */
     PoolFactory(ba::io_service& _service, ba::ip::tcp::resolver& _resolver, Sf1Config& _config)
-        : service(_service), resolver(_resolver), config(_config) {}
+            : service(_service), resolver(_resolver), config(_config) {
+        DLOG(INFO) << "PoolFactory ready";
+    }
     
     /**
      * Instantiates a new connection pool.
      */
     ConnectionPool* newConnectionPool(const std::string& host, const uint32_t& port) {
+        DLOG(INFO) << "new connection pool to: [" << host << ":" << port << "]";
+        
         ba::ip::tcp::resolver::query query(host, boost::lexical_cast<std::string>(port));
         ba::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
-    
+        
         return new ConnectionPool(service, iterator, 
                 config.initialSize, config.resize, config.maxSize);
     }

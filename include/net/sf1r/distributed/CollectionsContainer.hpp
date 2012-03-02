@@ -16,7 +16,7 @@ NS_IZENELIB_SF1R_BEGIN
 
 
 /** Container providing a view on collections. */
-typedef std::multimap<std::string, std::string> CollectionsContainer;
+typedef std::multimap<std::string, Sf1NodePtr> CollectionsContainer;
 /** Iterator on \ref CollectionsContainer. */
 typedef CollectionsContainer::iterator CollectionsIterator;
 /** Iterator range on \ref CollectionsContainer. */

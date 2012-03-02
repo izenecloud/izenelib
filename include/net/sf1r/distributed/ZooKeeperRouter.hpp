@@ -9,6 +9,8 @@
 #define	ZOOKEEPERROUTER_HPP
 
 #include "../config.h"
+#include "NodeContainer.hpp"
+#include "PoolContainer.hpp"
 #include "Sf1Node.hpp"
 #include <3rdparty/zookeeper/ZooKeeper.hpp>
 #include <boost/noncopyable.hpp>
@@ -22,6 +24,7 @@ NS_IZENELIB_SF1R_BEGIN
 
 namespace iz = izenelib::zookeeper;
 
+class PoolFactory;
 class Sf1Watcher;
 class Sf1Topology;
 
@@ -38,9 +41,10 @@ public:
     /**
      * Constructor.
      * @param hosts A list of ZooKeeper hosts in the format "host:port[,host:port]".
-     * @param recvTimeout TODO
+     * @param timeout Sessio timeout.
      */
-    ZooKeeperRouter(const std::string& hosts, const int recvTimeout);
+    ZooKeeperRouter(PoolFactory* poolFactory,
+            const std::string& hosts, const int timeout);
     
     /**
      * Destructor.
@@ -55,22 +59,25 @@ public:
     }
     
     /**
-     * @return The list of all known SF1 instances.
+     * Get a view on all the nodes in the actual topology.
+     * @return An iterator range.
+     * @see Sf1Topology#getNodes()
      */
-    std::vector<Sf1Node>* getSf1Nodes() const;
+    NodeListRange getSf1Nodes() const;
     
     /**
-     * @param collection The collection to be searched.
-     * @return The list of all known SF1 instances hosting the given collection.
+     * Get a view on all the nodes in the actual topology 
+     * hosting the specified collection.
+     * @param collection The collection name.
+     * @return A list of iterators.
+     * @see Sf1Topology#getNodesFor()
      */
-    std::vector<Sf1Node>* getSf1Nodes(const std::string& collection) const;
-    
-    /**
-     * The watcher need to access private member functions.
-     */
-    friend class Sf1Watcher;
-    
+    NodeList getSf1Nodes(const std::string& collection) const;
+ 
 private:
+    
+    /** The watcher need to access private member functions. */
+    friend class Sf1Watcher;
     
     /** Adds a new cluster node. */
     void addClusterNode(const std::string& path);
@@ -102,6 +109,12 @@ private:
     
     /// Actual SF1 instances.
     Sf1Topology* topology;
+    
+    /// ConnectionPool factory;
+    PoolFactory* factory;
+    
+    /// Connection pools.
+    PoolContainer pools;
 };
 
 NS_IZENELIB_SF1R_END

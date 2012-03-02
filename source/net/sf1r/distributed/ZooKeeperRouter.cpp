@@ -7,6 +7,7 @@
 
 #include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include "net/sf1r/distributed/Sf1Topology.hpp"
+#include "../PoolFactory.hpp"
 #include "Sf1Watcher.hpp"
 #include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
@@ -33,14 +34,19 @@ const std::string  TOPOLOGY = "/SearchTopology";
 const boost::regex TPLG_REGEX("\\/SF1R-\\w+\\d?");
 const boost::regex NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
 
-
 }
 
 
-ZooKeeperRouter::ZooKeeperRouter(const string& hosts, int recvTimeout) { 
+ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, const string& hosts, int timeout) {
+    factory = poolFactory;
+    
     // 0. connect to ZooKeeper
-    LOG(INFO) << "Connecting to ZooKeeper servers:" << hosts;
-    client = new iz::ZooKeeper(hosts, recvTimeout, AUTO_RECONNECT);
+    LOG(INFO) << "Connecting to ZooKeeper servers: " << hosts;
+    client = new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT);
+    if (not client->isConnected()) {
+        // XXX this should be done in the ZooKeeper client
+        throw iz::ZooKeeperException("Not connected to (servers): " + hosts);
+    }
     
     // 1. register a watcher that will control the Sf1Driver instances
     LOG(INFO) << "Registering watcher ...";
@@ -73,6 +79,7 @@ ZooKeeperRouter::loadTopology() {
         string cluster = s + TOPOLOGY;
         addClusterNode(cluster);
     }
+    DLOG(INFO) << "found (" << clusters.size() << ") nodes";
 }
 
 
@@ -109,7 +116,16 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     client->getZNodeData(path, data, ZooKeeper::WATCH);
     LOG(INFO) << "node data: " << data;
 
+    // add node into topology
     topology->addNode(path, data);
+
+    // add pool for the node
+    if (factory != NULL) { // Should be NULL only in tests
+        NodePathIterator node = topology->getNodeAt(path);
+        DLOG(INFO) << "getting connection pool for node: " << node->getPath();
+        ConnectionPool* pool = factory->newConnectionPool(node->getHost(), node->getPort());
+        pools.insert(std::make_pair(node->getHost(), pool));
+    }
 }
 
 
@@ -130,7 +146,12 @@ ZooKeeperRouter::removeClusterNode(const string& path) {
     boost::lock_guard<boost::mutex> lock(mutex);
     
     DLOG(INFO) << "cluster: " << path;
+    
+    // remove node from topology
     topology->removeNode(path);
+    
+    // remove its pool
+    pools.erase(path);
 }
 
 
@@ -152,19 +173,16 @@ ZooKeeperRouter::watchChildren(const std::string& path) {
 }
 
 
-vector<Sf1Node>*
+NodeListRange
 ZooKeeperRouter::getSf1Nodes() const {
-    vector<Sf1Node>* nodes = new vector<Sf1Node>;
-    topology->getNodes(*nodes);
-    return nodes;
+    return topology->getNodes();
 }
 
 
-vector<Sf1Node>*
+NodeList
 ZooKeeperRouter::getSf1Nodes(const string& collection) const {
-    vector<Sf1Node>* nodes = new vector<Sf1Node>;
-    topology->getNodes(*nodes, collection);
-    return nodes;
+    return topology->getNodesFor(collection);
 }
+
 
 NS_IZENELIB_SF1R_END
