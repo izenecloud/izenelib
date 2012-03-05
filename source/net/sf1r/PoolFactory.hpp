@@ -10,6 +10,7 @@
 
 #include "net/sf1r/config.h"
 #include "net/sf1r/Sf1Config.hpp"
+#include "net/sf1r/distributed/Sf1Node.hpp"
 #include "ConnectionPool.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/noncopyable.hpp>
@@ -17,6 +18,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <glog/logging.h>
 #include <string>
+
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -37,6 +39,11 @@ public:
         DLOG(INFO) << "PoolFactory ready";
     }
     
+    /// Desctructor.
+    ~PoolFactory() {
+        DLOG(INFO) << "PoolFactory destroyed";
+    }
+    
     /**
      * Instantiates a new connection pool.
      */
@@ -48,6 +55,20 @@ public:
         
         return new ConnectionPool(service, iterator, 
                 config.initialSize, config.resize, config.maxSize);
+    }
+    
+    /**
+     * Instantiates a new connection pool.
+     */
+    ConnectionPool* newConnectionPool(const Sf1Node& node) {
+        DLOG(INFO) << "new connection pool to: [" << node << "]";
+        
+        ba::ip::tcp::resolver::query query(node.getHost(), boost::lexical_cast<std::string>(node.getPort()));
+        ba::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
+        
+        return new ConnectionPool(service, iterator, 
+                config.initialSize, config.resize, config.maxSize,
+                node.getPath());
     }
     
 private:

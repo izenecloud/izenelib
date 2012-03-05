@@ -15,6 +15,8 @@ NS_IZENELIB_SF1R_BEGIN
 
 class ConnectionPool;
 
+
+/** Cointainer of pointers to ConectionPool. */
 typedef std::map<std::string, ConnectionPool*> PoolContainer;
 
 

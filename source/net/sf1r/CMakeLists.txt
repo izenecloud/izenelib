@@ -18,6 +18,7 @@ if (sf1r_SHOULD_BUILD)
         ConnectionPool.cpp
         JsonWriter.cpp
         
+        distributed/Sf1DistributedDriver.cpp
         distributed/Sf1Node.cpp
         distributed/Sf1Topology.cpp
         distributed/Sf1Watcher.cpp

@@ -22,6 +22,7 @@ NS_IZENELIB_SF1R_BEGIN
 namespace ba = boost::asio;
 
 class PoolFactory;
+class RawClient;
 class Writer;
 
 
@@ -63,8 +64,8 @@ public:
      * @throw ConnectionPoolError if there is no connection available.
      * @return The response body.
      */ 
-    virtual std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(ClientError, ServerError, ConnectionPoolError) = 0;
+    std::string call(const std::string& uri, const std::string& tokens,
+        std::string& request) throw(ClientError, ServerError, ConnectionPoolError);
     
     /**
      * @return The sequence number of the next request.
@@ -99,7 +100,17 @@ protected:
     /// Set data format used for request and responses.
     void setFormat();
     
+    /// Acquire a connection to the SF1 according to the given collection.
+    virtual RawClient& acquire(const std::string& collection) const = 0;
+    
+    /// Release the given connection.
+    virtual void release(const RawClient& connection) const = 0;
+    
+protected:
+    
+    /// Input/Output service.
     ba::io_service service;
+    /// TCP host resolver.
     ba::ip::tcp::resolver resolver;
     
     /// Request sequence number.

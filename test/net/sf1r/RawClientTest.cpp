@@ -48,6 +48,7 @@ BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
+    BOOST_CHECK_EQUAL("", client.getPath());
 }
 
 
@@ -56,9 +57,10 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator);
+    RawClient client(service, iterator, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
+    BOOST_CHECK_EQUAL("/path", client.getPath());
     
     client.sendRequest(sequence, message);
     BOOST_CHECK(not client.idle());

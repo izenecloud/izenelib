@@ -14,6 +14,7 @@
 #include "Sf1Node.hpp"
 #include <3rdparty/zookeeper/ZooKeeper.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include <map>
 #include <string>
@@ -25,6 +26,7 @@ NS_IZENELIB_SF1R_BEGIN
 namespace iz = izenelib::zookeeper;
 
 class PoolFactory;
+class RawClient;
 class Sf1Watcher;
 class Sf1Topology;
 
@@ -73,6 +75,19 @@ public:
      * @see Sf1Topology#getNodesFor()
      */
     NodeList getSf1Nodes(const std::string& collection) const;
+    
+    /**
+     * Get a connection to a node hosting the given collection.
+     * @param collection The collection name
+     * @return A reference to the RawClient
+     */
+    RawClient& getConnection(const std::string& collection);
+    
+    /**
+     * Release a connection.
+     * @param path The node path for which the collection is released.
+     */
+    void releaseConnection(const RawClient& connection);
  
 private:
     
@@ -102,13 +117,13 @@ private:
     boost::mutex mutex;
     
     /// ZooKeeper client.
-    iz::ZooKeeper* client;
+    boost::scoped_ptr<iz::ZooKeeper> client;
     
     /// ZooKeeper event handler.
-    Sf1Watcher* watcher;
+    boost::scoped_ptr<Sf1Watcher> watcher;
     
     /// Actual SF1 instances.
-    Sf1Topology* topology;
+    boost::scoped_ptr<Sf1Topology> topology;
     
     /// ConnectionPool factory;
     PoolFactory* factory;

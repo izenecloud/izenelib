@@ -83,6 +83,7 @@ Sf1Topology::getNodesFor(const string& collection) {
     for (CollectionsIterator it = range.first; it != range.second; ++it) {
         list.push_back(it->second);
     }
+    DLOG(INFO) << "found (" << list.size() << ") nodes for collection: " << collection;
     
     return list;
 }

@@ -79,9 +79,6 @@ list(APPEND ALL_TESTS t_ConnectionPoolTest)
 
 # Sf1Driver
 set(Sf1Driver_SOURCES
-    ${SOURCE_DIR}/RawClient.cpp
-    ${SOURCE_DIR}/Sf1Driver.cpp
-    ${SOURCE_DIR}/Sf1DriverBase.cpp
     Sf1DriverTest.cpp
 )
 add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES})
@@ -102,14 +99,21 @@ list(APPEND ALL_TESTS t_Sf1TopologyTest)
 
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
-    ${SOURCE_DIR}/distributed/Sf1Watcher.cpp
-    ${SOURCE_DIR}/distributed/ZooKeeperRouter.cpp
-    ${SOURCE_DIR}/distributed/Sf1Topology.cpp
     distributed/ZooKeeperRouterTest.cpp
 )
 add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})
-target_link_libraries(t_ZooKeeperRouterTest sf1r zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(t_ZooKeeperRouterTest sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_ZooKeeperRouterTest)
+
+
+# Sf1DistributedDriver
+set(Sf1DistributedDriver_SOURCES
+    distributed/Sf1DistributedDriverTest.cpp
+)
+add_executable(t_Sf1DistributedDriver ${Sf1DistributedDriver_SOURCES})
+target_link_libraries(t_Sf1DistributedDriver sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_Sf1DistributedDriver)
+
 
 # shortcut for building all tests
 add_custom_target(Sf1Tests DEPENDS ${ALL_TESTS})

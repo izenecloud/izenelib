@@ -8,6 +8,7 @@
 #include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include "net/sf1r/distributed/Sf1Topology.hpp"
 #include "../PoolFactory.hpp"
+#include "../RawClient.hpp"
 #include "Sf1Watcher.hpp"
 #include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
@@ -37,25 +38,24 @@ const boost::regex NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\
 }
 
 
-ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, const string& hosts, int timeout) {
-    factory = poolFactory;
-    
+ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, 
+        const string& hosts, int timeout) : factory(poolFactory) {
     // 0. connect to ZooKeeper
     LOG(INFO) << "Connecting to ZooKeeper servers: " << hosts;
-    client = new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT);
+    client.reset(new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT));
     if (not client->isConnected()) {
-        // XXX this should be done in the ZooKeeper client
+        // XXX: this should be done in the ZooKeeper client
         throw iz::ZooKeeperException("Not connected to (servers): " + hosts);
     }
     
     // 1. register a watcher that will control the Sf1Driver instances
     LOG(INFO) << "Registering watcher ...";
-    watcher = new Sf1Watcher(this);
-    client->registerEventHandler(watcher);
+    watcher.reset(new Sf1Watcher(this));
+    client->registerEventHandler(watcher.get());
     
     // 2. obtain the list of actually running SF1 servers
     LOG(INFO) << "Getting actual topology ...";
-    topology = new Sf1Topology;
+    topology.reset(new Sf1Topology);
     loadTopology();
     
     LOG(INFO) << "ZooKeeperRouter ready";
@@ -63,9 +63,11 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, const string& hosts, 
 
 
 ZooKeeperRouter::~ZooKeeperRouter() {
-    delete client;
-    delete watcher;
-    delete topology;
+    BOOST_FOREACH(PoolContainer::value_type& i, pools) {
+        delete i.second;
+    }
+    
+    DLOG(INFO) << "ZooKeeperRouter destroyed";
 }
 
 
@@ -79,7 +81,7 @@ ZooKeeperRouter::loadTopology() {
         string cluster = s + TOPOLOGY;
         addClusterNode(cluster);
     }
-    DLOG(INFO) << "found (" << clusters.size() << ") nodes";
+    DLOG(INFO) << "found (" << topology->count() << ") nodes";
 }
 
 
@@ -123,8 +125,8 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     if (factory != NULL) { // Should be NULL only in tests
         NodePathIterator node = topology->getNodeAt(path);
         DLOG(INFO) << "getting connection pool for node: " << node->getPath();
-        ConnectionPool* pool = factory->newConnectionPool(node->getHost(), node->getPort());
-        pools.insert(std::make_pair(node->getHost(), pool));
+        ConnectionPool* pool = factory->newConnectionPool(*node);
+        pools.insert(std::make_pair(node->getPath(), pool));
     }
 }
 
@@ -151,7 +153,9 @@ ZooKeeperRouter::removeClusterNode(const string& path) {
     topology->removeNode(path);
     
     // remove its pool
-    pools.erase(path);
+    ConnectionPool* pool = pools[path];
+    CHECK_EQ(1, pools.erase(path));
+    delete pool;
 }
 
 
@@ -184,5 +188,39 @@ ZooKeeperRouter::getSf1Nodes(const string& collection) const {
     return topology->getNodesFor(collection);
 }
 
+
+RawClient&
+ZooKeeperRouter::getConnection(const string& collection) {
+    if (collection.empty()) {
+        DLOG(INFO) << "No collection specified, resolving to all nodes ...";
+        
+        NodeListRange range = getSf1Nodes();
+        // choose a node according to the routing policy
+        Sf1Node node = *range.first; // FIXME routing policy
+        DLOG(INFO) << "Resolved to node: " << node.getPath();
+        // get a connection from the node
+        ConnectionPool* pool = pools[node.getPath()];
+        CHECK(pool) << "NULL pool";
+        return pool->acquire();
+    } else {
+        DLOG(INFO) << "Resolving nodes for collection " << collection << " ...";
+        
+        NodeList nodes = getSf1Nodes(collection);
+        // choose a node according to the routing policy
+        Sf1NodePtr node = nodes.front(); // FIXME routing policy
+        DLOG(INFO) << "Resolved to node: " << node->getPath();
+        // get a connection from the node
+        ConnectionPool* pool = pools[node->getPath()];
+        CHECK(pool) << "NULL pool";
+        return pool->acquire();
+    }
+}
+
+
+void 
+ZooKeeperRouter::releaseConnection(const RawClient& connection) {
+    pools[connection.getPath()]->release();
+}
+    
 
 NS_IZENELIB_SF1R_END

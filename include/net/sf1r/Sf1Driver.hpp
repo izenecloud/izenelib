@@ -9,8 +9,6 @@
 #define	SF1DRIVER_HPP
 
 #include "Sf1DriverBase.hpp"
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/scoped_ptr.hpp>
 
 
@@ -22,6 +20,7 @@ class ConnectionPool;
 
 /**
  * SF1 driver.
+ * This class connects to a <b>single</b> SF1.
  */
 class Sf1Driver : public Sf1DriverBase {
 public:
@@ -40,13 +39,7 @@ public:
     
     /// Destructor.
     ~Sf1Driver();
-    
-    /**
-     * Sends a synchronous request to the SF1 server and get the response.
-     */ 
-    std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(ClientError, ServerError, ConnectionPoolError);
-    
+
     /**
      * @return The actual pool size.
      */
@@ -54,6 +47,15 @@ public:
     
 private:
     
+    /// Acquire a connection from the connection pool.
+    RawClient& acquire(const std::string& collection) const;
+    
+    /// Release a connection into the connection pool.
+    void release(const RawClient& connection) const;
+    
+private:
+    
+    /// Connection pool to the SF1.
     boost::scoped_ptr<ConnectionPool> pool;
 };
 

@@ -10,8 +10,6 @@
 
 #include "common.h"
 #include "net/sf1r/Sf1Driver.hpp"
-#include <boost/regex.hpp>
-#include <glog/logging.h>
 #include <string>
 
 using namespace NS_IZENELIB_SF1R;
@@ -20,7 +18,8 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
-    const Sf1Config conf(1, false);
+    const Sf1Config conf;
+    
     try {
         Sf1Driver driver(host, 18181, conf);
         BOOST_FAIL("ServerError expected");
@@ -34,9 +33,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 const string HOST = "localhost";
 const uint32_t PORT = 18181;
-const size_t POOL_SIZE = 1;
-const bool POOL_RESIZE = false;
-const Sf1Config CONF(POOL_SIZE, POOL_RESIZE);
+const Sf1Config CONF;
 
 
 BOOST_AUTO_TEST_CASE(malformed_request_uri) {
@@ -129,8 +126,8 @@ BOOST_AUTO_TEST_CASE(test_echo) {
 bool
 match(const string& s) {
     size_t pos = s.find("\"success\":");
-    return "true" == s.substr(pos + 10, 4);
-    
+    return (pos != string::npos) 
+        && ("true" == s.substr(pos + 10, 4));
 }
 
 BOOST_AUTO_TEST_CASE(documents_search) {

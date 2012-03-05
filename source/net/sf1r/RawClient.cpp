@@ -31,8 +31,9 @@ static const size_t HEADER_SIZE = 2 * UINT_SIZE;
 
 
 RawClient::RawClient(ba::io_service& service, 
-                     tcp::resolver::iterator& iterator) 
-        : socket(service), status(Idle) {
+                     tcp::resolver::iterator& iterator,
+                     const string& zkpath) 
+        : socket(service), status(Idle), path(zkpath) {
     try {
         DLOG(INFO) << "connecting ...";
         ba::connect(socket, iterator); 
