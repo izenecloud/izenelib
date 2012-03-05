@@ -91,6 +91,7 @@ public:
     }
     
 private:
+    
     // nodes in topology
     NodeContainer nodes;
     

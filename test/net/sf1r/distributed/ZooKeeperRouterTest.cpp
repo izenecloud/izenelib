@@ -179,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
     checkCollections("foo", router, 0);
     checkCollections("bar", router, 0);
     
-    // FIXME: on destruction, serverside there is the following exception
+    // XXX: on destruction, serverside there is the following exception
     // Unexpected Exception: java.nio.channels.CancelledKeyException
 }
 

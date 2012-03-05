@@ -36,7 +36,7 @@ JsonWriter::setHeader(const string& ctr, const string& act, const string& tks,
     rj::Document document;
     
 #if 0 // FIXME: error "Nothing should follow the root object or array."
-    char buffer[request.length()]; // XXX: use bigger size?
+    char buffer[request.length()];
     memcpy(buffer, request.c_str(), request.length());
     bool error = document.ParseInsitu<0>(buffer).HasParseError();
 #else

@@ -14,6 +14,12 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
+
+/* 
+ * TODO: if more functions are added, split into .hpp and .cpp files.
+ */
+
+
 /**
  * Split a string on delimiter character into a vector.
  * @param input The input string.

@@ -60,17 +60,15 @@ public:
      * Creates the driver client.
      * @param service A reference to the IO service.
      * @param iterator A reference to the endpoint iterator.
-     * @param path An ID for this instance (optional).
+     * @param id An ID for this instance (optional).
      * @throw boost::system::system_error if cannot connect.
      */
     RawClient(ba::io_service& service, 
               ba::ip::tcp::resolver::iterator& iterator,
-              const std::string& path = "");
+              const std::string& id = "");
     
     /// Destructor. Must not throw any exception.
     ~RawClient() throw();
-    
-    // TODO: keepalive
     
     /**
      * Checks the connection status.
@@ -100,8 +98,8 @@ public:
      * @return The ZooKeeper path associated to this client, 
      *         empty if undefined.
      */
-    std::string getPath() const { // TODO: rename to getId
-        return path;
+    std::string getPath() const {
+        return id;
     }
 
     /**
@@ -131,7 +129,7 @@ private:
     Status status;
     
     /// ZooKeeper path;
-    std::string path;
+    std::string id;
 };
 
 

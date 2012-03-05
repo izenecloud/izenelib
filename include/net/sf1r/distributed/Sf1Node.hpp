@@ -30,6 +30,7 @@ typedef const Sf1Node* Sf1NodePtr;
  */
 class Sf1Node {
 public:
+    
     /**
      * Constructor.
      * @param path
@@ -99,7 +100,8 @@ public:
     }
     
     /**
-     * Prints this instance in the format: "host:port [ collection collection ]"
+     * Prints this instance in the format: 
+     * "host:port [ collection collection ... ]"
      */
     friend std::ostream& operator<<(std::ostream& os, const Sf1Node& n) {
         os << n.host << ":" << n.port;
@@ -112,6 +114,7 @@ public:
     }
     
 private:
+    
     std::string path;
     std::string host;
     uint32_t port;

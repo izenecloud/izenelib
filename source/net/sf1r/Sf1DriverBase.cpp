@@ -21,6 +21,9 @@ NS_IZENELIB_SF1R_BEGIN
 using std::string;
 using std::vector;
 
+
+namespace {
+
 /**
  * Max sequence number.
  * Valued 4294967294 as defined in the Ruby client:
@@ -30,6 +33,8 @@ using std::vector;
  * @see \ref limits
  */
 const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
+
+}
 
 
 Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt) 
