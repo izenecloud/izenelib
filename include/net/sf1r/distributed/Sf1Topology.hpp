@@ -10,7 +10,6 @@
 
 #include "../config.h"
 #include "Sf1Node.hpp"
-#include "CollectionsContainer.hpp"
 #include "NodeContainer.hpp"
 #include <vector>
 
@@ -30,6 +29,12 @@ NS_IZENELIB_SF1R_BEGIN
  */
 class Sf1Topology {
 public:
+    
+    /// Constructor.
+    Sf1Topology();
+    
+    /// Destructor.
+    ~Sf1Topology();
     
     /**
     * Add a new node to the current topology.
@@ -56,17 +61,25 @@ public:
     /**
      * Retrieve a node at a given path.
      * @param path The path of the node be retrieved
-     * @return The iterator to the searched node.
+     * @return A reference to the requested node.
      */
-    NodePathIterator getNodeAt(const std::string& path);
+    const Sf1Node& getNodeAt(const std::string& path);
+    
+    /**
+     * Retrieve a node at a given position
+     * @param position The position index within the list view of nodes.
+     * @return A reference to the requested node.
+     * @see NodeContainer
+     */
+    const Sf1Node& getNodeAt(const size_t& position);
 
     /**
      * Get a view on all the nodes in the actual topology 
      * hosting the specified collection.
      * @param collection The collection name.
-     * @return A list of iterators.
+     * @return An iterator range.
      */
-    NodeList getNodesFor(const std::string& collection);
+    NodeCollectionsRange getNodesFor(const std::string& collection);
         
     /**
      * Get a view on all the nodes in the actual topology.
@@ -79,6 +92,14 @@ public:
      */
     size_t count() const {
         return nodes.size();
+    }
+    
+    /**
+     * @param collection The collection name
+     * @return The number of actual nodes hosting the given collection.
+     */
+    size_t count(const std::string collection) const {
+        return collections.count(collection);
     }
     
     /**
@@ -96,17 +117,17 @@ private:
     NodeContainer nodes;
     
     // collections by node
-    CollectionsContainer collections;
+    NodeCollectionsContainer collections; // TODO: rename nodeCollections
     // collections index
-    CollectionsIndex index;
+    NodeCollectionsIndex index; // TODO: rename collectionsIndex
     
     
 #ifdef ENABLE_ZK_TEST
     
 public: // for tests only 
     NodeContainer& _nodes() { return nodes; }
-    CollectionsContainer& _colls() { return collections; }
-    CollectionsIndex& _index() { return index; }
+    NodeCollectionsContainer& _colls() { return collections; }
+    NodeCollectionsIndex& _index() { return index; }
     
 #endif
     

@@ -123,10 +123,10 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
     // add pool for the node
     if (factory != NULL) { // Should be NULL only in tests
-        NodePathIterator node = topology->getNodeAt(path);
-        DLOG(INFO) << "getting connection pool for node: " << node->getPath();
-        ConnectionPool* pool = factory->newConnectionPool(*node);
-        pools.insert(std::make_pair(node->getPath(), pool));
+        const Sf1Node& node = topology->getNodeAt(path);
+        DLOG(INFO) << "getting connection pool for node: " << node.getPath();
+        ConnectionPool* pool = factory->newConnectionPool(node);
+        pools.insert(PoolContainer::value_type(node.getPath(), pool));
     }
 }
 
@@ -183,7 +183,7 @@ ZooKeeperRouter::getSf1Nodes() const {
 }
 
 
-NodeList
+NodeCollectionsRange
 ZooKeeperRouter::getSf1Nodes(const string& collection) const {
     return topology->getNodesFor(collection);
 }
@@ -205,9 +205,9 @@ ZooKeeperRouter::getConnection(const string& collection) {
     } else {
         DLOG(INFO) << "Resolving nodes for collection " << collection << " ...";
         
-        NodeList nodes = getSf1Nodes(collection);
+        NodeCollectionsRange range = getSf1Nodes(collection);
         // choose a node according to the routing policy
-        Sf1NodePtr node = nodes.front(); // FIXME routing policy
+        Sf1NodePtr node = range.first->second; // FIXME routing policy
         DLOG(INFO) << "Resolved to node: " << node->getPath();
         // get a connection from the node
         ConnectionPool* pool = pools[node->getPath()];

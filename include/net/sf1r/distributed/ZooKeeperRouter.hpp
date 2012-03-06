@@ -71,10 +71,10 @@ public:
      * Get a view on all the nodes in the actual topology 
      * hosting the specified collection.
      * @param collection The collection name.
-     * @return A list of iterators.
+     * @return An iterator range.
      * @see Sf1Topology#getNodesFor()
      */
-    NodeList getSf1Nodes(const std::string& collection) const;
+    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
     
     /**
      * Get a connection to a node hosting the given collection.

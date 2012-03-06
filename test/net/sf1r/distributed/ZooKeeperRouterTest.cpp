@@ -109,14 +109,15 @@ printRange(const NodeListRange& range) {
 }
 
 void 
-printList(const NodeList& list, const string& collection) {
+printList(const NodeCollectionsList& list, const string& collection) {
     cout << "nodes[" << collection << "]:" << endl;
     if (list.empty()) {
         cout << "*** empty ***" << endl;
         return;
     }
-        
-    BOOST_FOREACH(Sf1NodePtr n, list) {
+    
+    BOOST_FOREACH(const NodeCollectionsList::value_type& value,  list) {
+        Sf1NodePtr n = value.second;
         cout << "* " << *n << endl;
         BOOST_CHECK(not n->getCollections().empty());
     }
@@ -133,13 +134,14 @@ void
 checkCollections(const string& collection, 
         const ZooKeeperRouter& router, const size_t& size, 
         const string& path1 = "", const string& path2 = "") {
-    NodeList list = router.getSf1Nodes(collection);
+    NodeCollectionsRange range = router.getSf1Nodes(collection);
+    NodeCollectionsList list(range.first, range.second);
     printList(list, collection);
     BOOST_CHECK_EQUAL(size, list.size());
     if (not path1.empty())
-        BOOST_CHECK_EQUAL(path1, list[0]->getPath());
+        BOOST_CHECK_EQUAL(path1, list[0].second->getPath());
     if (not path2.empty())
-        BOOST_CHECK_EQUAL(path2, list[1]->getPath());
+        BOOST_CHECK_EQUAL(path2, list[1].second->getPath());
 }
 
 BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {

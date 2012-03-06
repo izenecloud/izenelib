@@ -15,6 +15,8 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <map>
+#include <set>
 
 
 NS_IZENELIB_SF1R_BEGIN
@@ -22,14 +24,16 @@ NS_IZENELIB_SF1R_BEGIN
 namespace bm = boost::multi_index;
 
 
-/** Index tag for searching by node path. */
+/** Index tag for node path. */
 struct path {};
 
-/** Index tag for nodes list. */
+/** Index tag for node list. */
 struct list {};
 
 /**
  * Multi indexed container for the actual SF1 topology.
+ * It is possible to access a node by its path (as in a map)
+ * or by its position (as in a list).
  */
 typedef boost::multi_index_container<
     Sf1Node,
@@ -58,8 +62,19 @@ typedef NodeListIndex::iterator NodeListIterator;
 /** Iterator range on \ref NodeListIndex. */
 typedef std::pair<NodeListIterator, NodeListIterator> NodeListRange;
 
-/** List of pointers to nodes. */
-typedef std::vector<Sf1NodePtr> NodeList;
+
+/** Container providing a view on collections. */
+typedef std::multimap<std::string, Sf1NodePtr> NodeCollectionsContainer;
+/** Iterator on \ref CollectionsContainer. */
+typedef NodeCollectionsContainer::iterator NodeCollectionsIterator;
+/** Iterator range on \ref CollectionsContainer. */
+typedef std::pair<NodeCollectionsIterator, NodeCollectionsIterator> NodeCollectionsRange;
+    
+/** Index of available collections (keys of \ref CollectionsContainer). */
+typedef std::set<std::string> NodeCollectionsIndex;
+
+/** List of pointers to NodeCollectionsContainer::value_type. */
+typedef std::vector<NodeCollectionsContainer::value_type> NodeCollectionsList;
 
 
 NS_IZENELIB_SF1R_END

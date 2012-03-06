@@ -91,6 +91,7 @@ set(Sf1Topology_SOURCES
     ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     ${SOURCE_DIR}/distributed/Sf1Node.cpp
     ${SOURCE_DIR}/distributed/Sf1Topology.cpp
+    distributed/NodeContainerTest.cpp
     distributed/Sf1TopologyTest.cpp)
 add_executable(t_Sf1TopologyTest ${Sf1Topology_SOURCES})
 target_link_libraries(t_Sf1TopologyTest ${LIBS})

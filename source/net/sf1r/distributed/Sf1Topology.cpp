@@ -16,6 +16,16 @@ using std::string;
 using std::vector;
 
 
+Sf1Topology::Sf1Topology() {
+    DLOG(INFO) << "Topology initialized";
+}
+
+
+Sf1Topology::~Sf1Topology() {
+    DLOG(INFO) << "Topology destroyed";
+}
+
+
 void
 Sf1Topology::addNode(const string& path, const string& data) {
     DLOG(INFO) << "adding node: " << path << " ...";
@@ -26,7 +36,7 @@ Sf1Topology::addNode(const string& path, const string& data) {
     // add collections
     BOOST_FOREACH(string collection, node.getCollections()) {
         index.insert(collection);
-        collections.insert(CollectionsContainer::value_type(collection, &*nodes.find(path)));
+        collections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
     }
 }
 
@@ -46,8 +56,7 @@ Sf1Topology::removeNode(const string& path) {
     DLOG(INFO) << "removing node: " << path << "...";
     
     // remove collections
-    NodePathIterator node = nodes.find(path);
-    BOOST_FOREACH(string col, node->getCollections()) {
+    BOOST_FOREACH(string col, nodes.find(path)->getCollections()) {
         size_t n = collections.count(col);
         if (n == 1) { // only one node handling that collection
             collections.erase(col);
@@ -56,36 +65,35 @@ Sf1Topology::removeNode(const string& path) {
             break;
         }
         
-        CollectionsRange range = collections.equal_range(col);
-        for (CollectionsIterator it = range.first; it != range.second; ++it) {
+        NodeCollectionsRange range = collections.equal_range(col);
+        for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
             if (it->second->getPath() == path) {
                 collections.erase(it);
+                }
             }
         }
-    }
     
     // remove node
     CHECK(nodes.erase(path) == 1) << "node "<< path << " not removed";
+    changed();
 }
 
 
-NodePathIterator
+const Sf1Node&
 Sf1Topology::getNodeAt(const std::string& path) {
-    return nodes.find(path);
+    return *nodes.find(path);
 }
 
 
-NodeList
+const Sf1Node&
+Sf1Topology::getNodeAt(const size_t& pos) {
+    return nodes.get<list>()[pos];
+}
+
+
+NodeCollectionsRange
 Sf1Topology::getNodesFor(const string& collection) {
-    NodeList list;
-    
-    CollectionsRange range = collections.equal_range(collection);
-    for (CollectionsIterator it = range.first; it != range.second; ++it) {
-        list.push_back(it->second);
-    }
-    DLOG(INFO) << "found (" << list.size() << ") nodes for collection: " << collection;
-    
-    return list;
+    return collections.equal_range(collection);
 }
 
 
