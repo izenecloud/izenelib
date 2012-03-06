@@ -23,6 +23,7 @@ if (sf1r_SHOULD_BUILD)
         distributed/Sf1Topology.cpp
         distributed/Sf1Watcher.cpp
         distributed/ZooKeeperRouter.cpp
+        distributed/RoundRobinPolicy.cpp
 
         ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     )

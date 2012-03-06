@@ -20,11 +20,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1Config conf;
     
-    try {
-        Sf1DistributedDriver driver(host, conf);
-        BOOST_FAIL("ServerError expected");
-    } catch(ServerError& e) {
-    }
+    BOOST_CHECK_THROW(new Sf1DistributedDriver(host, conf), ServerError);
 }
 
 
@@ -33,36 +29,55 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 const string HOSTS = "localhost:2181";
 const Sf1Config CONF;
+const int LOOP = 5;
 
-BOOST_AUTO_TEST_CASE(echo) {
+struct Tester {
+    Tester() : driver(HOSTS, CONF) {}
+    
+    void
+    doTest(const string& uri, const string& tokens, 
+                string& body, const string& expected) {
+        string response = driver.call(uri, tokens, body);
+        BOOST_CHECK_EQUAL(expected, response);
+        BOOST_CHECK(driver.getSequence() != 0);
+    }
+    
+private:
+    Sf1DistributedDriver driver;
+};
+
+
+BOOST_FIXTURE_TEST_CASE(echo, Tester) {
     const string uri    = "test/echo";
     const string tokens = "token";
           string body   = "{\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
 
-    Sf1DistributedDriver driver(HOSTS, CONF);
-    BOOST_CHECK_EQUAL(1, driver.getSequence());
-    
-    string response = driver.call(uri, tokens, body);
-    BOOST_CHECK_EQUAL(2, driver.getSequence());
-    BOOST_CHECK_EQUAL(expected, response);
-    BOOST_CHECK(driver.getSequence() != 0);
+    for (int i = 0; i < LOOP; i++) {
+        doTest(uri, tokens, body, expected);
+    }
 }
 
 
-BOOST_AUTO_TEST_CASE(echo_collection) {
+BOOST_FIXTURE_TEST_CASE(echo_collection, Tester) {
     const string uri    = "test/echo";
     const string tokens = "token";
           string body   = "{\"collection\":\"b5mm\",\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
 
-    Sf1DistributedDriver driver(HOSTS, CONF);
-    BOOST_CHECK_EQUAL(1, driver.getSequence());
-    
-    string response = driver.call(uri, tokens, body);
-    BOOST_CHECK_EQUAL(2, driver.getSequence());
-    BOOST_CHECK_EQUAL(expected, response);
-    BOOST_CHECK(driver.getSequence() != 0);
+    for (int i = 0; i < LOOP; i++) {
+        doTest(uri, tokens, body, expected);
+    }
+}
+
+
+BOOST_FIXTURE_TEST_CASE(echo_collection_none, Tester) {
+    const string uri    = "test/echo";
+    const string tokens = "token";
+          string body   = "{\"collection\":\"some\",\"message\":\"Ciao! 你好！\"}";
+    const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
+
+    BOOST_CHECK_THROW(doTest(uri, tokens, body, expected), RoutingError);
 }
 
 

@@ -62,10 +62,12 @@ public:
      * @throw ClientError if errors due to client request occur.
      * @throw ServerError if errors due to server response occur.
      * @throw ConnectionPoolError if there is no connection available.
+     * @throw RoutingError if no route is available for the request
+     *        (distributed only).
      * @return The response body.
      */ 
     std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(ClientError, ServerError, ConnectionPoolError);
+        std::string& request) throw(std::runtime_error);
     
     /**
      * @return The sequence number of the next request.

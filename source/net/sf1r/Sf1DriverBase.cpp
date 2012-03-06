@@ -62,7 +62,7 @@ Sf1DriverBase::setFormat() {
 
 string
 Sf1DriverBase::call(const string& uri, const string& tokens, string& request) 
-throw(ClientError, ServerError, ConnectionPoolError) {
+throw(std::runtime_error) {
     // parse uri for controller and action
     vector<string> elems;
     split(uri, '/', elems);

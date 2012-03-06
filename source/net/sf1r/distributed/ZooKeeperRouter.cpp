@@ -9,6 +9,7 @@
 #include "net/sf1r/distributed/Sf1Topology.hpp"
 #include "../PoolFactory.hpp"
 #include "../RawClient.hpp"
+#include "RoundRobinPolicy.hpp"
 #include "Sf1Watcher.hpp"
 #include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
@@ -58,6 +59,10 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     topology.reset(new Sf1Topology);
     loadTopology();
     
+    // 3. set the routing policy
+    LOG(INFO) << "Routing policy ...";
+    policy.reset(new RoundRobinPolicy(*topology));
+    
     LOG(INFO) << "ZooKeeperRouter ready";
 }
 
@@ -81,7 +86,7 @@ ZooKeeperRouter::loadTopology() {
         string cluster = s + TOPOLOGY;
         addClusterNode(cluster);
     }
-    DLOG(INFO) << "found (" << topology->count() << ") nodes";
+    LOG(INFO) << "found (" << topology->count() << ") nodes";
 }
 
 
@@ -176,7 +181,7 @@ ZooKeeperRouter::watchChildren(const std::string& path) {
     }
 }
 
-
+#ifdef ENABLE_ZK_TEST
 NodeListRange
 ZooKeeperRouter::getSf1Nodes() const {
     return topology->getNodes();
@@ -187,30 +192,38 @@ NodeCollectionsRange
 ZooKeeperRouter::getSf1Nodes(const string& collection) const {
     return topology->getNodesFor(collection);
 }
-
+#endif
 
 RawClient&
-ZooKeeperRouter::getConnection(const string& collection) {
+ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
     if (collection.empty()) {
         DLOG(INFO) << "No collection specified, resolving to all nodes ...";
         
-        NodeListRange range = getSf1Nodes();
+        if (topology->count() == 0) {
+            LOG(WARNING) << "No routes";
+            throw RoutingError();
+        }
+        
         // choose a node according to the routing policy
-        Sf1Node node = *range.first; // FIXME routing policy
+        const Sf1Node& node = policy->getNode();
         DLOG(INFO) << "Resolved to node: " << node.getPath();
         // get a connection from the node
         ConnectionPool* pool = pools[node.getPath()];
         CHECK(pool) << "NULL pool";
         return pool->acquire();
     } else {
-        DLOG(INFO) << "Resolving nodes for collection " << collection << " ...";
+        DLOG(INFO) << "Resolving nodes for collection: " << collection << " ...";
         
-        NodeCollectionsRange range = getSf1Nodes(collection);
+        if (topology->count(collection) == 0) {
+            LOG(WARNING) << "No routes for collection: " << collection;
+            throw RoutingError(collection);
+        }
+        
         // choose a node according to the routing policy
-        Sf1NodePtr node = range.first->second; // FIXME routing policy
-        DLOG(INFO) << "Resolved to node: " << node->getPath();
+        const Sf1Node& node = policy->getNodeFor(collection);
+        DLOG(INFO) << "Resolved to node: " << node.getPath();
         // get a connection from the node
-        ConnectionPool* pool = pools[node->getPath()];
+        ConnectionPool* pool = pools[node.getPath()];
         CHECK(pool) << "NULL pool";
         return pool->acquire();
     }

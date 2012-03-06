@@ -18,33 +18,28 @@ using iz::ZooKeeperEvent;
 using std::string;
 
 
-namespace {
-    const string WATCHER_NAME = "[Sf1Watcher] ";
-}
-
-
 Sf1Watcher::Sf1Watcher(ZooKeeperRouter* r, bool rw) 
         : router(r), rewatch(rw) {
-    DLOG(INFO) << WATCHER_NAME << "created";
+    DLOG(INFO) << "watcher created";
 }
 
 
 Sf1Watcher::~Sf1Watcher() {
-    DLOG(INFO) << WATCHER_NAME << "destroyed";
+    DLOG(INFO) << "watcher destroyed";
 }
 
 
 void 
 Sf1Watcher::process(ZooKeeperEvent& zkEvent) {
-    DLOG(INFO) << WATCHER_NAME << zkEvent.toString();
+    DLOG(INFO) << zkEvent.toString();
 }
 
 
 void 
 Sf1Watcher::onNodeCreated(const string& path) {
-    DLOG(INFO) << WATCHER_NAME << "created: " << path;
+    DLOG(INFO) << "created: " << path;
     if (boost::regex_match(path, CLUSTER_REGEX)) {
-        LOG(INFO) << WATCHER_NAME << "adding " << path << " ...";
+        LOG(INFO) << "adding " << path << " ...";
         router->addClusterNode(path);
     }
 }
@@ -52,9 +47,9 @@ Sf1Watcher::onNodeCreated(const string& path) {
 
 void 
 Sf1Watcher::onNodeDeleted(const string& path) {
-    DLOG(INFO) << WATCHER_NAME << "deleted: " << path;
+    DLOG(INFO) << "deleted: " << path;
     if (boost::regex_match(path, NODE_REGEX)) {
-        LOG(INFO) << WATCHER_NAME << "removing " << path << " ...";
+        LOG(INFO) << "removing " << path << " ...";
         router->removeClusterNode(path);
     }
 }
@@ -62,9 +57,9 @@ Sf1Watcher::onNodeDeleted(const string& path) {
 
 void 
 Sf1Watcher::onDataChanged(const string& path) {
-    DLOG(INFO) << WATCHER_NAME << "changed: " << path;
+    DLOG(INFO) << "changed: " << path;
     if (boost::regex_match(path, NODE_REGEX)) {
-        LOG(INFO) << WATCHER_NAME << "reloading " << path << " ...";
+        LOG(INFO) << "reloading " << path << " ...";
         router->updateNodeData(path);
     }
 }
@@ -72,7 +67,7 @@ Sf1Watcher::onDataChanged(const string& path) {
 
 void 
 Sf1Watcher::onChildrenChanged(const string& path) {
-    DLOG(INFO) << WATCHER_NAME << "children changed: " << path;
+    DLOG(INFO) << "children changed: " << path;
     if (not boost::regex_match(path, NODE_REGEX)) {
         router->watchChildren(path);
     }

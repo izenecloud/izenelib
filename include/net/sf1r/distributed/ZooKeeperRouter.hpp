@@ -9,6 +9,7 @@
 #define	ZOOKEEPERROUTER_HPP
 
 #include "../config.h"
+#include "../Errors.hpp"
 #include "NodeContainer.hpp"
 #include "PoolContainer.hpp"
 #include "Sf1Node.hpp"
@@ -27,6 +28,7 @@ namespace iz = izenelib::zookeeper;
 
 class PoolFactory;
 class RawClient;
+class RoutingPolicy;
 class Sf1Watcher;
 class Sf1Topology;
 
@@ -59,29 +61,15 @@ public:
     bool isConnected() /*const*/ { 
         return client->isConnected();
     }
-    
-    /**
-     * Get a view on all the nodes in the actual topology.
-     * @return An iterator range.
-     * @see Sf1Topology#getNodes()
-     */
-    NodeListRange getSf1Nodes() const;
-    
-    /**
-     * Get a view on all the nodes in the actual topology 
-     * hosting the specified collection.
-     * @param collection The collection name.
-     * @return An iterator range.
-     * @see Sf1Topology#getNodesFor()
-     */
-    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
-    
+
     /**
      * Get a connection to a node hosting the given collection.
-     * @param collection The collection name
-     * @return A reference to the RawClient
+     * @param collection The collection name.
+     * @return A reference to the RawClient.
+     * @throw RoutingError if no route is found.
      */
-    RawClient& getConnection(const std::string& collection);
+    RawClient& getConnection(const std::string& collection)
+    throw (RoutingError);
     
     /**
      * Release a connection.
@@ -125,11 +113,23 @@ private:
     /// Actual SF1 instances.
     boost::scoped_ptr<Sf1Topology> topology;
     
+    /// Routing policy.
+    boost::scoped_ptr<RoutingPolicy> policy;
+    
     /// ConnectionPool factory;
     PoolFactory* factory;
     
     /// Connection pools.
     PoolContainer pools;
+    
+#ifdef ENABLE_ZK_TEST
+
+public:
+    NodeListRange getSf1Nodes() const;
+    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
+    
+#endif
+
 };
 
 NS_IZENELIB_SF1R_END

@@ -113,10 +113,18 @@ list(APPEND ALL_TESTS t_RoundRobinPolicy)
 
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    ${SOURCE_DIR}/RawClient.cpp
+    ${SOURCE_DIR}/ConnectionPool.cpp
+    ${SOURCE_DIR}/distributed/Sf1Node.cpp
+    ${SOURCE_DIR}/distributed/Sf1Topology.cpp
+    ${SOURCE_DIR}/distributed/RoundRobinPolicy.cpp
+    ${SOURCE_DIR}/distributed/Sf1Watcher.cpp
+    ${SOURCE_DIR}/distributed/ZooKeeperRouter.cpp
     distributed/ZooKeeperRouterTest.cpp
 )
 add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})
-target_link_libraries(t_ZooKeeperRouterTest sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(t_ZooKeeperRouterTest zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_ZooKeeperRouterTest)
 
 

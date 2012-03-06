@@ -20,11 +20,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1Config conf;
     
-    try {
-        Sf1Driver driver(host, 18181, conf);
-        BOOST_FAIL("ServerError expected");
-    } catch(ServerError& e) {
-    }
+    BOOST_CHECK_THROW(new Sf1Driver(host, 18181, conf), ServerError);
 }
 
 
@@ -50,11 +46,7 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
     
     for (vector<string>::iterator it = uris.begin(); it < uris.end(); ++it) {
         BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
-        try {
-            driver.call(*it, tokens, request);
-            BOOST_FAIL("ClientError expected");
-        } catch (ClientError& e) {
-        }
+        BOOST_CHECK_THROW(driver.call(*it, tokens, request), ClientError);
     }
 }
 
@@ -71,13 +63,8 @@ BOOST_AUTO_TEST_CASE(malformed_request_body) {
     Sf1Driver driver(HOST, PORT, CONF);
     
     for (vector<string>::iterator it = bodies.begin(); it < bodies.end(); ++it) {
-        try {
-            BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
-            driver.call(uri, tokens, *it);
-            BOOST_FAIL("ClientError expected");
-        } catch(ClientError& e) {
-            BOOST_CHECK_EQUAL("Malformed request", e.what());
-        }
+        BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
+        BOOST_CHECK_THROW(driver.call(uri, tokens, *it), ClientError);
     }
 }
 
