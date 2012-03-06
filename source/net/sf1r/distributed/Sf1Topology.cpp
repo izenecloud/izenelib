@@ -38,6 +38,8 @@ Sf1Topology::addNode(const string& path, const string& data) {
         index.insert(collection);
         collections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
     }
+    
+    changed();
 }
 
 
@@ -48,6 +50,8 @@ Sf1Topology::updateNode(const string& path, const string& data) {
     // quick & dirty (TM)
     removeNode(path);
     addNode(path, data);
+    
+    changed();
 }
 
 
@@ -69,9 +73,9 @@ Sf1Topology::removeNode(const string& path) {
         for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
             if (it->second->getPath() == path) {
                 collections.erase(it);
-                }
             }
         }
+    }
     
     // remove node
     CHECK(nodes.erase(path) == 1) << "node "<< path << " not removed";

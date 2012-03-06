@@ -98,6 +98,19 @@ target_link_libraries(t_Sf1TopologyTest ${LIBS})
 list(APPEND ALL_TESTS t_Sf1TopologyTest)
 
 
+# RoundRobinPolicy
+set(RoundRobinPolicy_SOURCES
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    ${SOURCE_DIR}/distributed/Sf1Node.cpp
+    ${SOURCE_DIR}/distributed/Sf1Topology.cpp
+    ${SOURCE_DIR}/distributed/RoundRobinPolicy.cpp
+    distributed/RoundRobinPolicyTest.cpp
+)
+add_executable(t_RoundRobinPolicy ${RoundRobinPolicy_SOURCES})
+target_link_libraries(t_RoundRobinPolicy ${LIBS})
+list(APPEND ALL_TESTS t_RoundRobinPolicy)
+
+
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
     distributed/ZooKeeperRouterTest.cpp

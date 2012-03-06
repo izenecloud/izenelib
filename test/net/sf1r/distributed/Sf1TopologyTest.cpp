@@ -37,11 +37,11 @@ dumpNodes(NodeContainer& nodes) {
 }
 
 void 
-dumpCollections(set<string>& index, NodeCollectionsContainer& colls) {
+dumpCollections(const set<string>& index, NodeCollectionsContainer& colls) {
 #ifdef DUMP    
     cout << "--- dump collections ---" << endl;
     BOOST_FOREACH(string col, index) {
-        CollectionsRange range = colls.equal_range(col);
+        NodeCollectionsRange range = colls.equal_range(col);
         cout << col << " =>";
         for (NodeCollectionsContainer::iterator it = range.first; it != range.second; ++it) {
             cout << " " << it->second->getPath();
@@ -55,14 +55,17 @@ dumpCollections(set<string>& index, NodeCollectionsContainer& colls) {
 /** Operations example. */
 BOOST_AUTO_TEST_CASE(operations_test) {
     Sf1Topology topology;
+    BOOST_CHECK_EQUAL(0, topology.getCollectionIndex().size());
     
     // add
     
     topology.addNode("/test/test", "collection#coll1$dataport#18121$baport#18181$masterport#18131$host#host");
     BOOST_CHECK_EQUAL(1, topology.count());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().size());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll1"));
     BOOST_CHECK(not topology.isPresent("/test/node"));
 #ifdef ENABLE_ZK_TEST
-    dumpCollections(topology._index(), topology._colls());   
+    dumpCollections(topology.getCollectionIndex(), topology._colls());   
 #endif
     BOOST_CHECK_EQUAL(1, topology.count("coll1"));
     BOOST_CHECK_EQUAL(0, topology.count("coll2"));
@@ -72,9 +75,12 @@ BOOST_AUTO_TEST_CASE(operations_test) {
     
     topology.addNode("/test/node", "collection#coll1,coll2$dataport#18121$baport#18181$masterport#18131$host#host");
     BOOST_CHECK_EQUAL(2, topology.count());
+    BOOST_CHECK_EQUAL(2, topology.getCollectionIndex().size());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll1"));
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll2"));
     BOOST_CHECK(topology.isPresent("/test/node"));
 #ifdef ENABLE_ZK_TEST
-    dumpCollections(topology._index(), topology._colls());
+    dumpCollections(topology.getCollectionIndex(), topology._colls());
 #endif
     BOOST_CHECK_EQUAL(2, topology.count("coll1"));
     BOOST_CHECK_EQUAL(1, topology.count("coll2"));
@@ -86,9 +92,12 @@ BOOST_AUTO_TEST_CASE(operations_test) {
     
     topology.updateNode("/test/node", "collection#coll2$dataport#18121$baport#18181$masterport#18131$host#host");
     BOOST_CHECK_EQUAL(2, topology.count());
+    BOOST_CHECK_EQUAL(2, topology.getCollectionIndex().size());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll1"));
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll2"));
     BOOST_CHECK(topology.isPresent("/test/node"));
 #ifdef ENABLE_ZK_TEST
-    dumpCollections(topology._index(), topology._colls());
+    dumpCollections(topology.getCollectionIndex(), topology._colls());
 #endif
      BOOST_CHECK_EQUAL(1, topology.count("coll1"));
      BOOST_CHECK_EQUAL(1, topology.count("coll2"));
@@ -100,9 +109,12 @@ BOOST_AUTO_TEST_CASE(operations_test) {
     
     topology.removeNode("/test/node");
     BOOST_CHECK_EQUAL(1, topology.count());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().size());
+    BOOST_CHECK_EQUAL(1, topology.getCollectionIndex().count("coll1"));
+    BOOST_CHECK_EQUAL(0, topology.getCollectionIndex().count("coll2"));
     BOOST_CHECK(not topology.isPresent("/test/node"));
 #ifdef ENABLE_ZK_TEST
-    dumpCollections(topology._index(), topology._colls());
+    dumpCollections(topology.getCollectionIndex(), topology._colls());
 #endif
     BOOST_CHECK_EQUAL(1, topology.count("coll1"));
     BOOST_CHECK_EQUAL(0, topology.count("coll2"));
@@ -119,7 +131,7 @@ struct Nodes {
         topology.addNode("/test/node3", "collection#coll1,coll2$dataport#18121$baport#18181$masterport#18131$host#host3");
         topology.addNode("/test/node4", "collection#coll1,coll3$dataport#18121$baport#18181$masterport#18131$host#host4");
 #ifdef ENABLE_ZK_TEST
-        dumpCollections(topology._index(), topology._colls());
+        dumpCollections(topology.getCollectionIndex(), topology._colls());
         dumpNodes(topology._nodes());
 #endif
     }

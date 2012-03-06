@@ -11,6 +11,8 @@
 #include "../config.h"
 #include "Sf1Node.hpp"
 #include "NodeContainer.hpp"
+#include <boost/noncopyable.hpp>
+#include <boost/signals2.hpp>
 #include <vector>
 
 NS_IZENELIB_SF1R_BEGIN
@@ -27,7 +29,7 @@ NS_IZENELIB_SF1R_BEGIN
  * Please note that this class is <b>not</b> thread-safe.
  * Thread-safety is delegated to the user class.
  */
-class Sf1Topology {
+class Sf1Topology : private boost::noncopyable {
 public:
     
     /// Constructor.
@@ -56,6 +58,11 @@ public:
     */
     void removeNode(const std::string& path);
     
+    /**
+     * Signal emitted on topology changes.
+     */
+    boost::signals2::signal<void ()> changed;
+    
 public:
     
     /**
@@ -73,6 +80,10 @@ public:
      */
     const Sf1Node& getNodeAt(const size_t& position);
 
+    const NodeCollectionsIndex& getCollectionIndex() const { 
+        return index; 
+    }
+    
     /**
      * Get a view on all the nodes in the actual topology 
      * hosting the specified collection.
@@ -127,7 +138,6 @@ private:
 public: // for tests only 
     NodeContainer& _nodes() { return nodes; }
     NodeCollectionsContainer& _colls() { return collections; }
-    NodeCollectionsIndex& _index() { return index; }
     
 #endif
     
