@@ -14,7 +14,7 @@ using namespace ::apache::thrift::server;
 
 using boost::shared_ptr;
 
-using namespace org::apache::cassandra;
+using namespace  ::org::apache::cassandra;
 
 class CassandraHandler : virtual public CassandraIf {
  public:

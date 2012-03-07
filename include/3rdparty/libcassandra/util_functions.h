@@ -83,15 +83,16 @@ void createCfDefObject(
         const int32_t in_max_compaction_threshold,
         const int32_t in_row_cache_save_period_in_seconds,
         const int32_t in_key_cache_save_period_in_seconds,
-        int8_t in_replicate_on_write,
-        double in_merge_shards_chance,
+        const int8_t in_replicate_on_write,
+        const double in_merge_shards_chance,
         const std::string& in_key_validation_class,
         const std::string& in_row_cache_provider,
         const std::string& in_key_alias,
         const std::string& in_compaction_strategy,
         const std::map<std::string, std::string>& in_compaction_strategy_options,
-        int32_t in_row_cache_keys_to_save,
-        const std::map<std::string, std::string>& in_compression_options);
+        const int32_t in_row_cache_keys_to_save,
+        const std::map<std::string, std::string>& in_compression_options,
+        const double in_bloom_filter_fp_chance);
 
 /**
  * Convert a IndexedSlicesQuery object to the thrift

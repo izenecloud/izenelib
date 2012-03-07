@@ -1,11 +1,11 @@
 #ifndef __LIBCASSANDRA_CASSANDRA_CLIENT_H
 #define __LIBCASSANDRA_CASSANDRA_CLIENT_H
 
+#include "genthrift/Cassandra.h"
+
 #include <protocol/TBinaryProtocol.h>
 #include <transport/TSocket.h>
 #include <transport/TTransportUtils.h>
-
-#include "genthrift/Cassandra.h"
 
 #include <boost/shared_ptr.hpp>
 
