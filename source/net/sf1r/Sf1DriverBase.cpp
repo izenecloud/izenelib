@@ -46,6 +46,7 @@ Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt)
 
 
 Sf1DriverBase::~Sf1DriverBase() {
+    DLOG(INFO) << "destroyed.";
 }
 
 

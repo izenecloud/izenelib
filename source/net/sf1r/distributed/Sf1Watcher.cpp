@@ -18,7 +18,7 @@ using iz::ZooKeeperEvent;
 using std::string;
 
 
-Sf1Watcher::Sf1Watcher(ZooKeeperRouter* r, bool rw) 
+Sf1Watcher::Sf1Watcher(ZooKeeperRouter& r, bool rw) 
         : router(r), rewatch(rw) {
     DLOG(INFO) << "watcher created";
 }
@@ -40,7 +40,7 @@ Sf1Watcher::onNodeCreated(const string& path) {
     DLOG(INFO) << "created: " << path;
     if (boost::regex_match(path, CLUSTER_REGEX)) {
         LOG(INFO) << "adding " << path << " ...";
-        router->addClusterNode(path);
+        router.addClusterNode(path);
     }
 }
 
@@ -50,7 +50,7 @@ Sf1Watcher::onNodeDeleted(const string& path) {
     DLOG(INFO) << "deleted: " << path;
     if (boost::regex_match(path, NODE_REGEX)) {
         LOG(INFO) << "removing " << path << " ...";
-        router->removeClusterNode(path);
+        router.removeClusterNode(path);
     }
 }
     
@@ -60,7 +60,7 @@ Sf1Watcher::onDataChanged(const string& path) {
     DLOG(INFO) << "changed: " << path;
     if (boost::regex_match(path, NODE_REGEX)) {
         LOG(INFO) << "reloading " << path << " ...";
-        router->updateNodeData(path);
+        router.updateNodeData(path);
     }
 }
 
@@ -69,7 +69,7 @@ void
 Sf1Watcher::onChildrenChanged(const string& path) {
     DLOG(INFO) << "children changed: " << path;
     if (not boost::regex_match(path, NODE_REGEX)) {
-        router->watchChildren(path);
+        router.watchChildren(path);
     }
 }
 

@@ -5,8 +5,8 @@
  * Created on February 21, 2012, 2:14 PM
  */
 
-#ifndef SF1TOPOLOGY_HPP
-#define	SF1TOPOLOGY_HPP
+#ifndef ZOOKEEPERNAMESPACE_HPP
+#define	ZOOKEEPERNAMESPACE_HPP
 
 #include "net/sf1r/config.h"
 #include <boost/regex.hpp>
@@ -26,9 +26,9 @@
  */
 
 NS_IZENELIB_SF1R_BEGIN
-    
-//const std::string ROOT_NODE = "/";
-//const std::string  TOPOLOGY = "/SearchTopology";
+
+const std::string ROOT_NODE = "/";
+const std::string  TOPOLOGY = "/SearchTopology";
 //const std::string   REPLICA = "Replica";
 //const std::string      NODE = "Node";
 
@@ -38,5 +38,4 @@ const boost::regex    NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d
 
 NS_IZENELIB_SF1R_END
 
-#endif	/* SF1TOPOLOGY_HPP */
-
+#endif	/* ZOOKEEPERNAMESPACE_HPP */

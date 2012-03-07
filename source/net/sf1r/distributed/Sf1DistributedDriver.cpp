@@ -21,6 +21,7 @@ Sf1DistributedDriver::Sf1DistributedDriver(const string& hosts,
         const Sf1Config& parameters, const Format& format) throw(ServerError)
 try : Sf1DriverBase(parameters, format) {
     router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+    LOG(INFO) << "Driver ready.";
 } catch (izenelib::zookeeper::ZooKeeperException& e) {
     string message = e.what();
     LOG(ERROR) << message;
@@ -29,6 +30,7 @@ try : Sf1DriverBase(parameters, format) {
 
 
 Sf1DistributedDriver::~Sf1DistributedDriver() {
+    LOG(INFO) << "Driver closed.";
 }
 
 

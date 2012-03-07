@@ -20,6 +20,7 @@ RoundRobinPolicy::RoundRobinPolicy(Sf1Topology &topology)
     updateCollections();
     topology.changed.connect(boost::bind(&RoundRobinPolicy::resetCounter, this));
     topology.changed.connect(boost::bind(&RoundRobinPolicy::updateCollections, this));
+    
     DLOG(INFO) << "initialized";
 }
 
@@ -63,7 +64,7 @@ const Sf1Node&
 RoundRobinPolicy::getNodeFor(const std::string collection) {
     const NodeCollectionsList& list = collections.at(collection);
     size_t index = ccounter[collection]++ % list.size();
-    DLOG(INFO) << "index = " << index;
+    DLOG(INFO) << "index[" << collection << "] = " << index;
     
     return *(list[index].second);
 }

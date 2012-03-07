@@ -30,12 +30,6 @@ namespace {
 const bool AUTO_RECONNECT = true;
 typedef vector<string> strvector;
 
-const std::string ROOT_NODE = "/";
-const std::string  TOPOLOGY = "/SearchTopology";
-
-const boost::regex TPLG_REGEX("\\/SF1R-\\w+\\d?");
-const boost::regex NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
-
 }
 
 
@@ -51,7 +45,7 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     
     // 1. register a watcher that will control the Sf1Driver instances
     LOG(INFO) << "Registering watcher ...";
-    watcher.reset(new Sf1Watcher(this));
+    watcher.reset(new Sf1Watcher(*this));
     client->registerEventHandler(watcher.get());
     
     // 2. obtain the list of actually running SF1 servers
@@ -81,7 +75,7 @@ ZooKeeperRouter::loadTopology() {
     strvector clusters;
     client->getZNodeChildren(ROOT_NODE, clusters, ZooKeeper::WATCH);
     
-    BOOST_FOREACH(string s, clusters) {
+    BOOST_FOREACH(const string& s, clusters) {
         DLOG(INFO) << "found: " << s;
         string cluster = s + TOPOLOGY;
         addClusterNode(cluster);
@@ -98,12 +92,12 @@ ZooKeeperRouter::addClusterNode(const string& cluster) {
         strvector replicas;
         client->getZNodeChildren(cluster, replicas, ZooKeeper::WATCH);
 
-        BOOST_FOREACH(string replica, replicas) {
+        BOOST_FOREACH(const string& replica, replicas) {
             DLOG(INFO) << "replica: " << replica;
             strvector nodes;
             client->getZNodeChildren(replica, nodes, ZooKeeper::WATCH);
 
-            BOOST_FOREACH(string path, nodes) {
+            BOOST_FOREACH(const string& path, nodes) {
                 addSf1Node(path);
             }
         }
@@ -169,7 +163,7 @@ ZooKeeperRouter::watchChildren(const std::string& path) {
     strvector children;
     client->getZNodeChildren(path, children, ZooKeeper::WATCH);
     DLOG(INFO) << "Watching children of: " << path;
-    BOOST_FOREACH(string s, children) {
+    BOOST_FOREACH(const string& s, children) {
         DLOG(INFO) << "child: " << s;
         if (boost::regex_match(s, NODE_REGEX)) {
             addSf1Node(s);
@@ -194,8 +188,8 @@ ZooKeeperRouter::getSf1Nodes(const string& collection) const {
 }
 #endif
 
-RawClient&
-ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
+const Sf1Node& 
+ZooKeeperRouter::resolve(const std::string collection) const {
     if (collection.empty()) {
         DLOG(INFO) << "No collection specified, resolving to all nodes ...";
         
@@ -205,12 +199,7 @@ ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
         }
         
         // choose a node according to the routing policy
-        const Sf1Node& node = policy->getNode();
-        DLOG(INFO) << "Resolved to node: " << node.getPath();
-        // get a connection from the node
-        ConnectionPool* pool = pools[node.getPath()];
-        CHECK(pool) << "NULL pool";
-        return pool->acquire();
+        return policy->getNode();
     } else {
         DLOG(INFO) << "Resolving nodes for collection: " << collection << " ...";
         
@@ -220,13 +209,20 @@ ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
         }
         
         // choose a node according to the routing policy
-        const Sf1Node& node = policy->getNodeFor(collection);
-        DLOG(INFO) << "Resolved to node: " << node.getPath();
-        // get a connection from the node
-        ConnectionPool* pool = pools[node.getPath()];
-        CHECK(pool) << "NULL pool";
-        return pool->acquire();
+        return policy->getNodeFor(collection);
     }
+}
+
+
+RawClient&
+ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
+    const Sf1Node& node = resolve(collection);
+    DLOG(INFO) << "Resolved to node: " << node.getPath();
+    
+    // get a connection from the node
+    ConnectionPool* pool = pools[node.getPath()];
+    CHECK(pool) << "NULL pool";
+    return pool->acquire();
 }
 
 

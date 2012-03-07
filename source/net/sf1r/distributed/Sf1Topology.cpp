@@ -34,9 +34,9 @@ Sf1Topology::addNode(const string& path, const string& data) {
     // add node
     CHECK(nodes.insert(node).second) << "node "<< path << " not added";
     // add collections
-    BOOST_FOREACH(string collection, node.getCollections()) {
-        index.insert(collection);
-        collections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
+    BOOST_FOREACH(const string& collection, node.getCollections()) {
+        collectionsIndex.insert(collection);
+        nodeCollections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
     }
     
     changed();
@@ -60,19 +60,18 @@ Sf1Topology::removeNode(const string& path) {
     DLOG(INFO) << "removing node: " << path << "...";
     
     // remove collections
-    BOOST_FOREACH(string col, nodes.find(path)->getCollections()) {
-        size_t n = collections.count(col);
-        if (n == 1) { // only one node handling that collection
-            collections.erase(col);
-            index.erase(col);
+    BOOST_FOREACH(const string& col, nodes.find(path)->getCollections()) {
+        if (nodeCollections.count(col) == 1) { // only one node handling that collection
+            nodeCollections.erase(col);
+            collectionsIndex.erase(col);
             
             break;
         }
         
-        NodeCollectionsRange range = collections.equal_range(col);
+        NodeCollectionsRange range = nodeCollections.equal_range(col);
         for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
             if (it->second->getPath() == path) {
-                collections.erase(it);
+                nodeCollections.erase(it);
             }
         }
     }
@@ -97,7 +96,7 @@ Sf1Topology::getNodeAt(const size_t& pos) {
 
 NodeCollectionsRange
 Sf1Topology::getNodesFor(const string& collection) {
-    return collections.equal_range(collection);
+    return nodeCollections.equal_range(collection);
 }
 
 

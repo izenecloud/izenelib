@@ -14,11 +14,7 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-
-/* 
- * TODO: if more functions are added, split into .hpp and .cpp files.
- */
-
+namespace {
 
 /**
  * Split a string on delimiter character into a vector.
@@ -26,8 +22,9 @@ NS_IZENELIB_SF1R_BEGIN
  * @param delim The delimiter character.
  * @param elems The output vector.
  */
-static std::vector<std::string>&
-split(const std::string& input, const char& delim, std::vector<std::string>& elems) {
+inline std::vector<std::string>&
+split(const std::string& input, const char& delim, 
+        std::vector<std::string>& elems) {
     std::stringstream ss(input);
     std::string item;
     while(getline(ss, item, delim)) {
@@ -38,6 +35,9 @@ split(const std::string& input, const char& delim, std::vector<std::string>& ele
         elems.push_back(item);
     }
     return elems;
+}
+
+
 }
 
 NS_IZENELIB_SF1R_END

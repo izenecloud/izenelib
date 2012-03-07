@@ -47,7 +47,7 @@ public:
     /**
      * Instantiates a new connection pool.
      */
-    ConnectionPool* newConnectionPool(const std::string& host, const uint32_t& port) {
+    ConnectionPool* newConnectionPool(const std::string& host, const uint32_t& port) const {
         DLOG(INFO) << "new connection pool to: [" << host << ":" << port << "]";
         
         ba::ip::tcp::resolver::query query(host, boost::lexical_cast<std::string>(port));
@@ -60,7 +60,7 @@ public:
     /**
      * Instantiates a new connection pool.
      */
-    ConnectionPool* newConnectionPool(const Sf1Node& node) {
+    ConnectionPool* newConnectionPool(const Sf1Node& node) const {
         DLOG(INFO) << "new connection pool to: [" << node << "]";
         
         ba::ip::tcp::resolver::query query(node.getHost(), boost::lexical_cast<std::string>(node.getPort()));

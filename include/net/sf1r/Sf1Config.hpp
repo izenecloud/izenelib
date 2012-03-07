@@ -8,6 +8,10 @@
 #ifndef SF1CONFIG_HPP
 #define	SF1CONFIG_HPP
 
+#include "config.h"
+
+NS_IZENELIB_SF1R_BEGIN
+
 
 #define SF1_CONFIG_INITIAL_SIZE  1
 #define SF1_CONFIG_RESIZE        false
@@ -29,11 +33,13 @@ struct Sf1Config {
         resize(SF1_CONFIG_RESIZE), maxSize(SF1_CONFIG_MAX_SIZE), 
         timeout(SF1_CONFIG_TIMEOUT) {}
     
-    const size_t initialSize;           ///< Initial pool size.
-    const bool resize;                  ///< Automatic pool resize.
-    const size_t maxSize;               ///< Maximum pool size.
-    const uint32_t timeout;             ///< ZooKeeper session timeout.
+    size_t initialSize;           ///< Initial pool size.
+    bool resize;                  ///< Automatic pool resize.
+    size_t maxSize;               ///< Maximum pool size.
+    uint32_t timeout;             ///< ZooKeeper session timeout.
 };
 
+
+NS_IZENELIB_SF1R_END
 
 #endif	/* SF1CONFIG_HPP */

@@ -19,9 +19,13 @@ namespace iz = izenelib::zookeeper;
 class ZooKeeperRouter;
 
 
+/**
+ * ZooKeeper event handler for the SF1 distributed driver.
+ */
 class Sf1Watcher : public iz::ZooKeeperEventHandler, private boost::noncopyable {
 public:
-    Sf1Watcher(ZooKeeperRouter* router, bool rewatch = true);
+    
+    Sf1Watcher(ZooKeeperRouter& router, bool rewatch = true);
     ~Sf1Watcher();
 
     void process(iz::ZooKeeperEvent& zkEvent);
@@ -39,7 +43,7 @@ public:
     void onMonitor() {};
     
 private:
-    ZooKeeperRouter* router;
+    ZooKeeperRouter& router;
     const bool rewatch;
 };
 

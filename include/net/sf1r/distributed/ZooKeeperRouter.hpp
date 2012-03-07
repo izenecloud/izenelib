@@ -100,6 +100,9 @@ private:
     /** Get the actual SF1 topology (called during initialization) */
     void loadTopology();
     
+    /** Resolve to a node in the topology. */
+    const Sf1Node& resolve(const std::string collection) const;
+    
 private:
     
     boost::mutex mutex;

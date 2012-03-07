@@ -81,7 +81,7 @@ public:
     const Sf1Node& getNodeAt(const size_t& position);
 
     const NodeCollectionsIndex& getCollectionIndex() const { 
-        return index; 
+        return collectionsIndex; 
     }
     
     /**
@@ -110,7 +110,7 @@ public:
      * @return The number of actual nodes hosting the given collection.
      */
     size_t count(const std::string collection) const {
-        return collections.count(collection);
+        return nodeCollections.count(collection);
     }
     
     /**
@@ -128,16 +128,16 @@ private:
     NodeContainer nodes;
     
     // collections by node
-    NodeCollectionsContainer collections; // TODO: rename nodeCollections
+    NodeCollectionsContainer nodeCollections;
     // collections index
-    NodeCollectionsIndex index; // TODO: rename collectionsIndex
+    NodeCollectionsIndex collectionsIndex;
     
     
 #ifdef ENABLE_ZK_TEST
     
 public: // for tests only 
     NodeContainer& _nodes() { return nodes; }
-    NodeCollectionsContainer& _colls() { return collections; }
+    NodeCollectionsContainer& _colls() { return nodeCollections; }
     
 #endif
     

@@ -23,7 +23,7 @@ if (ENABLE_SF1_TEST)
     add_definitions(-DENABLE_SF1_TEST)
 endif()
 
-option(ENABLE_ZK_TEST "Enable compilation of ZooKeeper and SF1 tests" false)
+option(ENABLE_ZK_TEST "Enable compilation of ZooKeeper tests" false)
 if (ENABLE_ZK_TEST)
     message(STATUS "enabling ZooKeeper and SF1 tests")
     add_definitions(-DENABLE_ZK_TEST)
@@ -31,10 +31,12 @@ endif()
 
 
 # Utils
-set(Utils_SOURCES UtilsTest.cpp)
-add_executable(t_UtilsTest ${Utils_SOURCES})
-target_link_libraries(t_UtilsTest ${LIBS})
-list(APPEND ALL_TESTS t_UtilsTest)
+set(Utils_SOURCES 
+    UtilsTest.cpp
+)
+add_executable(t_Utils ${Utils_SOURCES})
+target_link_libraries(t_Utils ${LIBS})
+list(APPEND ALL_TESTS t_Utils)
 
 
 # RawClient
@@ -42,18 +44,18 @@ set(RawClient_SOURCES
     ${SOURCE_DIR}/RawClient.cpp
     RawClientTest.cpp
 )
-add_executable(t_RawClientTest ${RawClient_SOURCES})
-target_link_libraries(t_RawClientTest ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-list(APPEND ALL_TESTS t_RawClientTest)
+add_executable(t_RawClient ${RawClient_SOURCES})
+target_link_libraries(t_RawClient ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_RawClient)
 
 
 # Rapidjson
 set(Rapidjson_SOURCES
     RapidjsonTest.cpp
 )
-add_executable(t_RapidjsonTest ${Rapidjson_SOURCES})
-target_link_libraries(t_RapidjsonTest ${LIBS})
-list(APPEND ALL_TESTS t_RapidjsonTest)
+add_executable(t_Rapidjson ${Rapidjson_SOURCES})
+target_link_libraries(t_Rapidjson ${LIBS})
+list(APPEND ALL_TESTS t_Rapidjson)
 
 
 # JsonWriter
@@ -61,9 +63,9 @@ set(JsonWriter_SOURCES
     ${SOURCE_DIR}/JsonWriter.cpp
     JsonWriterTest.cpp
 )
-add_executable(t_JsonWriterTest ${JsonWriter_SOURCES})
-target_link_libraries(t_JsonWriterTest ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-list(APPEND ALL_TESTS t_JsonWriterTest)
+add_executable(t_JsonWriter ${JsonWriter_SOURCES})
+target_link_libraries(t_JsonWriter ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_JsonWriter)
 
 
 # ConnectionPool
@@ -72,18 +74,18 @@ set(ConnectionPool_SOURCES
     ${SOURCE_DIR}/ConnectionPool.cpp
     ConnectionPoolTest.cpp
 )
-add_executable(t_ConnectionPoolTest ${ConnectionPool_SOURCES})
-target_link_libraries(t_ConnectionPoolTest ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-list(APPEND ALL_TESTS t_ConnectionPoolTest)
+add_executable(t_ConnectionPool ${ConnectionPool_SOURCES})
+target_link_libraries(t_ConnectionPool ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_ConnectionPool)
 
 
 # Sf1Driver
 set(Sf1Driver_SOURCES
     Sf1DriverTest.cpp
 )
-add_executable(t_Sf1DriverTest ${Sf1Driver_SOURCES})
-target_link_libraries(t_Sf1DriverTest sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-list(APPEND ALL_TESTS t_Sf1DriverTest)
+add_executable(t_Sf1Driver ${Sf1Driver_SOURCES})
+target_link_libraries(t_Sf1Driver sf1r ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_Sf1Driver)
 
 
 # Sf1Topology
@@ -93,9 +95,9 @@ set(Sf1Topology_SOURCES
     ${SOURCE_DIR}/distributed/Sf1Topology.cpp
     distributed/NodeContainerTest.cpp
     distributed/Sf1TopologyTest.cpp)
-add_executable(t_Sf1TopologyTest ${Sf1Topology_SOURCES})
-target_link_libraries(t_Sf1TopologyTest ${LIBS})
-list(APPEND ALL_TESTS t_Sf1TopologyTest)
+add_executable(t_Sf1Topology ${Sf1Topology_SOURCES})
+target_link_libraries(t_Sf1Topology ${LIBS})
+list(APPEND ALL_TESTS t_Sf1Topology)
 
 
 # RoundRobinPolicy
@@ -123,9 +125,9 @@ set(ZooKeeperRouter_SOURCES
     ${SOURCE_DIR}/distributed/ZooKeeperRouter.cpp
     distributed/ZooKeeperRouterTest.cpp
 )
-add_executable(t_ZooKeeperRouterTest ${ZooKeeperRouter_SOURCES})
-target_link_libraries(t_ZooKeeperRouterTest zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-list(APPEND ALL_TESTS t_ZooKeeperRouterTest)
+add_executable(t_ZooKeeperRouter ${ZooKeeperRouter_SOURCES})
+target_link_libraries(t_ZooKeeperRouter zookeeper ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND ALL_TESTS t_ZooKeeperRouter)
 
 
 # Sf1DistributedDriver
