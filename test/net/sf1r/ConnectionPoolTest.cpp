@@ -25,8 +25,11 @@ BOOST_AUTO_TEST_CASE(dummy) {
     BOOST_TEST_MESSAGE("dummy empty test");
 }
 
+/*
+ * This test requires a running SF1.
+ */
 
-#ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
+#ifdef ENABLE_SF1_TEST
 
 /** Test fixture. */
 struct AsioService {
@@ -53,6 +56,7 @@ getMessage(const uint32_t& seq) {
 }
 
 
+/** Test pool acquire/release. */
 BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     const size_t SIZE = 2;
     
@@ -121,6 +125,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
 }
 
 
+/** Test pool automatic resize. */
 BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     size_t SIZE = 1;
     const size_t MAX_SIZE = 3;
@@ -208,6 +213,7 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
 }
 
+
 struct Worker {
     Worker(ConnectionPool& p) : pool(p) {}
     void work(int i) {
@@ -230,6 +236,7 @@ private:
 };
 
 
+/** Simulate a concurrency test using threads. */
 BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
     using boost::thread;
 

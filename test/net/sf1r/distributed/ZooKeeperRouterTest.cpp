@@ -24,12 +24,18 @@ BOOST_AUTO_TEST_CASE(dummy) {
     cout << "For this test you need an SF1 running on you machine." << endl;
 }
 
+/*
+ * This test requires a running ZooKeeper server and with no SF1 nodes.
+ */
 
 #ifdef ENABLE_ZK_TEST
 
+const string HOSTS = "localhost:2181";
+
+
 /** Test fixtures. */
 struct ZooKeeperClient {
-    ZooKeeperClient() : hosts("localhost:2181"), recvTimeout(2000), 
+    ZooKeeperClient() : hosts(HOSTS), recvTimeout(2000), 
                         client(hosts, recvTimeout, true) {}
     
     inline string getName(const string& name) {

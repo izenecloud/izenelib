@@ -20,7 +20,9 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+
 BOOST_AUTO_TEST_SUITE(Sf1TopologyTest)
+
 
 /* enable/disable dump to stdout */
 //#define DUMP
@@ -51,6 +53,7 @@ dumpCollections(const set<string>& index, NodeCollectionsContainer& colls) {
     cout << "--- end ---" << endl;
 #endif
 }
+
 
 /** Operations example. */
 BOOST_AUTO_TEST_CASE(operations_test) {
@@ -123,6 +126,7 @@ BOOST_AUTO_TEST_CASE(operations_test) {
 #endif
 }
 
+
 /** Test fixture. */
 struct Nodes {
     Nodes() {
@@ -138,6 +142,7 @@ struct Nodes {
     
     Sf1Topology topology;
 };
+
 
 /** Use node-collections relationship. */
 BOOST_FIXTURE_TEST_CASE(nodes_collections_test, Nodes) {
@@ -179,11 +184,13 @@ BOOST_FIXTURE_TEST_CASE(nodes_collections_test, Nodes) {
     BOOST_CHECK(range.first == range.second);
 }
 
+
 /** Use nodes. */
 BOOST_FIXTURE_TEST_CASE(all_nodes_test, Nodes) {
     NodeListRange range = topology.getNodes();
     BOOST_CHECK_EQUAL(4, range.second - range.first);
 }
+
 
 /** Access a node by path/position. */
 BOOST_FIXTURE_TEST_CASE(node_path_test, Nodes) {

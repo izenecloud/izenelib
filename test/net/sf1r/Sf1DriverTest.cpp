@@ -24,7 +24,11 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 }
 
 
-#ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
+/*
+ * This test requires a running SF1 instance.
+ */
+
+#ifdef ENABLE_SF1_TEST
 
 
 const string HOST = "localhost";
