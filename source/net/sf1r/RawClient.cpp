@@ -17,22 +17,27 @@ using ba::ip::tcp;
 using std::string;
 
 
+namespace {
+
 /**
  * Size of unsigned integer (32 bits).
  */
-static const size_t UINT_SIZE = sizeof(uint32_t);
+const size_t UINT_SIZE = sizeof(uint32_t);
 
 /**
  * Header size, i.e. two unsigned values for:
  * - sequence number
  * - message length
  */
-static const size_t HEADER_SIZE = 2 * UINT_SIZE;
+const size_t HEADER_SIZE = 2 * UINT_SIZE;
+
+}
 
 
 RawClient::RawClient(ba::io_service& service, 
-                     tcp::resolver::iterator& iterator) 
-        : socket(service), status(Idle) {
+                     tcp::resolver::iterator& iterator,
+                     const string& zkpath) 
+        : socket(service), status(Idle), id(zkpath) {
     try {
         DLOG(INFO) << "connecting ...";
         ba::connect(socket, iterator); 
@@ -98,7 +103,7 @@ throw (std::exception) {
         throw std::runtime_error(message);
     }   
     
-    // XXX: do not change the status
+    // do not change the status
     CHECK_EQ(Busy, status) << "not Busy";
     DLOG(INFO) << "Request sent (" << n << " bytes).";
 }

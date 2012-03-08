@@ -23,7 +23,11 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 }
 
 
-#ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
+/*
+ * This test requires a running SF1.
+ */
+#ifdef ENABLE_SF1_TEST
+
 
 /** Test fixture. */
 struct AsioService {
@@ -48,6 +52,13 @@ BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
+    BOOST_CHECK_EQUAL("", client.getPath());
+    
+    RawClient zclient(service, iterator, "zkpath");
+    BOOST_CHECK(zclient.isConnected());
+    BOOST_CHECK(zclient.idle());
+    BOOST_CHECK_EQUAL(RawClient::Idle, zclient.getStatus());
+    BOOST_CHECK_EQUAL("zkpath", zclient.getPath());
 }
 
 
@@ -56,9 +67,10 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator);
+    RawClient client(service, iterator, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
+    BOOST_CHECK_EQUAL("/path", client.getPath());
     
     client.sendRequest(sequence, message);
     BOOST_CHECK(not client.idle());

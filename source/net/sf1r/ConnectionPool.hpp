@@ -17,11 +17,9 @@
 #include <boost/thread/mutex.hpp>
 
 
-namespace ba = boost::asio;
-
-
 NS_IZENELIB_SF1R_BEGIN
 
+namespace ba = boost::asio;
 
 class RawClient;
 
@@ -32,20 +30,26 @@ class RawClient;
 class ConnectionPool : private boost::noncopyable {
 public:
     
+    /// Default undefined path.
+    static const std::string UNDEFINED_PATH;
+    
     /**
      * Initializes a connection pool.
      * @param service 
      * @param iterator
      * @param size the initial pool size. (non-zero)
      * @param resize enable automatic size increment if all the clients
-     *          are busy. (default = false)
+     *          are busy. (defaults to false)
      * @param maxSize maximum pool size. It is mandatory if \ref resize 
      *          is \c true. Must hold that: maxSize >= size.
+     * @param path the ZooKeeper path to which the connection pool refers to.
+     *          (defaults to UNDEFINED_PATH)
      */
     ConnectionPool(ba::io_service& service, 
                    ba::ip::tcp::resolver::iterator& iterator,
                    const size_t& size, const bool resize = false,
-                   const size_t& maxSize = 0);
+                   const size_t& maxSize = 0,
+                   const std::string& path = UNDEFINED_PATH);
     
     /// Destructor.
     ~ConnectionPool();
@@ -97,6 +101,13 @@ public:
         return maxSize;
     }
     
+    /**
+     * @return The ZooKeeper path.
+     */
+    std::string getPath() const {
+        return path;
+    }
+    
 private:
     
     boost::mutex mutex;
@@ -107,6 +118,7 @@ private:
     size_t size;
     const bool resize;
     const size_t maxSize;
+    std::string path;
     
     // Aliases for the actual container used.
     typedef boost::ptr_list<RawClient> Container;
@@ -116,9 +128,13 @@ private:
     Container reserved;
     size_t busy;
     
+    
+#ifdef ENABLE_SF1_TEST
 public:
     /// Check the representation invariant (for tests only).
     bool invariant() const;
+#endif
+    
 };
 
 

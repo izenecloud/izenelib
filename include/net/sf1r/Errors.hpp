@@ -49,6 +49,15 @@ public:
 };
 
 
+/**
+ * Exception thrown on routing errors.
+ */
+class RoutingError : public std::runtime_error {
+public:
+    RoutingError(const std::string& m = "") : std::runtime_error(m) {}
+};
+
+
 NS_IZENELIB_SF1R_END
 
 

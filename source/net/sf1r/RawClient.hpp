@@ -17,10 +17,10 @@
 #include <string>
 
 
+NS_IZENELIB_SF1R_BEGIN
+
 namespace ba = boost::asio;
 
-
-NS_IZENELIB_SF1R_BEGIN
 
 /**
  * Alias for response objects.
@@ -60,15 +60,15 @@ public:
      * Creates the driver client.
      * @param service A reference to the IO service.
      * @param iterator A reference to the endpoint iterator.
+     * @param id An ID for this instance (optional).
      * @throw boost::system::system_error if cannot connect.
      */
     RawClient(ba::io_service& service, 
-              ba::ip::tcp::resolver::iterator& iterator);
+              ba::ip::tcp::resolver::iterator& iterator,
+              const std::string& id = "");
     
     /// Destructor. Must not throw any exception.
     ~RawClient() throw();
-    
-    // TODO: keepalive
     
     /**
      * Checks the connection status.
@@ -93,6 +93,14 @@ public:
     bool idle() const {
         return status == Idle;
     }
+    
+    /**
+     * @return The ZooKeeper path associated to this client, 
+     *         empty if undefined.
+     */
+    std::string getPath() const {
+        return id;
+    }
 
     /**
      * Send a request to SF1.
@@ -113,10 +121,15 @@ public:
     throw(std::exception);
     
 private:
-
+    
+    /// Socket.
     ba::ip::tcp::socket socket;
+    
+    /// Current status.
     Status status;
     
+    /// ZooKeeper path;
+    std::string id;
 };
 
 

@@ -26,14 +26,17 @@ public:
     
     /**
      * Adds SF1 header into the body of the request.
-     * @param controller
-     * @param action
-     * @param tokens
+     * @param controller The controller of this request.
+     * @param action The action of this request.
+     * @param tokens Custom tokens.
+     * @param request The body of this request to be modified.
+     * @param collection [out] The collection on which the request refers to.
      */
     virtual void setHeader(const std::string& controller, 
                            const std::string& action,
                            const std::string& tokens,
-                           std::string& request) const = 0;
+                           std::string& request,
+                           std::string& collection) const = 0;
     
     /**
      * Checks if the data is valid.

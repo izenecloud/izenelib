@@ -1,0 +1,339 @@
+paolo@ubuntu:~/projects/izenelib/build$ ../testbin/t_Sf1DistributedDriver --run_test=documents_search
+Running 1 test case...
+I0307 15:11:16.701865  7281 PoolFactory.hpp:39] PoolFactory ready
+I0307 15:11:16.701987  7281 Sf1DriverBase.cpp:59] Using JSON data format.
+I0307 15:11:16.702000  7281 Sf1DriverBase.cpp:44] initialized
+I0307 15:11:16.702031  7281 ZooKeeperRouter.cpp:39] Connecting to ZooKeeper servers: localhost:2181
+I0307 15:11:17.203516  7281 ZooKeeperRouter.cpp:47] Registering watcher ...
+I0307 15:11:17.203558  7281 Sf1Watcher.cpp:23] watcher created
+I0307 15:11:17.203621  7281 ZooKeeperRouter.cpp:52] Getting actual topology ...
+I0307 15:11:17.203888  7281 Sf1Topology.cpp:20] Topology initialized
+I0307 15:11:17.204486  7281 ZooKeeperRouter.cpp:79] found: /SF1R-fake2
+I0307 15:11:17.204910  7281 ZooKeeperRouter.cpp:79] found: /SF1R-lscm162
+I0307 15:11:17.205322  7281 ZooKeeperRouter.cpp:90] cluster: /SF1R-lscm162/SearchTopology
+I0307 15:11:17.205742  7281 ZooKeeperRouter.cpp:96] replica: /SF1R-lscm162/SearchTopology/Replica1
+I0307 15:11:17.206115  7281 ZooKeeperRouter.cpp:112] sf1 node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.206514  7281 ZooKeeperRouter.cpp:118] node data: collection#b5mm,b5ma$dataport#18121$baport#18181$masterport#18131$host#172.16.0.162
+I0307 15:11:17.206545  7281 Sf1Topology.cpp:31] adding node: /SF1R-lscm162/SearchTopology/Replica1/Node1 ...
+I0307 15:11:17.206945  7281 ZooKeeperRouter.cpp:126] getting connection pool for node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.206964  7281 PoolFactory.hpp:64] new connection pool to: [172.16.0.162:18181 [ b5mm b5ma ] (/SF1R-lscm162/SearchTopology/Replica1/Node1)]
+I0307 15:11:17.207145  7281 ConnectionPool.cpp:35] Initializing pool ... (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.207162  7281 ConnectionPool.cpp:36]   size       : 1
+I0307 15:11:17.207175  7281 ConnectionPool.cpp:37]   resize     : false
+I0307 15:11:17.207185  7281 ConnectionPool.cpp:38]   maxSize    : 1
+I0307 15:11:17.207255  7281 RawClient.cpp:42] connecting ...
+I0307 15:11:17.207595  7281 RawClient.cpp:45] connected
+I0307 15:11:17.207629  7281 RawClient.cpp:53] Correctly instantiated
+I0307 15:11:17.207665  7281 ConnectionPool.cpp:48] Initialized pool of 1 clients. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.207712  7281 ZooKeeperRouter.cpp:79] found: /SF1R-paolo46
+I0307 15:11:17.208029  7281 ZooKeeperRouter.cpp:79] found: /SF1R-paolo50
+I0307 15:11:17.208327  7281 ZooKeeperRouter.cpp:79] found: /zookeeper
+I0307 15:11:17.208598  7281 ZooKeeperRouter.cpp:83] found (1) nodes
+I0307 15:11:17.208621  7281 ZooKeeperRouter.cpp:57] Routing policy ...
+I0307 15:11:17.208669  7281 RoundRobinPolicy.cpp:42] updating collections map due to topology changes
+I0307 15:11:17.208968  7281 RoundRobinPolicy.cpp:24] initialized
+I0307 15:11:17.208987  7281 ZooKeeperRouter.cpp:60] ZooKeeperRouter ready
+I0307 15:11:17.209002  7281 Sf1DistributedDriver.cpp:24] Driver ready.
+I0307 15:11:17.209024  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:17.209036  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:17.209194  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:17.209213  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:17.209224  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:17.209238  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:17.209291  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:17.209305  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.209329  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.209360  7281 RawClient.cpp:86] Sending raw request [2, 136, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:17.209430  7281 RawClient.cpp:108] Request sent (144 bytes).
+I0307 15:11:17.209447  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:17.210381  7281 RawClient.cpp:150] Response: [2, 126, {"header":{"success":true},"timers":{"process_time":0.0005360,"total_server_time":0.0006590},"top_k_count":0,"total_count":0}]
+I0307 15:11:17.210399  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:17.210444  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.210464  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.210531  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:17.210546  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:17.210597  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:17.210610  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:17.210621  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:17.210633  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:17.210650  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:17.210661  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.210675  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.210690  7281 RawClient.cpp:86] Sending raw request [3, 179, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:17.210722  7281 RawClient.cpp:108] Request sent (187 bytes).
+I0307 15:11:17.210736  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:17.211364  7281 RawClient.cpp:150] Response: [3, 126, {"header":{"success":true},"timers":{"process_time":0.0002950,"total_server_time":0.0003780},"top_k_count":0,"total_count":0}]
+I0307 15:11:17.211381  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:17.214370  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.214387  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.214421  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:17.214433  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:17.214490  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:17.214503  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:17.214515  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:17.214526  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:17.214544  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:17.214555  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.214568  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.214583  7281 RawClient.cpp:86] Sending raw request [4, 222, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:17.214615  7281 RawClient.cpp:108] Request sent (230 bytes).
+I0307 15:11:17.214629  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:17.215324  7281 RawClient.cpp:150] Response: [4, 124, {"header":{"success":true},"timers":{"process_time":0.00030,"total_server_time":0.0003850},"top_k_count":0,"total_count":0}]
+I0307 15:11:17.215353  7281 RawClient.cpp:155] Response received (132 bytes)
+I0307 15:11:17.215385  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.215402  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.215438  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:17.215451  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:17.215525  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:17.215539  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:17.215553  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:17.215564  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:17.215582  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:17.215595  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.215608  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.215623  7281 RawClient.cpp:86] Sending raw request [5, 265, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:17.215658  7281 RawClient.cpp:108] Request sent (273 bytes).
+I0307 15:11:17.215673  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:17.216352  7281 RawClient.cpp:150] Response: [5, 126, {"header":{"success":true},"timers":{"process_time":0.0002960,"total_server_time":0.0003850},"top_k_count":0,"total_count":0}]
+I0307 15:11:17.216382  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:17.216428  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.216446  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.216482  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:17.216495  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:17.216572  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:17.216583  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:17.216598  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:17.216608  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:17.216626  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:17.216639  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.216651  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:17.216667  7281 RawClient.cpp:86] Sending raw request [6, 308, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:17.216703  7281 RawClient.cpp:108] Request sent (316 bytes).
+I0307 15:11:17.216717  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:17.217401  7281 RawClient.cpp:150] Response: [6, 126, {"header":{"success":true},"timers":{"process_time":0.0002890,"total_server_time":0.0003810},"top_k_count":0,"total_count":0}]
+I0307 15:11:17.217429  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:17.217463  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:17.217479  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+
+
+*** Now you should turn ON one SF1 instance! ***
+
+
+I0307 15:11:33.200580  7283 Sf1Watcher.cpp:34] ZOO_CREATED_EVENT - ZOO_CONNECTED_STATE - /SF1R-paolo50/SearchTopology
+I0307 15:11:33.200624  7283 Sf1Watcher.cpp:40] created: /SF1R-paolo50/SearchTopology
+I0307 15:11:33.200798  7283 Sf1Watcher.cpp:42] adding /SF1R-paolo50/SearchTopology ...
+I0307 15:11:33.209112  7283 ZooKeeperRouter.cpp:90] cluster: /SF1R-paolo50/SearchTopology
+I0307 15:11:33.209475  7283 ZooKeeperRouter.cpp:96] replica: /SF1R-paolo50/SearchTopology/Replica1
+I0307 15:11:33.217438  7283 ZooKeeperRouter.cpp:112] sf1 node: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:33.217829  7283 ZooKeeperRouter.cpp:118] node data: collection#b5mm,b5ma,example$dataport#18121$baport#18181$masterport#18131$host#172.16.0.50
+I0307 15:11:33.217859  7283 Sf1Topology.cpp:31] adding node: /SF1R-paolo50/SearchTopology/Replica1/Node1 ...
+I0307 15:11:33.218013  7283 RoundRobinPolicy.cpp:35] resetting counter due to topology changes
+I0307 15:11:33.218046  7283 RoundRobinPolicy.cpp:42] updating collections map due to topology changes
+I0307 15:11:33.218128  7283 ZooKeeperRouter.cpp:126] getting connection pool for node: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:33.218143  7283 PoolFactory.hpp:64] new connection pool to: [172.16.0.50:18181 [ b5mm b5ma example ] (/SF1R-paolo50/SearchTopology/Replica1/Node1)]
+I0307 15:11:33.218230  7283 ConnectionPool.cpp:35] Initializing pool ... (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:33.218246  7283 ConnectionPool.cpp:36]   size       : 1
+I0307 15:11:33.218257  7283 ConnectionPool.cpp:37]   resize     : false
+I0307 15:11:33.218267  7283 ConnectionPool.cpp:38]   maxSize    : 1
+I0307 15:11:33.218281  7283 RawClient.cpp:42] connecting ...
+I0307 15:11:33.218382  7283 RawClient.cpp:45] connected
+I0307 15:11:33.218407  7283 RawClient.cpp:53] Correctly instantiated
+I0307 15:11:33.218431  7283 ConnectionPool.cpp:48] Initialized pool of 1 clients. (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:37.217639  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:37.217675  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:37.217788  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:37.217803  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:37.217818  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:37.217830  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:37.217859  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:37.217870  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.217887  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:37.217907  7281 RawClient.cpp:86] Sending raw request [7, 351, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:37.217952  7281 RawClient.cpp:108] Request sent (359 bytes).
+I0307 15:11:37.217967  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:37.219066  7281 RawClient.cpp:150] Response: [7, 125, {"header":{"success":true},"timers":{"process_time":0.0005850,"total_server_time":0.000730},"top_k_count":0,"total_count":0}]
+I0307 15:11:37.219099  7281 RawClient.cpp:155] Response received (133 bytes)
+I0307 15:11:37.219133  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.219151  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:37.219192  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:37.219205  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:37.219293  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:37.219305  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:37.219320  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:37.219329  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:37.219348  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 1
+I0307 15:11:37.219359  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:37.219373  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:37.219388  7281 RawClient.cpp:86] Sending raw request [8, 394, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:37.219440  7281 RawClient.cpp:108] Request sent (402 bytes).
+I0307 15:11:37.219455  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:37.225215  7281 RawClient.cpp:150] Response: [8, 126, {"header":{"success":true},"timers":{"process_time":0.0033360,"total_server_time":0.0050050},"top_k_count":0,"total_count":0}]
+I0307 15:11:37.225247  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:37.225282  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:37.225301  7281 ConnectionPool.cpp:103] Connection released (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:37.225339  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:37.225353  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:37.225464  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:37.225478  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:37.225492  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:37.225503  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:37.225523  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:37.225534  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.225548  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:37.225564  7281 RawClient.cpp:86] Sending raw request [9, 437, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:37.225602  7281 RawClient.cpp:108] Request sent (445 bytes).
+I0307 15:11:37.225616  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:37.226321  7281 RawClient.cpp:150] Response: [9, 126, {"header":{"success":true},"timers":{"process_time":0.0003010,"total_server_time":0.0004010},"top_k_count":0,"total_count":0}]
+I0307 15:11:37.226351  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:37.226389  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.226408  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:37.226443  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:37.226455  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:37.226562  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:37.226573  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:37.226588  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:37.226598  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:37.226618  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 1
+I0307 15:11:37.226629  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:37.226642  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:37.226658  7281 RawClient.cpp:86] Sending raw request [10, 480, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:37.226701  7281 RawClient.cpp:108] Request sent (488 bytes).
+I0307 15:11:37.226716  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:37.228467  7281 RawClient.cpp:150] Response: [10, 125, {"header":{"success":true},"timers":{"process_time":0.001210,"total_server_time":0.0015210},"top_k_count":0,"total_count":0}]
+I0307 15:11:37.228497  7281 RawClient.cpp:155] Response received (133 bytes)
+I0307 15:11:37.228530  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:37.228548  7281 ConnectionPool.cpp:103] Connection released (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:37.228584  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:37.228596  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:37.228716  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:37.228730  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:37.233084  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:37.233109  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:37.233135  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:37.233150  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.233165  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:37.233181  7281 RawClient.cpp:86] Sending raw request [11, 523, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:37.233222  7281 RawClient.cpp:108] Request sent (531 bytes).
+I0307 15:11:37.233235  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:37.233943  7281 RawClient.cpp:150] Response: [11, 126, {"header":{"success":true},"timers":{"process_time":0.0003160,"total_server_time":0.0004230},"top_k_count":0,"total_count":0}]
+I0307 15:11:37.233973  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:37.234004  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:37.234021  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+
+
+*** Now you should turn OFF one SF1 instance! ***
+
+
+I0307 15:11:45.010452  7283 Sf1Watcher.cpp:34] ZOO_DELETED_EVENT - ZOO_CONNECTED_STATE - /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:45.010494  7283 Sf1Watcher.cpp:50] deleted: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:45.010543  7283 Sf1Watcher.cpp:52] removing /SF1R-paolo50/SearchTopology/Replica1/Node1 ...
+I0307 15:11:45.010560  7283 ZooKeeperRouter.cpp:149] cluster: /SF1R-paolo50/SearchTopology/Replica1/Node1
+I0307 15:11:45.010572  7283 Sf1Topology.cpp:60] removing node: /SF1R-paolo50/SearchTopology/Replica1/Node1...
+I0307 15:11:45.010711  7283 RoundRobinPolicy.cpp:35] resetting counter due to topology changes
+I0307 15:11:45.010731  7283 RoundRobinPolicy.cpp:42] updating collections map due to topology changes
+I0307 15:11:45.010798  7283 ConnectionPool.cpp:53] Pool released. (/SF1R-paolo50/SearchTopology/Replica1/Node1)
+I0307 15:11:45.010831  7283 RawClient.cpp:60] closing ...
+I0307 15:11:45.010896  7283 RawClient.cpp:65] connection closed
+I0307 15:11:45.010911  7283 RawClient.cpp:70] Correctly destroyed.
+I0307 15:11:45.010947  7283 Sf1Watcher.cpp:34] ZOO_CHILD_EVENT - ZOO_CONNECTED_STATE - /SF1R-paolo50/SearchTopology/Replica1
+I0307 15:11:45.010962  7283 Sf1Watcher.cpp:70] children changed: /SF1R-paolo50/SearchTopology/Replica1
+I0307 15:11:45.018916  7283 ZooKeeperRouter.cpp:165] Watching children of: /SF1R-paolo50/SearchTopology/Replica1
+I0307 15:11:45.018965  7283 Sf1Watcher.cpp:34] ZOO_CHILD_EVENT - ZOO_CONNECTED_STATE - /SF1R-paolo50/SearchTopology
+I0307 15:11:45.018978  7283 Sf1Watcher.cpp:70] children changed: /SF1R-paolo50/SearchTopology
+I0307 15:11:45.019253  7283 ZooKeeperRouter.cpp:165] Watching children of: /SF1R-paolo50/SearchTopology
+I0307 15:11:45.027115  7283 Sf1Watcher.cpp:34] ZOO_DELETED_EVENT - ZOO_CONNECTED_STATE - /SF1R-paolo50/SearchTopology
+I0307 15:11:45.027143  7283 Sf1Watcher.cpp:50] deleted: /SF1R-paolo50/SearchTopology
+I0307 15:11:57.234174  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:57.234211  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:57.234355  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:57.234369  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:57.234387  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:57.234398  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:57.234427  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:57.234439  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.234457  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.234477  7281 RawClient.cpp:86] Sending raw request [12, 566, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:57.234524  7281 RawClient.cpp:108] Request sent (574 bytes).
+I0307 15:11:57.234547  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:57.235620  7281 RawClient.cpp:150] Response: [12, 125, {"header":{"success":true},"timers":{"process_time":0.0005180,"total_server_time":0.000680},"top_k_count":0,"total_count":0}]
+I0307 15:11:57.235647  7281 RawClient.cpp:155] Response received (133 bytes)
+I0307 15:11:57.235687  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.235705  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.235748  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:57.235760  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:57.235890  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:57.235903  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:57.235918  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:57.235929  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:57.235947  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:57.235959  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.235972  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.235987  7281 RawClient.cpp:86] Sending raw request [13, 609, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:57.236023  7281 RawClient.cpp:108] Request sent (617 bytes).
+I0307 15:11:57.236037  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:57.236762  7281 RawClient.cpp:150] Response: [13, 126, {"header":{"success":true},"timers":{"process_time":0.0003010,"total_server_time":0.0004140},"top_k_count":0,"total_count":0}]
+I0307 15:11:57.236789  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:57.236821  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.236839  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.236873  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:57.236886  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:57.237023  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:57.237035  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:57.244034  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:57.244060  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:57.244088  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:57.244107  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.244129  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.244155  7281 RawClient.cpp:86] Sending raw request [14, 652, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:57.244211  7281 RawClient.cpp:108] Request sent (660 bytes).
+I0307 15:11:57.244236  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:57.244946  7281 RawClient.cpp:150] Response: [14, 125, {"header":{"success":true},"timers":{"process_time":0.0003160,"total_server_time":0.000430},"top_k_count":0,"total_count":0}]
+I0307 15:11:57.244977  7281 RawClient.cpp:155] Response received (133 bytes)
+I0307 15:11:57.245025  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.245057  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.245112  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:57.245137  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:57.245349  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:57.245378  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:57.245405  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:57.245426  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:57.245457  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:57.245479  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.245506  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.245534  7281 RawClient.cpp:86] Sending raw request [15, 695, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:57.245592  7281 RawClient.cpp:108] Request sent (703 bytes).
+I0307 15:11:57.245627  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:57.246304  7281 RawClient.cpp:150] Response: [15, 125, {"header":{"success":true},"timers":{"process_time":0.0002920,"total_server_time":0.000410},"top_k_count":0,"total_count":0}]
+I0307 15:11:57.246332  7281 RawClient.cpp:155] Response received (133 bytes)
+I0307 15:11:57.246377  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.246408  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.246461  7281 Sf1DriverBase.cpp:78] controller: documents
+I0307 15:11:57.246487  7281 Sf1DriverBase.cpp:85] action    : search
+I0307 15:11:57.246692  7281 Sf1DriverBase.cpp:96] collection: b5mm
+I0307 15:11:57.246721  7281 Sf1DriverBase.cpp:98] Send JSON request: {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}
+I0307 15:11:57.246748  7281 Sf1DistributedDriver.cpp:39] Getting connection for collection: b5mm
+I0307 15:11:57.246768  7281 ZooKeeperRouter.cpp:204] Resolving nodes for collection: b5mm ...
+I0307 15:11:57.246798  7281 RoundRobinPolicy.cpp:67] index[b5mm] = 0
+I0307 15:11:57.246821  7281 ZooKeeperRouter.cpp:220] Resolved to node: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.246847  7281 ConnectionPool.cpp:70] Connection requested. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.246876  7281 RawClient.cpp:86] Sending raw request [16, 738, {"collection":"b5mm","header":{"check_time":true,"controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search","controller":"documents","action":"search"},"search":{"keywords":"america"},"limit":10}] ...
+I0307 15:11:57.246932  7281 RawClient.cpp:108] Request sent (746 bytes).
+I0307 15:11:57.246955  7281 RawClient.cpp:122] Receiving response ...
+I0307 15:11:57.247638  7281 RawClient.cpp:150] Response: [16, 126, {"header":{"success":true},"timers":{"process_time":0.0002860,"total_server_time":0.0004070},"top_k_count":0,"total_count":0}]
+I0307 15:11:57.247668  7281 RawClient.cpp:155] Response received (134 bytes)
+I0307 15:11:57.247712  7281 Sf1DistributedDriver.cpp:46] Releasing connection for: /SF1R-lscm162/SearchTopology/Replica1/Node1
+I0307 15:11:57.247742  7281 ConnectionPool.cpp:103] Connection released (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.247786  7281 Sf1DistributedDriver.cpp:33] Driver closed.
+I0307 15:11:57.247840  7281 ConnectionPool.cpp:53] Pool released. (/SF1R-lscm162/SearchTopology/Replica1/Node1)
+I0307 15:11:57.247869  7281 RawClient.cpp:60] closing ...
+I0307 15:11:57.247923  7281 RawClient.cpp:65] connection closed
+I0307 15:11:57.247956  7281 RawClient.cpp:70] Correctly destroyed.
+I0307 15:11:57.247984  7281 ZooKeeperRouter.cpp:69] ZooKeeperRouter destroyed
+I0307 15:11:57.248013  7281 RoundRobinPolicy.cpp:29] destroyed
+I0307 15:11:57.248074  7281 Sf1Topology.cpp:25] Topology destroyed
+I0307 15:11:57.248260  7281 Sf1Watcher.cpp:28] watcher destroyed
+I0307 15:11:57.248721  7281 Sf1DriverBase.cpp:49] destroyed.
+I0307 15:11:57.248754  7281 PoolFactory.hpp:44] PoolFactory destroyed
+
+*** No errors detected
+paolo@ubuntu:~/projects/izenelib/build$ 
