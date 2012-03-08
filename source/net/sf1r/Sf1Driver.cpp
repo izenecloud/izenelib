@@ -20,9 +20,9 @@ using std::string;
 using std::vector;
 
 
-Sf1Driver::Sf1Driver(const string& host, const uint32_t& port, 
-        const Sf1Config& parameters, const Format& fmt) throw(ServerError) 
-    try : Sf1DriverBase(parameters, fmt), pool(factory->newConnectionPool(host, port)) {
+Sf1Driver::Sf1Driver(const string& host, const Sf1Config& parameters, 
+        const Format& fmt) throw(ServerError) 
+try : Sf1DriverBase(parameters, fmt), pool(factory->newConnectionPool(host)) {
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {
     string message = e.what();

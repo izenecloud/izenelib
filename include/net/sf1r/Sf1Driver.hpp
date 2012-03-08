@@ -27,14 +27,12 @@ public:
 
     /**
      * Creates a new instance of the driver and connects to the server. 
-     * @param host hostname or IP address of the SF1 server.
-     * @param port TCP port on which the SF1 is listening.
-     * @param parameters configuration parameters.
+     * @param address The address of the SF1 server in the format "host:port".
+     * @param parameters The configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server.
      */
-    Sf1Driver(const std::string& host, const uint32_t& port,
-              const Sf1Config& parameters, 
+    Sf1Driver(const std::string& host, const Sf1Config& parameters, 
               const Format& format = JSON) throw(ServerError);
     
     /// Destructor.

@@ -47,10 +47,11 @@ public:
     /**
      * Instantiates a new connection pool.
      */
-    ConnectionPool* newConnectionPool(const std::string& host, const uint32_t& port) const {
-        DLOG(INFO) << "new connection pool to: [" << host << ":" << port << "]";
+    ConnectionPool* newConnectionPool(const std::string& address) const {
+        DLOG(INFO) << "new connection pool to: [" << address << "]";
         
-        ba::ip::tcp::resolver::query query(host, boost::lexical_cast<std::string>(port));
+        size_t pos = address.find(':');
+        ba::ip::tcp::resolver::query query(address.substr(0, pos), address.substr(pos+1));
         ba::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
         
         return new ConnectionPool(service, iterator, 

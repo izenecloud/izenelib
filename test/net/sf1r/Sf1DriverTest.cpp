@@ -17,10 +17,11 @@ using namespace std;
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    const string host = "somewhere";
     const Sf1Config conf;
     
-    BOOST_CHECK_THROW(new Sf1Driver(host, 18181, conf), ServerError);
+    BOOST_CHECK_THROW(new Sf1Driver("somewhere", conf), ServerError);
+    BOOST_CHECK_THROW(new Sf1Driver("somewhere:18181", conf), ServerError);
+    BOOST_CHECK_THROW(new Sf1Driver("somewhere:service", conf), ServerError);
 }
 
 
@@ -31,8 +32,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 #ifdef ENABLE_SF1_TEST
 
 
-const string HOST = "localhost";
-const uint32_t PORT = 18181;
+const string HOST = "localhost:18181";
 const Sf1Config CONF;
 
 
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
     const string tokens = "";
     string request = "{\"message\":\"Ciao! 你好！\"}";
     
-    Sf1Driver driver(HOST, PORT, CONF);
+    Sf1Driver driver(HOST, CONF);
     
     BOOST_CHECK_EQUAL(1, driver.getSequence());
     
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(malformed_request_body) {
     const string uri    = "/test/echo"; 
     const string tokens = "token";
           
-    Sf1Driver driver(HOST, PORT, CONF);
+    Sf1Driver driver(HOST, CONF);
     
     for (vector<string>::iterator it = bodies.begin(); it < bodies.end(); ++it) {
         BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(bad_uri) {
     const string tokens = "";
     const string expected = "{\"errors\":[\"Handler not found\"],\"header\":{\"success\":false}}";
 
-    Sf1Driver driver(HOST, PORT, CONF);
+    Sf1Driver driver(HOST, CONF);
     
     uint32_t seq = 1;
     BOOST_CHECK_EQUAL(seq, driver.getSequence());
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(test_echo) {
           string body   = "{\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
 
-    Sf1Driver driver(HOST, PORT, CONF);
+    Sf1Driver driver(HOST, CONF);
     BOOST_CHECK_EQUAL(1, driver.getSequence());
     
     string response = driver.call(uri, tokens, body);
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(documents_search) {
                           "  \"limit\":10"
                           "}";
     
-    Sf1Driver driver(HOST, PORT, CONF);
+    Sf1Driver driver(HOST, CONF);
     string response = driver.call(uri, tokens, body);
     BOOST_CHECK_EQUAL(2, driver.getSequence());
     BOOST_CHECK_PREDICATE(match, (response));    
