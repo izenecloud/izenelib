@@ -103,7 +103,7 @@ protected:
     void setFormat();
     
     /// Acquire a connection to the SF1 according to the given collection.
-    virtual RawClient& acquire(const std::string& collection) const = 0;
+    virtual RawClient& acquire(const std::string& collection) = 0;
     
     /// Release the given connection.
     virtual void release(const RawClient& connection) const = 0;

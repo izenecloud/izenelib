@@ -46,7 +46,7 @@ public:
 private:
     
     /// Acquire a connection from the connection pool.
-    RawClient& acquire(const std::string& collection) const;
+    RawClient& acquire(const std::string& collection);
     
     /// Release a connection into the connection pool.
     void release(const RawClient& connection) const;

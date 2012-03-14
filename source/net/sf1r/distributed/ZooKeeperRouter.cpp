@@ -194,7 +194,7 @@ ZooKeeperRouter::resolve(const std::string collection) const {
         DLOG(INFO) << "No collection specified, resolving to all nodes ...";
         
         if (topology->count() == 0) {
-            LOG(WARNING) << "No routes";
+            LOG(WARNING) << "No routes, throwing RoutingError";
             throw RoutingError();
         }
         
@@ -204,7 +204,8 @@ ZooKeeperRouter::resolve(const std::string collection) const {
         DLOG(INFO) << "Resolving nodes for collection: " << collection << " ...";
         
         if (topology->count(collection) == 0) {
-            LOG(WARNING) << "No routes for collection: " << collection;
+            LOG(WARNING) << "No routes for collection: " << collection 
+                         << ", throwing RoutingError";
             throw RoutingError(collection);
         }
         

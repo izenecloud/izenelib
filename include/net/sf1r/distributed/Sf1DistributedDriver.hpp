@@ -45,12 +45,15 @@ public:
 private:
     
     /// Acquire a connection from the ZooKeeper router.
-    RawClient& acquire(const std::string& collection) const;
+    RawClient& acquire(const std::string& collection);
     
     /// Release a connection to the ZooKeeper router.
     void release(const RawClient& connection) const;
     
 private:
+    
+    /// ZooKeeper servers.
+    const std::string hosts;
     
     /// The ZooKeeper router.
     boost::scoped_ptr<ZooKeeperRouter> router;
