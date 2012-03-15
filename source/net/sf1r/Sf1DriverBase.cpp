@@ -106,20 +106,37 @@ throw(std::runtime_error) {
     RawClient& client = acquire(collection);
     
     // process request
+    try {
+        string response = process(client, request);
+        release(client);
+        
+        return response;
+    } catch (ServerError& e) { // do not intercept ServerError
+        release(client);
+        throw e;
+    } catch (std::runtime_error& e) {
+        LOG(ERROR) << "Exception: " << e.what();
+        release(client);
+        throw e;
+    }
+}
+
+
+string
+Sf1DriverBase::process(RawClient& client, const string& request) {
     client.sendRequest(sequence, request);
+    
     Response response = client.getResponse();
     uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();
 
     if (responseSequence == 0) {
         LOG(ERROR) << "Zero sequence";
-        release(client);
         throw ServerError("Zero Sequence");
     }
 
     if (sequence != responseSequence) {
         LOG(ERROR) << "Unmatched sequence number: "
                     << "in = [" << sequence << "] out = [" << responseSequence << "]";
-        release(client);
         throw ServerError("Unmatched sequence number");
     }
 
@@ -127,11 +144,9 @@ throw(std::runtime_error) {
 
     if (not writer->checkData(responseBody)) { // This should never happen
         LOG(ERROR) << "Malformed response: [" << responseBody << "]";
-        release(client);
         throw ServerError("Malformed response");
     }
 
-    release(client);
     return responseBody;
 }
 

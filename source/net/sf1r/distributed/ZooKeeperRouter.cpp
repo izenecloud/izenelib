@@ -105,7 +105,7 @@ ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
             
             DLOG(INFO) << "Searching for nodes ...";
             strvector nodes;
-            client->getZNodeChildren(replica, nodes/*, ZooKeeper::WATCH*/);
+            client->getZNodeChildren(replica, nodes, ZooKeeper::WATCH);
 
             if (nodes.empty()) {
                 DLOG(INFO) << "no node found";
@@ -197,11 +197,9 @@ ZooKeeperRouter::watchChildren(const string& path) {
         if (boost::regex_match(s, SEARCH_NODE_REGEX)) {
             DLOG(INFO) << "Adding node: " << s;
             addSf1Node(s);
-        } else {
-            if (boost::regex_search(s, NODE_REGEX)) {
-                DLOG(INFO) << "recurse";
-                watchChildren(s);
-            }
+        } else if (boost::regex_search(s, NODE_REGEX)) {
+            DLOG(INFO) << "recurse";
+            watchChildren(s);
         }
     }
 }
@@ -226,7 +224,7 @@ ZooKeeperRouter::resolve(const string collection) const {
         
         if (topology->count() == 0) {
             LOG(WARNING) << "No routes, throwing RoutingError";
-            throw RoutingError();
+            throw RoutingError("No routes found");
         }
         
         // choose a node according to the routing policy
@@ -234,10 +232,10 @@ ZooKeeperRouter::resolve(const string collection) const {
     } else {
         DLOG(INFO) << "Resolving nodes for collection: " << collection << " ...";
         
-        if (topology->count(collection) == 0) {
+        if (topology->count() == 0 or topology->count(collection) == 0) {
             LOG(WARNING) << "No routes for collection: " << collection 
                          << ", throwing RoutingError";
-            throw RoutingError(collection);
+            throw RoutingError("No routes found for " + collection);
         }
         
         // choose a node according to the routing policy

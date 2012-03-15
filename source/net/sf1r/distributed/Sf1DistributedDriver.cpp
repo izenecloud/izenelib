@@ -36,7 +36,7 @@ Sf1DistributedDriver::~Sf1DistributedDriver() {
 
 RawClient&
 Sf1DistributedDriver::acquire(const std::string& collection) {
-    if (router.get() == 0) {
+    if (router.get() == NULL) {
         LOG(INFO) << "Initializing routing";
         router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
     }

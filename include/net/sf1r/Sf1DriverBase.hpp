@@ -108,6 +108,8 @@ protected:
     /// Release the given connection.
     virtual void release(const RawClient& connection) const = 0;
     
+    std::string process(RawClient& connection, const std::string& request);
+    
 protected:
     
     /// Input/Output service.
