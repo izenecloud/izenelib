@@ -13,7 +13,6 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-using iz::ZooKeeper;
 using iz::ZooKeeperEvent;
 using std::string;
 
@@ -38,9 +37,9 @@ Sf1Watcher::process(ZooKeeperEvent& zkEvent) {
 void 
 Sf1Watcher::onNodeCreated(const string& path) {
     DLOG(INFO) << "created: " << path;
-    if (boost::regex_match(path, CLUSTER_REGEX)) {
+    if (boost::regex_match(path, SEARCH_TOPOLOGY_REGEX)) {
         LOG(INFO) << "adding " << path << " ...";
-        router.addClusterNode(path);
+        router.addSearchTopology(path);
     }
 }
 
@@ -48,9 +47,12 @@ Sf1Watcher::onNodeCreated(const string& path) {
 void 
 Sf1Watcher::onNodeDeleted(const string& path) {
     DLOG(INFO) << "deleted: " << path;
-    if (boost::regex_match(path, NODE_REGEX)) {
+    if (boost::regex_match(path, SEARCH_NODE_REGEX)) {
         LOG(INFO) << "removing " << path << " ...";
-        router.removeClusterNode(path);
+        router.removeSf1Node(path);
+    } else if (boost::regex_match(path, SEARCH_TOPOLOGY_REGEX)) {
+        LOG(INFO) << "watching " << path << " ...";
+        router.watchChildren(path);
     }
 }
     
@@ -58,7 +60,7 @@ Sf1Watcher::onNodeDeleted(const string& path) {
 void 
 Sf1Watcher::onDataChanged(const string& path) {
     DLOG(INFO) << "changed: " << path;
-    if (boost::regex_match(path, NODE_REGEX)) {
+    if (boost::regex_match(path, SEARCH_NODE_REGEX)) {
         LOG(INFO) << "reloading " << path << " ...";
         router.updateNodeData(path);
     }

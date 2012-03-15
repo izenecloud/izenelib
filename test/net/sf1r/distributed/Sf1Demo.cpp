@@ -21,11 +21,19 @@ void handler(int) {
     cout << "waiting for stop ...";
 }
 
+void sendrequest(Sf1DriverBase* driver, const string& uri, 
+        const string& tokens, string& body) {
+    try {
+        driver->call(uri, tokens, body);
+    } catch(runtime_error& e) {
+        cout << "error: " << e.what() << endl;
+    }
+}
+
 int main() {
     const string host = "localhost:2181";
     const Sf1Config conf;
     const int PAUSE = 10;
-    
     
     const string uri    = "/documents/search"; 
     const string tokens = "";
@@ -39,16 +47,14 @@ int main() {
     signal(SIGINT, &handler);
     
     Sf1DriverBase* driver = new Sf1DistributedDriver(host, conf);
+    sendrequest(driver, uri, tokens, body);
     
     cout << "CTRL-C to stop" << endl;
     do {
         sleep(PAUSE);
-        try {
-            string response = driver->call(uri, tokens, body);
-            cout << endl << endl << endl;
-        } catch(runtime_error& e) {
-            cout << "error: " << e.what() << endl;
-        }
+        //sendrequest(driver, uri, tokens, body);
+        
+        cout << endl << endl;
     } while(not stop);
     
     delete driver;

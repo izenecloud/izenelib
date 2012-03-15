@@ -27,14 +27,29 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
+/** The zookeeper hierarchy root. */
 const std::string ROOT_NODE = "/";
-const std::string  TOPOLOGY = "/SearchTopology";
-//const std::string   REPLICA = "Replica";
-//const std::string      NODE = "Node";
 
-const boost::regex    TPLG_REGEX("\\/SF1R-\\w+\\d?");
-const boost::regex CLUSTER_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
-const boost::regex    NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
+/** Topology namespace within a node. */
+const std::string  TOPOLOGY = "/SearchTopology";
+
+/**
+ * Regular expression matching a topology namespace. 
+ * Example: /SF1R-host23
+ */
+const boost::regex NODE_REGEX("\\/SF1R-\\w+\\d?");
+
+/**
+ * Regular expression matching a search topologu namespace. 
+ * Example: /SF1R-host23/SearchTopology
+ */
+const boost::regex SEARCH_TOPOLOGY_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
+
+/**
+ * Regular expression matching a SF1 node on search topology.
+ * Example: /SF1R-host23/SearchTopology/Replica1/Node1
+ */
+const boost::regex SEARCH_NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
 
 NS_IZENELIB_SF1R_END
 
