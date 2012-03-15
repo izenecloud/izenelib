@@ -39,24 +39,27 @@ public:
     ~Sf1Topology();
     
     /**
-    * Add a new node to the current topology.
-    * @param path The new node path.
-    * @param data The new node data string.
-    */
-    void addNode(const std::string& path, const std::string& data);
+     * Add a new node to the current topology.
+     * @param path The new node path.
+     * @param data The new node data string.
+     * @param emit If true the signal \ref changed is emitted.
+     */
+    void addNode(const std::string& path, const std::string& data, bool emit = true);
 
     /**
-    * Update a node in the current topology.
-    * @param path The path of the node to be updated.
-    * @param data The new node data string.
-    */
-    void updateNode(const std::string& path, const std::string& data);
+     * Update a node in the current topology.
+     * @param path The path of the node to be updated.
+     * @param data The new node data string.
+     * @param emit If true the signal \ref changed is emitted.
+     */
+    void updateNode(const std::string& path, const std::string& data, bool emit = true);
 
     /**
-    * Remove a node from the current topology.
-    * @param path The path of the node to be removed.
-    */
-    void removeNode(const std::string& path);
+     * Remove a node from the current topology.
+     * @param path The path of the node to be removed.
+     * @param emit If true the signal \ref changed is emitted.
+     */
+    void removeNode(const std::string& path, bool emit = true);
     
     /**
      * Signal emitted on topology changes.
