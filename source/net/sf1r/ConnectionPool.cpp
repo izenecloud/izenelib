@@ -50,6 +50,11 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
 
 
 ConnectionPool::~ConnectionPool() {
+    boost::unique_lock<boost::mutex> lock(mutex);
+    while (not reserved.empty()) {
+        DLOG(INFO) << "Waiting for connection release ...";
+        condition.wait(lock);
+    }
     DLOG(INFO) << "Pool released."<< GET_PATH(path) ;
 }
 
@@ -111,6 +116,10 @@ ConnectionPool::release() {
             
             break;
         }
+    }
+    
+    if (reserved.empty()) {
+        condition.notify_one();
     }
 }
 

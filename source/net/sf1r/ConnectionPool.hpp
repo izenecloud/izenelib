@@ -15,6 +15,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 
 NS_IZENELIB_SF1R_BEGIN
@@ -111,6 +112,7 @@ public:
 private:
     
     boost::mutex mutex;
+    boost::condition_variable condition; ///< Condition to be met before destruction
     
     ba::io_service& service;
     ba::ip::tcp::resolver::iterator& iterator;
