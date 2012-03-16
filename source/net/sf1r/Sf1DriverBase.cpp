@@ -103,11 +103,12 @@ throw(std::runtime_error) {
     }
     
     // get a connection
+    beforeAcquire();
     RawClient& client = acquire(collection);
     
     // process request
     try {
-        string response = process(client, request);
+        string response = sendAndReceive(client, request);
         release(client);
         
         return response;
@@ -123,7 +124,7 @@ throw(std::runtime_error) {
 
 
 string
-Sf1DriverBase::process(RawClient& client, const string& request) {
+Sf1DriverBase::sendAndReceive(RawClient& client, const string& request) {
     client.sendRequest(sequence, request);
     
     Response response = client.getResponse();

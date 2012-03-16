@@ -44,8 +44,11 @@ public:
     
 private:
     
+    /// Perform lazy initialization here.
+    void beforeAcquire();
+    
     /// Acquire a connection from the ZooKeeper router.
-    RawClient& acquire(const std::string& collection);
+    RawClient& acquire(const std::string& collection) const;
     
     /// Release a connection to the ZooKeeper router.
     void release(const RawClient& connection) const;

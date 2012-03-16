@@ -37,7 +37,7 @@ Sf1Driver::~Sf1Driver() {
 
 
 RawClient&
-Sf1Driver::acquire(const std::string&) {
+Sf1Driver::acquire(const std::string&) const {
     DLOG(INFO) << "Acquiring connection ...";
     return pool->acquire();
 }

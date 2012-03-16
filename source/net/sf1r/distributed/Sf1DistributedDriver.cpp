@@ -34,13 +34,16 @@ Sf1DistributedDriver::~Sf1DistributedDriver() {
 }
 
 
-RawClient&
-Sf1DistributedDriver::acquire(const std::string& collection) {
+void
+Sf1DistributedDriver::beforeAcquire() {
     if (router.get() == NULL) {
         LOG(INFO) << "Initializing routing";
         router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
     }
-    
+}
+
+RawClient&
+Sf1DistributedDriver::acquire(const std::string& collection) const {
     DLOG(INFO) << "Getting connection for collection: " << collection;
     return router->getConnection(collection);
 }

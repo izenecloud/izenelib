@@ -99,18 +99,39 @@ public:
     
 protected:
     
-    /// Set data format used for request and responses.
-    void setFormat();
+    /// Hook for operations to be performed before connection acquisition.
+    virtual inline void beforeAcquire() {}
+    
+#if 0 // enable these in case of need 
+    
+    /// Hook for operations to be performed after connection acquisition.
+    virtual inline void afterAcquire() {}
+    
+    /// Hook for operations to be performed before connection release.
+    virtual inline void beforeRelease() {}
+    
+    /// Hook for operations to be performed after connection release.
+    virtual inline void afterRelease() {}
+    
+#endif
+    
+protected: // pure virtual methods
     
     /// Acquire a connection to the SF1 according to the given collection.
-    virtual RawClient& acquire(const std::string& collection) = 0;
+    virtual RawClient& acquire(const std::string& collection) const = 0;
     
     /// Release the given connection.
     virtual void release(const RawClient& connection) const = 0;
     
-    std::string process(RawClient& connection, const std::string& request);
+private:
+    
+    /// Actually send request to and receive response from the SF1
+    std::string sendAndReceive(RawClient& connection, const std::string& request);
     
 protected:
+    
+    /// Set data format used for request and responses.
+    void setFormat();
     
     /// Input/Output service.
     ba::io_service service;
