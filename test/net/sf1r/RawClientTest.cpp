@@ -51,14 +51,18 @@ BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
     RawClient client(service, iterator);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
+    BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
     BOOST_CHECK_EQUAL("", client.getPath());
     
     RawClient zclient(service, iterator, "zkpath");
     BOOST_CHECK(zclient.isConnected());
     BOOST_CHECK(zclient.idle());
+    BOOST_CHECK(zclient.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, zclient.getStatus());
     BOOST_CHECK_EQUAL("zkpath", zclient.getPath());
+    
+    BOOST_CHECK_EQUAL(client.getId() + 1, zclient.getId());
 }
 
 
@@ -70,14 +74,17 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     RawClient client(service, iterator, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
+    BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL("/path", client.getPath());
     
     client.sendRequest(sequence, message);
     BOOST_CHECK(not client.idle());
+    BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Busy, client.getStatus());
     
     Response response =  client.getResponse();
     BOOST_CHECK(client.idle());
+    BOOST_CHECK(client.valid());
     
     BOOST_CHECK_EQUAL(sequence, response.get<RESPONSE_SEQUENCE>());
     BOOST_CHECK_EQUAL(expected, response.get<RESPONSE_BODY>());
