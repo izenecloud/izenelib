@@ -13,16 +13,16 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
+using boost::system::system_error;
 using std::string;
 using std::vector;
 
 
-Sf1DistributedDriver::Sf1DistributedDriver(const string& hosts, 
+Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
         const Sf1Config& parameters, const Format& format) throw(ServerError)
-try : Sf1DriverBase(parameters, format) {
-    router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+try : Sf1DriverBase(parameters, format), hosts(zkhosts) {
     LOG(INFO) << "Driver ready.";
-} catch (izenelib::zookeeper::ZooKeeperException& e) {
+} catch (system_error& e) {
     string message = e.what();
     LOG(ERROR) << message;
     throw ServerError(e.what());
@@ -33,6 +33,14 @@ Sf1DistributedDriver::~Sf1DistributedDriver() {
     LOG(INFO) << "Driver closed.";
 }
 
+
+void
+Sf1DistributedDriver::beforeAcquire() {
+    if (router.get() == NULL) {
+        LOG(INFO) << "Initializing routing";
+        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+    }
+}
 
 RawClient&
 Sf1DistributedDriver::acquire(const std::string& collection) const {

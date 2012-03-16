@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(dummy) {
 }
 
 /*
- * This test requires a running ZooKeeper server and with no SF1 nodes.
+ * This test requires a running ZooKeeper server.
  */
 
 #ifdef ENABLE_ZK_TEST
@@ -63,7 +63,6 @@ struct ZooKeeperClient {
         
         client.setZNodeData(sf1name + "/SearchTopology/Replica1/Node1", 
                    "collection#bar$dataport#18121$baport#18181$masterport#18131$host#localhost");
-        sleep(1);
         
         cout << "done" << endl;
     }
@@ -74,13 +73,12 @@ struct ZooKeeperClient {
         cout << "removing fake SF1 " << sf1name << " ... ";
         
         keep ? removeNode(sf1name + "/SearchTopology") : removeNode(sf1name);
-        sleep(1);
         
         cout << "done" << endl;
     }
     
-    string hosts;
-    int recvTimeout;
+    const string hosts;
+    const int recvTimeout;
     ZooKeeper client;
     
 private:
@@ -90,16 +88,27 @@ private:
         string tmp;
         client.getZNodeData(path, tmp);
         BOOST_CHECK_EQUAL(data, tmp);
-        sleep(1);
     }
     
     void removeNode(const string& path) {
         client.deleteZNode(path, true);
         BOOST_CHECK(not client.isZNodeExists(path));
-        sleep(1);
     }
 };
 
+
+inline void wait() {
+    sleep(2);
+}
+
+inline void
+printLine(const string& s = "") {
+    if (s.empty()) {
+        cout << "------------------------------------------------------------------" << endl;
+    } else {
+        cout << "---------" << s << "---------------------------------------------" << endl;
+    }
+}
 
 void
 printRange(const NodeListRange& range) {
@@ -123,16 +132,15 @@ printList(const NodeCollectionsList& list, const string& collection) {
     }
     
     BOOST_FOREACH(const NodeCollectionsList::value_type& value,  list) {
-        Sf1NodePtr n = value.second;
-        cout << "* " << *n << endl;
-        BOOST_CHECK(not n->getCollections().empty());
+        Sf1Node n = value.second;
+        cout << "* " << n << endl;
+        BOOST_CHECK(not n.getCollections().empty());
     }
 }
 
 void
 checkNodes(const NodeListRange& range, const size_t& size) {
     printRange(range);
-    
     BOOST_CHECK_EQUAL(size, range.second - range.first);
 }
 
@@ -144,48 +152,114 @@ checkCollections(const string& collection,
     NodeCollectionsList list(range.first, range.second);
     printList(list, collection);
     BOOST_CHECK_EQUAL(size, list.size());
-    if (not path1.empty())
-        BOOST_CHECK_EQUAL(path1, list[0].second->getPath());
-    if (not path2.empty())
-        BOOST_CHECK_EQUAL(path2, list[1].second->getPath());
+    if (not path1.empty()) {
+        if (list.size() > 0) {
+            BOOST_CHECK_EQUAL(path1, list[0].second.getPath());
+        } else {
+            BOOST_ERROR("list size mismatch");
+        }
+    }
+    if (not path2.empty()) {
+        if (list.size() > 1) {
+            BOOST_CHECK_EQUAL(path2, list[1].second.getPath());
+        } else {
+            BOOST_ERROR("list size mismatch");
+        }
+    }
 }
 
 BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
     ZooKeeperRouter router(NULL, hosts, recvTimeout);
     if (not router.isConnected()) throw runtime_error("ZooKeeper not found");
     
-    checkNodes(router.getSf1Nodes(), 0);
+    const int numNodes = router.getSf1Nodes().second - router.getSf1Nodes().first;
+    checkNodes(router.getSf1Nodes(), numNodes);
+    printLine();
     
+    printLine("adding fake1");
     addSf1("fake1");
-    checkNodes(router.getSf1Nodes(), 1);
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 1);
     checkCollections("foo", router, 1, 
                 "/SF1R-fake1/SearchTopology/Replica1/Node1");
     checkCollections("bar", router, 0);
+    printLine();
     
+    printLine("adding fake2");
     addSf1("fake2");
-    checkNodes(router.getSf1Nodes(), 2);
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 2);
     checkCollections("foo", router, 2, 
                 "/SF1R-fake1/SearchTopology/Replica1/Node1",
                 "/SF1R-fake2/SearchTopology/Replica1/Node1");
     checkCollections("bar", router, 0);
+    printLine();
     
+    printLine("changing fake2");
     change("fake2");
-    checkNodes(router.getSf1Nodes(), 2);
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 2);
     checkCollections("foo", router, 1, 
                 "/SF1R-fake1/SearchTopology/Replica1/Node1");
     checkCollections("bar", router, 1, 
                 "/SF1R-fake2/SearchTopology/Replica1/Node1");
+    printLine();
     
-    removeSf1("fake1", false);
-    checkNodes(router.getSf1Nodes(), 1);
+    printLine("removing fake1");
+    removeSf1("fake1");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 1);
     checkCollections("foo", router, 0);
     checkCollections("bar", router, 1, 
                 "/SF1R-fake2/SearchTopology/Replica1/Node1");
-    
+    printLine();
+     
+    printLine("removing fake2");
     removeSf1("fake2");
-    checkNodes(router.getSf1Nodes(), 0);
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes);
     checkCollections("foo", router, 0);
     checkCollections("bar", router, 0);
+    printLine();
+    
+    printLine("re-adding fake1");
+    addSf1("fake1");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 1);
+    checkCollections("foo", router, 1, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1");
+    checkCollections("bar", router, 0);
+    printLine();
+    
+    printLine("re-adding fake2");
+    addSf1("fake2");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 2);
+    checkCollections("foo", router, 2, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1",
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
+    checkCollections("bar", router, 0);
+    printLine();
+    
+    printLine("re-removing fake1");
+    removeSf1("fake1");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 1);
+    checkCollections("bar", router, 0);
+    checkCollections("foo", router, 1, 
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
+    printLine();
+    
+    printLine("re-removing fake2");
+    removeSf1("fake2");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes);
+    checkCollections("foo", router, 0);
+    checkCollections("bar", router, 0);
+    
+    printLine("finished");
+    checkNodes(router.getSf1Nodes(), numNodes);
+    printLine();
     
     // XXX: on destruction, serverside there is the following exception
     // Unexpected Exception: java.nio.channels.CancelledKeyException

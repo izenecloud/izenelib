@@ -8,7 +8,6 @@
 #include "ConnectionPool.hpp"
 #include "RawClient.hpp"
 #include <boost/assert.hpp>
-#include <boost/thread.hpp>
 #include <boost/tuple/tuple_io.hpp>
 #include <glog/logging.h>
 
@@ -30,8 +29,7 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
                                const size_t& sz, const bool rz, 
                                const size_t& ms, const string& zkpath) 
             : service(serv), iterator(it), 
-              size(sz), resize(rz), maxSize(ms), path(zkpath),
-              busy(0) {
+              size(sz), resize(rz), maxSize(ms), path(zkpath) {
     DLOG(INFO) << "Initializing pool ..." << GET_PATH(path) ;
     DLOG(INFO) << "  size       : " << size;
     DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
@@ -50,16 +48,20 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
 
 
 ConnectionPool::~ConnectionPool() {
-    DLOG(INFO) << "Pool released."<< GET_PATH(path) ;
+    boost::unique_lock<boost::mutex> lock(mutex);
+    while (not reserved.empty()) {
+        DLOG(INFO) << "Waiting for connection release ...";
+        condition.wait(lock);
+    }
+    LOG(INFO) << "Pool released." << GET_PATH(path) ;
 }
 
 #ifdef ENABLE_SF1_TEST
 bool
 ConnectionPool::invariant() const {
-    CHECK(size > 0) << "invariant: poolsize == 0";
+    CHECK(size > 0) << "invariant: size == 0";
     if (resize) CHECK(maxSize >= size) << "invariant: maxSize < poolSize";
-    CHECK_EQ(busy, reserved.size()) << "invariant: busy counter mismatch";
-    CHECK_EQ(size, available.size() + reserved.size()) << "invariant: poolSize counter mismatch";
+    CHECK_EQ(size, available.size() + reserved.size()) << "invariant: counters mismatch";
     return true;
 }
 #endif
@@ -67,14 +69,15 @@ ConnectionPool::invariant() const {
 
 RawClient&
 ConnectionPool::acquire() throw(ConnectionPoolError) {
-    DLOG(INFO) << "Connection requested."<< GET_PATH(path) ;
     boost::lock_guard<boost::mutex> lock(mutex);
+    
+    DLOG(INFO) << "Connection requested."<< GET_PATH(path) ;
     
     if (not available.empty()) {
         // move from available to reserved;
         reserved.transfer(reserved.end(), available.begin(), available);
-        ++busy;
-        
+        DLOG(INFO) << "reserved (" << reserved.size() << ")";
+        DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
         return reserved.back();
     } 
     
@@ -91,26 +94,36 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
     LOG(INFO) << "Growing pool ..." << GET_PATH(path) ;
     reserved.push_back(new RawClient(service, iterator, path));
     ++size;
-    ++busy;
     LOG(INFO) << "Growed pool size: " << size << GET_PATH(path) ;
     
+    DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
     return reserved.back();
 }
 
 
 void
-ConnectionPool::release() {
-    DLOG(INFO) << "Connection released" << GET_PATH(path) ;
+ConnectionPool::release(const RawClient& client) {
     boost::lock_guard<boost::mutex> lock(mutex); 
     
+    DLOG(INFO) << "Releasing connection ID: " << client.getId() << GET_PATH(path) ;
+    
+    bool found = false;
     for (Iterator it = reserved.begin(); it != reserved.end(); ++it) {
-        if (it->idle()) {
+        if (it->getId() == client.getId()) {
+            found = true;
             // move from available to reserved;
             available.transfer(available.end(), it, reserved);
-            --busy;
+            DLOG(INFO) << "reserved (" << reserved.size() << ")";
             
             break;
         }
+    }
+    
+    CHECK(found) << "No connection found";
+    
+    if (reserved.empty()) {
+        DLOG(INFO) << "notifying for condition";
+        condition.notify_one();
     }
 }
 

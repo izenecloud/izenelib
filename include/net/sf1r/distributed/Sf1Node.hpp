@@ -16,14 +16,6 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-class Sf1Node;
-
-
-/**
- * Useful alias.
- */
-typedef const Sf1Node* Sf1NodePtr;
-
 
 /**
  * Data structure representing a running SF1 instance.

@@ -66,7 +66,7 @@ RoundRobinPolicy::getNodeFor(const std::string collection) {
     size_t index = ccounter[collection]++ % list.size();
     DLOG(INFO) << "index[" << collection << "] = " << index;
     
-    return *(list[index].second);
+    return list[index].second;
 }
     
     

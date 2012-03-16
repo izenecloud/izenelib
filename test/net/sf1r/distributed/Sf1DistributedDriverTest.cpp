@@ -20,7 +20,9 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1Config conf;
     
-    BOOST_CHECK_THROW(new Sf1DistributedDriver(host, conf), ServerError);
+    Sf1DriverBase* driver;
+    BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
+    delete driver;
 }
 
 /*
@@ -131,17 +133,23 @@ BOOST_AUTO_TEST_CASE(documents_search) {
                           "}";
     
     Sf1DistributedDriver driver(HOSTS, CONF);
-    sendRequests(driver, uri, tokens, body);
+    try {
+        sendRequests(driver, uri, tokens, body);
+    } catch(runtime_error&) {}
     
     cout << "\n\n*** Now you should turn ON one SF1 instance! ***\n\n" << endl;
     sleep(20);
     
-    sendRequests(driver, uri, tokens, body);
+    try {
+        sendRequests(driver, uri, tokens, body);
+    } catch(runtime_error&) {}
     
     cout << "\n\n*** Now you should turn OFF one SF1 instance! ***\n\n" << endl;
     sleep(20);
     
-    sendRequests(driver, uri, tokens, body);
+    try {
+        sendRequests(driver, uri, tokens, body);
+    } catch(runtime_error&) {}
 }
 
 

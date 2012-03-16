@@ -139,5 +139,10 @@ target_link_libraries(t_Sf1DistributedDriver sf1r ${LIBS} ${CMAKE_THREAD_LIBS_IN
 list(APPEND ALL_TESTS t_Sf1DistributedDriver)
 
 
+# Sf1Demo
+add_executable(Sf1Demo EXCLUDE_FROM_ALL distributed/Sf1Demo.cpp)
+target_link_libraries(Sf1Demo sf1r ${Glog_LIBRARIES} ${Boost_LIBRARIES})
+
+
 # shortcut for building all tests
 add_custom_target(Sf1Tests DEPENDS ${ALL_TESTS})

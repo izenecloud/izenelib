@@ -27,7 +27,7 @@ Sf1Topology::~Sf1Topology() {
 
 
 void
-Sf1Topology::addNode(const string& path, const string& data) {
+Sf1Topology::addNode(const string& path, const string& data, bool emit) {
     DLOG(INFO) << "adding node: " << path << " ...";
     
     Sf1Node node(path, data);
@@ -36,27 +36,31 @@ Sf1Topology::addNode(const string& path, const string& data) {
     // add collections
     BOOST_FOREACH(const string& collection, node.getCollections()) {
         collectionsIndex.insert(collection);
-        nodeCollections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
+        nodeCollections.insert(NodeCollectionsContainer::value_type(collection, *nodes.find(path)));
     }
     
-    changed();
+    if (emit) {
+        changed();
+    }
 }
 
 
 void
-Sf1Topology::updateNode(const string& path, const string& data) {
+Sf1Topology::updateNode(const string& path, const string& data, bool emit) {
     DLOG(INFO) << "updating node: " << path << "...";
     
     // quick & dirty (TM)
-    removeNode(path);
-    addNode(path, data);
+    removeNode(path, false);
+    addNode(path, data, false);
     
-    changed();
+    if (emit) {
+        changed();
+    }
 }
 
 
 void
-Sf1Topology::removeNode(const string& path) {
+Sf1Topology::removeNode(const string& path, bool emit) {
     DLOG(INFO) << "removing node: " << path << "...";
     
     // remove collections
@@ -70,7 +74,7 @@ Sf1Topology::removeNode(const string& path) {
         
         NodeCollectionsRange range = nodeCollections.equal_range(col);
         for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
-            if (it->second->getPath() == path) {
+            if (it->second.getPath() == path) {
                 nodeCollections.erase(it);
             }
         }
@@ -78,7 +82,9 @@ Sf1Topology::removeNode(const string& path) {
     
     // remove node
     CHECK(nodes.erase(path) == 1) << "node "<< path << " not removed";
-    changed();
+    if (emit) {
+        changed();
+    }
 }
 
 

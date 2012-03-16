@@ -44,6 +44,9 @@ public:
     
 private:
     
+    /// Perform lazy initialization here.
+    void beforeAcquire();
+    
     /// Acquire a connection from the ZooKeeper router.
     RawClient& acquire(const std::string& collection) const;
     
@@ -51,6 +54,9 @@ private:
     void release(const RawClient& connection) const;
     
 private:
+    
+    /// ZooKeeper servers.
+    const std::string hosts;
     
     /// The ZooKeeper router.
     boost::scoped_ptr<ZooKeeperRouter> router;

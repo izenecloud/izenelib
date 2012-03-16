@@ -17,6 +17,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -82,8 +83,8 @@ private:
     /** The watcher need to access private member functions. */
     friend class Sf1Watcher;
     
-    /** Adds a new cluster node. */
-    void addClusterNode(const std::string& path);
+    /** Adds a search topology. */
+    void addSearchTopology(const std::string& path);
     
     /** Add a new SF1 node in the topology. */
     void addSf1Node(const std::string& path);
@@ -92,12 +93,12 @@ private:
     void updateNodeData(const std::string& path);
     
     /** Removes an existing SF1 node. */
-    void removeClusterNode(const std::string& path);
+    void removeSf1Node(const std::string& path);
     
-    /** Watch a node for changes. */
+    /** Watch a node for its children's changes. */
     void watchChildren(const std::string& path);
     
-    /** Get the actual SF1 topology (called during initialization) */
+    /** Get the actual SF1 topology (called during initialization). */
     void loadTopology();
     
     /** Resolve to a node in the topology. */
@@ -105,7 +106,10 @@ private:
     
 private:
     
+    /// Mutex for topology changes.
     boost::mutex mutex;
+    /// Condition variable for connection pool deletion.
+    boost::condition_variable condition;
     
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;

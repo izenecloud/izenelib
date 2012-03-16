@@ -66,7 +66,7 @@ ZooKeeperRouter::~ZooKeeperRouter() {
         delete i.second;
     }
     
-    DLOG(INFO) << "ZooKeeperRouter destroyed";
+    LOG(INFO) << "ZooKeeperRouter closed";
 }
 
 
@@ -75,28 +75,43 @@ ZooKeeperRouter::loadTopology() {
     strvector clusters;
     client->getZNodeChildren(ROOT_NODE, clusters, ZooKeeper::WATCH);
     
+    DLOG(INFO) << "Scanning root node ...";
     BOOST_FOREACH(const string& s, clusters) {
-        DLOG(INFO) << "found: " << s;
-        string cluster = s + TOPOLOGY;
-        addClusterNode(cluster);
+        if (boost::regex_match(s, NODE_REGEX)) { // this is a SF1 node
+            DLOG(INFO) << "node: " << s;
+            addSearchTopology(s + TOPOLOGY);
+        }
     }
-    LOG(INFO) << "found (" << topology->count() << ") nodes";
+    LOG(INFO) << "found (" << topology->count() << ") active nodes";
 }
 
 
 void
-ZooKeeperRouter::addClusterNode(const string& cluster) {
-    if (client->isZNodeExists(cluster, ZooKeeper::WATCH)) {
-        DLOG(INFO) << "cluster: " << cluster;
+ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
+    if (client->isZNodeExists(searchTopology, ZooKeeper::WATCH)) {
+        DLOG(INFO) << "found search topology: " << searchTopology;
         
+        DLOG(INFO) << "Searching for replicas ...";
         strvector replicas;
-        client->getZNodeChildren(cluster, replicas, ZooKeeper::WATCH);
+        client->getZNodeChildren(searchTopology, replicas, ZooKeeper::WATCH);
 
+        if (replicas.empty()) {
+            DLOG(INFO) << "no replica found";
+            return;
+        }
+        
         BOOST_FOREACH(const string& replica, replicas) {
             DLOG(INFO) << "replica: " << replica;
+            
+            DLOG(INFO) << "Searching for nodes ...";
             strvector nodes;
             client->getZNodeChildren(replica, nodes, ZooKeeper::WATCH);
 
+            if (nodes.empty()) {
+                DLOG(INFO) << "no node found";
+                return;
+            }
+            
             BOOST_FOREACH(const string& path, nodes) {
                 addSf1Node(path);
             }
@@ -109,73 +124,111 @@ void
 ZooKeeperRouter::addSf1Node(const string& path) {
     boost::lock_guard<boost::mutex> lock(mutex);
 
-    LOG(INFO) << "sf1 node: " << path;
+    LOG(INFO) << "adding SF1 node: [" << path << "]";
     
-    if (topology->isPresent(path)) return;
+    if (topology->isPresent(path)) {
+        DLOG(INFO) << "node already exists, skipping";
+        return;
+    }
     
     string data;
     client->getZNodeData(path, data, ZooKeeper::WATCH);
-    LOG(INFO) << "node data: " << data;
+    LOG(INFO) << "node data: [" << data << "]";
 
     // add node into topology
     topology->addNode(path, data);
 
-    // add pool for the node
-    if (factory != NULL) { // Should be NULL only in tests
-        const Sf1Node& node = topology->getNodeAt(path);
-        DLOG(INFO) << "getting connection pool for node: " << node.getPath();
-        ConnectionPool* pool = factory->newConnectionPool(node);
-        pools.insert(PoolContainer::value_type(node.getPath(), pool));
+#ifdef ENABLE_ZK_TEST
+    if (factory == NULL) { // Should be NULL only in tests
+        LOG(WARNING) << "factory is NULL, is this a test?";
+        return;
     }
+#endif
+    
+    // add pool for the node
+    const Sf1Node& node = topology->getNodeAt(path);
+    DLOG(INFO) << "Getting connection pool for node: " << node.getPath();
+    ConnectionPool* pool = factory->newConnectionPool(node);
+    pools.insert(PoolContainer::value_type(node.getPath(), pool));
 }
 
 
 void 
-ZooKeeperRouter::updateNodeData(const std::string& path) {
+ZooKeeperRouter::updateNodeData(const string& path) {
     boost::lock_guard<boost::mutex> lock(mutex);
 
+    LOG(INFO) << "updating SF1 node: [" << path << "]";
+    
     string data;
     client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
-    LOG(INFO) << "node data: " << data;
+    LOG(INFO) << "node data: [" << data << "]";
     
     topology->updateNode(path, data);
 }
 
 
 void
-ZooKeeperRouter::removeClusterNode(const string& path) {
-    boost::lock_guard<boost::mutex> lock(mutex);
+ZooKeeperRouter::removeSf1Node(const string& path) {
+    boost::unique_lock<boost::mutex> lock(mutex);
     
-    DLOG(INFO) << "cluster: " << path;
+    LOG(INFO) << "SF1 node: [" << path << "]";
     
     // remove node from topology
     topology->removeNode(path);
-    
+
+#ifdef ENABLE_ZK_TEST
+    if (factory == NULL) { // Should be NULL only in tests
+        LOG(WARNING) << "factory is NULL, is this a test?";
+        return;
+    }
+#endif
+
     // remove its pool
-    ConnectionPool* pool = pools[path];
+    const PoolContainer::iterator& it = pools.find(path);
+    CHECK(pools.end() != it) << "pool not found";
+    ConnectionPool* pool = it->second;
+    CHECK_NOTNULL(pool);
+    
+    while (pool->isBusy()) {
+        DLOG(INFO) << "pool is currently in use, waiting";
+        condition.wait(lock);
+    }
+    DLOG(INFO) << "removing pool";
     CHECK_EQ(1, pools.erase(path));
     delete pool;
 }
 
 
 void
-ZooKeeperRouter::watchChildren(const std::string& path) {
+ZooKeeperRouter::watchChildren(const string& path) {
+    if (not client->isZNodeExists(path, ZooKeeper::WATCH)) {
+        DLOG(INFO) << "node [" << path << "] does not exist";
+        boost::smatch what;
+        CHECK(boost::regex_search(path, what, NODE_REGEX));
+        CHECK(not what.empty());
+        
+        DLOG(INFO) << "recurse to [" << what[0] << "] ...";
+        watchChildren(what[0]);
+        return;
+    }
+    
     strvector children;
     client->getZNodeChildren(path, children, ZooKeeper::WATCH);
     DLOG(INFO) << "Watching children of: " << path;
     BOOST_FOREACH(const string& s, children) {
         DLOG(INFO) << "child: " << s;
-        if (boost::regex_match(s, NODE_REGEX)) {
+        if (boost::regex_match(s, SEARCH_NODE_REGEX)) {
+            DLOG(INFO) << "Adding node: " << s;
             addSf1Node(s);
-        } else {
-            if (boost::regex_search(s, TPLG_REGEX)) {
-                watchChildren(s);
-            }
+        } else if (boost::regex_search(s, NODE_REGEX)) {
+            DLOG(INFO) << "recurse";
+            watchChildren(s);
         }
     }
 }
 
 #ifdef ENABLE_ZK_TEST
+
 NodeListRange
 ZooKeeperRouter::getSf1Nodes() const {
     return topology->getNodes();
@@ -186,17 +239,19 @@ NodeCollectionsRange
 ZooKeeperRouter::getSf1Nodes(const string& collection) const {
     return topology->getNodesFor(collection);
 }
+
 #endif
 
+
 const Sf1Node& 
-ZooKeeperRouter::resolve(const std::string collection) const {
+ZooKeeperRouter::resolve(const string collection) const {
+    if (topology->count() == 0) {
+        LOG(WARNING) << "Empty topology, throwing RoutingError";
+        throw RoutingError("Empty topology");
+    }
+        
     if (collection.empty()) {
         DLOG(INFO) << "No collection specified, resolving to all nodes ...";
-        
-        if (topology->count() == 0) {
-            LOG(WARNING) << "No routes";
-            throw RoutingError();
-        }
         
         // choose a node according to the routing policy
         return policy->getNode();
@@ -204,8 +259,9 @@ ZooKeeperRouter::resolve(const std::string collection) const {
         DLOG(INFO) << "Resolving nodes for collection: " << collection << " ...";
         
         if (topology->count(collection) == 0) {
-            LOG(WARNING) << "No routes for collection: " << collection;
-            throw RoutingError(collection);
+            LOG(WARNING) << "No routes for collection: " << collection 
+                         << ", throwing RoutingError";
+            throw RoutingError("No routes for " + collection);
         }
         
         // choose a node according to the routing policy
@@ -216,11 +272,13 @@ ZooKeeperRouter::resolve(const std::string collection) const {
 
 RawClient&
 ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
+    boost::lock_guard<boost::mutex> lock(mutex);
+    
     const Sf1Node& node = resolve(collection);
     DLOG(INFO) << "Resolved to node: " << node.getPath();
     
     // get a connection from the node
-    ConnectionPool* pool = pools[node.getPath()];
+    ConnectionPool* pool = pools[node.getPath()]; // TODO: do not use operator[]
     CHECK(pool) << "NULL pool";
     return pool->acquire();
 }
@@ -228,7 +286,16 @@ ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
 
 void 
 ZooKeeperRouter::releaseConnection(const RawClient& connection) {
-    pools[connection.getPath()]->release();
+    boost::lock_guard<boost::mutex> lock(mutex);
+    
+    DLOG(INFO) << "releasing connection";
+    ConnectionPool* pool = pools[connection.getPath()]; // TODO: do not use operator[]
+    pool->release(connection); 
+    
+    if (not pool->isBusy()) {
+        DLOG(INFO) << "notifying for condition";
+        condition.notify_one();
+    }
 }
     
 

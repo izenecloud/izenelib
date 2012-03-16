@@ -64,7 +64,7 @@ typedef std::pair<NodeListIterator, NodeListIterator> NodeListRange;
 
 
 /** Container providing a view on collections. */
-typedef std::multimap<std::string, Sf1NodePtr> NodeCollectionsContainer;
+typedef std::multimap<std::string, Sf1Node> NodeCollectionsContainer;
 /** Iterator on \ref CollectionsContainer. */
 typedef NodeCollectionsContainer::iterator NodeCollectionsIterator;
 /** Iterator range on \ref CollectionsContainer. */

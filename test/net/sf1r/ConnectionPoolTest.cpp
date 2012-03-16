@@ -66,6 +66,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
     BOOST_CHECK(not pool.isResizable());
+    BOOST_CHECK(not pool.isBusy());
     
     // acquire
     
@@ -75,6 +76,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     BOOST_CHECK(c1.isConnected() and c1.idle());
+    BOOST_CHECK(pool.isBusy());
     
     RawClient& c2 = pool.acquire();
     BOOST_CHECK(pool.invariant());
@@ -82,6 +84,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     BOOST_CHECK(c2.isConnected() and c2.idle());
+    BOOST_CHECK(pool.isBusy());
     
     // use
     
@@ -111,17 +114,19 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     
     // release
     
-    pool.release();
+    pool.release(c1);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
+    BOOST_CHECK(pool.isBusy());
     
-    pool.release();
+    pool.release(c2);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
+    BOOST_CHECK(not pool.isBusy());
 }
 
 
@@ -194,19 +199,19 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     
     // release
     
-    pool.release();
+    pool.release(c3);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     
-    pool.release();
+    pool.release(c2);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     
-    pool.release();
+    pool.release(c1);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
@@ -226,7 +231,7 @@ struct Worker {
         boost::this_thread::sleep(boost::posix_time::seconds(sleepTime));
         c.getResponse();
         
-        pool.release();
+        pool.release(c);
         BOOST_CHECK(pool.invariant());
         
         LOG(INFO) << "worker " << i << " done";
@@ -253,9 +258,7 @@ BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
         threads.push_back(new thread(&Worker::work, &w, i+1));
     }
     
-    for (size_t i = 0; i < NUM_THREADS; ++i) {
-        threads[i].join();
-    }
+    BOOST_MESSAGE("Waiting for threads completion before termination");
 }
 
 #endif

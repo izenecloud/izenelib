@@ -152,31 +152,31 @@ BOOST_FIXTURE_TEST_CASE(nodes_collections_test, Nodes) {
     range = topology.getNodesFor("coll1");
     BOOST_CHECK(range.first != range.second);
     for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
-        Sf1NodePtr n = it->second;
-        BOOST_CHECK(n->getPath() == "/test/node1" or n->getPath() == "/test/node3" or n->getPath() == "/test/node4");
+        Sf1Node n = it->second;
+        BOOST_CHECK((n.getPath() == "/test/node1") xor (n.getPath() == "/test/node3") xor (n.getPath() == "/test/node4"));
     }
     
     // use a list instead of a range, for random access
     NodeCollectionsList list(range.first, range.second);
     BOOST_CHECK_EQUAL(3, list.size());
-    BOOST_CHECK(list[0].second->getPath() == "/test/node1");
-    BOOST_CHECK(list[1].second->getPath() == "/test/node3");
-    BOOST_CHECK(list[2].second->getPath() == "/test/node4");
+    BOOST_CHECK(list[0].second.getPath() == "/test/node1");
+    BOOST_CHECK(list[1].second.getPath() == "/test/node3");
+    BOOST_CHECK(list[2].second.getPath() == "/test/node4");
     
     BOOST_CHECK_EQUAL(2, topology.count("coll2"));
     range = topology.getNodesFor("coll2");
     BOOST_CHECK(range.first != range.second);
     for (NodeCollectionsIterator& it = range.first; it != range.second; ++it) {
-        Sf1NodePtr n = it->second;
-        BOOST_CHECK(n->getPath() == "/test/node2" or n->getPath() == "/test/node3");
+        Sf1Node n = it->second;
+        BOOST_CHECK((n.getPath() == "/test/node2") xor (n.getPath() == "/test/node3"));
     }
     
     BOOST_CHECK_EQUAL(1, topology.count("coll3"));
     range = topology.getNodesFor("coll3");
     BOOST_CHECK(range.first != range.second);
     for (NodeCollectionsIterator& it = range.first; it != range.second; ++it) {
-        Sf1NodePtr n = it->second;
-        BOOST_CHECK(n->getPath() == "/test/node4");
+        Sf1Node n = it->second;
+        BOOST_CHECK(n.getPath() == "/test/node4");
     }
     
     BOOST_CHECK_EQUAL(0, topology.count("coll5"));
