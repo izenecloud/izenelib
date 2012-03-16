@@ -36,7 +36,7 @@ Sf1Topology::addNode(const string& path, const string& data, bool emit) {
     // add collections
     BOOST_FOREACH(const string& collection, node.getCollections()) {
         collectionsIndex.insert(collection);
-        nodeCollections.insert(NodeCollectionsContainer::value_type(collection, &*nodes.find(path)));
+        nodeCollections.insert(NodeCollectionsContainer::value_type(collection, *nodes.find(path)));
     }
     
     if (emit) {
@@ -74,7 +74,7 @@ Sf1Topology::removeNode(const string& path, bool emit) {
         
         NodeCollectionsRange range = nodeCollections.equal_range(col);
         for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
-            if (it->second->getPath() == path) {
+            if (it->second.getPath() == path) {
                 nodeCollections.erase(it);
             }
         }
