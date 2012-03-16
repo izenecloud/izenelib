@@ -16,6 +16,7 @@
 #include <boost/ptr_container/ptr_list.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/thread/locks.hpp>
 
 
 NS_IZENELIB_SF1R_BEGIN
@@ -63,29 +64,41 @@ public:
     RawClient& acquire() throw(ConnectionPoolError);
     
     /**
-     * Gives back the pool a client .
+     * Gives back the pool a client.
+     * @param connection A connection
      */
-    void release();
+    void release(const RawClient& connection);
     
     /**
      * @return The actual pool size (number of connections).
      */
-    size_t getSize() const {
+    size_t getSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return size;
     }
     
     /**
      * @return The number of available connections.
      */
-    size_t getAvailableSize() const {
+    size_t getAvailableSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return available.size();
     }
     
     /**
      * @return The number of connections currently busy.
      */
-    size_t getReservedSize() const {
+    size_t getReservedSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return reserved.size();
+    }
+    
+    /**
+     * @return \c true if there is any connection in use.
+     */
+    bool isBusy() {
+        boost::lock_guard<boost::mutex> lock(mutex);
+        return not reserved.empty();
     }
     
     /**
@@ -111,24 +124,31 @@ public:
     
 private:
     
+    /// Mutex for read/write operation on the internal connection queues.
     boost::mutex mutex;
-    boost::condition_variable condition; ///< Condition to be met before destruction
+    /// Locking condition for pool finalization.
+    boost::condition_variable condition;
     
     ba::io_service& service;
     ba::ip::tcp::resolver::iterator& iterator;
     
+    /// The actual size.
     size_t size;
+    /// Automatic resize flag.
     const bool resize;
+    /// The maximum number of connections.
     const size_t maxSize;
+    /// The ZooKeeper path (if defined)
     std::string path;
     
     // Aliases for the actual container used.
     typedef boost::ptr_list<RawClient> Container;
     typedef Container::iterator Iterator;
     
+    /// Available connections.
     Container available;
+    /// Busy connections.
     Container reserved;
-    size_t busy;
     
     
 #ifdef ENABLE_SF1_TEST

@@ -140,7 +140,7 @@ list(APPEND ALL_TESTS t_Sf1DistributedDriver)
 
 
 # Sf1Demo
-add_executable(Sf1Demo distributed/Sf1Demo.cpp)
+add_executable(Sf1Demo EXCLUDE_FROM_ALL distributed/Sf1Demo.cpp)
 target_link_libraries(Sf1Demo sf1r ${Glog_LIBRARIES} ${Boost_LIBRARIES})
 
 

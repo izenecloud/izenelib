@@ -156,14 +156,14 @@ checkCollections(const string& collection,
         if (list.size() > 0) {
             BOOST_CHECK_EQUAL(path1, list[0].second.getPath());
         } else {
-            BOOST_FAIL("list size mismatch");
+            BOOST_ERROR("list size mismatch");
         }
     }
     if (not path2.empty()) {
         if (list.size() > 1) {
             BOOST_CHECK_EQUAL(path2, list[1].second.getPath());
         } else {
-            BOOST_FAIL("list size mismatch");
+            BOOST_ERROR("list size mismatch");
         }
     }
 }

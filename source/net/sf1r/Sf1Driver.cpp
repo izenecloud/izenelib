@@ -44,9 +44,9 @@ Sf1Driver::acquire(const std::string&) {
 
 
 void
-Sf1Driver::release(const RawClient&) const {
+Sf1Driver::release(const RawClient& connection) const {
     DLOG(INFO) << "Releasing connection ...";
-    pool->release();
+    pool->release(connection);
 }
 
 

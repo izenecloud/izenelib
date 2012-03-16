@@ -17,6 +17,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -105,7 +106,10 @@ private:
     
 private:
     
+    /// Mutex for topology changes.
     boost::mutex mutex;
+    /// Condition variable for connection pool deletion.
+    boost::condition_variable condition;
     
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;
