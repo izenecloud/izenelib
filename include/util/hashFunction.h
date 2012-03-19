@@ -298,10 +298,12 @@ template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
     return convkey % HashFunction<KeyType>::PRIME;
 }
 
-inline uint32_t MurmurHash2(const uint8_t* data, int32_t len, uint32_t seed)
+inline uint32_t MurmurHash2(const void* key, int32_t len, uint32_t seed)
 {
     // 'm' and 'r' are mixing constants generated offline.
     // They're not really 'magic', they just happen to work well.
+
+    const uint8_t * data = (const uint8_t*)key;
 
     static const uint32_t m = 0x5bd1e995;
     static const int32_t r = 24;
@@ -382,7 +384,7 @@ inline uint64_t fmix ( uint64_t k )
     return k;
 }
 
-inline uint64_t MurmurHash64A(const uint8_t* key, int32_t len, uint64_t seed)
+inline uint64_t MurmurHash64A(const void* key, int32_t len, uint64_t seed)
 {
     static const uint64_t m = BIG_CONSTANT(0xc6a4a7935bd1e995);
     static const int r = 47;
@@ -425,7 +427,7 @@ inline uint64_t MurmurHash64A(const uint8_t* key, int32_t len, uint64_t seed)
     return h;
 }
 
-inline uint128_t MurmurHash3_x64_128(const uint8_t* key, const int32_t len, const uint32_t seed)
+inline uint128_t MurmurHash3_x64_128(const void* key, const int32_t len, const uint32_t seed)
 {
     const uint8_t * data = (const uint8_t*)key;
     const int nblocks = len / 16;
