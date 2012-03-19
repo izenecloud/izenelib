@@ -207,7 +207,7 @@ protected:
     {
         if (handlerList_.find(method) != handlerList_.end())
         {
-            std::runtime_error("Duplicated function: " + method);
+            throw std::runtime_error("Duplicated function: " + method);
         }
 
         handlerList_.insert(typename Maptype::value_type(method, handler));
