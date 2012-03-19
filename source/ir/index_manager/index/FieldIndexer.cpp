@@ -21,13 +21,14 @@ namespace indexmanager
 {
 
 void writeTermInfo(
-    IndexOutput* pVocWriter, 
-    termid_t tid, 
+    IndexOutput* pVocWriter,
+    termid_t tid,
     const TermInfo& termInfo)
 {
     pVocWriter->writeInt(tid);					///write term id
     pVocWriter->writeInt(termInfo.docFreq_);		///write df
     pVocWriter->writeInt(termInfo.ctf_);			///write ctf
+    pVocWriter->writeInt(termInfo.maxDocFreq_);     ///write maxDocFreq
     pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
     pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
     pVocWriter->writeLong(termInfo.skipPointer_);	///write skip list offset offset
@@ -48,7 +49,7 @@ struct Record
 #pragma pack(pop)
 
 FieldIndexer::FieldIndexer(
-    const char* field, 
+    const char* field,
     Indexer* pIndexer
 )
     :field_(field)
@@ -69,7 +70,7 @@ FieldIndexer::FieldIndexer(
     indexLevel_ = pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_;
 
     sorterFileName_ = field_+".tmp";
-    bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) 
+    bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_)
                         /bfs::path(sorterFileName_));
     sorterFullPath_ = path.string();
 }
@@ -85,8 +86,8 @@ FieldIndexer::~FieldIndexer()
 }
 
 void FieldIndexer::setIndexMode(
-    boost::shared_ptr<MemCache> pMemCache, 
-    size_t nBatchMemSize, 
+    boost::shared_ptr<MemCache> pMemCache,
+    size_t nBatchMemSize,
     bool realtime)
 {
     if(!realtime)
@@ -125,7 +126,7 @@ bool FieldIndexer::isBatchEmpty_()
     return false;
 }
 
-void FieldIndexer::setHitBuffer_(size_t size) 
+void FieldIndexer::setHitBuffer_(size_t size)
 {
     iHitsMax_ = size;
     iHitsMax_ = iHitsMax_/sizeof(TermId) ;
@@ -169,7 +170,7 @@ void FieldIndexer::writeHitBuffer_(int iHits)
 }
 
 void FieldIndexer::addField(
-    docid_t docid, 
+    docid_t docid,
     boost::shared_ptr<LAInput> laInput)
 {
     if(laInput->empty()) return;
@@ -268,7 +269,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         {
             fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
             int64_t vocLength = vocDescOffset - vocOffset;
-		
+
             pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
             pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
             ///end write vocabulary descriptor
@@ -369,7 +370,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;
     ///begin write vocabulary descriptor
-    pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
+    pVocWriter->writeInt(TermInfo::version);///write terminfo version
+    pVocWriter->writeInt((int32_t)vocLength);	///<VocLength(Int64)>
     pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
     ///end write vocabulary descriptor
 
@@ -384,4 +386,3 @@ TermReader* FieldIndexer::termReader()
 }
 
 NS_IZENELIB_IR_END
-

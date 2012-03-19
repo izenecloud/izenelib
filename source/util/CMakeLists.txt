@@ -78,6 +78,12 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/s16_compressor.cpp
     compression/int/unpack.cpp
     compression/int/vbyte_compressor.cpp
+    compression/int/Simple16.cpp
+    compression/int/PForDelta.cpp
+    compression/int/BitsWriter.cpp
+    compression/int/err_utils.cpp
+    compression/int/int_utils.cpp
+    compression/int/OPTPForDelta.cpp
 
     compressed_vector/detail/Compressor.cpp
 

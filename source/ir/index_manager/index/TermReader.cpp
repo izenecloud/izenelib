@@ -52,8 +52,9 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     IndexInput* pVocInput = pDirectory->openInput(bn + ".voc");
     pVocInput->seek(fieldInfo_.getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
+    nVersion_ = pVocInput->readInt();
     ///begin read vocabulary descriptor
-    nVocLength_ = pVocInput->readLong();
+    nVocLength_ = pVocInput->readInt();
     nTermCount_ = (int32_t)pVocInput->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput->seek(voffset - nVocLength_);///seek to begin of vocabulary data
@@ -62,19 +63,22 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
+    freq_t maxDocFreq = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
-    freq_t positionPostingLen = 0;	
+    freq_t positionPostingLen = 0;
     ///read term table
     for (int32_t i = 0;i < nTermCount_;i++)
     {
         tid = pVocInput->readInt();
         df = pVocInput->readInt();
         ctf = pVocInput->readInt();
+        if(nVersion_ == TermInfo::version)
+            maxDocFreq = pVocInput->readInt();
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
         skipPointer = pVocInput->readLong();
@@ -84,7 +88,7 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         positionPostingLen = pVocInput->readInt();
 
         pTermTable_[i].tid = tid;
-        pTermTable_[i].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        pTermTable_[i].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
 
     delete pVocInput;
@@ -130,7 +134,7 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
     ///tid == 0 means we return the last term to see whether
     ///the index is consistent;
     if(MAX_TERMID == tid) return &(pTermTable_[end].ti);
-	
+
     while (start <= end)
     {
         mid = (start + end)/2;
@@ -219,14 +223,14 @@ TermDocFreqs* VocReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
-    RTDiskPostingReader* pPosting = 
+    RTDiskPostingReader* pPosting =
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
-    TermDocFreqs* pTermDoc = 
+    TermDocFreqs* pTermDoc =
       new TermDocFreqs(pPosting,*pCurTermInfo_);
-	
+
     return pTermDoc;
 }
 
@@ -235,12 +239,12 @@ TermPositions* VocReader::termPositions()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
-    RTDiskPostingReader* pPosting = 
+    RTDiskPostingReader* pPosting =
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
-    TermPositions* pTermPos = 
+    TermPositions* pTermPos =
       new TermPositions(pPosting,*pCurTermInfo_);
     return pTermPos;
 }
@@ -291,8 +295,9 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     IndexInput* pVocInput = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput->seek(fieldInfo_.getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
+    nVersion_ = pVocInput->readInt();
     ///begin read vocabulary descriptor
-    nVocLength_ = pVocInput->readLong();
+    nVocLength_ = pVocInput->readInt();
     nTermCount_ = (int32_t)pVocInput->readLong(); ///get total term count
     nSparseSize_ = nTermCount_>>9;
     ///end read vocabulary descriptor
@@ -302,19 +307,22 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
+    freq_t maxDocFreq = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
-    freq_t positionPostingLen = 0;	
+    freq_t positionPostingLen = 0;
     ///read term table
     for (int32_t i = 0;i < nTermCount_;i++)
     {
         tid = pVocInput->readInt();
         df = pVocInput->readInt();
         ctf = pVocInput->readInt();
+        if(nVersion_ == TermInfo::version)
+            maxDocFreq = pVocInput->readInt();
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
         skipPointer = pVocInput->readLong();
@@ -326,7 +334,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         if((i+1)%SPARSE_FACTOR == 0)
         {
             sparseTermTable_[i>>9].tid = tid;
-            sparseTermTable_[i>>9].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+            sparseTermTable_[i>>9].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
         }
     }
     delete pVocInput;
@@ -397,6 +405,7 @@ RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
     nTermCount_ = pTermReaderImpl_->nTermCount_;
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
+    nVersion_ = pTermReaderImpl_->nVersion_;
 }
 
 RTDiskTermReader::~RTDiskTermReader()
@@ -468,13 +477,14 @@ int RTDiskTermReader::fillBuffer(int pos)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
+    freq_t maxDocFreq = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
-    freq_t positionPostingLen = 0;	
+    freq_t positionPostingLen = 0;
 
     for(int i = begin, j = 0; i <= end; ++i, ++j)
     {
@@ -482,6 +492,8 @@ int RTDiskTermReader::fillBuffer(int pos)
         bufferTermTable_[j].tid = tid;
         df = pVocInput_->readInt();
         ctf = pVocInput_->readInt();
+        if(nVersion_ == TermInfo::version)
+            maxDocFreq = pVocInput_->readInt();
         lastdoc = pVocInput_->readInt();
         skipLevel = pVocInput_->readInt();
         skipPointer = pVocInput_->readLong();
@@ -490,7 +502,7 @@ int RTDiskTermReader::fillBuffer(int pos)
         positionPointer = pVocInput_->readLong();
         positionPostingLen = pVocInput_->readInt();
 
-        bufferTermTable_[j].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        bufferTermTable_[j].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
     return end - begin;
 }
@@ -515,7 +527,7 @@ TermInfo* RTDiskTermReader::termInfo(Term* term)
         int end = fillBuffer(pos);
         return searchBuffer(termId, end);
     }
-	
+
     while(delta > 0)
     {
         if((pos&511) == 511)
@@ -527,22 +539,22 @@ TermInfo* RTDiskTermReader::termInfo(Term* term)
                 cmpres = 1;
             else
                 cmpres = -1;
-        }  
+        }
         if(delta <= 512)
         {
             int end = fillBuffer(pos);
             return searchBuffer(termId, end);
         }
         delta = delta>>1;
-	  
+
         if(cmpres == 1)
         {
             pos += delta;
-            if((int)pos >= nTermCount_)  
+            if((int)pos >= nTermCount_)
             {
                 do
                 {
-                    pos -= delta; 		   
+                    pos -= delta;
                     delta = delta>>1;
                     pos += delta;
                 }while(((int32_t)pos >= nTermCount_)&&(delta > 0));
@@ -570,12 +582,12 @@ TermDocFreqs* RTDiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
-    RTDiskPostingReader* pPosting = 
+    RTDiskPostingReader* pPosting =
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-	
-    TermDocFreqs* pTermDoc = 
+
+    TermDocFreqs* pTermDoc =
         new TermDocFreqs(pPosting,*pCurTermInfo_);
     return pTermDoc;
 }
@@ -585,12 +597,12 @@ TermPositions* RTDiskTermReader::termPositions()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
-    RTDiskPostingReader* pPosting = 
+    RTDiskPostingReader* pPosting =
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
-    TermPositions* pTermPos = 
+    TermPositions* pTermPos =
       new TermPositions(pPosting,*pCurTermInfo_);
     return pTermPos;
 }
@@ -708,7 +720,7 @@ TermInfo* MemTermReader::termInfo(Term* term)
             return NULL;
         }
         pCurPosting_ = postingIter->second;
-    }	
+    }
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
     pCurPosting_->getSnapShot(curTermInfo_);
@@ -757,11 +769,11 @@ TermDocFreqs* BlockTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
-    BlockPostingReader* pPosting = 
+    BlockPostingReader* pPosting =
         new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_, DOCLEVEL);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-    TermDocFreqs* pTermDoc = 
+    TermDocFreqs* pTermDoc =
         new TermDocFreqs(pPosting,*pCurTermInfo_);
     return pTermDoc;
 }
@@ -771,12 +783,12 @@ TermPositions* BlockTermReader::termPositions()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
-    BlockPostingReader* pPosting = 
+    BlockPostingReader* pPosting =
         new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
-    TermPositions* pTermPos = 
+    TermPositions* pTermPos =
       new TermPositions(pPosting,*pCurTermInfo_);
     pTermPos->setUseFixedPosBuffer(false);/// for block based encoding, we can not use fixed buffer to decode positions
     return pTermPos;
@@ -823,12 +835,12 @@ TermDocFreqs* ChunkTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
-    ChunkPostingReader* pPosting = 
+    ChunkPostingReader* pPosting =
         new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCLEVEL),*pCurTermInfo_, DOCLEVEL);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-	
-    TermDocFreqs* pTermDoc = 
+
+    TermDocFreqs* pTermDoc =
         new TermDocFreqs(pPosting,*pCurTermInfo_);
     return pTermDoc;
 }
@@ -838,12 +850,12 @@ TermPositions* ChunkTermReader::termPositions()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
-    ChunkPostingReader* pPosting = 
+    ChunkPostingReader* pPosting =
         new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
-    TermPositions* pTermPos = 
+    TermPositions* pTermPos =
       new TermPositions(pPosting,*pCurTermInfo_);
     pTermPos->setUseFixedPosBuffer(false);/// for block based encoding, we can not use fixed buffer to decode positions
     return pTermPos;
@@ -865,4 +877,3 @@ TermIterator* ChunkTermReader::termIterator(const char* field)
 }
 
 NS_IZENELIB_IR_END
-

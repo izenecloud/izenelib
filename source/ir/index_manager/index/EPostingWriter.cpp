@@ -10,7 +10,7 @@ namespace indexmanager{
 ///////////////////////////////////////////////////////////////////////////////////
 
 BlockPostingWriter::BlockPostingWriter(
-    boost::shared_ptr<MemCache> pCache, 
+    boost::shared_ptr<MemCache> pCache,
     IndexLevel indexLevel
 )
     :pMemCache_(pCache)
@@ -18,6 +18,7 @@ BlockPostingWriter::BlockPostingWriter(
     ,position_buffer_pointer_(0)
     ,nDF_(0)
     ,nCurTermFreq_(0)
+    ,nmaxDocFreq_(0)
     ,nCTF_(0)
     ,nLastDocID_(BAD_DOCID)
     ,current_block_id_(0)
@@ -54,6 +55,7 @@ void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
+    termInfo.maxDocFreq_ = nmaxDocFreq_;
     termInfo.lastDocID_ = nLastDocID_;
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
@@ -97,9 +99,10 @@ void BlockPostingWriter::reset()
     position_buffer_pointer_ = 0;
     chunk_.reset();
 
-    nCTF_ = 0;
-    nCurTermFreq_ = 0;
     nDF_ = 0;
+    nCurTermFreq_ = 0;
+    nmaxDocFreq_ = 0;
+    nCTF_ = 0;
     nLastDocID_ = BAD_DOCID;
 }
 
@@ -107,12 +110,12 @@ void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {
-	///see it before,only position is needed
-	if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
-	{
+    ///see it before,only position is needed
+    if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
+    {
            curr_position_buffer_size_ = curr_position_buffer_size_<<1;
            positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
-	}
+    }
        positions_[position_buffer_pointer_++] = location;
        nCurTermFreq_++;
     }
@@ -120,7 +123,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
     {
         /// new doc id
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;
 
         if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
@@ -148,6 +151,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 1;
 
         nLastDocID_ = docid;
@@ -160,7 +164,7 @@ void BlockPostingWriter::flush()
 {
     if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
 
         if(!pBlockDataPool_->addChunk(chunk_))
@@ -175,7 +179,7 @@ void BlockPostingWriter::flush()
                 pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_,
                                    pBlockDataPool_->num_doc_of_curr_block(), 0);
             pBlockDataPool_->addBlock();
-            pBlockDataPool_->addChunk(chunk_);			
+            pBlockDataPool_->addChunk(chunk_);
         }
 
         current_block_id_++;
@@ -190,6 +194,7 @@ void BlockPostingWriter::flush()
             pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(), pBlockDataPool_->num_doc_of_curr_block(), 0);
 
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 0;
     }
 }
@@ -201,8 +206,8 @@ void BlockPostingWriter::flush()
 
 ChunkPostingWriter::ChunkPostingWriter(
     boost::shared_ptr<MemCache> pCache,
-    int skipInterval, 
-    int maxSkipLevel, 
+    int skipInterval,
+    int maxSkipLevel,
     IndexLevel indexLevel)
     :pMemCache_(pCache)
     ,pSkipListWriter_(0)
@@ -212,6 +217,7 @@ ChunkPostingWriter::ChunkPostingWriter(
     ,position_buffer_pointer_(0)
     ,nDF_(0)
     ,nCurTermFreq_(0)
+    ,nmaxDocFreq_(0)
     ,nCTF_(0)
     ,nLastDocID_(BAD_DOCID)
     ,indexLevel_(indexLevel)
@@ -247,9 +253,10 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
     pDocFreqDataPool_->truncTailChunk();
     if (pPosDataPool_)
         pPosDataPool_->truncTailChunk();
-	
+
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
+    termInfo.maxDocFreq_ = nmaxDocFreq_;
     termInfo.lastDocID_ = nLastDocID_;
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
@@ -300,6 +307,7 @@ void ChunkPostingWriter::reset()
 
     nCTF_ = 0;
     nCurTermFreq_ = 0;
+    nmaxDocFreq_ = 0;
     nDF_ = 0;
     nLastDocID_ = BAD_DOCID;
 }
@@ -308,12 +316,12 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {
-	///see it before,only position is needed
-	if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
-	{
+    ///see it before,only position is needed
+    if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
+    {
            curr_position_buffer_size_ = curr_position_buffer_size_<<1;
            positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
-	}
+    }
        positions_[position_buffer_pointer_++] = location;
        nCurTermFreq_++;
     }
@@ -321,7 +329,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
     {
         /// new doc id
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;
 
         if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
@@ -344,6 +352,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 1;
 
         nLastDocID_ = docid;
@@ -356,7 +365,7 @@ void ChunkPostingWriter::flush()
 {
     if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_; 
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
         if (pPosDataPool_)
@@ -371,6 +380,7 @@ void ChunkPostingWriter::flush()
         }
 
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 0;
     }
 }
@@ -378,4 +388,3 @@ void ChunkPostingWriter::flush()
 }
 
 NS_IZENELIB_IR_END
-

@@ -61,6 +61,11 @@ int64_t MemPostingReader::getCTF() const
     return termInfo_.ctf_;
 };
 
+int32_t MemPostingReader::getMaxDocFreq() const
+{
+    return termInfo_.maxDocFreq_;
+};
+
 docid_t MemPostingReader::lastDocID()
 {
     return termInfo_.lastDocID_;
@@ -277,7 +282,7 @@ int32_t MemPostingReader::DecodeNext(
             {
                 for(uint32_t i = 0; i < nCurTF; ++i)
                 {
-                    ISCHUNKOVER_P();					
+                    ISCHUNKOVER_P();
                     VariantDataPool::decodeVData32(pPChunk);
                 }
             }
@@ -920,4 +925,3 @@ void RTDiskPostingReader::skipPositions()
 }
 
 NS_IZENELIB_IR_END
-
