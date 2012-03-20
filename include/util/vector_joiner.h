@@ -6,13 +6,13 @@
 namespace izenelib{
 namespace util{
 
-template <class value_type>
+template <class value_type, class C = std::less<value_type>() >
 class VectorJoiner 
 {
     
 typedef std::vector<value_type> vec_type;
 public:
-    VectorJoiner(vec_type* vec):vec_(vec), b_(false), index_(0)
+    VectorJoiner(vec_type* vec, const C& comp):vec_(vec), comp_(comp), b_(false), index_(0)
     {
         if(!vec_->empty())
         {
@@ -30,7 +30,7 @@ public:
         vec.resize(0);
         while(b_)
         {
-            if( !(key<cache_) )
+            if( !comp_(key, cache_) )
             {
                 vec.push_back(cache_);
                 if(index_>=vec_->size())
@@ -51,6 +51,7 @@ public:
 
 private:
     vec_type* vec_;
+    C comp_;
     bool b_;
     value_type cache_;
     std::size_t index_;
