@@ -12,33 +12,43 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-
+using boost::system::system_error;
 using ba::ip::tcp;
 using std::string;
+using std::runtime_error;
 
+
+namespace {
 
 /**
  * Size of unsigned integer (32 bits).
  */
-static const size_t UINT_SIZE = sizeof(uint32_t);
+const size_t UINT_SIZE = sizeof(uint32_t);
 
 /**
  * Header size, i.e. two unsigned values for:
  * - sequence number
  * - message length
  */
-static const size_t HEADER_SIZE = 2 * UINT_SIZE;
+const size_t HEADER_SIZE = 2 * UINT_SIZE;
+
+}
+
+
+uint32_t 
+RawClient::idSequence = 0;
 
 
 RawClient::RawClient(ba::io_service& service, 
-                     tcp::resolver::iterator& iterator) 
-        : socket(service), status(Idle) {
+                     tcp::resolver::iterator& iterator,
+                     const string& zkpath) 
+        : socket(service), status(Idle), path(zkpath), id(++idSequence) {
     try {
         DLOG(INFO) << "connecting ...";
         ba::connect(socket, iterator); 
         
         DLOG(INFO) << "connected";
-    } catch (boost::system::system_error& e) {
+    } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw e;
@@ -50,7 +60,7 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() throw() {
-    CHECK_EQ(Idle, status) << "not Idle";
+    CHECK_NE(Busy, status);
     try {
         DLOG(INFO) << "closing ...";
         
@@ -58,8 +68,8 @@ RawClient::~RawClient() throw() {
         socket.close();
         
         DLOG(INFO) << "connection closed";
-    } catch (boost::system::system_error& e) {
-        LOG(WARNING) << "WARNING: " << e.what();
+    } catch (system_error& e) {
+        LOG(WARNING) << e.what();
     }
     
     DLOG(INFO) << "Correctly destroyed.";
@@ -67,12 +77,11 @@ RawClient::~RawClient() throw() {
 
 
 void
-RawClient::sendRequest(const uint32_t& sequence, const string& data)
-throw (std::exception) {
+RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw std::runtime_error("Not connected");
+        throw runtime_error("Not connected");
     }
     
     CHECK_EQ(Idle, status) << "not Idle";
@@ -91,25 +100,32 @@ throw (std::exception) {
     buffers[1] = ba::buffer(&len, UINT_SIZE);
     buffers[2] = ba::buffer(data);
 
-    size_t n = ba::write(socket, buffers);
+    size_t n = 0;
+    try {
+        n += ba::write(socket, buffers);
+    } catch (system_error& e) {
+        status = Invalid;
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+    
     if (n != HEADER_SIZE + data.length()) {
         status = Invalid;
-        const string message = "Connection lost";
-        throw std::runtime_error(message);
-    }   
+        throw runtime_error("write: Write size mismatch");
+    }
     
-    // XXX: do not change the status
+    // do not change the status
     CHECK_EQ(Busy, status) << "not Busy";
     DLOG(INFO) << "Request sent (" << n << " bytes).";
 }
 
 
 Response
-RawClient::getResponse() throw (std::exception) {
+RawClient::getResponse() {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw std::runtime_error("Not connected");
+        throw runtime_error("Not connected");
     }
     
     CHECK_EQ(Busy, status) << "not Busy";
@@ -119,11 +135,17 @@ RawClient::getResponse() throw (std::exception) {
     char header[HEADER_SIZE];
     size_t n = 0;
 
-    n += ba::read(socket, ba::buffer(header));
+    try {
+        n += ba::read(socket, ba::buffer(header));
+    } catch (system_error& e) {
+        status = Invalid;
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+    
     if (n != sizeof(HEADER_SIZE)) {
         status = Invalid;
-        string message = "Connection lost";
-        throw std::runtime_error(message);
+        throw runtime_error("read: Read size mismatch");
     }
 
     uint32_t sequence, length;
@@ -134,11 +156,17 @@ RawClient::getResponse() throw (std::exception) {
     length = ntohl(length);
 
     char data[length];
-    n = ba::read(socket, ba::buffer(data, length));
+    try {
+        n = ba::read(socket, ba::buffer(data, length));
+    } catch (system_error& e) {
+        status = Invalid;
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+    
     if (n != length) {
         status = Invalid;
-        string message = "Connection to lost";
-        throw std::runtime_error(message);
+        throw runtime_error("read: Read size mismatch");
     }
 
     string response(data, length - 1); // skip the final '\0'

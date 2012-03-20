@@ -147,6 +147,10 @@ public:
         return true;
     }
 
+    virtual void postprocess()
+    {
+    }
+
     /*virtual*/
     void dispatch(msgpack::rpc::request req)
     {
@@ -159,11 +163,12 @@ public:
             std::string identity, method;
             parseMethodPlus(method_plus, identity, method);
 
-            // preprocess
+            // pre process
             std::string error;
             if (!preprocess(identity, error))
             {
                 req.error(error);
+                postprocess();
                 return;
             }
 
@@ -186,14 +191,15 @@ public:
         catch (msgpack::type_error& e)
         {
             req.error(msgpack::rpc::ARGUMENT_ERROR);
-            return;
         }
         catch (std::exception& e)
         {
             req.error(std::string(e.what()));
             std::cerr<<"[WorkerServer] "<<e.what()<<std::endl;
-            return;
         }
+
+        // post process
+        postprocess();
     }
 
 protected:

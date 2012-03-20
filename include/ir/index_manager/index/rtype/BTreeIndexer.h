@@ -33,7 +33,7 @@
 // #define BT_DEBUG
 // #define BT_INFO
 // #define DOCS_INFO
-#define CACHE_TIME_INFO
+//#define CACHE_TIME_INFO
 
 NS_IZENELIB_IR_BEGIN
 

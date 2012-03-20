@@ -7,6 +7,8 @@
 #ifndef IZENE_UTIL_PRIORITYQUEUE_H
 #define IZENE_UTIL_PRIORITYQUEUE_H
 
+#include <cstddef>
+
 namespace izenelib
 {
 namespace util

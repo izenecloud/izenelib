@@ -15,13 +15,13 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 #include <boost/thread/mutex.hpp>
-
-
-namespace ba = boost::asio;
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/locks.hpp>
 
 
 NS_IZENELIB_SF1R_BEGIN
 
+namespace ba = boost::asio;
 
 class RawClient;
 
@@ -32,20 +32,26 @@ class RawClient;
 class ConnectionPool : private boost::noncopyable {
 public:
     
+    /// Default undefined path.
+    static const std::string UNDEFINED_PATH;
+    
     /**
      * Initializes a connection pool.
      * @param service 
      * @param iterator
      * @param size the initial pool size. (non-zero)
      * @param resize enable automatic size increment if all the clients
-     *          are busy. (default = false)
+     *          are busy. (defaults to false)
      * @param maxSize maximum pool size. It is mandatory if \ref resize 
      *          is \c true. Must hold that: maxSize >= size.
+     * @param path the ZooKeeper path to which the connection pool refers to.
+     *          (defaults to UNDEFINED_PATH)
      */
     ConnectionPool(ba::io_service& service, 
                    ba::ip::tcp::resolver::iterator& iterator,
                    const size_t& size, const bool resize = false,
-                   const size_t& maxSize = 0);
+                   const size_t& maxSize = 0,
+                   const std::string& path = UNDEFINED_PATH);
     
     /// Destructor.
     ~ConnectionPool();
@@ -58,29 +64,41 @@ public:
     RawClient& acquire() throw(ConnectionPoolError);
     
     /**
-     * Gives back the pool a client .
+     * Gives back the pool a client.
+     * @param connection A connection
      */
-    void release();
+    void release(const RawClient& connection);
     
     /**
      * @return The actual pool size (number of connections).
      */
-    size_t getSize() const {
+    size_t getSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return size;
     }
     
     /**
      * @return The number of available connections.
      */
-    size_t getAvailableSize() const {
+    size_t getAvailableSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return available.size();
     }
     
     /**
      * @return The number of connections currently busy.
      */
-    size_t getReservedSize() const {
+    size_t getReservedSize() {
+        boost::lock_guard<boost::mutex> lock(mutex);
         return reserved.size();
+    }
+    
+    /**
+     * @return \c true if there is any connection in use.
+     */
+    bool isBusy() {
+        boost::lock_guard<boost::mutex> lock(mutex);
+        return not reserved.empty();
     }
     
     /**
@@ -97,28 +115,48 @@ public:
         return maxSize;
     }
     
+    /**
+     * @return The ZooKeeper path.
+     */
+    std::string getPath() const {
+        return path;
+    }
+    
 private:
     
+    /// Mutex for read/write operation on the internal connection queues.
     boost::mutex mutex;
+    /// Locking condition for pool finalization.
+    boost::condition_variable condition;
     
     ba::io_service& service;
     ba::ip::tcp::resolver::iterator& iterator;
     
+    /// The actual size.
     size_t size;
+    /// Automatic resize flag.
     const bool resize;
+    /// The maximum number of connections.
     const size_t maxSize;
+    /// The ZooKeeper path (if defined)
+    std::string path;
     
     // Aliases for the actual container used.
     typedef boost::ptr_list<RawClient> Container;
     typedef Container::iterator Iterator;
     
+    /// Available connections.
     Container available;
+    /// Busy connections.
     Container reserved;
-    size_t busy;
     
+    
+#ifdef ENABLE_SF1_TEST
 public:
     /// Check the representation invariant (for tests only).
     bool invariant() const;
+#endif
+    
 };
 
 

@@ -80,15 +80,16 @@ void createCfDefObject(
         const int32_t in_max_compaction_threshold,
         const int32_t in_row_cache_save_period_in_seconds,
         const int32_t in_key_cache_save_period_in_seconds,
-        int8_t in_replicate_on_write,
-        double in_merge_shards_chance,
+        const int8_t in_replicate_on_write,
+        const double in_merge_shards_chance,
         const string& in_key_validation_class,
         const string& in_row_cache_provider,
         const string& in_key_alias,
         const string& in_compaction_strategy,
         const map<string, string>& in_compaction_strategy_options,
-        int32_t in_row_cache_keys_to_save,
-        const map<string, string>& in_compression_options)
+        const int32_t in_row_cache_keys_to_save,
+        const map<string, string>& in_compression_options,
+        const double in_bloom_filter_fp_chance)
 {
     /*
      * keyspace name and cf name are required
@@ -192,6 +193,10 @@ void createCfDefObject(
     if (! in_compression_options.empty())
     {
         cf_def.__set_compression_options(in_compression_options);
+    }
+    if (in_bloom_filter_fp_chance > 0)
+    {
+        cf_def.__set_bloom_filter_fp_chance(in_bloom_filter_fp_chance);
     }
 }
 

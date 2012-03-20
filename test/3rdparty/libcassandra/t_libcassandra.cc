@@ -13,7 +13,7 @@ using namespace std;
 using namespace org::apache::cassandra;
 using namespace libcassandra;
 
-static const string host("211.152.36.219");
+static const string host("180.153.140.105");
 static const string username("admin");
 static const string password("~Yeogirl!Yun@Is#Watching$You%");
 static int port= 9160;

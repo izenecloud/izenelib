@@ -36,9 +36,9 @@ void clearIndices()
     boost::filesystem::remove_all(indexPath);
 }
 
-void initIndexer(boost::shared_ptr<Indexer>& indexer, 
-                                    std::string indexmode = "default", 
-                                    int skipinterval = 0, 
+void initIndexer(boost::shared_ptr<Indexer>& indexer,
+                                    std::string indexmode = "default",
+                                    int skipinterval = 0,
                                     int skiplevel = 0
                                     )
 {
@@ -190,4 +190,3 @@ BOOST_AUTO_TEST_CASE(remove)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

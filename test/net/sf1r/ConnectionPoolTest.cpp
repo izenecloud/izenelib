@@ -25,8 +25,11 @@ BOOST_AUTO_TEST_CASE(dummy) {
     BOOST_TEST_MESSAGE("dummy empty test");
 }
 
+/*
+ * This test requires a running SF1.
+ */
 
-#ifdef ENABLE_SF1_TEST // don't know if there is a running SF1
+#ifdef ENABLE_SF1_TEST
 
 /** Test fixture. */
 struct AsioService {
@@ -53,6 +56,7 @@ getMessage(const uint32_t& seq) {
 }
 
 
+/** Test pool acquire/release. */
 BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     const size_t SIZE = 2;
     
@@ -62,6 +66,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
     BOOST_CHECK(not pool.isResizable());
+    BOOST_CHECK(not pool.isBusy());
     
     // acquire
     
@@ -71,6 +76,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     BOOST_CHECK(c1.isConnected() and c1.idle());
+    BOOST_CHECK(pool.isBusy());
     
     RawClient& c2 = pool.acquire();
     BOOST_CHECK(pool.invariant());
@@ -78,6 +84,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     BOOST_CHECK(c2.isConnected() and c2.idle());
+    BOOST_CHECK(pool.isBusy());
     
     // use
     
@@ -107,20 +114,23 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     
     // release
     
-    pool.release();
+    pool.release(c1);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
+    BOOST_CHECK(pool.isBusy());
     
-    pool.release();
+    pool.release(c2);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
+    BOOST_CHECK(not pool.isBusy());
 }
 
 
+/** Test pool automatic resize. */
 BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     size_t SIZE = 1;
     const size_t MAX_SIZE = 3;
@@ -189,24 +199,25 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     
     // release
     
-    pool.release();
+    pool.release(c3);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(2, pool.getReservedSize());
     
-    pool.release();
+    pool.release(c2);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
     
-    pool.release();
+    pool.release(c1);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(0, pool.getReservedSize());
 }
+
 
 struct Worker {
     Worker(ConnectionPool& p) : pool(p) {}
@@ -220,7 +231,7 @@ struct Worker {
         boost::this_thread::sleep(boost::posix_time::seconds(sleepTime));
         c.getResponse();
         
-        pool.release();
+        pool.release(c);
         BOOST_CHECK(pool.invariant());
         
         LOG(INFO) << "worker " << i << " done";
@@ -230,6 +241,7 @@ private:
 };
 
 
+/** Simulate a concurrency test using threads. */
 BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
     using boost::thread;
 
@@ -246,9 +258,7 @@ BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
         threads.push_back(new thread(&Worker::work, &w, i+1));
     }
     
-    for (size_t i = 0; i < NUM_THREADS; ++i) {
-        threads[i].join();
-    }
+    BOOST_MESSAGE("Waiting for threads completion before termination");
 }
 
 #endif

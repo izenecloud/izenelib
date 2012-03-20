@@ -8,132 +8,53 @@
 #ifndef SF1DRIVER_HPP
 #define	SF1DRIVER_HPP
 
-#include "config.h"
-#include "Errors.hpp"
-#include "types.h"
-#include <boost/noncopyable.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include "Sf1DriverBase.hpp"
 #include <boost/scoped_ptr.hpp>
-
-
-namespace ba = boost::asio;
 
 
 NS_IZENELIB_SF1R_BEGIN
     
 
 class ConnectionPool;
-class Writer;
-
-
-/**
- * Container for the driver configuration parameters:
- * - initial pool size
- * - automatic pool resize
- * - maximum pool size
- */
-struct Sf1Config {
-    Sf1Config(const size_t& s, const bool r, const size_t& ms = 0)
-            : initialSize(s), resize(r), maxSize(ms) {}
-    
-    const size_t initialSize;           ///< Initial pool size.
-    const bool resize;                  ///< Automatic pool resize.
-    const size_t maxSize;               ///< Maximum pool size.
-};
 
 
 /**
  * SF1 driver.
+ * This class connects to a <b>single</b> SF1.
  */
-class Sf1Driver : private boost::noncopyable {
+class Sf1Driver : public Sf1DriverBase {
 public:
 
-    /// Available data formats for request/response body.
-    enum Format {
-        JSON
-    };
-    
     /**
      * Creates a new instance of the driver and connects to the server. 
-     * @param host hostname or IP address of the SF1 server.
-     * @param port TCP port on which the SF1 is listening.
+     * @param address The address of the SF1 server in the format "host:port".
+     * @param parameters The configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server.
      */
-    Sf1Driver(const std::string& host, const uint32_t& port,
-              const Sf1Config& parameters, 
+    Sf1Driver(const std::string& host, const Sf1Config& parameters, 
               const Format& format = JSON) throw(ServerError);
     
     /// Destructor.
     ~Sf1Driver();
-    
-    /**
-     * Sends a synchronous request to the SF1 server and get the response.
-     * The format of both the request and the response is the one defined
-     * in the constructor.
-     * Usage example:
-     * \code
-     * Sf1Driver driver(host, port);
-     * std::string response = driver.call(request);
-     * \endcode
-     * @param uri Requested URI.
-     * @param tokens Custom tokens.
-     * @param request Request body.
-     * @throw ClientError if errors due to client request occur.
-     * @throw ServerError if errors due to server response occur.
-     * @throw ConnectionPoolError if there is no connection available.
-     * @return The response body.
-     */ 
-    std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(ClientError, ServerError, ConnectionPoolError);
-    
-    /**
-     * @return The sequence number of the next request.
-     * Note that if the request is discarded due to client error
-     * (i.e. \ref call throws \ref ClientError, the sequence number
-     * is not incremented because no request has been sent to the server.
-     */
-    uint32_t getSequence() const {
-        return sequence;
-    }
 
     /**
      * @return The actual pool size.
      */
     size_t getPoolSize() const;
     
-    /**
-     * @return The actual data format.
-     */
-    Format getFormat() const {
-        return format;
-    }
+private:
     
-    /**
-     * @return The actual data format (string).
-     */
-    std::string getFormatString() const;
+    /// Acquire a connection from the connection pool.
+    RawClient& acquire(const std::string& collection) const;
+    
+    /// Release a connection into the connection pool.
+    void release(const RawClient& connection) const;
     
 private:
-    /// Set data format used for request and responses.
-    void setFormat();
     
-    /// Initializes the connection pool.
-    void initPool(const Sf1Config& parameters);
-    
-    uint32_t sequence;
-    
-    ba::io_service service;
-    ba::ip::tcp::resolver resolver;
-    ba::ip::tcp::resolver::iterator iterator;
-    ba::ip::tcp::resolver::query query;
-    
-    ConnectionPool* pool;
-    
-    Format format;
-    boost::scoped_ptr<Writer> writer;
-    
+    /// Connection pool to the SF1.
+    boost::scoped_ptr<ConnectionPool> pool;
 };
 
 

@@ -26,7 +26,8 @@ public:
     void setHeader(const std::string& controller, 
                    const std::string& action,
                    const std::string& tokens,
-                   std::string& request) const;
+                   std::string& request,
+                   std::string& collection) const;
 
     bool checkData(const std::string& data) const;
     

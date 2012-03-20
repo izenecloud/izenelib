@@ -31,14 +31,12 @@ JsonWriter::~JsonWriter() throw() {
 
 
 void 
-JsonWriter::setHeader(const string& ctr, 
-                      const string& act,
-                      const string& tks,
-                      string& request) const {
+JsonWriter::setHeader(const string& ctr, const string& act, const string& tks,
+                      string& request, string& coll) const {
     rj::Document document;
     
 #if 0 // FIXME: error "Nothing should follow the root object or array."
-    char buffer[request.length()]; // XXX: use bigger size?
+    char buffer[request.length()];
     memcpy(buffer, request.c_str(), request.length());
     bool error = document.ParseInsitu<0>(buffer).HasParseError();
 #else
@@ -82,6 +80,11 @@ JsonWriter::setHeader(const string& ctr,
     rj::Writer<rj::StringBuffer> writer(stream);
     document.Accept(writer);
     request.assign(stream.GetString(), stream.GetSize());
+    
+    // get the collection
+    rj::Value& collection = document[SF1_HEADER_COLLECTION];
+    if (not collection.IsNull())
+        coll.assign(collection.GetString());
 }
            
 

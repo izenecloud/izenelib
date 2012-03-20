@@ -12,11 +12,14 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <iostream>
 
+// enable/disable logging to standard error
+#define LOG_TO_STDERR
+
 /** Fixture initializing the logging library. */
 struct Glog {
     Glog() { 
         google::InitGoogleLogging("test");
-#if 0
+#ifndef LOG_TO_STDERR
         google::SetLogDestination(google::FATAL, "pippo");
         
         std::cout << "logdirs: ";
@@ -24,8 +27,9 @@ struct Glog {
         for (std::vector<std::string>::iterator i = dirs.begin(); i != dirs.end(); ++i)
             std::cout << "  " << *i;
         std::cout << std::endl;
-#endif   
+#else
         google::LogToStderr();
+#endif
     }
     
     ~Glog() { 
