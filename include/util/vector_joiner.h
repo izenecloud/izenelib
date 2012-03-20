@@ -6,13 +6,13 @@
 namespace izenelib{
 namespace util{
 
-template <class value_type, class C = std::less<value_type>() >
+template <class value_type, class C = std::less<value_type> >
 class VectorJoiner 
 {
     
 typedef std::vector<value_type> vec_type;
 public:
-    VectorJoiner(vec_type* vec, const C& comp):vec_(vec), comp_(comp), b_(false), index_(0)
+    VectorJoiner(vec_type* vec, const C& comp = C()):vec_(vec), comp_(comp), b_(false), index_(0)
     {
         if(!vec_->empty())
         {
