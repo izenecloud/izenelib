@@ -25,6 +25,7 @@ void writeTermInfo(
     termid_t tid,
     const TermInfo& termInfo)
 {
+    cout<<"TermInfo: "<<tid<<", "<<termInfo.docFreq_<<", "<<termInfo.ctf_<<", "<<termInfo.maxDocFreq_<<endl;
     pVocWriter->writeInt(tid);					///write term id
     pVocWriter->writeInt(termInfo.docFreq_);		///write df
     pVocWriter->writeInt(termInfo.ctf_);			///write ctf
@@ -267,10 +268,12 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     {
         if( !boost::filesystem::exists(sorterFullPath_) || isBatchEmpty_())
         {
+            cout<<"Changed!!!!!!!!"<<endl;
             fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
             int64_t vocLength = vocDescOffset - vocOffset;
 
-            pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
+            pVocWriter->writeInt(TermInfo::version);///write terminfo version
+            pVocWriter->writeInt(vocLength);	///<VocLength(Int64)>
             pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
             ///end write vocabulary descriptor
 
