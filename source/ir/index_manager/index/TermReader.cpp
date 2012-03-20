@@ -863,7 +863,6 @@ TermPositions* ChunkTermReader::termPositions()
 
 TermIterator* ChunkTermReader::termIterator(const char* field)
 {
-    cout<<"VOCREADER"<<endl;
     if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
         return NULL;
 

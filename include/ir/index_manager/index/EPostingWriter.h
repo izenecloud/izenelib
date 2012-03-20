@@ -31,7 +31,7 @@ class BlockPostingWriter:public PostingWriter
 {
 public:
     BlockPostingWriter(
-        boost::shared_ptr<MemCache> pMemCache, 
+        boost::shared_ptr<MemCache> pMemCache,
         IndexLevel indexLevel);
 
     ~BlockPostingWriter();
@@ -49,7 +49,7 @@ public:
      * @param termInfo set term info for voc
      */
     void write(
-        OutputDescriptor* pOutputDescriptor, 
+        OutputDescriptor* pOutputDescriptor,
         TermInfo& termInfo);
     /**
      * reset the content of Posting list.
@@ -98,6 +98,7 @@ protected:
     uint32_t curr_position_buffer_size_;
     count_t nDF_;			///document frequency of this field
     count_t nCurTermFreq_;
+    count_t nmaxDocFreq_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 
@@ -118,9 +119,9 @@ class ChunkPostingWriter:public PostingWriter
 {
 public:
     ChunkPostingWriter(
-        boost::shared_ptr<MemCache> pMemCache, 
-        int skipInterval, 
-        int maxSkipLevel, 
+        boost::shared_ptr<MemCache> pMemCache,
+        int skipInterval,
+        int maxSkipLevel,
         IndexLevel indexLevel);
 
     ~ChunkPostingWriter();
@@ -138,7 +139,7 @@ public:
      * @param termInfo set term info for voc
      */
     void write(
-        OutputDescriptor* pOutputDescriptor, 
+        OutputDescriptor* pOutputDescriptor,
         TermInfo& termInfo);
     /**
      * reset the content of Posting list.
@@ -191,6 +192,7 @@ protected:
     uint32_t curr_position_buffer_size_;
     count_t nDF_;			///document frequency of this field
     count_t nCurTermFreq_;
+    count_t nmaxDocFreq_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 
@@ -204,4 +206,3 @@ NS_IZENELIB_IR_END
 
 
 #endif
-

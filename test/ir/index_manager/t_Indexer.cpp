@@ -97,7 +97,7 @@ void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter 
     {
         LAInputUnit unit;
         unit.docId_ = docId;
-        unit.termid_ = myrandom();
+        unit.termid_ = myrandom() % 500;
         unit.wordOffset_ = i;
         document.add_to_property(unit);
     }
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(index)
     boost::shared_ptr<Indexer> indexer;
     initIndexer(indexer);
 
-    for(unsigned int i = 1; i < 1000; i++)
+    for(unsigned int i = 1; i < 100; i++)
     {
         IndexerDocument document;
         prepareDocument(i, document);
@@ -143,48 +143,49 @@ BOOST_AUTO_TEST_CASE(index)
     }
 
     indexer->flush();
+cout<<"Created!"<<endl;
 }
 
 BOOST_AUTO_TEST_CASE(update)
 {
-    clearIndices();
+   // clearIndices();
 
-    boost::shared_ptr<Indexer> indexer;
-    initIndexer(indexer);
+   // boost::shared_ptr<Indexer> indexer;
+  //  initIndexer(indexer);
 
-    for(unsigned int i = 1; i < 1000; i++)
-    {
-        IndexerDocument document;
-        prepareDocument(i, document);
-        indexer->insertDocument(document);
-    }
-    for(unsigned int i = 1001; i < 2000; i++)
-    {
-        IndexerDocument document;
-        prepareDocument(i, document);
-        document.setId(i - 1000);
-        indexer->updateDocument(document);
-    }
-    indexer->flush();
+   // for(unsigned int i = 1; i < 1000; i++)
+  //  {
+    //    IndexerDocument document;
+   //     prepareDocument(i, document);
+    //    indexer->insertDocument(document);
+   // }
+  //  for(unsigned int i = 1001; i < 2000; i++)
+  //  {
+   //     IndexerDocument document;
+    //    prepareDocument(i, document);
+     //   document.setId(i - 1000);
+     //   indexer->updateDocument(document);
+  //  }
+  //  indexer->flush();
 }
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-    clearIndices();
+   // clearIndices();
 
-    boost::shared_ptr<Indexer> indexer;
-    initIndexer(indexer);
+   // boost::shared_ptr<Indexer> indexer;
+    //initIndexer(indexer);
 
     for(unsigned int i = 1; i < 1000; i++)
     {
-        IndexerDocument document;
-        prepareDocument(i, document);
-        indexer->insertDocument(document);
+       // IndexerDocument document;
+       // prepareDocument(i, document);
+     //   indexer->insertDocument(document);
     }
-    indexer->flush();
+    //indexer->flush();
     for(unsigned int i = 1; i < 1000; i++)
     {
-        indexer->removeDocument(1, i);
+    //    indexer->removeDocument(1, i);
     }
 }
 
