@@ -1,0 +1,9 @@
+Prerequisite:
+- Dia (http://live.gnome.org/Dia)
+- epstopdf (usually available withing a decent LaTeX distribution)
+
+Building:
+$ make 
+
+Optionally copying into the docs/pdf folder within izenelib:
+$ make copy
