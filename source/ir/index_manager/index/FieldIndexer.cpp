@@ -268,7 +268,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     {
         if( !boost::filesystem::exists(sorterFullPath_) || isBatchEmpty_())
         {
-            cout<<"Changed!!!!!!!!"<<endl;
             fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
             int64_t vocLength = vocDescOffset - vocOffset;
 
