@@ -371,6 +371,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;
+    cout<<"Write voclength:"<<vocLength<<endl;
     ///begin write vocabulary descriptor
     pVocWriter->writeInt(TermInfo::version);///write terminfo version
     pVocWriter->writeInt((int32_t)vocLength);	///<VocLength(Int64)>

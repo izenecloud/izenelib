@@ -109,14 +109,13 @@ RTDiskTermIterator::RTDiskTermIterator(
     barrelName_ = barrelname;
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
-    nVersion_ = pVocInput_->readInt();
     fileoffset_t voffset = pVocInput_->getFilePointer();
     ///begin read vocabulary descriptor
+    nVersion_ = pVocInput_->readInt();
     nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
-
 }
 
 RTDiskTermIterator::~RTDiskTermIterator()
@@ -184,7 +183,6 @@ bool RTDiskTermIterator::next()
         freq_t docPostingLen = pVocInput_->readInt();
         fileoffset_t positionPointer = pVocInput_->readLong();
         freq_t positionPostingLen = pVocInput_->readInt();
-
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
         else
@@ -310,8 +308,8 @@ BlockTermIterator::BlockTermIterator(
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
     fileoffset_t voffset = pVocInput_->getFilePointer();
-    nVersion_ = pVocInput_->readInt();
     ///begin read vocabulary descriptor
+    nVersion_ = pVocInput_->readInt();
     nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor
@@ -419,8 +417,8 @@ ChunkTermIterator::ChunkTermIterator(
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
     fileoffset_t voffset = pVocInput_->getFilePointer();
-    nVersion_ = pVocInput_->readInt();
     ///begin read vocabulary descriptor
+    nVersion_ = pVocInput_->readInt();
     nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor

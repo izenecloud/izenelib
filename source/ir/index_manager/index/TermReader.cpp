@@ -43,6 +43,7 @@ TermReaderImpl::~TermReaderImpl()
 
 void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
+    cout<<"TermReaderImpl."<<endl;
     close();///TODO
 
     barrelName_ = barrelname;
