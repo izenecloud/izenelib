@@ -26,9 +26,9 @@ class RTPostingWriter:public PostingWriter
 {
 public:
     explicit RTPostingWriter(
-        boost::shared_ptr<MemCache> pMemCache, 
-        int skipInterval, 
-        int maxSkipLevel, 
+        boost::shared_ptr<MemCache> pMemCache,
+        int skipInterval,
+        int maxSkipLevel,
         IndexLevel indexLevel);
 
     ~RTPostingWriter();
@@ -90,7 +90,7 @@ private:
     void operator=(const RTPostingWriter&);
 
     void doAdd(uint32_t docId, uint32_t pos);
-	
+
     boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
     int maxSkipLevel_;           /// max skip level
@@ -99,12 +99,13 @@ private:
     loc_t nLastLoc_;		///current added word offset
     count_t nCurTermFreq_; ///current term freq
     int32_t nCTF_;			///Collection's total term frequency
+    count_t nmaxDocFreq_;
     boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
     boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     IndexLevel indexLevel_;
     boost::shared_mutex mutex_;
-	
+
     friend class MemPostingReader;
     friend class PostingMerger;
     friend class MemTermReader;
@@ -117,4 +118,3 @@ NS_IZENELIB_IR_END
 
 
 #endif
-

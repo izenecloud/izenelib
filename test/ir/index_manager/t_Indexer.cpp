@@ -36,9 +36,9 @@ void clearIndices()
     boost::filesystem::remove_all(indexPath);
 }
 
-void initIndexer(boost::shared_ptr<Indexer>& indexer, 
-                                    std::string indexmode = "default", 
-                                    int skipinterval = 0, 
+void initIndexer(boost::shared_ptr<Indexer>& indexer,
+                                    std::string indexmode = "default",
+                                    int skipinterval = 0,
                                     int skiplevel = 0
                                     )
 {
@@ -97,7 +97,7 @@ void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter 
     {
         LAInputUnit unit;
         unit.docId_ = docId;
-        unit.termid_ = myrandom();
+        unit.termid_ = myrandom() % 500;
         unit.wordOffset_ = i;
         document.add_to_property(unit);
     }
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(index)
     boost::shared_ptr<Indexer> indexer;
     initIndexer(indexer);
 
-    for(unsigned int i = 1; i < 1000; i++)
+    for(unsigned int i = 1; i < 100; i++)
     {
         IndexerDocument document;
         prepareDocument(i, document);
@@ -143,6 +143,7 @@ BOOST_AUTO_TEST_CASE(index)
     }
 
     indexer->flush();
+cout<<"Created!"<<endl;
 }
 
 BOOST_AUTO_TEST_CASE(update)
@@ -189,4 +190,3 @@ BOOST_AUTO_TEST_CASE(remove)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

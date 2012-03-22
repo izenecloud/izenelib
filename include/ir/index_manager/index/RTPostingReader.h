@@ -53,6 +53,8 @@ public:
     count_t docFreq() const;
     /// Get collection's total term frequency
     int64_t getCTF() const;
+
+    int32_t getMaxDocFreq()const;
     /// Get last added doc id
     docid_t lastDocID();
 
@@ -62,22 +64,22 @@ public:
 
     count_t getPPostingLen();
 
-    void setFilter(BitVector* pFilter) 
-    { 
+    void setFilter(BitVector* pFilter)
+    {
         pDocFilter_ = pFilter;
     }
 
     int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
+        uint32_t* pPosting,
+        int32_t length,
         int32_t nMaxDocs);
 
     int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        uint32_t* &pPPosting, 
-        int32_t& posBufLength, 
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        uint32_t* &pPPosting,
+        int32_t& posBufLength,
         int32_t& posLength);
 
     /**
@@ -98,9 +100,9 @@ public:
      * @return true:success,false: error or reach end
      */
     bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
-        int32_t decodeLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
+        int32_t decodeLength,
         int32_t& nCurrentPPosting);
 
     /**
@@ -110,21 +112,21 @@ public:
      * @param nFreqs size of freqs array
      */
     bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
         uint32_t* pFreqs,
-        int32_t nFreqs, 
+        int32_t nFreqs,
         int32_t& nCurrentPPosting);
 
     /**
      * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
     docid_t DecodeTo(
-        docid_t target, 
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        int32_t& decodedCount, 
+        docid_t target,
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        int32_t& decodedCount,
         int32_t& nCurrentPosting);
 
     /**
@@ -139,7 +141,7 @@ public:
 private:
     MemPostingReader(const MemPostingReader&);
     void operator=(const MemPostingReader&);
-	
+
 protected:
     int skipInterval_;
     int maxSkipLevel_;
@@ -165,7 +167,8 @@ struct PostingDescriptor
     count_t df; ///document frequency of this field
     int64_t ctf; ///global  term frequency
     fileoffset_t poffset; ///offset of the position postings in the .pop file
-    int64_t plength;
+    int32_t maxDocFreq;
+    int32_t plength;
 };
 
 /// the descriptor of chunk
@@ -188,24 +191,24 @@ class RTDiskPostingReader:public PostingReader
     };
 public:
     RTDiskPostingReader(
-        int skipInterval, 
-        int maxSkipLevel, 
+        int skipInterval,
+        int maxSkipLevel,
         InputDescriptor* pInputDescriptor,
         const TermInfo& termInfo);
 
     ~RTDiskPostingReader();
 
     int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
+        uint32_t* pPosting,
+        int32_t length,
         int32_t nMaxDocs);
 
     int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        uint32_t* &pPPosting, 
-        int32_t& posBufLength, 
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        uint32_t* &pPPosting,
+        int32_t& posBufLength,
         int32_t& posLength);
 
     /**
@@ -226,9 +229,9 @@ public:
      * @return true:success,false: error or reach end
      */
     bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
-        int32_t decodeLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
+        int32_t decodeLength,
         int32_t& nCurrentPPosting);
 
     /**
@@ -238,10 +241,10 @@ public:
      * @param nFreqs size of freqs array
      */
     bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
         uint32_t* pFreqs,
-        int32_t nFreqs, 
+        int32_t nFreqs,
         int32_t& nCurrentPPosting);
 
     /**
@@ -253,11 +256,11 @@ public:
      * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
     docid_t DecodeTo(
-        docid_t target, 
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        int32_t& decodedCount, 
+        docid_t target,
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        int32_t& decodedCount,
         int32_t& nCurrentPosting);
 
     /**
@@ -314,8 +317,8 @@ public:
         return postingDesc_.plength;
     }
 
-    void setFilter(BitVector* pFilter) 
-    { 
+    void setFilter(BitVector* pFilter)
+    {
         pDocFilter_ = pFilter;
     }
 
@@ -325,7 +328,7 @@ public:
     }
 
 protected:
-    void skipPositions();	
+    void skipPositions();
 
 protected:
     int skipInterval_;
@@ -348,4 +351,3 @@ NS_IZENELIB_IR_END
 
 
 #endif
-

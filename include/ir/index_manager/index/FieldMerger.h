@@ -28,6 +28,11 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+    void writeTermInfo(
+    IndexOutput* pVocWriter,
+    termid_t tid,
+    const TermInfo& termInfo);
 /**
 *@brief MergeFieldEntry is a pair of FieldInfo and BarrelInfo
 */
@@ -93,7 +98,7 @@ public:
         }
         return false;
     }
-	
+
 public:
     int32_t nOrder_;			///order of barrel
     BarrelInfo* pBarrelInfo_;		///reference to barrel info
@@ -210,8 +215,8 @@ public:
     }
 
     void initPostingMerger(
-        CompressionType compressType, 
-        bool optimize, 
+        CompressionType compressType,
+        bool optimize,
         bool requireIntermediateFileForMerging,
         size_t memPoolSizeForPostingMerger
     );
@@ -313,7 +318,7 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
             }
         }
     }
-    fileoffset_t ret = pPostingMerger_->endMerge();	
+    fileoffset_t ret = pPostingMerger_->endMerge();
     if(ret != -1)
         ti.set(pPostingMerger_->termInfo_);
     else

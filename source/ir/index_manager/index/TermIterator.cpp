@@ -78,11 +78,11 @@ PostingReader* VocIterator::termPosting()
 
 bool VocIterator::next()
 {
-    if(pTermReader_->getTermReaderImpl()->nTermCount_ > nCurPos_+1)			
+    if(pTermReader_->getTermReaderImpl()->nTermCount_ > nCurPos_+1)
     {
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pTermReader_->getFieldInfo()->getName(),pTermReader_->getTermReaderImpl()->pTermTable_[++nCurPos_].tid);
-        else 
+        else
             pCurTerm_->setValue(pTermReader_->getTermReaderImpl()->pTermTable_[++nCurPos_].tid);
         pCurTermInfo_ = &(pTermReader_->getTermReaderImpl()->pTermTable_[nCurPos_].ti);
         return true;
@@ -95,7 +95,7 @@ bool VocIterator::next()
 RTDiskTermIterator::RTDiskTermIterator(
     Directory* pDirectory,
     const char* barrelname,
-    FieldInfo* pFieldInfo, 
+    FieldInfo* pFieldInfo,
     IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
@@ -111,11 +111,11 @@ RTDiskTermIterator::RTDiskTermIterator(
     pVocInput_->seek(pFieldInfo->getIndexOffset());
     fileoffset_t voffset = pVocInput_->getFilePointer();
     ///begin read vocabulary descriptor
-    nVocLength_ = pVocInput_->readLong();
+    nVersion_ = pVocInput_->readInt();
+    nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
-
 }
 
 RTDiskTermIterator::~RTDiskTermIterator()
@@ -167,27 +167,29 @@ PostingReader* RTDiskTermIterator::termPosting()
 
 bool RTDiskTermIterator::next()
 {
-    if(nTermCount_ > nCurPos_+1) 		
+    if(nTermCount_ > nCurPos_+1)
     {
         ++nCurPos_;
         termid_t tid = pVocInput_->readInt();
         freq_t df = pVocInput_->readInt();
         freq_t ctf = pVocInput_->readInt();
+        freq_t maxTermFreq = 0;
+        if(nVersion_ == TermInfo::version)
+            maxTermFreq = pVocInput_->readInt();
         docid_t lastdoc = pVocInput_->readInt();
         freq_t skipLevel = pVocInput_->readInt();
         fileoffset_t skipPointer = pVocInput_->readLong();
         fileoffset_t docPointer = pVocInput_->readLong();
         freq_t docPostingLen = pVocInput_->readInt();
         fileoffset_t positionPointer = pVocInput_->readLong();
-        freq_t positionPostingLen = pVocInput_->readInt();	
-
+        freq_t positionPostingLen = pVocInput_->readInt();
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
-        else 
+        else
             pCurTerm_->setValue(tid);
         if(pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
-        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        pCurTermInfo_->set(df,ctf,maxTermFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
         return true;
     }
     else return false;
@@ -261,6 +263,7 @@ bool MemTermIterator::next()
             pCurTermInfo_ = new TermInfo();
         pCurTermInfo_->set(pCurTermPosting_->docFreq(),
                                         pCurTermPosting_->getCTF(),
+                                        pCurTermPosting_->getMaxDocFreq(),
                                         pCurTermPosting_->lastDocID(),
                                         pCurTermPosting_->getSkipLevel(),
                                         -1,-1,0,-1,0);
@@ -290,7 +293,7 @@ PostingReader* MemTermIterator::termPosting()
 BlockTermIterator::BlockTermIterator(
     Directory* pDirectory,
     const char* barrelname,
-    FieldInfo* pFieldInfo, 
+    FieldInfo* pFieldInfo,
     IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
@@ -306,7 +309,8 @@ BlockTermIterator::BlockTermIterator(
     pVocInput_->seek(pFieldInfo->getIndexOffset());
     fileoffset_t voffset = pVocInput_->getFilePointer();
     ///begin read vocabulary descriptor
-    nVocLength_ = pVocInput_->readLong();
+    nVersion_ = pVocInput_->readInt();
+    nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
@@ -362,27 +366,30 @@ PostingReader* BlockTermIterator::termPosting()
 
 bool BlockTermIterator::next()
 {
-    if(nTermCount_ > nCurPos_+1) 		
+    if(nTermCount_ > nCurPos_+1)
     {
         ++nCurPos_;
         termid_t tid = pVocInput_->readInt();
         freq_t df = pVocInput_->readInt();
         freq_t ctf = pVocInput_->readInt();
+        freq_t maxTermFreq = 0;
+        if(nVersion_ == TermInfo::version)
+             maxTermFreq = pVocInput_->readInt();
         docid_t lastdoc = pVocInput_->readInt();
         freq_t skipLevel = pVocInput_->readInt();
         fileoffset_t skipPointer = pVocInput_->readLong();
         fileoffset_t docPointer = pVocInput_->readLong();
         freq_t docPostingLen = pVocInput_->readInt();
         fileoffset_t positionPointer = pVocInput_->readLong();
-        freq_t positionPostingLen = pVocInput_->readInt();	
+        freq_t positionPostingLen = pVocInput_->readInt();
 
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
-        else 
+        else
             pCurTerm_->setValue(tid);
         if(pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
-        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        pCurTermInfo_->set(df,ctf, maxTermFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
         return true;
     }
     else return false;
@@ -395,7 +402,7 @@ bool BlockTermIterator::next()
 ChunkTermIterator::ChunkTermIterator(
     Directory* pDirectory,
     const char* barrelname,
-    FieldInfo* pFieldInfo, 
+    FieldInfo* pFieldInfo,
     IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
@@ -411,7 +418,8 @@ ChunkTermIterator::ChunkTermIterator(
     pVocInput_->seek(pFieldInfo->getIndexOffset());
     fileoffset_t voffset = pVocInput_->getFilePointer();
     ///begin read vocabulary descriptor
-    nVocLength_ = pVocInput_->readLong();
+    nVersion_ = pVocInput_->readInt();
+    nVocLength_ = pVocInput_->readInt();
     nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
@@ -467,27 +475,30 @@ PostingReader* ChunkTermIterator::termPosting()
 
 bool ChunkTermIterator::next()
 {
-    if(nTermCount_ > nCurPos_+1) 		
+    if(nTermCount_ > nCurPos_+1)
     {
         ++nCurPos_;
         termid_t tid = pVocInput_->readInt();
         freq_t df = pVocInput_->readInt();
         freq_t ctf = pVocInput_->readInt();
+        freq_t maxTermFreq = 0;
+        if(nVersion_ == TermInfo::version)
+            maxTermFreq = pVocInput_->readInt();
         docid_t lastdoc = pVocInput_->readInt();
         freq_t skipLevel = pVocInput_->readInt();
         fileoffset_t skipPointer = pVocInput_->readLong();
         fileoffset_t docPointer = pVocInput_->readLong();
         freq_t docPostingLen = pVocInput_->readInt();
         fileoffset_t positionPointer = pVocInput_->readLong();
-        freq_t positionPostingLen = pVocInput_->readInt();	
+        freq_t positionPostingLen = pVocInput_->readInt();
 
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
-        else 
+        else
             pCurTerm_->setValue(tid);
         if(pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
-        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        pCurTermInfo_->set(df,ctf,maxTermFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
         return true;
     }
     else return false;
@@ -498,4 +509,3 @@ bool ChunkTermIterator::next()
 }
 
 NS_IZENELIB_IR_END
-

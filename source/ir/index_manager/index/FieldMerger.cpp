@@ -7,8 +7,8 @@
 #define MEMPOOL_SIZE_FOR_MERGING    50*1024*1024
 
 using namespace izenelib::ir::indexmanager;
-
 FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
+
         :sortingMerge_(sortingMerge)
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -63,19 +63,19 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 }
 
 void FieldMerger::initPostingMerger(
-    CompressionType compressType, 
-    bool optimize, 
+    CompressionType compressType,
+    bool optimize,
     bool requireIntermediateFileForMerging,
     size_t memPoolSizeForPostingMerger)
 {
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = 
+        pPostingMerger_ =
             new PostingMerger(
-                skipInterval_, 
-                maxSkipLevel_, 
-                compressType, 
-                optimize, 
-                requireIntermediateFileForMerging, 
+                skipInterval_,
+                maxSkipLevel_,
+                compressType,
+                optimize,
+                requireIntermediateFileForMerging,
                 indexLevel_,
                 memPoolSizeForPostingMerger);
 }
@@ -83,7 +83,7 @@ void FieldMerger::initPostingMerger(
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
 {
     if (initQueue() == false)///initialize merge queue
-        //return 0; 
+        //return 0;
         //When collection is empty in a barrel, it still needs to write some information.
         return endMerge(pOutputDescriptor);
 
@@ -181,7 +181,7 @@ bool FieldMerger::initQueue()
         {
             LOG(WARNING)<< "FieldMerger::initQueue(), the in-memory index brarel " << pEntry->pBarrelInfo_->getName() << " should have been flushed to disk";
             pTermReader = pEntry->pBarrelInfo_->getWriter()->getCollectionIndexer(pEntry->pFieldInfo_->getColID())
-				->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
+                ->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
         }
         else
         {
@@ -231,17 +231,8 @@ void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor, int32_t num
     for (int32_t i = 0;i < numTermInfos;i++)
     {
         tid = cachedTermInfos_[i].term_;
-        pVocOutput->writeInt(tid);
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.docFreq_);			///write df
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.ctf_);				///write ctf
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.lastDocID_);			///write last doc id
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.skipLevel_); 			///write skip level
-        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.skipPointer_);		///write document posting offset        
-        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.docPointer_);		///write document posting offset
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.docPostingLen_);		///write document posting length (without skiplist)
-        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.positionPointer_);		///write position posting offset
-        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.positionPostingLen_);	///write position posting length
-        
+        //writeTermInfo is defined in FieldIndexer.cpp
+        writeTermInfo(pVocOutput, tid, cachedTermInfos_[i].termInfo_);
         termCount_++;
     }
 
@@ -252,7 +243,8 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
     IndexOutput* pVocOutput = pOutputDescriptor->getVocOutput();
     fileoffset_t voffset = pVocOutput->getFilePointer();
     ///begin write vocabulary descriptor
-    pVocOutput->writeLong(voffset - beginOfVoc_);
+    pVocOutput->writeInt(TermInfo::version);
+    pVocOutput->writeInt((int32_t)voffset - beginOfVoc_);
     pVocOutput->writeLong(termCount_);
     ///end write vocabulary descriptor
     return voffset;
@@ -295,5 +287,3 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
     delete newPosting;
     pMemCache_->flushMem();
 }
-
-

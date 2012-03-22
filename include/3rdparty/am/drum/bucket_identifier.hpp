@@ -41,7 +41,7 @@ struct BucketIdentifier
         static RabinFingerprint rabin_fingerprint;
 
         std::size_t key_size;
-        const char* key_serial;
+        char* key_serial;
         izenelib::util::izene_serialization<key_t> izsKey(key);
         izsKey.write_image(key_serial, key_size);
         uint64_t fp = rabin_fingerprint.Compute(key_serial, key_size);

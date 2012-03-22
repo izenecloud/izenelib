@@ -75,18 +75,20 @@ public:
     PostingReader* termPosting();
 
 private:
-    Directory* pDirectory_;	
+    Directory* pDirectory_;
 
     FieldInfo* pFieldInfo_;
-	
+
     IndexInput* pVocInput_;
+
+    int32_t nVersion_;
 
     int32_t nTermCount_;
 
     int64_t nVocLength_;
 
     std::string barrelName_;
-	
+
     Term* pCurTerm_;		 ///current term in this iterator
 
     TermInfo* pCurTermInfo_;	  ///current term info in this iterator
@@ -154,18 +156,20 @@ public:
     PostingReader* termPosting();
 
 private:
-    Directory* pDirectory_;	
+    Directory* pDirectory_;
 
     FieldInfo* pFieldInfo_;
-	
+
     IndexInput* pVocInput_;
+
+    int32_t nVersion_;
 
     int32_t nTermCount_;
 
     int64_t nVocLength_;
 
     std::string barrelName_;
-	
+
     Term* pCurTerm_;		 ///current term in this iterator
 
     TermInfo* pCurTermInfo_;	  ///current term info in this iterator
@@ -198,18 +202,20 @@ public:
     PostingReader* termPosting();
 
 private:
-    Directory* pDirectory_;	
+    Directory* pDirectory_;
 
     FieldInfo* pFieldInfo_;
-	
+
     IndexInput* pVocInput_;
+
+    int32_t nVersion_;
 
     int32_t nTermCount_;
 
     int64_t nVocLength_;
 
     std::string barrelName_;
-	
+
     Term* pCurTerm_;		 ///current term in this iterator
 
     TermInfo* pCurTermInfo_;	  ///current term info in this iterator
@@ -226,4 +232,3 @@ private:
 NS_IZENELIB_IR_END
 
 #endif
-

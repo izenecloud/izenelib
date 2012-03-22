@@ -52,7 +52,7 @@ public:
 
     void reset();
 
-    void flushDocLen() { 
+    void flushDocLen() {
         if (pDocLengthWriter_) pDocLengthWriter_->flush();
     }
 
