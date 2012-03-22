@@ -111,6 +111,13 @@ ConnectionPool::release(const RawClient& client) {
     for (Iterator it = reserved.begin(); it != reserved.end(); ++it) {
         if (it->getId() == client.getId()) {
             found = true;
+            
+            // check status
+            if (not it->valid()) {
+                LOG(INFO) << "Replacing invalid connection ID:" << client.getId() << GET_PATH(path) ;
+                reserved.replace(it, new RawClient(service, iterator, path));
+            }
+            
             // move from available to reserved;
             available.transfer(available.end(), it, reserved);
             DLOG(INFO) << "reserved (" << reserved.size() << ")";

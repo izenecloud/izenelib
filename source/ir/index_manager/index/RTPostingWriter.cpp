@@ -16,9 +16,9 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 RTPostingWriter::RTPostingWriter(
-    boost::shared_ptr<MemCache> pCache, 
-    int skipInterval, 
-    int maxSkipLevel, 
+    boost::shared_ptr<MemCache> pCache,
+    int skipInterval,
+    int maxSkipLevel,
     IndexLevel indexLevel)
     :pMemCache_(pCache)
     ,skipInterval_(skipInterval)
@@ -28,6 +28,7 @@ RTPostingWriter::RTPostingWriter(
     ,nLastLoc_(BAD_DOCID)
     ,nCurTermFreq_(0)
     ,nCTF_(0)
+    ,nmaxDocFreq_(0)
     ,pSkipListWriter_(0)
     ,indexLevel_(indexLevel)
 {
@@ -55,12 +56,12 @@ bool RTPostingWriter::isEmpty()
 void RTPostingWriter::getSnapShot(TermInfo& snapshot)
 {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
-    snapshot.set(nDF_,nCTF_,nLastDocID_,0,-1,-1,0,-1,0);
+    snapshot.set(nDF_,nCTF_, nmaxDocFreq_, nLastDocID_,0,-1,-1,0,-1,0);
     snapshot.currTF_ = nCurTermFreq_;
 }
 
 void RTPostingWriter::write(
-    OutputDescriptor* pOutputDescriptor, 
+    OutputDescriptor* pOutputDescriptor,
     TermInfo& termInfo)
 {
     ///flush last document
@@ -68,6 +69,7 @@ void RTPostingWriter::write(
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
+    termInfo.maxDocFreq_ = nmaxDocFreq_;
     termInfo.lastDocID_ = nLastDocID_;
 
     if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
@@ -97,7 +99,7 @@ void RTPostingWriter::write(
 
     ///write doc posting data
     pDocFreqList_->write(pDOutput);
-	
+
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
 
     if(indexLevel_ == WORDLEVEL)
@@ -126,6 +128,7 @@ void RTPostingWriter::reset()
     nLastDocID_ = BAD_DOCID;
     nLastLoc_ = 0;
     nDF_ = 0;
+    nmaxDocFreq_ = 0;
     nCurTermFreq_ = 0;
 
     if(pSkipListWriter_)
@@ -176,6 +179,7 @@ void RTPostingWriter::doAdd(docid_t docid, loc_t location)
             pLocList_->addVData32(location);
 
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 1;
 
         nLastDocID_ = docid;
@@ -208,6 +212,7 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
                 pLocList_->truncTailChunk();///update real size
         }
         nCTF_ += nCurTermFreq_;
+        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
         nCurTermFreq_ = 0;
     }
     else if (bTruncTail)
@@ -221,4 +226,3 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
 }
 
 NS_IZENELIB_IR_END
-

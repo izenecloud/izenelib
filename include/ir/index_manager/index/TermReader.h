@@ -57,6 +57,8 @@ public:
 
     InputDescriptor* pInputDescriptor_;
 
+    int32_t nVersion_;
+
     int32_t nTermCount_;
 
     int64_t nVocLength_;
@@ -147,6 +149,8 @@ public:
 
     InputDescriptor* pInputDescriptor_;
 
+    int32_t nVersion_;
+
     int32_t nTermCount_;
 
     int32_t nSparseSize_;
@@ -211,6 +215,8 @@ protected:
     boost::scoped_array<TERM_TABLE> bufferTermTable_;
 
     boost::shared_array<TERM_TABLE> sparseTermTable_;
+
+    int32_t nVersion_;
 
     int32_t nTermCount_;
 

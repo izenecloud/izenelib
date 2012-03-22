@@ -100,8 +100,11 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     BOOST_CHECK_EQUAL(RawClient::Idle, c2.getStatus());
     BOOST_CHECK(pool.invariant());
     
-    c1.getResponse();
-    BOOST_CHECK_EQUAL(RawClient::Idle, c1.getStatus());
+    // simulate network error
+    
+    c1.close();
+    BOOST_CHECK_THROW(c1.getResponse(), runtime_error);
+    BOOST_CHECK_EQUAL(RawClient::Invalid, c1.getStatus());
     BOOST_CHECK(pool.invariant());
     
     try {

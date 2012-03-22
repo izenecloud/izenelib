@@ -43,7 +43,9 @@ public:
 
     virtual int64_t getCTF();
 
-    virtual docid_t skipTo(docid_t docId);	
+    virtual int32_t getMaxTF();
+
+    virtual docid_t skipTo(docid_t docId);
 
     virtual bool next();
 

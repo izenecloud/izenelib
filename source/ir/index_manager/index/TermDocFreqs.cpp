@@ -23,8 +23,8 @@ TermDocFreqs::TermDocFreqs()
 }
 
 TermDocFreqs::TermDocFreqs(
-    PostingReader* pPosting, 
-    const TermInfo& ti, 
+    PostingReader* pPosting,
+    const TermInfo& ti,
     bool ownPosting)
 {
     reset(pPosting,ti,ownPosting)	;
@@ -66,6 +66,10 @@ freq_t TermDocFreqs::docFreq()
 int64_t TermDocFreqs::getCTF()
 {
     return termInfo_.ctf_;
+}
+
+int32_t TermDocFreqs::getMaxTF(){
+    return termInfo_.maxDocFreq_;
 }
 
 docid_t TermDocFreqs::doc()
@@ -213,4 +217,3 @@ void TermDocFreqs::createBuffer()
 }
 
 NS_IZENELIB_IR_END
-

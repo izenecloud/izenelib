@@ -168,6 +168,14 @@ private:
     
     /// Sequence ID;
     static uint32_t idSequence;
+    
+#ifdef ENABLE_SF1_TEST
+public:
+    /** Simulate network error. Immediately close the socket. */
+    void close() {
+        socket.close();
+    }
+#endif
 };
 
 
