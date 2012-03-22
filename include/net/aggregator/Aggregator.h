@@ -10,8 +10,7 @@
 #include "AggregatorConfig.h"
 #include "Typedef.h"
 #include "WorkerCaller.h"
-
-#include <3rdparty/msgpack/rpc/client.h>
+#include <3rdparty/msgpack/rpc/session_pool.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
@@ -77,6 +76,10 @@ public:
 template <typename ConcreteAggregator, typename LocalWorkerCaller = MockWorkerCaller>
 class Aggregator : public AggregatorBase
 {
+    typedef msgpack::rpc::session_pool session_pool_t;
+    typedef msgpack::rpc::session session_t;
+    typedef msgpack::rpc::future future_t;
+
 public:
     Aggregator()
     : debug_(false)
@@ -272,9 +275,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 {
     boost::lock_guard<boost::mutex> lock(mutex_);
 
-    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
-        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+        cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << endl;
 
     if (workerSessionList_.empty())
     {
@@ -293,7 +295,7 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
         session.set_timeout(timeoutSec);
 
-        future_t future = session.call(func_plus, requestItem, resultItem);
+        future_t future = session.call(func, identity, requestItem, resultItem);
         futureList.push_back(std::make_pair(workerid, future));
 
         if (debug_)
@@ -335,9 +337,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 {
     boost::lock_guard<boost::mutex> lock(mutex_);
 
-    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
-        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+        cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << endl;
 
     if (workerSessionList_.empty())
     {
@@ -356,7 +357,7 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
         session.set_timeout(timeoutSec);
 
-        future_t future = session.call(func_plus, requestItem0, requestItem1, resultItem);
+        future_t future = session.call(func, identity, requestItem0, requestItem1, resultItem);
         futureList.push_back(std::make_pair(workerid, future));
 
         if (debug_)
@@ -397,9 +398,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 {
     boost::lock_guard<boost::mutex> lock(mutex_);
 
-    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
-        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+        cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << endl;
 
     // distribute group of requests to remote workers
     RequestType* pLocalRequest = NULL;
@@ -434,7 +434,7 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
         session.set_timeout(timeoutSec);
 
-        future_t future = session.call(func_plus, *pRequest, *pResult);
+        future_t future = session.call(func, identity, *pRequest, *pResult);
         futureList.push_back(std::make_pair(workerid, future));
 
         if (debug_)
@@ -479,10 +479,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
 {
     boost::lock_guard<boost::mutex> lock(mutex_);
 
-    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
-        cout << "#[Aggregator] distribute request: " << func_plus << endl;
-
+        cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << endl;
 
     if (workerid == localWorkerId_)
     {
@@ -510,7 +508,7 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
     session.set_timeout(timeoutSec);
 
-    future_t future = session.call(func_plus, requestItem, resultItem);
+    future_t future = session.call(func, identity, requestItem, resultItem);
     resultItem = future.get<ResultType>();
 
     return true;
@@ -544,9 +542,8 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         }
     }
 
-    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
     if (debug_)
-        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+        cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << endl;
 
     const WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
     if (!workerSession.get())
@@ -560,7 +557,7 @@ bool Aggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
     session.set_timeout(timeoutSec);
 
-    future_t future = session.call(func_plus, requestItem0, requestItem1, resultItem);
+    future_t future = session.call(func, identity, requestItem0, requestItem1, resultItem);
     resultItem = future.get<ResultType>();
 
     return true;
