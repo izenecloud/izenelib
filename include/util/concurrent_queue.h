@@ -41,7 +41,7 @@ public:
     {
         {
             boost::unique_lock<boost::mutex> lock(mutex_);
-            queue_.clear();
+            std::deque<T>().swap(queue_);
         }
         write_cond_.notify_all();
     }
