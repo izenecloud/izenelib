@@ -14,14 +14,12 @@ INCLUDE_DIRECTORIES(
 )
 
 SET(libs
+   aggregator
    msgpack
    izene_util
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
 )
-
-#ADD_EXECUTABLE(t_aggregator t_aggregator.cpp)
-#TARGET_LINK_LIBRARIES(t_aggregator ${libs})
 
 ADD_EXECUTABLE(t_worker t_worker.cpp)
 TARGET_LINK_LIBRARIES(t_worker ${libs})
