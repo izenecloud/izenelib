@@ -36,19 +36,19 @@ template <class key_t,
 class NullDispatcher
 {
 public:
-    virtual void UniqueKeyCheck(key_t const&, aux_t const&) const {}
-    virtual void DuplicateKeyCheck(key_t const&, value_t const&, aux_t const&) const {}
+    void UniqueKeyCheck(key_t const&, aux_t const&) const {}
+    void DuplicateKeyCheck(key_t const&, value_t const&, aux_t const&) const {}
 
-    virtual void Update(key_t const&, value_t const&, aux_t const&) const {}
-    virtual void UniqueKeyUpdate(key_t const&, value_t const&, aux_t const&) const {}
-    virtual void DuplicateKeyUpdate(key_t const&, value_t const&, aux_t const&) const {}
+    void Update(key_t const&, value_t const&, aux_t const&) const {}
+    void UniqueKeyUpdate(key_t const&, value_t const&, aux_t const&) const {}
+    void DuplicateKeyUpdate(key_t const&, value_t const&, aux_t const&) const {}
 
-    virtual void Delete(key_t const&, aux_t const&) const {}
-    virtual void UniqueKeyDelete(key_t const&, aux_t const&) const {}
-    virtual void DuplicateKeyDelete(key_t const&, value_t const&, aux_t const&) const {}
+    void Delete(key_t const&, aux_t const&) const {}
+    void UniqueKeyDelete(key_t const&, aux_t const&) const {}
+    void DuplicateKeyDelete(key_t const&, value_t const&, aux_t const&) const {}
 
-    virtual void UniqueKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
-    virtual void DuplicateKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
+    void UniqueKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
+    void DuplicateKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
 };
 
 DRUM_END_NAMESPACE
