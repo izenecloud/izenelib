@@ -28,7 +28,7 @@ struct TERM_TABLE
 };
 
 #define SPARSE_FACTOR 512
-#define VOC_ENTRY_LENGTH 52
+//#define VOC_ENTRY_LENGTH 52
 
 /**
 * Internal class of VocReader
@@ -164,6 +164,8 @@ public:
     Directory* pDirectory_;
 
     IndexLevel indexLevel_;
+
+    static unsigned VOC_ENTRY_LENGTH;
 };
 
 /**
