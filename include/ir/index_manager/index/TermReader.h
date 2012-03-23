@@ -165,7 +165,7 @@ public:
 
     IndexLevel indexLevel_;
 
-    static unsigned VOC_ENTRY_LENGTH;
+    unsigned VOC_ENTRY_LENGTH;
 };
 
 /**
