@@ -1,6 +1,6 @@
 /* 
  * File:   Utils.hpp
- * Author: paolo
+ * Author: Paolo D'Apice
  *
  * Created on February 20, 2012, 10:44 AM
  */

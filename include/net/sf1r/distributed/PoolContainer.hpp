@@ -1,6 +1,6 @@
 /* 
  * File:   PoolContainer.hpp
- * Author: paolo
+ * Author: Paolo D'Apice
  *
  * Created on March 1, 2012, 1:30 PM
  */

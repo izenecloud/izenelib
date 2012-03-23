@@ -1,6 +1,6 @@
 /* 
  * File:   PoolFactory.hpp
- * Author: paolo
+ * Author: Paolo D'Apice
  *
  * Created on March 1, 2012, 2:40 PM
  */

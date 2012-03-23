@@ -37,7 +37,7 @@ public:
      * @throw SeverError if cannot connect to the server.
      */
     Sf1DistributedDriver(const std::string& hosts, const Sf1Config& parameters, 
-              const Format& format = JSON) throw(ServerError);
+              const Format& format = JSON);
     
     /// Destructor.
     ~Sf1DistributedDriver();
