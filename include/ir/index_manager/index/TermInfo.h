@@ -20,7 +20,7 @@ public:
     TermInfo()
     :docFreq_(0)
     ,ctf_(0)
-    ,maxDocFreq_(0)
+    ,maxTF_(0)
     ,lastDocID_(BAD_DOCID)
     ,skipLevel_(0)
     ,skipPointer_(-1)
@@ -33,7 +33,7 @@ public:
     TermInfo(const TermInfo& ti)
     :docFreq_(ti.docFreq_)
     ,ctf_(ti.ctf_)
-    ,maxDocFreq_(ti.maxDocFreq_)
+    ,maxTF_(ti.maxTF_)
     ,lastDocID_(ti.lastDocID_)
     ,skipLevel_(ti.skipLevel_)
     ,skipPointer_(ti.skipPointer_)
@@ -62,17 +62,17 @@ public:
 
     void set(const TermInfo& ti)
     {
-        set(ti.docFreq_, ti.ctf_,ti.maxDocFreq_,  ti.lastDocID_, ti.skipLevel_, ti.skipPointer_, ti.docPointer_,
+        set(ti.docFreq_, ti.ctf_,ti.maxTF_,  ti.lastDocID_, ti.skipLevel_, ti.skipPointer_, ti.docPointer_,
               ti.docPostingLen_, ti.positionPointer_, ti.positionPostingLen_);
     }
 
-    void set(freq_t df, freq_t ctf,freq_t maxDocFreq, docid_t lastDocID,
+    void set(freq_t df, freq_t ctf,freq_t maxTF, docid_t lastDocID,
                  freq_t skipLevel, fileoffset_t skipPointer, fileoffset_t docPointer,
                  freq_t docPostingLen, fileoffset_t positionPointer, freq_t positionPostingLen)
     {
         docFreq_ = df;
         ctf_ = ctf;
-        maxDocFreq_ = maxDocFreq;
+        maxTF_ = maxTF;
         lastDocID_ = lastDocID;
         skipLevel_ = skipLevel;
         skipPointer_ = skipPointer;
@@ -86,7 +86,7 @@ public:
     {
         docFreq_ = 0;
         ctf_ = 0;
-        maxDocFreq_ = 0;
+        maxTF_ = 0;
         lastDocID_ = BAD_DOCID;
         skipLevel_ = 0;
         skipPointer_ = -1;
@@ -102,7 +102,7 @@ public:
 
     freq_t ctf_;
 
-    freq_t maxDocFreq_;
+    freq_t maxTF_;
 
     docid_t lastDocID_;
 

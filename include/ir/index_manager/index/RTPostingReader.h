@@ -167,7 +167,7 @@ struct PostingDescriptor
     count_t df; ///document frequency of this field
     int64_t ctf; ///global  term frequency
     fileoffset_t poffset; ///offset of the position postings in the .pop file
-    int32_t maxDocFreq;
+    int32_t maxTF;
     int32_t plength;
 };
 

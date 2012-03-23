@@ -1,6 +1,6 @@
 /* 
  * File:   Sf1Driver.cpp
- * Author: paolo
+ * Author: Paolo D'Apice
  * 
  * Created on January 10, 2012, 10:07 AM
  */
@@ -21,7 +21,7 @@ using std::vector;
 
 
 Sf1Driver::Sf1Driver(const string& host, const Sf1Config& parameters, 
-        const Format& fmt) throw(ServerError) 
+        const Format& fmt) 
 try : Sf1DriverBase(parameters, fmt), pool(factory->newConnectionPool(host)) {
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {

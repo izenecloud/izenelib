@@ -1,6 +1,6 @@
 /* 
  * File:   Sf1Config.hpp
- * Author: paolo
+ * Author: Paolo D'Apice
  *
  * Created on March 1, 2012, 9:35 AM
  */

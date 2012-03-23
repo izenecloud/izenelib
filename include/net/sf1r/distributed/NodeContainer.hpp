@@ -1,6 +1,6 @@
 /* 
  * File:   NodeContainer.hpp
- * Author: paolo
+ * Author: Paolo D'Apice
  *
  * Created on February 29, 2012, 4:42 PM
  */

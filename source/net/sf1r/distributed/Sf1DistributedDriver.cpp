@@ -1,6 +1,6 @@
 /* 
  * File:   Sf1DistributedDriver.cpp
- * Author: paolo
+ * Author: Paolo D'Apice
  * 
  * Created on March 1, 2012, 11:47 AM
  */
@@ -19,7 +19,7 @@ using std::vector;
 
 
 Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
-        const Sf1Config& parameters, const Format& format) throw(ServerError)
+        const Sf1Config& parameters, const Format& format)
 try : Sf1DriverBase(parameters, format), hosts(zkhosts) {
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {

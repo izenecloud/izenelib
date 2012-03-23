@@ -87,7 +87,7 @@ void PostingMerger::reset()
     postingDesc_.plength = 0;
     postingDesc_.ctf = 0;//term frequence
     postingDesc_.df = 0;//doc frequence
-    postingDesc_.maxDocFreq = 0;
+    postingDesc_.maxTF = 0;
     postingDesc_.poffset = -1;
     chunkDesc_.lastdocid = 0;
     chunkDesc_.length = 0;
@@ -935,7 +935,7 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
-    termInfo_.maxDocFreq_ = postingDesc_.maxDocFreq;
+    termInfo_.maxTF_ = postingDesc_.maxTF;
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
     if (pPOutput)
         termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
@@ -1014,7 +1014,7 @@ fileoffset_t PostingMerger::endMerge_Block()
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
-    termInfo_.maxDocFreq_ = postingDesc_.maxDocFreq;
+    termInfo_.maxTF_ = postingDesc_.maxTF;
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
     if(pPOutput)
         termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
@@ -1100,7 +1100,7 @@ fileoffset_t PostingMerger::endMerge_Chunk()
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
-    termInfo_.maxDocFreq_ = postingDesc_.maxDocFreq;
+    termInfo_.maxTF_ = postingDesc_.maxTF;
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
 
     ///save the offset of posting descriptor

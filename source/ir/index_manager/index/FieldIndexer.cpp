@@ -25,11 +25,10 @@ void writeTermInfo(
     termid_t tid,
     const TermInfo& termInfo)
 {
-//    cout<<"TermInfo: "<<tid<<", "<<termInfo.docFreq_<<", "<<termInfo.ctf_<<", "<<termInfo.maxDocFreq_<<endl;
     pVocWriter->writeInt(tid);					///write term id
     pVocWriter->writeInt(termInfo.docFreq_);		///write df
     pVocWriter->writeInt(termInfo.ctf_);			///write ctf
-    pVocWriter->writeInt(termInfo.maxDocFreq_);     ///write maxDocFreq
+    pVocWriter->writeInt(termInfo.maxTF_);     ///write maxtf
     pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
     pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
     pVocWriter->writeLong(termInfo.skipPointer_);	///write skip list offset offset

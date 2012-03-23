@@ -98,7 +98,7 @@ protected:
     uint32_t curr_position_buffer_size_;
     count_t nDF_;			///document frequency of this field
     count_t nCurTermFreq_;
-    count_t nmaxDocFreq_;
+    count_t nmaxTF_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 
@@ -192,7 +192,7 @@ protected:
     uint32_t curr_position_buffer_size_;
     count_t nDF_;			///document frequency of this field
     count_t nCurTermFreq_;
-    count_t nmaxDocFreq_;
+    count_t nmaxTF_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 

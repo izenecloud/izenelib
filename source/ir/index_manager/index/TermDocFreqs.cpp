@@ -69,7 +69,7 @@ int64_t TermDocFreqs::getCTF()
 }
 
 int32_t TermDocFreqs::getMaxTF(){
-    return termInfo_.maxDocFreq_;
+    return termInfo_.maxTF_;
 }
 
 docid_t TermDocFreqs::doc()

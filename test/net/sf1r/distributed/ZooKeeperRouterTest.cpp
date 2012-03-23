@@ -38,7 +38,7 @@ struct ZooKeeperClient {
     ZooKeeperClient() : hosts(HOSTS), recvTimeout(2000), 
                         client(hosts, recvTimeout, true) {}
     
-    inline string getName(const string& name) {
+    string getName(const string& name) {
         return "/SF1R-" + name;
     }
     

@@ -271,7 +271,7 @@ ZooKeeperRouter::resolve(const string collection) const {
 
 
 RawClient&
-ZooKeeperRouter::getConnection(const string& collection) throw (RoutingError) {
+ZooKeeperRouter::getConnection(const string& collection) {
     boost::lock_guard<boost::mutex> lock(mutex);
     
     const Sf1Node& node = resolve(collection);

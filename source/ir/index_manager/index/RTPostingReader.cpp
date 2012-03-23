@@ -63,7 +63,7 @@ int64_t MemPostingReader::getCTF() const
 
 int32_t MemPostingReader::getMaxDocFreq() const
 {
-    return termInfo_.maxDocFreq_;
+    return termInfo_.maxTF_;
 };
 
 docid_t MemPostingReader::lastDocID()

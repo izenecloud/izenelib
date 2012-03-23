@@ -20,9 +20,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1Config conf;
     
-    Sf1DriverBase* driver;
-    BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
-    delete driver;
+    BOOST_CHECK_NO_THROW(Sf1DistributedDriver(host, conf));
 }
 
 /*

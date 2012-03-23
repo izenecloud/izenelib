@@ -46,7 +46,8 @@ public:
     /**
      * Constructor.
      * @param hosts A list of ZooKeeper hosts in the format "host:port[,host:port]".
-     * @param timeout Sessio timeout.
+     * @param timeout Session timeout.
+     * @throw ZooKeeperException if cannot connect to ZooKeeper.
      */
     ZooKeeperRouter(PoolFactory* poolFactory,
             const std::string& hosts, const int timeout);
@@ -69,8 +70,7 @@ public:
      * @return A reference to the RawClient.
      * @throw RoutingError if no route is found.
      */
-    RawClient& getConnection(const std::string& collection)
-    throw (RoutingError);
+    RawClient& getConnection(const std::string& collection);
     
     /**
      * Release a connection.

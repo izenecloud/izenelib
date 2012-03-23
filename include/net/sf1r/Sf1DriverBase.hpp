@@ -64,10 +64,11 @@ public:
      * @throw ConnectionPoolError if there is no connection available.
      * @throw RoutingError if no route is available for the request
      *        (distributed only).
+     * @throw ZooKeeperException if cannot connect to ZooKeeper.
      * @return The response body.
      */ 
     std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request) throw(std::runtime_error);
+        std::string& request);
     
     /**
      * @return The sequence number of the next request.

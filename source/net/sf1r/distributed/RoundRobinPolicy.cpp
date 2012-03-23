@@ -1,6 +1,6 @@
 /* 
  * File:   RoundRobinPolicy.cpp
- * Author: paolo
+ * Author: Paolo D'Apice
  * 
  * Created on March 5, 2012, 2:59 PM
  */
