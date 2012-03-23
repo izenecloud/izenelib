@@ -56,11 +56,6 @@ static const std::string CHINESE_DOC = "中文#@￥ **";
 class SearchService
 {
 public:
-    SearchService()
-    {
-    }
-
-public:
     void getKeywordSearchResult(const SearchRequest& request, SearchResult& result)
     {
         if (request.keyword == TERM_ABC)
@@ -79,9 +74,6 @@ public:
             result.state = false;
         }
     }
-
-private:
-
 };
 
 

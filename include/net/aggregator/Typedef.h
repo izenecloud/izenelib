@@ -8,13 +8,8 @@
 #define IZENELIB_NET_AGGREGATOR_TYPEDEF_H_
 
 #include <string>
-using namespace std;
-
 #include <boost/shared_ptr.hpp>
-#include <3rdparty/msgpack/msgpack.hpp>
-#include <3rdparty/msgpack/rpc/client.h>
 #include <3rdparty/msgpack/rpc/session_pool.h>
-#include <3rdparty/msgpack/rpc/request.h>
 
 namespace net{
 namespace aggregator{
@@ -22,17 +17,9 @@ namespace aggregator{
 /// types
 typedef uint32_t workerid_t;
 typedef unsigned int timeout_t;
-typedef msgpack::rpc::request request_t;
-typedef msgpack::rpc::session_pool session_pool_t;
-typedef msgpack::rpc::session session_t;
-typedef msgpack::rpc::future future_t;
 
 /// constants
-const static char REQUEST_FUNC_DELIMETER = '#';
-
-const static timeout_t DEFAULT_TIME_OUT = 30; // seconds xxx
-
-
+const static timeout_t DEFAULT_TIME_OUT = 30; // seconds
 
 struct ServerInfo
 {
@@ -110,7 +97,7 @@ public:
      */
     template <typename RequestType, typename ResultType>
     msgpack::rpc::future sendRequest(
-            session_pool_t& sessionPool,
+            msgpack::rpc::session_pool& sessionPool,
             const std::string& func, const RequestType& param, const ResultType& result, unsigned int sec)
     {
         msgpack::rpc::session session =

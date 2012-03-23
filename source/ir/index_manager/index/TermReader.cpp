@@ -323,7 +323,14 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         df = pVocInput->readInt();
         ctf = pVocInput->readInt();
         if(nVersion_ == TermInfo::version)
+        {
+            VOC_ENTRY_LENGTH = 56;
             maxDocFreq = pVocInput->readInt();
+        }
+        else
+        {
+            VOC_ENTRY_LENGTH = 52;
+        }
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
         skipPointer = pVocInput->readLong();
@@ -388,7 +395,7 @@ RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo
     indexLevel_ = indexLevel;
     open(pDirectory, pBarrelInfo->getName().c_str(), pFieldInfo);
     pTermReaderImpl_->pInputDescriptor_->setBarrelInfo(pBarrelInfo);
-    pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
+    pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*pTermReaderImpl_->VOC_ENTRY_LENGTH);
     bufferTermTable_.reset(new TERM_TABLE[1025]);
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
     nTermCount_ = pTermReaderImpl_->nTermCount_;
@@ -401,7 +408,7 @@ RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>
         , pCurTermInfo_(NULL)
         , pVocInput_(NULL)
 {
-    pVocInput_ = pTermReaderImpl_->pDirectory_->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
+    pVocInput_ = pTermReaderImpl_->pDirectory_->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*pTermReaderImpl_->VOC_ENTRY_LENGTH);
     bufferTermTable_.reset(new TERM_TABLE[1025]);
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
     nTermCount_ = pTermReaderImpl_->nTermCount_;
@@ -473,7 +480,7 @@ int RTDiskTermReader::fillBuffer(int pos)
 {
     int begin = (pos-SPARSE_FACTOR) > 0 ? (pos-SPARSE_FACTOR) : 0;
     int end = (pos+SPARSE_FACTOR) >= (nTermCount_-1) ? (nTermCount_-1) : (pos+SPARSE_FACTOR);
-    pVocInput_->seek(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
+    pVocInput_->seek(pTermReaderImpl_->nBeginOfVoc_ + begin*pTermReaderImpl_->VOC_ENTRY_LENGTH);
 
     termid_t tid = 0;
     freq_t df = 0;

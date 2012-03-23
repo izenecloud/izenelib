@@ -25,7 +25,7 @@ void writeTermInfo(
     termid_t tid,
     const TermInfo& termInfo)
 {
-    cout<<"TermInfo: "<<tid<<", "<<termInfo.docFreq_<<", "<<termInfo.ctf_<<", "<<termInfo.maxDocFreq_<<endl;
+//    cout<<"TermInfo: "<<tid<<", "<<termInfo.docFreq_<<", "<<termInfo.ctf_<<", "<<termInfo.maxDocFreq_<<endl;
     pVocWriter->writeInt(tid);					///write term id
     pVocWriter->writeInt(termInfo.docFreq_);		///write df
     pVocWriter->writeInt(termInfo.ctf_);			///write ctf
