@@ -18,7 +18,7 @@ BlockPostingWriter::BlockPostingWriter(
     ,position_buffer_pointer_(0)
     ,nDF_(0)
     ,nCurTermFreq_(0)
-    ,nmaxDocFreq_(0)
+    ,nmaxTF_(0)
     ,nCTF_(0)
     ,nLastDocID_(BAD_DOCID)
     ,current_block_id_(0)
@@ -55,7 +55,7 @@ void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
-    termInfo.maxDocFreq_ = nmaxDocFreq_;
+    termInfo.maxTF_ = nmaxTF_;
     termInfo.lastDocID_ = nLastDocID_;
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
@@ -101,7 +101,7 @@ void BlockPostingWriter::reset()
 
     nDF_ = 0;
     nCurTermFreq_ = 0;
-    nmaxDocFreq_ = 0;
+    nmaxTF_ = 0;
     nCTF_ = 0;
     nLastDocID_ = BAD_DOCID;
 }
@@ -151,7 +151,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
-        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
+        nmaxTF_ = (nCurTermFreq_ > nmaxTF_) ? nCurTermFreq_ : nmaxTF_;
         nCurTermFreq_ = 1;
 
         nLastDocID_ = docid;
@@ -194,7 +194,7 @@ void BlockPostingWriter::flush()
             pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(), pBlockDataPool_->num_doc_of_curr_block(), 0);
 
         nCTF_ += nCurTermFreq_;
-        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
+        nmaxTF_ = (nCurTermFreq_ > nmaxTF_) ? nCurTermFreq_ : nmaxTF_;
         nCurTermFreq_ = 0;
     }
 }
@@ -217,7 +217,7 @@ ChunkPostingWriter::ChunkPostingWriter(
     ,position_buffer_pointer_(0)
     ,nDF_(0)
     ,nCurTermFreq_(0)
-    ,nmaxDocFreq_(0)
+    ,nmaxTF_(0)
     ,nCTF_(0)
     ,nLastDocID_(BAD_DOCID)
     ,indexLevel_(indexLevel)
@@ -256,7 +256,7 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
-    termInfo.maxDocFreq_ = nmaxDocFreq_;
+    termInfo.maxTF_ = nmaxTF_;
     termInfo.lastDocID_ = nLastDocID_;
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
@@ -307,7 +307,7 @@ void ChunkPostingWriter::reset()
 
     nCTF_ = 0;
     nCurTermFreq_ = 0;
-    nmaxDocFreq_ = 0;
+    nmaxTF_ = 0;
     nDF_ = 0;
     nLastDocID_ = BAD_DOCID;
 }
@@ -352,7 +352,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
-        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
+        nmaxTF_ = (nCurTermFreq_ > nmaxTF_) ? nCurTermFreq_ : nmaxTF_;
         nCurTermFreq_ = 1;
 
         nLastDocID_ = docid;
@@ -380,7 +380,7 @@ void ChunkPostingWriter::flush()
         }
 
         nCTF_ += nCurTermFreq_;
-        nmaxDocFreq_ = (nCurTermFreq_ > nmaxDocFreq_) ? nCurTermFreq_ : nmaxDocFreq_;
+        nmaxTF_ = (nCurTermFreq_ > nmaxTF_) ? nCurTermFreq_ : nmaxTF_;
         nCurTermFreq_ = 0;
     }
 }

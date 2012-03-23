@@ -267,7 +267,7 @@ void printTerms(Indexer* pIndexer, const StatsConfig& statsConfig)
             ofs << "term id: " << pTerm->value
                 << ", df: " << pTermInfo->docFreq_
                 << ", ctf: " << pTermInfo->ctf_
-                << ", mtf: " << pTermInfo->maxDocFreq_
+                << ", mtf: " << pTermInfo->maxTF_
                 << ", dfpLen: " << pTermInfo->docPostingLen_
                 << ", popLen: " << pTermInfo->positionPostingLen_;
 

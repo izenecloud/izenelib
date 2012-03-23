@@ -64,7 +64,7 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
-    freq_t maxDocFreq = 0;
+    freq_t maxTF = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
@@ -79,7 +79,7 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         df = pVocInput->readInt();
         ctf = pVocInput->readInt();
         if(nVersion_ == TermInfo::version)
-            maxDocFreq = pVocInput->readInt();
+            maxTF = pVocInput->readInt();
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
         skipPointer = pVocInput->readLong();
@@ -89,7 +89,7 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         positionPostingLen = pVocInput->readInt();
 
         pTermTable_[i].tid = tid;
-        pTermTable_[i].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        pTermTable_[i].ti.set(df,ctf,maxTF,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
 
     delete pVocInput;
@@ -308,7 +308,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
-    freq_t maxDocFreq = 0;
+    freq_t maxTF = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
@@ -325,7 +325,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         if(nVersion_ == TermInfo::version)
         {
             VOC_ENTRY_LENGTH = 56;
-            maxDocFreq = pVocInput->readInt();
+            maxTF = pVocInput->readInt();
         }
         else
         {
@@ -342,7 +342,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         if((i+1)%SPARSE_FACTOR == 0)
         {
             sparseTermTable_[i>>9].tid = tid;
-            sparseTermTable_[i>>9].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+            sparseTermTable_[i>>9].ti.set(df,ctf,maxTF,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
         }
     }
     delete pVocInput;
@@ -485,7 +485,7 @@ int RTDiskTermReader::fillBuffer(int pos)
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
-    freq_t maxDocFreq = 0;
+    freq_t maxTF = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
     fileoffset_t skipPointer = 0;
@@ -501,7 +501,7 @@ int RTDiskTermReader::fillBuffer(int pos)
         df = pVocInput_->readInt();
         ctf = pVocInput_->readInt();
         if(nVersion_ == TermInfo::version)
-            maxDocFreq = pVocInput_->readInt();
+            maxTF = pVocInput_->readInt();
         lastdoc = pVocInput_->readInt();
         skipLevel = pVocInput_->readInt();
         skipPointer = pVocInput_->readLong();
@@ -510,7 +510,7 @@ int RTDiskTermReader::fillBuffer(int pos)
         positionPointer = pVocInput_->readLong();
         positionPostingLen = pVocInput_->readInt();
 
-        bufferTermTable_[j].ti.set(df,ctf,maxDocFreq,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        bufferTermTable_[j].ti.set(df,ctf,maxTF,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
     return end - begin;
 }

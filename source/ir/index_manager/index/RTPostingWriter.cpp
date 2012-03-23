@@ -69,7 +69,7 @@ void RTPostingWriter::write(
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
-    termInfo.maxDocFreq_ = nmaxDocFreq_;
+    termInfo.maxTF_ = nmaxDocFreq_;
     termInfo.lastDocID_ = nLastDocID_;
 
     if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
