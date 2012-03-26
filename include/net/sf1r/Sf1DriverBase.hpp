@@ -65,8 +65,8 @@ public:
      * @throw ConnectionPoolError if there is no connection available.
      * @throw std::runtime_error if other errors occur.
      */ 
-    std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request);
+    virtual std::string call(const std::string& uri, const std::string& tokens,
+                             std::string& request) = 0;
     
     /**
      * @return The sequence number of the next request.

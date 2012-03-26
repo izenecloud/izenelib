@@ -42,6 +42,13 @@ public:
     /// Destructor.
     ~Sf1DistributedDriver();
     
+    /**
+     * Sends a synchronous request to a running SF1 and get the response.
+     * @see Sf1DriverBase.call()
+     */
+    std::string call(const std::string& uri, const std::string& tokens,
+                     std::string& request);
+    
 private:
     
     /// Perform lazy initialization here.

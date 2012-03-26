@@ -10,6 +10,7 @@
 
 #include "../common.h"
 #include "net/sf1r/distributed/Sf1DistributedDriver.hpp"
+#include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include <string>
 
 using namespace NS_IZENELIB_SF1R;
@@ -20,7 +21,13 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1Config conf;
     
-    BOOST_CHECK_NO_THROW(Sf1DistributedDriver(host, conf));
+    Sf1DistributedDriver* driver;
+    BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
+    
+    string request = "{}";
+    BOOST_CHECK_THROW(driver->call("/test/echo", "", request), izenelib::zookeeper::ZooKeeperException);
+    
+    delete driver;
 }
 
 /*

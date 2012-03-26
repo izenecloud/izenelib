@@ -8,6 +8,7 @@
 #include "net/sf1r/distributed/Sf1DistributedDriver.hpp"
 #include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include "../RawClient.hpp"
+#include "../Releaser.hpp"
 #include <glog/logging.h>
 
 
@@ -34,7 +35,35 @@ Sf1DistributedDriver::~Sf1DistributedDriver() {
 }
 
 
-void
+string
+Sf1DistributedDriver::call(const string& uri, const string& tokens, string& request) {
+    string controller, action;
+    parseUri(uri, controller, action);
+    
+    string collection;
+    preprocessRequest(controller, action, tokens, request, collection);
+    
+    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
+    
+    incrementSequence();
+    
+    RawClient& client = getConnection(collection);
+    
+    // process request
+    Releaser r(*this, client);
+    try {
+        string response;
+        sendAndReceive(client, request, response); 
+        return response;
+    } catch (ServerError& e) { // do not intercept ServerError
+        throw e;
+    } catch (std::runtime_error& e) {
+        LOG(ERROR) << "Exception: " << e.what();
+        throw e;
+    }
+}
+
+inline void
 Sf1DistributedDriver::beforeAcquire() {
     if (router.get() == NULL) {
         LOG(INFO) << "Initializing routing";
@@ -42,14 +71,14 @@ Sf1DistributedDriver::beforeAcquire() {
     }
 }
 
-RawClient&
-Sf1DistributedDriver::acquire(const std::string& collection) const {
+inline RawClient&
+Sf1DistributedDriver::acquire(const string& collection) const {
     DLOG(INFO) << "Getting connection for collection: " << collection;
     return router->getConnection(collection);
 }
 
 
-void
+inline void
 Sf1DistributedDriver::release(const RawClient& client) const {
     DLOG(INFO) << "Releasing connection for: " << client.getPath();
     router->releaseConnection(client);

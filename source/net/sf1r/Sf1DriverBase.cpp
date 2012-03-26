@@ -10,7 +10,6 @@
 #include "JsonWriter.hpp"
 #include "PoolFactory.hpp"
 #include "RawClient.hpp"
-#include "Releaser.hpp"
 #include "Utils.hpp"
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
@@ -62,35 +61,6 @@ Sf1DriverBase::setFormat() {
 }
 
 
-string
-Sf1DriverBase::call(const string& uri, const string& tokens, string& request) {
-    string controller, action;
-    parseUri(uri, controller, action);
-    
-    string collection;
-    preprocessRequest(controller, action, tokens, request, collection);
-    
-    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
-    
-    incrementSequence();
-    
-    RawClient& client = getConnection(collection);
-    
-    // process request
-    Releaser r(*this, client);
-    try {
-        string response;
-        sendAndReceive(client, request, response); 
-        return response;
-    } catch (ServerError& e) { // do not intercept ServerError
-        throw e;
-    } catch (std::runtime_error& e) {
-        LOG(ERROR) << "Exception: " << e.what();
-        throw e;
-    }
-}
-
-
 void
 Sf1DriverBase::parseUri(const string& uri, string& controller, string& action) const {
     vector<string> elems;
@@ -128,7 +98,7 @@ Sf1DriverBase::preprocessRequest(const string& controller, const string& action,
 }
 
 
-inline void
+void
 Sf1DriverBase::incrementSequence() {
     if (++sequence == MAX_SEQUENCE) {
         sequence = 1; // sequence == 0 means server error
@@ -136,7 +106,7 @@ Sf1DriverBase::incrementSequence() {
 }
 
 
-inline RawClient&
+RawClient&
 Sf1DriverBase::getConnection(const string collection) {
     beforeAcquire();
     RawClient& client = acquire(collection);
@@ -147,7 +117,7 @@ Sf1DriverBase::getConnection(const string collection) {
 }
 
 
-inline void
+void
 Sf1DriverBase::releaseConnection(const RawClient& connection) {
 #if 0
     beforeRelease();
