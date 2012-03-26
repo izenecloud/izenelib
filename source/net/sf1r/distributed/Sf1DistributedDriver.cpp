@@ -20,8 +20,8 @@ using std::vector;
 
 
 Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
-        const Sf1Config& parameters, const Format& format)
-try : Sf1DriverBase(parameters, format), hosts(zkhosts) {
+        const Sf1DistributedConfig& parameters, const Format& format)
+try : Sf1DriverBase(parameters, format), hosts(zkhosts), config(parameters) {
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {
     string message = e.what();

@@ -9,6 +9,7 @@
 #define	SF1DISTRIBUTEDDRIVER_HPP
 
 #include "../Sf1DriverBase.hpp"
+#include "Sf1DistributedConfig.hpp"
 #include <boost/scoped_ptr.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -36,7 +37,7 @@ public:
      * @param format The format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server.
      */
-    Sf1DistributedDriver(const std::string& hosts, const Sf1Config& parameters, 
+    Sf1DistributedDriver(const std::string& hosts, const Sf1DistributedConfig& parameters, 
               const Format& format = JSON);
     
     /// Destructor.
@@ -64,6 +65,9 @@ private:
     
     /// ZooKeeper servers.
     const std::string hosts;
+    
+    /// Actual driver configuration.
+    Sf1DistributedConfig config;
     
     /// The ZooKeeper router.
     boost::scoped_ptr<ZooKeeperRouter> router;

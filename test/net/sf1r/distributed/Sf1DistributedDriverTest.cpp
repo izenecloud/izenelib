@@ -19,7 +19,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
-    const Sf1Config conf;
+    const Sf1DistributedConfig conf;
     
     Sf1DistributedDriver* driver;
     BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 
 const string HOSTS = "localhost:2181";
-const Sf1Config CONF;
+const Sf1DistributedConfig CONF;
 const int LOOP = 5;
 
 

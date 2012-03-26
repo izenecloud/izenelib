@@ -185,9 +185,6 @@ protected:
     /// Request sequence number.
     uint32_t sequence;
     
-    /// Actual driver configuration.
-    Sf1Config config;
-    
     /// Actual request/response format.
     Format format;
     
