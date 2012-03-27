@@ -2,7 +2,32 @@
 #include <am/sequence_file/ssfr.h>
 #include <boost/serialization/variant.hpp>
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+namespace indexmanager{
+
+template <>
+std::size_t BTreeIndexer<String>::convertAllValue(std::size_t maxDoc, uint32_t* & data)
+{
+    boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    std::size_t result = 0;
+
+    String lowKey;
+    std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+    std::pair<String, ValueType> kvp;
+    docid_t docid = 0;
+    while(term_enum->next(kvp))
+    {
+        for(uint32_t i=0;i<kvp.second.size();i++)
+        {
+            docid = kvp.second[i];
+            if (docid >= maxDoc) break;
+            data[docid] = kvp.first.empty() ? 0:1;
+            ++result;
+        }
+    }
+    return result;
+}
+
 
 BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map)
 :dir_(dir), pDirectory_(pDirectory)
@@ -231,3 +256,7 @@ void BTreeIndexerManager::getValueSubString(const std::string& property_name, co
     doFilter_(docs);
 }
 
+
+}
+
+NS_IZENELIB_IR_END
