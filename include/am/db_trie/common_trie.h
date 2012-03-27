@@ -15,6 +15,7 @@
 
 #include <am/concept/DataType.h>
 #include <hdb/HugeDB.h>
+#include <glog/logging.h>
 
 #include "traits.h"
 
@@ -662,21 +663,23 @@ protected:
             try {
                 boost::archive::xml_iarchive xml(ifs);
                 xml >> boost::serialization::make_nvp("PartitionTrie", *this);
-            } catch (...) {
-                throw std::runtime_error("PartitionTrie config file corrputed");
+            } catch (boost::archive::archive_exception& e) {
+                LOG(ERROR) << "failed to load " << configPath_;
+                return false;
             }
-            ifs.close();
-            return true;
         }
-        return false;
+        return ifs;
     }
 
     void sync()
     {
-            ofstream ofs(configPath_.c_str());
+        ofstream ofs(configPath_.c_str());
+        try {
             boost::archive::xml_oarchive xml(ofs);
             xml << boost::serialization::make_nvp("PartitionTrie", *this);
-            ofs.flush();
+        } catch (boost::archive::archive_exception& e) {
+            LOG(ERROR) << "failed to save " << configPath_;
+        }
     }
 
 private:
