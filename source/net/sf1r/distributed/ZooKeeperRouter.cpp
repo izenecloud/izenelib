@@ -227,20 +227,31 @@ ZooKeeperRouter::watchChildren(const string& path) {
     }
 }
 
-#ifdef ENABLE_ZK_TEST
 
 NodeListRange
 ZooKeeperRouter::getSf1Nodes() const {
+    DLOG(INFO) << "Getting all nodes ...";
+    
+    if (topology->count() == 0) {
+        LOG(WARNING) << "Empty topology"; 
+    }
     return topology->getNodes();
 }
 
 
 NodeCollectionsRange
 ZooKeeperRouter::getSf1Nodes(const string& collection) const {
+    DLOG(INFO) << "Getting all nodes for collection: " << collection << " ...";
+    
+    if (topology->count() == 0) {
+        LOG(WARNING) << "Empty topology"; 
+    }
+    
+    if (topology->count(collection) == 0) {
+        LOG(WARNING) << "No routes for collection: " << collection;
+    }
     return topology->getNodesFor(collection);
 }
-
-#endif
 
 
 const Sf1Node& 
@@ -297,6 +308,55 @@ ZooKeeperRouter::releaseConnection(const RawClient& connection) {
         condition.notify_one();
     }
 }
+
+
+inline void
+addConnection(vector<RawClient*>& list, const Sf1Node& node, PoolContainer& pools) {
+    ConnectionPool* pool = pools.find(node.getPath())->second;
+    CHECK(pool) << "NULL pool";
+    list.push_back(&pool->acquire());
+}
+
+
+vector<RawClient*> 
+ZooKeeperRouter::getConnections(const string& collection) {
+    if (topology->count() == 0) {
+        LOG(WARNING) << "Empty topology, throwing RoutingError";
+        throw RoutingError("Empty topology");
+    }
     
+    if (collection.empty()) {
+        vector<RawClient*> list;
+        NodeListRange nodes = topology->getNodes();
+        BOOST_FOREACH(const Sf1Node& node, nodes) {
+            addConnection(list, node, pools);
+        }
+        return list;
+    } else {
+        if (topology->count(collection) == 0) {
+            LOG(WARNING) << "No routes for collection: " << collection 
+                         << ", throwing RoutingError";
+            throw RoutingError("No routes for " + collection);
+        }
+        
+        vector<RawClient*> list;
+        NodeCollectionsRange range = topology->getNodesFor(collection);
+        NodeCollectionsList nodes(range.first, range.second);
+        BOOST_FOREACH(const NodeCollectionsList::value_type& value, nodes) {
+            const Sf1Node& node = value.second;
+            addConnection(list, node, pools);
+        }
+        return list;
+    }
+}
+
+
+void 
+ZooKeeperRouter::releaseConnections(const vector<RawClient*> connections) {
+    BOOST_FOREACH(RawClient* connection, connections) {
+        releaseConnection(*connection);
+    }
+}
+
 
 NS_IZENELIB_SF1R_END

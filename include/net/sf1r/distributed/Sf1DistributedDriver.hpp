@@ -52,6 +52,34 @@ public:
     
 private:
     
+    /// Initializes the ZooKeeper router.
+    void initZooKeeperRouter();
+    
+    /**
+     * Dispatch a single request.
+     * @param[in] uri
+     * @param[in] tokens
+     * @param[in] collection
+     * @param[in,out] request
+     * @param[out] response
+     */
+    void dispatchRequest(const std::string& uri, const std::string& tokens,
+                         const std::string& collection, std::string& request,
+                         std::string& response);
+    
+    /**
+     * Broadcast a request.
+     * @param[in] uri
+     * @param[in] tokens
+     * @param[in] collection
+     * @param[in,out] request
+     * @param[out] responses
+     * @return \c true if success, \c false otherwise.
+     */
+    bool broadcastRequest(const std::string& uri, const std::string& tokens,
+                          const std::string& collection, std::string& request, 
+                          std::vector<std::string>& responses);
+    
     /// Perform lazy initialization here.
     void beforeAcquire();
     

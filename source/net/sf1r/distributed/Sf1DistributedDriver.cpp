@@ -9,6 +9,7 @@
 #include "net/sf1r/distributed/ZooKeeperRouter.hpp"
 #include "../RawClient.hpp"
 #include "../Releaser.hpp"
+#include <boost/foreach.hpp>
 #include <glog/logging.h>
 
 
@@ -43,6 +44,13 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
     string collection;
     preprocessRequest(controller, action, tokens, request, collection);
     
+    /*
+     * TODO: apply routing policy!
+     * Parse URI and apply the configured policy:
+     * - RoundRobin (default)
+     * - Broadcast: 1 input request => N actual requests
+     */
+    
     LOG(INFO) << "Send " << getFormatString() << " request: " << request;
     
     incrementSequence();
@@ -63,12 +71,54 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
     }
 }
 
+
+bool 
+Sf1DistributedDriver::broadcastRequest(const string& uri, const string& tokens,
+        const string& collection, string& request, vector<std::string>& responses) {
+    // check that zookeeper has been initialized
+    initZooKeeperRouter();
+    
+    // get all the connections
+    vector<RawClient*> connections = router->getConnections(collection);
+    DLOG(INFO) << "Broadcasting request to (" << connections.size() << ") nodes ...";
+    bool success = true;
+    BOOST_FOREACH(RawClient* connection, connections) {
+        DLOG(INFO) << "Sending to " << connection->getPath() << "...";
+        LOG(INFO) << "Send " << getFormatString() << " request: " << request;
+                
+        incrementSequence();
+        
+        // process request
+        Releaser r(*this, *connection);
+        try {
+            string response;
+            sendAndReceive(*connection, request, response);
+            responses.push_back(response);
+        } catch (std::runtime_error& e) {
+            LOG(ERROR) << "Exception: " << e.what();
+            success = false;
+            break;
+        }
+    }
+    
+    DLOG(INFO) << "Finished broadcasting request, success = " << (success ? "yes" : "no");
+    return success;
+}
+
+
 inline void
-Sf1DistributedDriver::beforeAcquire() {
+Sf1DistributedDriver::initZooKeeperRouter() {
     if (router.get() == NULL) {
         LOG(INFO) << "Initializing routing";
         router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
     }
+}
+
+
+inline void
+Sf1DistributedDriver::beforeAcquire() {
+    // lazy initialization because of problems with Nginx
+    initZooKeeperRouter();
 }
 
 inline RawClient&
