@@ -175,6 +175,8 @@ public:
         return true;
     }
 
+    std::size_t convertAllValue(std::size_t maxDoc, uint32_t* & data);
+
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if( compare_(lowKey,highKey)>0 ) return 0;
@@ -712,7 +714,6 @@ private:
     std::size_t cache_num_;
     boost::shared_mutex mutex_;
 };
-
 
 }
 
