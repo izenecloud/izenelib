@@ -278,7 +278,7 @@ ZooKeeperRouter::getConnection(const string& collection) {
     DLOG(INFO) << "Resolved to node: " << node.getPath();
     
     // get a connection from the node
-    ConnectionPool* pool = pools[node.getPath()]; // TODO: do not use operator[]
+    ConnectionPool* pool = pools.find(node.getPath())->second;
     CHECK(pool) << "NULL pool";
     return pool->acquire();
 }
@@ -289,7 +289,7 @@ ZooKeeperRouter::releaseConnection(const RawClient& connection) {
     boost::lock_guard<boost::mutex> lock(mutex);
     
     DLOG(INFO) << "releasing connection";
-    ConnectionPool* pool = pools[connection.getPath()]; // TODO: do not use operator[]
+    ConnectionPool* pool = pools.find(connection.getPath())->second;
     pool->release(connection); 
     
     if (not pool->isBusy()) {
