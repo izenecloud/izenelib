@@ -268,6 +268,8 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     ///update descriptors
     postingDesc_.ctf += pInMemoryPosting->getCTF();
     postingDesc_.df += pInMemoryPosting->docFreq();
+    if(postingDesc_.maxTF < pInMemoryPosting->getMaxDocFreq())
+        postingDesc_.maxTF = pInMemoryPosting->getMaxDocFreq();
     postingDesc_.length = chunkDesc_.length;
     postingDesc_.plength += pInMemoryPosting->getPPostingLen();
     chunkDesc_.lastdocid = pInMemoryPosting->lastDocID();
@@ -355,6 +357,8 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
     ///update descriptors
     postingDesc_.ctf += pOnDiskPosting->postingDesc_.ctf;
     postingDesc_.df += pOnDiskPosting->postingDesc_.df;
+    if(postingDesc_.maxTF < pOnDiskPosting->postingDesc_.maxTF)
+        postingDesc_.maxTF = pOnDiskPosting->postingDesc_.maxTF;
     postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk
     postingDesc_.plength += pOnDiskPosting->nPPostingLength_;
     chunkDesc_.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
@@ -398,6 +402,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     docid_t nLastDocID = chunkDesc_.lastdocid;
     freq_t	nTF = 0;
     count_t nCTF = 0;
+    count_t nMtf = 0;
     count_t nDF = postingDesc_.df;
     count_t nPCount = 0;
 
@@ -430,6 +435,8 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
             nPCount += nTF;
             nDF++;
+            if(nMtf < nTF)
+                nMtf = nTF;
             nLastDocID = nDocID;
             if(pSkipListMerger_ && nDF > 0 && nDF % skipInterval_ == 0)
             {
@@ -475,6 +482,8 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
+    if((uint32_t)postingDesc_.maxTF < nMtf)
+        postingDesc_.maxTF = nMtf;
     postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk
     if (pPOutput)
         postingDesc_.plength += pPOutput->getFilePointer() - oldPOff;
@@ -503,6 +512,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     docid_t nLastDocID = chunkDesc_.lastdocid;
     count_t nDF = 0;
     count_t nCTF = 0;
+    count_t nMtf = 0;
 
     for(pPosting->advanceToNextBlock();
             pPosting->curr_block_id_ <= pPosting->last_block_id_;
@@ -545,6 +555,12 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 size_of_positions = chunk.size_of_positions(); // get position number again as some docs might be removed
                 nDF += realDocNum; // real docs number
                 nCTF += size_of_positions; // real term frequency number
+                const uint32_t* tf_p = chunk.frequencies();
+                for(int i = 0; i < realDocNum; ++i){
+                    if(nMtf < tf_p[i])
+                        nMtf = tf_p[i];
+                }
+
                 if(realDocNum > 0)
                     nLastDocID = chunk.doc_ids()[realDocNum - 1];
 
@@ -607,6 +623,8 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
+    if((uint32_t)postingDesc_.maxTF < nMtf)
+        postingDesc_.maxTF = nMtf;
     chunkDesc_.lastdocid = nLastDocID;
 }
 
@@ -633,6 +651,7 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
     docid_t nLastDocID = chunkDesc_.lastdocid;
     count_t nDF = 0;
     count_t nCTF = 0;
+    count_t nMtf = 0;
 
     while(num_docs_left)
     {
@@ -669,6 +688,12 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
         size_of_positions = chunk.size_of_positions(); // get position number again as some docs might be removed
         nDF += realDocNum; // real docs number
         nCTF += size_of_positions; // real term frequency number
+        const uint32_t* tf_p = chunk.frequencies();
+        for(int i = 0; i < realDocNum; ++i){
+            if(nMtf < tf_p[i])
+                nMtf = tf_p[i];
+        }
+
         if(realDocNum > 0)
             nLastDocID = chunk.doc_ids()[realDocNum - 1];
 
@@ -723,6 +748,8 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
+    if((uint32_t)postingDesc_.maxTF < nMtf)
+        postingDesc_.maxTF = nMtf;
     chunkDesc_.lastdocid = nLastDocID;
 }
 
@@ -840,6 +867,7 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
     docid_t nDocID = 0;
     freq_t nTF = 0;
     count_t nCTF = 0;
+    count_t nMtf = 0;
     count_t nDF = 0;
     count_t nPCount = 0;
 
@@ -854,6 +882,8 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
             nPCount += nTF;
             nDF ++;
             nCTF += nTF;
+            if(nMtf < nTF)
+                nMtf = nTF;
             ensure_decompressed_pos_buffer(nPCount);
             uint32_t pos = 0;
             doc_ids_offset_++;
@@ -904,6 +934,7 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
+    postingDesc_.maxTF = nMtf;
     chunkDesc_.lastdocid = nDocID;
 }
 
