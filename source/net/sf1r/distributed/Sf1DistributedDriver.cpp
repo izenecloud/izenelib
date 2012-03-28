@@ -23,6 +23,11 @@ using std::vector;
 Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
         const Sf1DistributedConfig& parameters, const Format& format)
 try : Sf1DriverBase(parameters, format), hosts(zkhosts), config(parameters) {
+    DLOG(INFO) << "Initializing matchers ...";
+    BOOST_FOREACH(const string& pattern, config.broadcast) {
+        matchers.push_back(new RegexLexer(pattern));
+        DLOG(INFO) << "Added broadcast matcher for [" << pattern << "]";
+    }
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {
     string message = e.what();
@@ -44,25 +49,51 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
     string collection;
     preprocessRequest(controller, action, tokens, request, collection);
     
+    string response;
+    
     /*
-     * TODO: apply routing policy!
-     * Parse URI and apply the configured policy:
-     * - RoundRobin (default)
-     * - Broadcast: 1 input request => N actual requests
+     * Matchers are iterated on reverse order, so that the last rule
+     * has the precedence. Only one match is allowed.
      */
+    BOOST_REVERSE_FOREACH(const RegexLexer& m, matchers) {
+        DLOG(INFO) << "Matching [" << uri << "] against: [" << m.regex() << "]";
+            
+        if (m.match(uri)) {
+            DLOG(INFO) << "Matched, broadcasting ...";
+            std::vector<string> responses;
+            bool success = broadcastRequest(uri, tokens, collection, request, responses);
+            if (not success) { // FIXME: really throw?
+                LOG(WARNING) << "Not all requests succeeded";
+                throw ServerError("Unsuccessful broadcast");
+            }
+            
+            DLOG(INFO) << "Returning the last response";
+            BOOST_ASSERT(not responses.empty());
+            response.assign(responses.back());
+            return response;
+        }
+    }
     
+    DLOG(INFO) << "No matches, default dispatching ...";
+    dispatchRequest(uri, tokens, collection, request, response);
+    
+    return response;
+}
+
+
+void 
+Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens, 
+        const string& collection, string& request, string& response) {
     LOG(INFO) << "Send " << getFormatString() << " request: " << request;
-    
+
     incrementSequence();
-    
+
     RawClient& client = getConnection(collection);
-    
+
     // process request
     Releaser r(*this, client);
     try {
-        string response;
         sendAndReceive(client, request, response); 
-        return response;
     } catch (ServerError& e) { // do not intercept ServerError
         throw e;
     } catch (std::runtime_error& e) {

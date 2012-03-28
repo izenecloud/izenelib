@@ -10,7 +10,9 @@
 
 #include "../Sf1DriverBase.hpp"
 #include "Sf1DistributedConfig.hpp"
+#include "RegexLexer.hpp"
 #include <boost/scoped_ptr.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
@@ -99,6 +101,10 @@ private:
     
     /// The ZooKeeper router.
     boost::scoped_ptr<ZooKeeperRouter> router;
+    
+    /// The URI matchers
+    boost::ptr_vector<RegexLexer> matchers;
+    
 };
 
 
