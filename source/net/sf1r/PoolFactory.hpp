@@ -75,7 +75,7 @@ public:
 private:
     ba::io_service& service;
     ba::ip::tcp::resolver& resolver;
-    const Sf1Config& config;
+    const Sf1Config config;
 };
 
 
