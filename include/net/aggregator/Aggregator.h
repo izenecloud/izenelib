@@ -71,6 +71,14 @@ class AggregatorBase
 public:
     virtual ~AggregatorBase(){}
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+
+    const std::string& collection() const
+    {
+        return collection_;
+    }
+
+protected:
+    std::string collection_;
 };
 
 template <typename ConcreteAggregator, typename LocalWorkerCaller = MockWorkerCaller>
@@ -81,13 +89,13 @@ class Aggregator : public AggregatorBase
     typedef msgpack::rpc::future future_t;
 
 public:
-    Aggregator()
+    Aggregator(const std::string& collection="")
     : debug_(false)
     , hasLocalWorker_(false)
     , localWorkerId_(0)
     , isCallLocalWorkerLocally_(true)
     {
-        init();
+        collection_ = collection;
     }
 
 public:
@@ -208,10 +216,6 @@ public:
             timeout_t timeoutSec = DEFAULT_TIME_OUT);
 
 protected:
-    void init()
-    {
-    }
-
     const WorkerSessionPtr& getWorkerSessionById(const workerid_t workerid)
     {
         for (size_t i = 0; i < workerSessionList_.size(); i++)
