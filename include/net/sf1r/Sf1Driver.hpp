@@ -37,6 +37,13 @@ public:
     
     /// Destructor.
     ~Sf1Driver();
+    
+    /**
+     * Sends a synchronous request to a running SF1 and get the response.
+     * @see Sf1DriverBase.call()
+     */
+    std::string call(const std::string& uri, const std::string& tokens,
+                     std::string& request);
 
     /**
      * @return The actual pool size.

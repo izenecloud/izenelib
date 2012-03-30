@@ -46,8 +46,6 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
     
     Sf1Driver driver(HOST, CONF);
     
-    BOOST_CHECK_EQUAL(1, driver.getSequence());
-    
     for (vector<string>::iterator it = uris.begin(); it < uris.end(); ++it) {
         BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
         BOOST_CHECK_THROW(driver.call(*it, tokens, request), ClientError);
@@ -99,6 +97,37 @@ BOOST_AUTO_TEST_CASE(bad_uri) {
 }
 
 
+BOOST_AUTO_TEST_CASE(test_sequence) {
+    const string uri    = "test/echo";
+    const string tokens = "";
+          string body   = "{\"message\":\"Ciao! 你好！\"}";
+    
+    Sf1Driver driver(HOST, CONF);
+
+    uint32_t seq = 1;
+    BOOST_CHECK_EQUAL(seq, driver.getSequence());
+    
+    const int N = 10;
+
+    // good requests: increment sequence
+    for (int i = 0; i < N; ++i) {
+        uint32_t prev = driver.getSequence();
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+        BOOST_CHECK_EQUAL(prev + 1, driver.getSequence());
+    }
+    
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+    
+    // bad requests: do not increment sequencer
+    BOOST_CHECK_THROW(driver.call("", tokens, body), ClientError);
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+    
+    string bad = "{bad}";
+    BOOST_CHECK_THROW(driver.call(uri, tokens, bad), ClientError);
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+}
+
+
 BOOST_AUTO_TEST_CASE(test_echo) {
     const string uri    = "test/echo"; // works without leading '/' too
     const string tokens = "token";
@@ -113,6 +142,7 @@ BOOST_AUTO_TEST_CASE(test_echo) {
     BOOST_CHECK_EQUAL(expected, response);
     BOOST_CHECK(driver.getSequence() != 0);
 }
+
 
 bool
 match(const string& s) {

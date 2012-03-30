@@ -34,7 +34,7 @@ public:
     /**
      * Instantiates a new factory. 
      */
-    PoolFactory(ba::io_service& _service, ba::ip::tcp::resolver& _resolver, Sf1Config& _config)
+    PoolFactory(ba::io_service& _service, ba::ip::tcp::resolver& _resolver, const Sf1Config& _config)
             : service(_service), resolver(_resolver), config(_config) {
         DLOG(INFO) << "PoolFactory ready";
     }
@@ -75,7 +75,7 @@ public:
 private:
     ba::io_service& service;
     ba::ip::tcp::resolver& resolver;
-    Sf1Config& config;
+    const Sf1Config config;
 };
 
 

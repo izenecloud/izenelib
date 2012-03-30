@@ -12,11 +12,12 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-
+/// Default initial pool size.
 #define SF1_CONFIG_INITIAL_SIZE  1
+/// Default automatic pool resize flag.
 #define SF1_CONFIG_RESIZE        false
+/// Default maximum pool size.
 #define SF1_CONFIG_MAX_SIZE      1
-#define SF1_CONFIG_TIMEOUT       2000
 
 /**
  * Container for the driver configuration parameters:
@@ -30,13 +31,11 @@ struct Sf1Config {
      * Default constructor.
      */
     Sf1Config() : initialSize(SF1_CONFIG_INITIAL_SIZE), 
-        resize(SF1_CONFIG_RESIZE), maxSize(SF1_CONFIG_MAX_SIZE), 
-        timeout(SF1_CONFIG_TIMEOUT) {}
+        resize(SF1_CONFIG_RESIZE), maxSize(SF1_CONFIG_MAX_SIZE) {}
     
     size_t initialSize;           ///< Initial pool size.
-    bool resize;                  ///< Automatic pool resize.
+    bool resize;                  ///< Automatic pool resize flag.
     size_t maxSize;               ///< Maximum pool size.
-    uint32_t timeout;             ///< ZooKeeper session timeout.
 };
 
 

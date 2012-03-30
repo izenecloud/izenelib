@@ -9,7 +9,10 @@
 #define	SF1DISTRIBUTEDDRIVER_HPP
 
 #include "../Sf1DriverBase.hpp"
+#include "Sf1DistributedConfig.hpp"
+#include "RegexLexer.hpp"
 #include <boost/scoped_ptr.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
@@ -36,13 +39,48 @@ public:
      * @param format The format of request/response body (defaults to JSON).
      * @throw SeverError if cannot connect to the server.
      */
-    Sf1DistributedDriver(const std::string& hosts, const Sf1Config& parameters, 
+    Sf1DistributedDriver(const std::string& hosts, const Sf1DistributedConfig& parameters, 
               const Format& format = JSON);
     
     /// Destructor.
     ~Sf1DistributedDriver();
     
+    /**
+     * Sends a synchronous request to a running SF1 and get the response.
+     * @see Sf1DriverBase.call()
+     */
+    std::string call(const std::string& uri, const std::string& tokens,
+                     std::string& request);
+    
 private:
+    
+    /// Initializes the ZooKeeper router.
+    void initZooKeeperRouter();
+    
+    /**
+     * Dispatch a single request.
+     * @param[in] uri
+     * @param[in] tokens
+     * @param[in] collection
+     * @param[in,out] request
+     * @param[out] response
+     */
+    void dispatchRequest(const std::string& uri, const std::string& tokens,
+                         const std::string& collection, std::string& request,
+                         std::string& response);
+    
+    /**
+     * Broadcast a request.
+     * @param[in] uri
+     * @param[in] tokens
+     * @param[in] collection
+     * @param[in,out] request
+     * @param[out] responses
+     * @return \c true if success, \c false otherwise.
+     */
+    bool broadcastRequest(const std::string& uri, const std::string& tokens,
+                          const std::string& collection, std::string& request, 
+                          std::vector<std::string>& responses);
     
     /// Perform lazy initialization here.
     void beforeAcquire();
@@ -58,8 +96,15 @@ private:
     /// ZooKeeper servers.
     const std::string hosts;
     
+    /// Actual driver configuration.
+    Sf1DistributedConfig config;
+    
     /// The ZooKeeper router.
     boost::scoped_ptr<ZooKeeperRouter> router;
+    
+    /// The URI matchers
+    boost::ptr_vector<RegexLexer> matchers;
+    
 };
 
 

@@ -10,6 +10,7 @@
 
 #include "../common.h"
 #include "net/sf1r/distributed/Sf1DistributedDriver.hpp"
+#include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include <string>
 
 using namespace NS_IZENELIB_SF1R;
@@ -18,9 +19,15 @@ using namespace std;
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
-    const Sf1Config conf;
+    const Sf1DistributedConfig conf;
     
-    BOOST_CHECK_NO_THROW(Sf1DistributedDriver(host, conf));
+    Sf1DistributedDriver* driver;
+    BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
+    
+    string request = "{}";
+    BOOST_CHECK_THROW(driver->call("/test/echo", "", request), izenelib::zookeeper::ZooKeeperException);
+    
+    delete driver;
 }
 
 /*
@@ -35,13 +42,19 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 
 const string HOSTS = "localhost:2181";
-const Sf1Config CONF;
+Sf1DistributedConfig getConfig() {
+    Sf1DistributedConfig conf;
+    conf.addBroadCast("^test(\\/\\w+)?$");
+    //conf.addBroadCast("test");
+    //conf.addBroadCast("recommend\\/\\w+");
+    return conf;
+}
 const int LOOP = 5;
 
 
 /* Test fixture. */
 struct Tester {
-    Tester() : driver(HOSTS, CONF) {}
+    Tester() : driver(HOSTS, getConfig()) {}
     
     void
     doTest(const string& uri, const string& tokens, 
@@ -73,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(echo, Tester) {
 BOOST_FIXTURE_TEST_CASE(echo_collection, Tester) {
     const string uri    = "test/echo";
     const string tokens = "token";
-          string body   = "{\"collection\":\"example\",\"message\":\"Ciao! 你好！\"}";
+          string body   = "{\"collection\":\"b5mm\",\"message\":\"Ciao! 你好！\"}";
     const string expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
 
     for (int i = 0; i < LOOP; i++) {
@@ -130,7 +143,7 @@ BOOST_AUTO_TEST_CASE(documents_search) {
                           "  \"limit\":10"
                           "}";
     
-    Sf1DistributedDriver driver(HOSTS, CONF);
+    Sf1DistributedDriver driver(HOSTS, getConfig());
     try {
         sendRequests(driver, uri, tokens, body);
     } catch(runtime_error&) {}
@@ -161,7 +174,7 @@ BOOST_AUTO_TEST_CASE(documents_search_fail) {
                           "  \"limit\":10"
                           "}";
     
-    Sf1DistributedDriver driver(HOSTS, CONF);
+    Sf1DistributedDriver driver(HOSTS, getConfig());
     BOOST_CHECK_THROW(driver.call(uri, tokens, body), RoutingError);
 }
 

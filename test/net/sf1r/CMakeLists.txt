@@ -68,6 +68,15 @@ target_link_libraries(t_JsonWriter ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_JsonWriter)
 
 
+# RegexLexer
+set(RegexLexer_SOURCES
+    distributed/RegexLexerTest.cpp
+)
+add_executable(t_RegexLexer ${RegexLexer_SOURCES})
+target_link_libraries(t_RegexLexer ${LIBS})
+list(APPEND ALL_TEST t_RegexLexer)
+
+
 # ConnectionPool
 set(ConnectionPool_SOURCES
     ${SOURCE_DIR}/RawClient.cpp

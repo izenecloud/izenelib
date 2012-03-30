@@ -47,7 +47,7 @@ void sendrequest(Sf1DriverBase* driver, const string& uri,
 
 int main() {
     const string host = "localhost:2181";
-    const Sf1Config conf;
+    const Sf1DistributedConfig conf;
     const int PAUSE = 500; // milliseconds
     
     const string uri    = "/documents/search"; 
