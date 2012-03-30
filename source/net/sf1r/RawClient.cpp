@@ -40,39 +40,43 @@ RawClient::idSequence = 0;
 
 
 RawClient::RawClient(ba::io_service& service, 
-                     tcp::resolver::iterator& iterator,
+                     const std::string& host, const std::string& port,
                      const string& zkpath) 
         : socket(service), status(Idle), path(zkpath), id(++idSequence) {
     try {
-        DLOG(INFO) << "connecting ...";
-        ba::connect(socket, iterator); 
+        DLOG(INFO) << "connecting (" << id << ") ...";
         
-        DLOG(INFO) << "connected";
+        ba::ip::tcp::resolver resolver(service);
+        ba::ip::tcp::resolver::query query(host, port);
+        
+        ba::connect(socket, resolver.resolve(query)); 
+        
+        DLOG(INFO) << "connected (" << id << ")";
     } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw e;
     }
 
-    CHECK_EQ(Idle, status) << "not Idle";
-    DLOG(INFO) << "Correctly instantiated";
+    CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
+    DLOG(INFO) << "Correctly instantiated (" << id << ")";
 }
 
 
-RawClient::~RawClient() throw() {
+RawClient::~RawClient() {
     CHECK_NE(Busy, status);
     try {
-        DLOG(INFO) << "closing ...";
+        DLOG(INFO) << "closing (" << id << ") ...";
         
         socket.shutdown(socket.shutdown_both);
         socket.close();
         
-        DLOG(INFO) << "connection closed";
+        DLOG(INFO) << "connection closed (" << id << ")";
     } catch (system_error& e) {
         LOG(WARNING) << e.what();
     }
     
-    DLOG(INFO) << "Correctly destroyed.";
+    DLOG(INFO) << "Correctly destroyed (" << id << ")";
 }
 
 
@@ -84,10 +88,10 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
         throw runtime_error("Not connected");
     }
     
-    CHECK_EQ(Idle, status) << "not Idle";
+    CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
     status = Busy;
     
-    DLOG(INFO) << "Sending raw request ["
+    DLOG(INFO) << "Sending raw request (" << id << "): ["
                << sequence << ", " 
                << data.length() << ", "
                << data << "] ...";
@@ -115,7 +119,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     }
     
     // do not change the status
-    CHECK_EQ(Busy, status) << "not Busy";
+    CHECK_EQ(Busy, status) << "not Busy (" << id << ")";
     DLOG(INFO) << "Request sent (" << n << " bytes).";
 }
 
@@ -128,9 +132,9 @@ RawClient::getResponse() {
         throw runtime_error("Not connected");
     }
     
-    CHECK_EQ(Busy, status) << "not Busy";
+    CHECK_EQ(Busy, status) << "not Busy (" << id << ")";
     // do not change the status
-    DLOG(INFO) << "Receiving response ...";
+    DLOG(INFO) << "Receiving response (" << id << ") ...";
 
     char header[HEADER_SIZE];
     size_t n = 0;
@@ -170,12 +174,12 @@ RawClient::getResponse() {
     }
 
     string response(data, length - 1); // skip the final '\0'
-    DLOG(INFO) << "Response: ["
+    DLOG(INFO) << "Response (" << id << "): ["
                << sequence << ", "
                << length << ", "
                << response << "]";
 
-    DLOG(INFO) << "Response received (" << n + HEADER_SIZE << " bytes)";
+    LOG(INFO) << "Response received (" << n + HEADER_SIZE << " bytes)";
     
     status = Idle;
     return boost::make_tuple(sequence, response);

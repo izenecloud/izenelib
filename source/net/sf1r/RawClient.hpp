@@ -58,17 +58,18 @@ public:
 
     /**
      * Creates the driver client.
-     * @param service A reference to the IO service.
-     * @param iterator A reference to the endpoint iterator.
+     * @param service A reference to the I/O service.
+     * @param host The target address or hostname.
+     * @param port The target service port.
      * @param id An ID for this instance (optional).
      * @throw boost::system::system_error if cannot connect.
      */
     RawClient(ba::io_service& service, 
-              ba::ip::tcp::resolver::iterator& iterator,
+              const std::string& host, const std::string& port,
               const std::string& id = "");
     
-    /// Destructor. Must not throw any exception.
-    ~RawClient() throw();
+    /// Destructor.
+    ~RawClient();
     
     /**
      * Checks the connection status.

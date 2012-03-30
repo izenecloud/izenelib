@@ -17,7 +17,6 @@
 #include <boost/thread.hpp>
 
 using namespace NS_IZENELIB_SF1R;
-using ba::ip::tcp;
 using namespace std;
 
 
@@ -33,19 +32,13 @@ BOOST_AUTO_TEST_CASE(dummy) {
 
 /** Test fixture. */
 struct AsioService {
-    AsioService() : host("localhost"), port("18181"), 
-                    resolver(service), query(host, port) {
-        iterator = resolver.resolve(query);
-    }
+    AsioService() : host("localhost"), port("18181") {}
     ~AsioService() {}
     
     const string host;
     const string port;
     
     ba::io_service service;
-    tcp::resolver resolver;
-    tcp::resolver::query query;
-    tcp::resolver::iterator iterator;
 };
 
 
@@ -60,7 +53,7 @@ getMessage(const uint32_t& seq) {
 BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     const size_t SIZE = 2;
     
-    ConnectionPool pool(service, iterator, SIZE, false);
+    ConnectionPool pool(service, host, port, SIZE, false);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
@@ -119,6 +112,23 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
     
     pool.release(c1);
     BOOST_CHECK(pool.invariant());
+    BOOST_CHECK_EQUAL(SIZE - 1, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(1, pool.getReservedSize());
+    BOOST_CHECK(pool.isBusy());
+    
+    // check invalid replacement
+    
+    RawClient& c3 = pool.acquire();
+    BOOST_CHECK(pool.invariant());
+    BOOST_CHECK_EQUAL(SIZE, pool.getSize());
+    BOOST_CHECK_EQUAL(SIZE - 2, pool.getAvailableSize());
+    BOOST_CHECK_EQUAL(2, pool.getReservedSize());
+    BOOST_CHECK(c3.isConnected() and c3.idle());
+    BOOST_CHECK(pool.isBusy());
+    
+    pool.release(c3);
+    BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE - 1, pool.getAvailableSize());
     BOOST_CHECK_EQUAL(1, pool.getReservedSize());
@@ -138,7 +148,7 @@ BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
     size_t SIZE = 1;
     const size_t MAX_SIZE = 3;
     
-    ConnectionPool pool(service, iterator, SIZE, true, MAX_SIZE);
+    ConnectionPool pool(service, host, port, SIZE, true, MAX_SIZE);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
@@ -251,7 +261,7 @@ BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
     const size_t NUM_THREADS = 5;
     size_t SIZE = 1;
     
-    ConnectionPool pool(service, iterator, SIZE, true, NUM_THREADS);
+    ConnectionPool pool(service, host, port, SIZE, true, NUM_THREADS);
     BOOST_CHECK(pool.invariant());
     
     Worker w(pool);

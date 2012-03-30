@@ -32,10 +32,12 @@ class PoolFactory : boost::noncopyable {
 public:
     
     /**
-     * Instantiates a new factory. 
+     * Instantiates a new factory.
+     * @param service The I/O service.
+     * @param config The actual configuration structure.
      */
-    PoolFactory(ba::io_service& _service, ba::ip::tcp::resolver& _resolver, const Sf1Config& _config)
-            : service(_service), resolver(_resolver), config(_config) {
+    PoolFactory(ba::io_service& _service, const Sf1Config& _config)
+            : service(_service), config(_config) {
         DLOG(INFO) << "PoolFactory ready";
     }
     
@@ -46,35 +48,34 @@ public:
     
     /**
      * Instantiates a new connection pool.
+     * @param The target address.
+     * @return A pointer to a new ConnectionPool.
      */
     ConnectionPool* newConnectionPool(const std::string& address) const {
         DLOG(INFO) << "new connection pool to: [" << address << "]";
         
         size_t pos = address.find(':');
-        ba::ip::tcp::resolver::query query(address.substr(0, pos), address.substr(pos+1));
-        ba::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
-        
-        return new ConnectionPool(service, iterator, 
+        return new ConnectionPool(service, 
+                address.substr(0, pos), address.substr(pos + 1),
                 config.initialSize, config.resize, config.maxSize);
     }
     
     /**
      * Instantiates a new connection pool.
+     * @param The target SF1 node.
+     * @return A pointer to a new ConnectionPool.
      */
     ConnectionPool* newConnectionPool(const Sf1Node& node) const {
         DLOG(INFO) << "new connection pool to: [" << node << "]";
         
-        ba::ip::tcp::resolver::query query(node.getHost(), boost::lexical_cast<std::string>(node.getPort()));
-        ba::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
-        
-        return new ConnectionPool(service, iterator, 
+        return new ConnectionPool(service, node.getHost(), 
+                boost::lexical_cast<std::string>(node.getPort()),
                 config.initialSize, config.resize, config.maxSize,
                 node.getPath());
     }
     
 private:
     ba::io_service& service;
-    ba::ip::tcp::resolver& resolver;
     const Sf1Config config;
 };
 

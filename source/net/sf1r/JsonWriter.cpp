@@ -25,7 +25,7 @@ JsonWriter::JsonWriter() {
 }
 
 
-JsonWriter::~JsonWriter() throw() {
+JsonWriter::~JsonWriter() {
     // nothing to do here
 }
 

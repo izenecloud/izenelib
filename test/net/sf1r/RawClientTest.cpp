@@ -31,31 +31,25 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 
 /** Test fixture. */
 struct AsioService {
-    AsioService() : host("localhost"), port("18181"), 
-                    resolver(service), query(host, port) {
-        iterator = resolver.resolve(query);
-    }
+    AsioService() : host("localhost"), port("18181") {}
     ~AsioService() {}
     
     const string host;
     const string port;
     
     ba::io_service service;
-    tcp::resolver resolver;
-    tcp::resolver::query query;
-    tcp::resolver::iterator iterator;
 };
 
 
 BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
-    RawClient client(service, iterator);
+    RawClient client(service, host, port);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
     BOOST_CHECK_EQUAL("", client.getPath());
     
-    RawClient zclient(service, iterator, "zkpath");
+    RawClient zclient(service, host, port, "zkpath");
     BOOST_CHECK(zclient.isConnected());
     BOOST_CHECK(zclient.idle());
     BOOST_CHECK(zclient.valid());
@@ -69,7 +63,7 @@ BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
 BOOST_FIXTURE_TEST_CASE(connection_error_test, AsioService) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator, "/path");
+    RawClient client(service, host, port, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
@@ -92,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator, "/path");
+    RawClient client(service, host, port, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());

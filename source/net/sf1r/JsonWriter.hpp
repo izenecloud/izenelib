@@ -21,7 +21,7 @@ NS_IZENELIB_SF1R_BEGIN
 class JsonWriter : public Writer {
 public:
     JsonWriter();
-    virtual ~JsonWriter() throw();
+    ~JsonWriter();
 
     void setHeader(const std::string& controller, 
                    const std::string& action,

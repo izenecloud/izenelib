@@ -177,16 +177,14 @@ protected:
     /// Set data format used for request and responses.
     void setFormat();
     
-    /// Input/Output service.
-    ba::io_service service;
-    /// TCP host resolver.
-    ba::ip::tcp::resolver resolver;
-    
     /// Request sequence number.
     uint32_t sequence;
     
     /// Actual request/response format.
     Format format;
+    
+    /// Input/Output service.
+    ba::io_service service;
     
     /// Pointer to the actual request/response format handler.
     boost::scoped_ptr<Writer> writer;
