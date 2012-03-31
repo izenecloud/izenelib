@@ -50,6 +50,7 @@ public:
      * Instantiates a new connection pool.
      * @param The target address.
      * @return A pointer to a new ConnectionPool.
+     * @throw NetworkError if network-related errors occur
      */
     ConnectionPool* newConnectionPool(const std::string& address) const {
         DLOG(INFO) << "new connection pool to: [" << address << "]";
@@ -64,6 +65,7 @@ public:
      * Instantiates a new connection pool.
      * @param The target SF1 node.
      * @return A pointer to a new ConnectionPool.
+     * @throw NetworkError if network-related errors occur
      */
     ConnectionPool* newConnectionPool(const Sf1Node& node) const {
         DLOG(INFO) << "new connection pool to: [" << node << "]";

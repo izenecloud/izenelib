@@ -5,6 +5,7 @@
  * Created on December 31, 2011, 2:46 PM
  */
 
+#include "net/sf1r/Errors.hpp"
 #include "RawClient.hpp"
 #include <boost/array.hpp>
 #include <glog/logging.h>
@@ -15,7 +16,6 @@ NS_IZENELIB_SF1R_BEGIN
 using boost::system::system_error;
 using ba::ip::tcp;
 using std::string;
-using std::runtime_error;
 
 
 namespace {
@@ -55,7 +55,7 @@ RawClient::RawClient(ba::io_service& service,
     } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
-        throw e;
+        throw NetworkError(e.what());
     }
 
     CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
@@ -85,7 +85,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw runtime_error("Not connected");
+        throw NetworkError("Not connected");
     }
     
     CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
@@ -110,12 +110,12 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
-        throw e;
+        throw NetworkError(e.what());
     }
     
     if (n != HEADER_SIZE + data.length()) {
         status = Invalid;
-        throw runtime_error("write: Write size mismatch");
+        throw ServerError("write: Write size mismatch");
     }
     
     // do not change the status
@@ -129,7 +129,7 @@ RawClient::getResponse() {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw runtime_error("Not connected");
+        throw NetworkError("Not connected");
     }
     
     CHECK_EQ(Busy, status) << "not Busy (" << id << ")";
@@ -144,12 +144,12 @@ RawClient::getResponse() {
     } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
-        throw e;
+        throw NetworkError(e.what());
     }
     
     if (n != sizeof(HEADER_SIZE)) {
         status = Invalid;
-        throw runtime_error("read: Read size mismatch");
+        throw ServerError("Read size mismatch");
     }
 
     uint32_t sequence, length;
@@ -165,12 +165,12 @@ RawClient::getResponse() {
     } catch (system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
-        throw e;
+        throw NetworkError(e.what());
     }
     
     if (n != length) {
         status = Invalid;
-        throw runtime_error("read: Read size mismatch");
+        throw ServerError("Read size mismatch");
     }
 
     string response(data, length - 1); // skip the final '\0'

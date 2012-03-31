@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "net/sf1r/ConnectionPool.hpp"
+#include "net/sf1r/Errors.hpp"
 #include "net/sf1r/RawClient.hpp"
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
@@ -20,9 +21,18 @@ using namespace NS_IZENELIB_SF1R;
 using namespace std;
 
 
-BOOST_AUTO_TEST_CASE(dummy) {
-    BOOST_TEST_MESSAGE("dummy empty test");
+namespace {
+ba::io_service service;
+string host = "localhost";
+string port = "18181";
 }
+
+
+BOOST_AUTO_TEST_CASE(connection_fail) {
+    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", 3), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", 3), NetworkError);
+}
+
 
 /*
  * This test requires a running SF1.
@@ -30,18 +40,8 @@ BOOST_AUTO_TEST_CASE(dummy) {
 
 #ifdef ENABLE_SF1_TEST
 
-/** Test fixture. */
-struct AsioService {
-    AsioService() : host("localhost"), port("18181") {}
-    ~AsioService() {}
-    
-    const string host;
-    const string port;
-    
-    ba::io_service service;
-};
 
-
+/// Build a new request
 inline string
 getMessage(const uint32_t& seq) {
     return "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},"
@@ -50,7 +50,7 @@ getMessage(const uint32_t& seq) {
 
 
 /** Test pool acquire/release. */
-BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
+BOOST_AUTO_TEST_CASE(sanity) {
     const size_t SIZE = 2;
     
     ConnectionPool pool(service, host, port, SIZE, false);
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE(sanity_test, AsioService) {
 
 
 /** Test pool automatic resize. */
-BOOST_FIXTURE_TEST_CASE(resize_test, AsioService) {
+BOOST_AUTO_TEST_CASE(resize) {
     size_t SIZE = 1;
     const size_t MAX_SIZE = 3;
     
@@ -255,7 +255,7 @@ private:
 
 
 /** Simulate a concurrency test using threads. */
-BOOST_FIXTURE_TEST_CASE(concurrency_test, AsioService) {
+BOOST_AUTO_TEST_CASE(concurrency) {
     using boost::thread;
 
     const size_t NUM_THREADS = 5;

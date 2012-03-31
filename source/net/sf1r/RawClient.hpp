@@ -62,7 +62,7 @@ public:
      * @param host The target address or hostname.
      * @param port The target service port.
      * @param id An ID for this instance (optional).
-     * @throw boost::system::system_error if cannot connect.
+     * @throw NetworkError if cannot connect.
      */
     RawClient(ba::io_service& service, 
               const std::string& host, const std::string& port,
@@ -140,7 +140,8 @@ public:
      * @param sequence request sequence number.
      * @param data request data.
      * @throw std::runtime_error if errors occur.
-     * @throw boost::system::system_error if network-related errors occur.
+     * @throw NetworkError if network-related errors occur.
+     * @throw ServerError if server-related errors occur.
      */
     void sendRequest(const uint32_t& sequence, const std::string& data);
     
@@ -148,8 +149,8 @@ public:
      * Get a response from SF1.
      * @returns the \ref Response containing the sequence number of the 
      *          corresponding request and the response body.
-     * @throw std::runtime_error if errors occur.
-     * @throw boost::system::system_error if network-related errors occur.
+     * @throw NetworkError if network-related errors occur.
+     * @throw ServerError if server-related errors occur.
      */
     Response getResponse();
     

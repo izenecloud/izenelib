@@ -5,6 +5,7 @@
  * Created on January 31, 2012, 10:53 AM
  */
 
+#include "net/sf1r/Errors.hpp"
 #include "ConnectionPool.hpp"
 #include "RawClient.hpp"
 #include <boost/assert.hpp>
@@ -28,7 +29,7 @@ ConnectionPool::ConnectionPool(ba::io_service& serv, const std::string& h,
         const std::string& p, const size_t& sz, const bool rz, 
         const size_t& ms, const string& zkpath) 
             : service(serv), host(h), port(p), 
-              size(sz), resize(rz), maxSize(ms ? ms : size), path(zkpath) {
+              size(sz), resize(rz), maxSize(resize ? ms : size), path(zkpath) {
     DLOG(INFO) << "Initializing pool ..." << GET_PATH(path) ;
     DLOG(INFO) << "  size       : " << size;
     DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
@@ -38,9 +39,9 @@ ConnectionPool::ConnectionPool(ba::io_service& serv, const std::string& h,
         for (unsigned i = 0; i < size; ++i) {
             available.push_back(new RawClient(service, host, port, path));
         }
-    } catch (std::exception& e) {
-        LOG(ERROR) << "Exception: " << e.what();
-        throw ConnectionPoolError(e.what());
+    } catch (NetworkError e) {
+        LOG(ERROR) << e.what();
+        throw e;
     }
     
 #ifdef ENABLE_SF1_TEST  
@@ -100,9 +101,9 @@ ConnectionPool::acquire() {
         reserved.push_back(new RawClient(service, host, port, path));
         ++size;
         LOG(INFO) << "Growed pool size to: " << size << "/" << maxSize << GET_PATH(path) ;
-    } catch (std::exception& e) {
-        LOG(ERROR) << "Exception: " << e.what();
-        throw ConnectionPoolError(e.what());
+    } catch (NetworkError& e) {
+        LOG(ERROR) << e.what();
+        throw e;
     }
     
     DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
@@ -123,7 +124,7 @@ ConnectionPool::release(const RawClient& client) {
 
             // check status
             if (not it->valid()) {
-                LOG(INFO) << "Discarding invalid connection ID:" << client.getId() << GET_PATH(path);
+                LOG(INFO) << "Discarding invalid connection ID: " << client.getId() << GET_PATH(path);
                 reserved.erase(it);
                 size--;
                 

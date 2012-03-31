@@ -21,9 +21,10 @@ using std::string;
 using std::vector;
 
 
-Sf1Driver::Sf1Driver(const string& host, const Sf1Config& parameters, 
+Sf1Driver::Sf1Driver(const string& h, const Sf1Config& parameters, 
         const Format& fmt) 
-try : Sf1DriverBase(parameters, fmt), pool(factory->newConnectionPool(host)) {
+try : Sf1DriverBase(parameters, fmt), host(h), mustReconnect(false),
+      pool(factory->newConnectionPool(host)) {
     LOG(INFO) << "Driver ready.";
 } catch (system_error& e) {
     string message = e.what();
@@ -49,6 +50,10 @@ Sf1Driver::call(const string& uri, const string& tokens, string& request) {
     
     incrementSequence();
     
+    if (mustReconnect) {
+        reconnect();
+    }
+    
     RawClient& client = getConnection(collection);
     
     // process request
@@ -57,10 +62,13 @@ Sf1Driver::call(const string& uri, const string& tokens, string& request) {
         string response;
         sendAndReceive(client, request, response); 
         return response;
-    } catch (ServerError& e) { // do not intercept ServerError
+    } catch (NetworkError& e) {
+        LOG(WARNING) << e.what();
+        mustReconnect = true;
+        DLOG(INFO) << "Reconnect flag set to: " << mustReconnect;
         throw e;
-    } catch (std::runtime_error& e) {
-        LOG(ERROR) << "Exception: " << e.what();
+    } catch (ServerError& e) { // do not intercept ServerError
+        DLOG(INFO) << e.what();
         throw e;
     }
 }
@@ -79,6 +87,20 @@ Sf1Driver::release(const RawClient& connection) const {
     pool->release(connection);
 }
 
+
+void
+Sf1Driver::reconnect() {
+    CHECK(mustReconnect) << "Should not reconnect";
+        
+    try {
+        LOG(INFO) << "Connection pool may be invalid, replacing ...";
+        pool.reset(factory->newConnectionPool(host));
+        mustReconnect = false;
+    } catch (NetworkError& e) {
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+}
 
 inline size_t 
 Sf1Driver::getPoolSize() const {
