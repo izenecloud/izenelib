@@ -99,7 +99,7 @@ private:
     loc_t nLastLoc_;		///current added word offset
     count_t nCurTermFreq_; ///current term freq
     int32_t nCTF_;			///Collection's total term frequency
-    count_t nmaxDocFreq_;
+    count_t nMaxTermFreq_;
     boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
     boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
