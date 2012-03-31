@@ -5,6 +5,7 @@
  * Created on January 31, 2012, 10:53 AM
  */
 
+#include "net/sf1r/Errors.hpp"
 #include "ConnectionPool.hpp"
 #include "RawClient.hpp"
 #include <boost/assert.hpp>
@@ -24,26 +25,30 @@ ConnectionPool::UNDEFINED_PATH = "";
        ((ConnectionPool::UNDEFINED_PATH == (path)) ? "" : " (" + (path) + ")")
 
 
-ConnectionPool::ConnectionPool(ba::io_service& serv, 
-                               ba::ip::tcp::resolver::iterator& it,
-                               const size_t& sz, const bool rz, 
-                               const size_t& ms, const string& zkpath) 
-            : service(serv), iterator(it), 
-              size(sz), resize(rz), maxSize(ms), path(zkpath) {
+ConnectionPool::ConnectionPool(ba::io_service& serv, const std::string& h,
+        const std::string& p, const size_t& sz, const bool rz, 
+        const size_t& ms, const string& zkpath) 
+            : service(serv), host(h), port(p), 
+              size(sz), resize(rz), maxSize(resize ? ms : size), path(zkpath) {
     DLOG(INFO) << "Initializing pool ..." << GET_PATH(path) ;
     DLOG(INFO) << "  size       : " << size;
     DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
     DLOG(INFO) << "  maxSize    : " << maxSize;
     
-    for (unsigned i = 0; i < size; ++i) {
-        available.push_back(new RawClient(service, iterator, path));
+    try {
+        for (unsigned i = 0; i < size; ++i) {
+            available.push_back(new RawClient(service, host, port, path));
+        }
+    } catch (NetworkError e) {
+        LOG(ERROR) << e.what();
+        throw e;
     }
     
 #ifdef ENABLE_SF1_TEST  
     invariant();
 #endif
     
-    LOG(INFO) << "Initialized pool of " << size << " clients." << GET_PATH(path) ;
+    LOG(INFO) << "Initialized pool of " << size << "/" << maxSize << " clients." << GET_PATH(path) ;
 }
 
 
@@ -59,16 +64,16 @@ ConnectionPool::~ConnectionPool() {
 #ifdef ENABLE_SF1_TEST
 bool
 ConnectionPool::invariant() const {
-    CHECK(size > 0) << "invariant: size == 0";
-    if (resize) CHECK(maxSize >= size) << "invariant: maxSize < poolSize";
-    CHECK_EQ(size, available.size() + reserved.size()) << "invariant: counters mismatch";
+    CHECK(size > 0) << "invariant: size == 0 [" << size << "]";
+    CHECK(maxSize >= size) << "invariant: maxSize < poolSize [" << maxSize << "," << size << "]";
+    CHECK(size >= available.size() + reserved.size()) << "invariant: counters mismatch";
     return true;
 }
 #endif
 
 
 RawClient&
-ConnectionPool::acquire() throw(ConnectionPoolError) {
+ConnectionPool::acquire() {
     boost::lock_guard<boost::mutex> lock(mutex);
     
     DLOG(INFO) << "Connection requested."<< GET_PATH(path) ;
@@ -81,9 +86,9 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
         return reserved.back();
     } 
     
-    LOG(INFO) << "No available client."<< GET_PATH(path) ;
+    LOG(INFO) << "No available client."<< GET_PATH(path);
     
-    if (not resize or size == maxSize) {
+    if (size == maxSize) {
         const string msg = resize ? 
                 "No available client (max size reached)" :
                 "No available client (no resize)" ;
@@ -91,10 +96,15 @@ ConnectionPool::acquire() throw(ConnectionPoolError) {
         throw ConnectionPoolError(msg);
     }
     
-    LOG(INFO) << "Growing pool ..." << GET_PATH(path) ;
-    reserved.push_back(new RawClient(service, iterator, path));
-    ++size;
-    LOG(INFO) << "Growed pool size: " << size << GET_PATH(path) ;
+    LOG(INFO) << "Growing pool ..." << GET_PATH(path);
+    try {
+        reserved.push_back(new RawClient(service, host, port, path));
+        ++size;
+        LOG(INFO) << "Growed pool size to: " << size << "/" << maxSize << GET_PATH(path) ;
+    } catch (NetworkError& e) {
+        LOG(ERROR) << e.what();
+        throw e;
+    }
     
     DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
     return reserved.back();
@@ -111,11 +121,14 @@ ConnectionPool::release(const RawClient& client) {
     for (Iterator it = reserved.begin(); it != reserved.end(); ++it) {
         if (it->getId() == client.getId()) {
             found = true;
-            
+
             // check status
             if (not it->valid()) {
-                LOG(INFO) << "Replacing invalid connection ID:" << client.getId() << GET_PATH(path) ;
-                reserved.replace(it, new RawClient(service, iterator, path));
+                LOG(INFO) << "Discarding invalid connection ID: " << client.getId() << GET_PATH(path);
+                reserved.erase(it);
+                size--;
+                
+                break;
             }
             
             // move from available to reserved;

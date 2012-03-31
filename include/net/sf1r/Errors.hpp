@@ -15,6 +15,14 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
+/**
+ * Exception thrown on network communication errors.
+ */
+class NetworkError : public std::runtime_error {
+public:
+    NetworkError(const std::string& m = "") : std::runtime_error(m) {}
+};
+
 
 /**
  * Exception thrown by the Sf1Driver on server errors.

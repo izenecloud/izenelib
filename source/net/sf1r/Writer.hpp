@@ -21,9 +21,6 @@ NS_IZENELIB_SF1R_BEGIN
 class Writer : private boost::noncopyable {
 public:
     
-    /// Destructor must not throw any exception.
-    virtual ~Writer() throw() {};
-    
     /**
      * Adds SF1 header into the body of the request.
      * @param controller The controller of this request.

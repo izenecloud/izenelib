@@ -38,7 +38,7 @@ public:
     };
     
     /**
-     * Creates a new instance of the driver and connects to the server. 
+     * Initializes the pool factory and the data writer. 
      * @param parameters configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
      */
@@ -61,8 +61,8 @@ public:
      * @param[in,out] request Request body.
      * @return The response body.
      * @throw ClientError if errors due to client request occur.
-     * @throw ServerError if errors due to server response occur.
      * @throw ConnectionPoolError if there is no connection available.
+     * @throw ServerError if errors due to server response occur.
      * @throw std::runtime_error if other errors occur.
      */ 
     virtual std::string call(const std::string& uri, const std::string& tokens,
@@ -177,16 +177,14 @@ protected:
     /// Set data format used for request and responses.
     void setFormat();
     
-    /// Input/Output service.
-    ba::io_service service;
-    /// TCP host resolver.
-    ba::ip::tcp::resolver resolver;
-    
     /// Request sequence number.
     uint32_t sequence;
     
     /// Actual request/response format.
     Format format;
+    
+    /// Input/Output service.
+    ba::io_service service;
     
     /// Pointer to the actual request/response format handler.
     boost::scoped_ptr<Writer> writer;

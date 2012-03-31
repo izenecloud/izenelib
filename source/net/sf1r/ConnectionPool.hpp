@@ -9,7 +9,6 @@
 #define	CONNECTIONPOOL_HPP
 
 #include "net/sf1r/config.h"
-#include "net/sf1r/Errors.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -37,34 +36,36 @@ public:
     
     /**
      * Initializes a connection pool.
-     * @param service 
-     * @param iterator
-     * @param size the initial pool size. (non-zero)
-     * @param resize enable automatic size increment if all the clients
+     * @param service A reference to the I/O service.
+     * @param host The target address or hostname.
+     * @param port The target service port.
+     * @param size The initial pool size. (non-zero)
+     * @param resize Enable automatic size increment if all the clients
      *          are busy. (defaults to false)
-     * @param maxSize maximum pool size. It is mandatory if \ref resize 
+     * @param maxSize The maximum pool size. It is mandatory if \ref resize 
      *          is \c true. Must hold that: maxSize >= size.
-     * @param path the ZooKeeper path to which the connection pool refers to.
+     * @param path The ZooKeeper path to which the connection pool refers to.
      *          (defaults to UNDEFINED_PATH)
+     * @throw NetworkError if network-related errors occur.
      */
-    ConnectionPool(ba::io_service& service, 
-                   ba::ip::tcp::resolver::iterator& iterator,
-                   const size_t& size, const bool resize = false,
-                   const size_t& maxSize = 0,
+    ConnectionPool(ba::io_service& service, const std::string& host,
+                   const std::string& port, const size_t& size, 
+                   const bool resize = false, const size_t& maxSize = 0,
                    const std::string& path = UNDEFINED_PATH);
     
     /// Destructor.
     ~ConnectionPool();
     
     /**
-     * Get an available client from the pool.
+     * Get an available connection from the pool.
      * @return a reference to a \ref RawClient.
-     * @throw ConnectionPoolError if there is no available client.
+     * @throw ConnectionPoolError if there is no available connection.
+     * @throw NetworkError if network-related errors occur.
      */
-    RawClient& acquire() throw(ConnectionPoolError);
+    RawClient& acquire();
     
     /**
-     * Gives back the pool a client.
+     * Gives back the pool a connection.
      * @param connection A connection
      */
     void release(const RawClient& connection);
@@ -129,8 +130,13 @@ private:
     /// Locking condition for pool finalization.
     boost::condition_variable condition;
     
+    /// Input/Output service.
     ba::io_service& service;
-    ba::ip::tcp::resolver::iterator& iterator;
+    
+    /// The target hostname or address.
+    const std::string host;
+    /// The target service port.
+    const std::string port;
     
     /// The actual size.
     size_t size;

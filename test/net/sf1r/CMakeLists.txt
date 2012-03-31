@@ -88,6 +88,19 @@ target_link_libraries(t_ConnectionPool ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_ConnectionPool)
 
 
+# PoolFactory
+set(PoolFactory_SOURCES
+    ${SOURCE_DIR}/RawClient.cpp
+    ${SOURCE_DIR}/ConnectionPool.cpp
+    ${SOURCE_DIR}/distributed/Sf1Node.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    PoolFactoryTest.cpp
+)
+add_executable(t_PoolFactory ${PoolFactory_SOURCES})
+target_link_libraries(t_PoolFactory ${LIBS})
+list(APPEND ALL_TESTS t_PoolFactory)
+
+
 # Sf1Driver
 set(Sf1Driver_SOURCES
     Sf1DriverTest.cpp

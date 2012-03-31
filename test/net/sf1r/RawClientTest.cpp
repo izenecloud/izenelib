@@ -9,6 +9,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "common.h"
+#include "net/sf1r/Errors.hpp"
 #include "net/sf1r/RawClient.hpp"
 #include <boost/asio.hpp>
 
@@ -17,9 +18,22 @@ using ba::ip::tcp;
 using namespace std;
 
 
+namespace {
+ba::io_service service;
+string host = "localhost";
+string port = "18181";
+}
+
+
 /** Check number of bytes used in the header. */
 BOOST_AUTO_TEST_CASE(headerSize_test) {
     BOOST_CHECK_EQUAL(4, sizeof(uint32_t));
+}
+
+
+BOOST_AUTO_TEST_CASE(connection_fail) {
+    BOOST_CHECK_THROW(RawClient(service, "somewhere", "8888"), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "localhost", "12345"), NetworkError);
 }
 
 
@@ -29,33 +43,15 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 #ifdef ENABLE_SF1_TEST
 
 
-/** Test fixture. */
-struct AsioService {
-    AsioService() : host("localhost"), port("18181"), 
-                    resolver(service), query(host, port) {
-        iterator = resolver.resolve(query);
-    }
-    ~AsioService() {}
-    
-    const string host;
-    const string port;
-    
-    ba::io_service service;
-    tcp::resolver resolver;
-    tcp::resolver::query query;
-    tcp::resolver::iterator iterator;
-};
-
-
-BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
-    RawClient client(service, iterator);
+BOOST_AUTO_TEST_CASE(connection_test) {
+    RawClient client(service, host, port);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
     BOOST_CHECK_EQUAL("", client.getPath());
     
-    RawClient zclient(service, iterator, "zkpath");
+    RawClient zclient(service, host, port, "zkpath");
     BOOST_CHECK(zclient.isConnected());
     BOOST_CHECK(zclient.idle());
     BOOST_CHECK(zclient.valid());
@@ -66,10 +62,10 @@ BOOST_FIXTURE_TEST_CASE(connection_test, AsioService) {
 }
 
 
-BOOST_FIXTURE_TEST_CASE(connection_error_test, AsioService) {
+BOOST_AUTO_TEST_CASE(connection_error_test) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator, "/path");
+    RawClient client(service, host, port, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
@@ -87,12 +83,12 @@ BOOST_FIXTURE_TEST_CASE(connection_error_test, AsioService) {
 }
 
 
-BOOST_FIXTURE_TEST_CASE(send_receive_test, AsioService) {
+BOOST_AUTO_TEST_CASE(send_receive_test) {
     const uint32_t sequence = 1234567890;
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, iterator, "/path");
+    RawClient client(service, host, port, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());

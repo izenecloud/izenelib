@@ -27,10 +27,10 @@ public:
 
     /**
      * Creates a new instance of the driver and connects to the server. 
-     * @param address The address of the SF1 server in the format "host:port".
+     * @param host The address of the SF1 server in the format "host:port".
      * @param parameters The configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
-     * @throw SeverError if cannot connect to the server.
+     * @throw NetworkError if cannot connect to the server.
      */
     Sf1Driver(const std::string& host, const Sf1Config& parameters, 
               const Format& format = JSON);
@@ -58,7 +58,16 @@ private:
     /// Release a connection into the connection pool.
     void release(const RawClient& connection) const;
     
+    /// Reconnect to the SF1.
+    void reconnect();
+    
 private:
+    
+    /// Address of the target SF1.
+    const std::string host;
+    
+    /// Flag indicating whether must reconnect before a request.
+    bool mustReconnect;
     
     /// Connection pool to the SF1.
     boost::scoped_ptr<ConnectionPool> pool;
