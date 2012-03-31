@@ -16,6 +16,7 @@ list(APPEND LIBS ${Boost_LIBRARIES})
 find_package(Glog)
 include_directories(${Glog_INCLUDE_DIRS})
 list(APPEND LIBS ${Glog_LIBRARIES})
+list(APPEND LIBS pthread)
 
 option(ENABLE_SF1_TEST "Enable compilation of SF1 tests" false)
 if (ENABLE_SF1_TEST)
