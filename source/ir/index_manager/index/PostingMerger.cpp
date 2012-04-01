@@ -280,7 +280,7 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
-    IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
+    IndexInput* pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     if (bFirstPosting_)///first posting
@@ -369,7 +369,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
-    IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
+    IndexInput* pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
@@ -401,10 +401,9 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
     docid_t nDocID = 0;
     docid_t nLastDocID = chunkDesc_.lastdocid;
-    freq_t	nTF = 0;
+    freq_t nTF = 0;
     count_t nCTF = 0;
     count_t nMtf = 0;
-    count_t nDF = postingDesc_.df;
     count_t nPCount = 0;
 
     OutputStream* pDocIndexOutput = 0;
@@ -424,22 +423,22 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     fileoffset_t oldPOff = -1;
     if (pPOutput)
         oldPOff = pPOutput->getFilePointer();
-
     while (nODDF > 0)
     {
         nDocID += pDInput->readVInt();
         nTF = pDInput->readVInt();
+		
         if(!pFilter->test((size_t)nDocID))///the document has not been deleted
         {
             pDocIndexOutput->writeVInt(nDocID - nLastDocID);
             pDocIndexOutput->writeVInt(nTF);
 
             nPCount += nTF;
-            nDF++;
+            ++(postingDesc_.df);
             if(nMtf < nTF)
                 nMtf = nTF;
             nLastDocID = nDocID;
-            if(pSkipListMerger_ && nDF > 0 && nDF % skipInterval_ == 0)
+            if(pSkipListMerger_ && postingDesc_.df > 0 && postingDesc_.df % skipInterval_ == 0)
             {
                 if(pPOutput)
                     pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer());
@@ -482,7 +481,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
     ///update descriptors
     postingDesc_.ctf += nCTF;
-    postingDesc_.df += nDF;
+    //postingDesc_.df += nDF;
     if((uint32_t)postingDesc_.maxTF < nMtf)
         postingDesc_.maxTF = nMtf;
     postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk
