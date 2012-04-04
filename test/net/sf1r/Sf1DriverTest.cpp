@@ -19,9 +19,9 @@ using namespace std;
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const Sf1Config conf;
     
-    BOOST_CHECK_THROW(new Sf1Driver("somewhere", conf), ServerError);
-    BOOST_CHECK_THROW(new Sf1Driver("somewhere:18181", conf), ServerError);
-    BOOST_CHECK_THROW(new Sf1Driver("somewhere:service", conf), ServerError);
+    BOOST_CHECK_THROW(Sf1Driver("somewhere", conf), NetworkError);
+    BOOST_CHECK_THROW(Sf1Driver("somewhere:18181", conf), NetworkError);
+    BOOST_CHECK_THROW(Sf1Driver("somewhere:service", conf), NetworkError);
 }
 
 
@@ -32,8 +32,8 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 #ifdef ENABLE_SF1_TEST
 
 
-const string HOST = "localhost:18181";
-const Sf1Config CONF;
+string HOST = "localhost:18181";
+Sf1Config CONF;
 
 
 BOOST_AUTO_TEST_CASE(malformed_request_uri) {
@@ -45,8 +45,6 @@ BOOST_AUTO_TEST_CASE(malformed_request_uri) {
     string request = "{\"message\":\"Ciao! 你好！\"}";
     
     Sf1Driver driver(HOST, CONF);
-    
-    BOOST_CHECK_EQUAL(1, driver.getSequence());
     
     for (vector<string>::iterator it = uris.begin(); it < uris.end(); ++it) {
         BOOST_CHECK_EQUAL(1, driver.getSequence()); // request not sent to SF1
@@ -99,6 +97,37 @@ BOOST_AUTO_TEST_CASE(bad_uri) {
 }
 
 
+BOOST_AUTO_TEST_CASE(test_sequence) {
+    const string uri    = "test/echo";
+    const string tokens = "";
+          string body   = "{\"message\":\"Ciao! 你好！\"}";
+    
+    Sf1Driver driver(HOST, CONF);
+
+    uint32_t seq = 1;
+    BOOST_CHECK_EQUAL(seq, driver.getSequence());
+    
+    const int N = 10;
+
+    // good requests: increment sequence
+    for (int i = 0; i < N; ++i) {
+        uint32_t prev = driver.getSequence();
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+        BOOST_CHECK_EQUAL(prev + 1, driver.getSequence());
+    }
+    
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+    
+    // bad requests: do not increment sequencer
+    BOOST_CHECK_THROW(driver.call("", tokens, body), ClientError);
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+    
+    string bad = "{bad}";
+    BOOST_CHECK_THROW(driver.call(uri, tokens, bad), ClientError);
+    BOOST_CHECK_EQUAL(N+1, driver.getSequence());
+}
+
+
 BOOST_AUTO_TEST_CASE(test_echo) {
     const string uri    = "test/echo"; // works without leading '/' too
     const string tokens = "token";
@@ -113,6 +142,7 @@ BOOST_AUTO_TEST_CASE(test_echo) {
     BOOST_CHECK_EQUAL(expected, response);
     BOOST_CHECK(driver.getSequence() != 0);
 }
+
 
 bool
 match(const string& s) {
@@ -134,6 +164,42 @@ BOOST_AUTO_TEST_CASE(documents_search) {
     string response = driver.call(uri, tokens, body);
     BOOST_CHECK_EQUAL(2, driver.getSequence());
     BOOST_CHECK_PREDICATE(match, (response));    
+}
+
+
+BOOST_AUTO_TEST_CASE(reconnect) {
+    const string uri    = "test/echo";
+    const string tokens = "token";
+          string body   = "{\"message\":\"Ciao! 你好！\"}";
+    
+    CONF.initialSize = 2;
+    Sf1Driver driver(HOST, CONF);
+    
+    // use twice all the connection in the pool
+    for (size_t i = 0; i < 2 * CONF.initialSize; i++) {
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+    }
+    
+    cout << endl << "Restart the SF1 ... ";
+    cout.flush(); 
+    sleep(5);
+    cout << "continue!" << endl << endl;
+    
+    // ensure that the invalid connections are discarded and cannot estabilish 
+    // more connections while the host is down or the connection is invalid
+    for (size_t i = 0; i < 2 * CONF.initialSize; i++) {
+        BOOST_CHECK_THROW(driver.call(uri, tokens, body), NetworkError);
+    }
+    
+    cout << endl << "Sleeping ensuring the SF1 has completely restarted ... ";
+    cout.flush(); 
+    sleep(10);
+    cout << "continue!" << endl << endl;
+    
+    // use again twice all the connection in the pool
+    for (size_t i = 0; i < 2 * CONF.initialSize; i++) {
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+    }
 }
 
 #endif

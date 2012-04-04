@@ -220,7 +220,7 @@ bool FieldMerger::initQueue()
 
     return (pMergeQueue_->size() > 0);
 }
-
+//
 void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor, int32_t numTermInfos)
 {
     IndexOutput* pVocOutput = pOutputDescriptor->getVocOutput();

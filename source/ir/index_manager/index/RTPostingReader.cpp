@@ -537,6 +537,7 @@ void RTDiskPostingReader::reset(const TermInfo& termInfo)
     postingDesc_.length = termInfo.docPostingLen_;	///<PostingLength(VInt64)>
     postingDesc_.df = termInfo.docFreq_;			///<DF(VInt32)>
     postingDesc_.ctf = termInfo.ctf_;				///<CTF(VInt64)>
+    postingDesc_.maxTF = termInfo.maxTF_;
     postingDesc_.poffset = termInfo.positionPointer_;	///PositionPointer(VInt64)
     postingDesc_.plength = termInfo.positionPostingLen_;
 
@@ -889,6 +890,7 @@ void RTDiskPostingReader::reset()
     postingDesc_.length = 0;
     postingDesc_.df = 0;
     postingDesc_.ctf = 0;
+    postingDesc_.maxTF = 0;
     postingDesc_.poffset = 0;
 
     chunkDesc_.length = 0;

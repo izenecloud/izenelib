@@ -38,8 +38,8 @@ const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
 
 
 Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt) 
-        : resolver(service), sequence(1), config(parameters), format(fmt),
-        factory(new PoolFactory(service, resolver, config)) {
+        : sequence(1), format(fmt),
+        factory(new PoolFactory(service, parameters)) {
     setFormat();
     DLOG(INFO) << "initialized";
 }
@@ -61,9 +61,8 @@ Sf1DriverBase::setFormat() {
 }
 
 
-string
-Sf1DriverBase::call(const string& uri, const string& tokens, string& request) {
-    // parse uri for controller and action
+void
+Sf1DriverBase::parseUri(const string& uri, string& controller, string& action) const {
     vector<string> elems;
     split(uri, '/', elems);
     
@@ -73,16 +72,20 @@ Sf1DriverBase::call(const string& uri, const string& tokens, string& request) {
         throw ClientError("Require controller name");
     }
     
-    string controller = elems.at(0);
+    controller = elems.at(0);
     DLOG(INFO) << "controller: " << controller;
     
     // action is optional
-    string action;
     if (elems.size() > 1) {
         action = elems.at(1);
     } 
     DLOG(INFO) << "action    : " << action;
-    
+}
+
+
+void
+Sf1DriverBase::preprocessRequest(const string& controller, const string& action,
+        const string& tokens, string& request, string& collection) const{
     // check request
     if (not writer->checkData(request)) {
         LOG(ERROR) << "Malformed request: [" << request << "]";
@@ -90,40 +93,45 @@ Sf1DriverBase::call(const string& uri, const string& tokens, string& request) {
     }
     
     // process header: set action, controller, tokens and get collections
-    string collection;
     writer->setHeader(controller, action, tokens, request, collection);
     DLOG(INFO) << "collection: " << collection;
-    
-    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
-    
-    // increment sequence
-    if (++sequence == MAX_SEQUENCE) {
-        sequence = 1; // sequence == 0 means server error
-    }
-    
-    // get a connection
-    beforeAcquire();
-    RawClient& client = acquire(collection);
-    
-    // process request
-    try {
-        string response = sendAndReceive(client, request);
-        release(client);
-        
-        return response;
-    } catch (ServerError& e) { // do not intercept ServerError
-        release(client);
-        throw e;
-    } catch (std::runtime_error& e) {
-        LOG(ERROR) << "Exception: " << e.what();
-        release(client);
-        throw e;
-    }
 }
 
 
-string
-Sf1DriverBase::sendAndReceive(RawClient& client, const string& request) {
+void
+Sf1DriverBase::incrementSequence() {
+    if (++sequence == MAX_SEQUENCE) {
+        sequence = 1; // sequence == 0 means server error
+    }  
+}
+
+
+RawClient&
+Sf1DriverBase::getConnection(const string collection) {
+    beforeAcquire();
+    RawClient& client = acquire(collection);
+#if 0
+    afterAcquire();
+#endif
+    return client;
+}
+
+
+void
+Sf1DriverBase::releaseConnection(const RawClient& connection) {
+#if 0
+    beforeRelease();
+#endif
+    release(connection);
+#if 0
+    afterRelease();
+#endif
+}
+
+
+void
+Sf1DriverBase::sendAndReceive(RawClient& client, const string& request, 
+        string& responseBody) {
     client.sendRequest(sequence, request);
     
     Response response = client.getResponse();
@@ -140,14 +148,12 @@ Sf1DriverBase::sendAndReceive(RawClient& client, const string& request) {
         throw ServerError("Unmatched sequence number");
     }
 
-    string responseBody = response.get<RESPONSE_BODY>();
+    responseBody.assign(response.get<RESPONSE_BODY>());
 
     if (not writer->checkData(responseBody)) { // This should never happen
         LOG(ERROR) << "Malformed response: [" << responseBody << "]";
         throw ServerError("Malformed response");
     }
-
-    return responseBody;
 }
 
 

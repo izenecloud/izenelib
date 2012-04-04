@@ -74,9 +74,37 @@ public:
     
     /**
      * Release a connection.
-     * @param path The node path for which the collection is released.
+     * @param connection The connection to be released.
      */
     void releaseConnection(const RawClient& connection);
+    
+    /**
+     * Get a connection to all nodes hosting the given collection.
+     * @param collection The collection name.
+     * @return A list of references to the RawClient.
+     * @throw RoutingError if no route is found.
+     */
+    std::vector<RawClient*> getConnections(const std::string& collection);
+    
+    /**
+     * Release connections.
+     * @param connections The connections to be released.
+     */
+    void releaseConnections(const std::vector<RawClient*> connections);
+    
+    
+    /**
+     * Get all the nodes from the actual topology.
+     * @return A range of nodes.
+     */
+    NodeListRange getSf1Nodes() const;
+    
+    /**
+     * Get all the nodes hosting the given collection from the actual topology.
+     * @param collection The collection name
+     * @return A range of nodes.
+     */
+    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
  
 private:
     
@@ -129,14 +157,6 @@ private:
     /// Connection pools.
     PoolContainer pools;
     
-#ifdef ENABLE_ZK_TEST
-
-public:
-    NodeListRange getSf1Nodes() const;
-    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
-    
-#endif
-
 };
 
 NS_IZENELIB_SF1R_END

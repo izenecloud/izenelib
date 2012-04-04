@@ -16,6 +16,7 @@ list(APPEND LIBS ${Boost_LIBRARIES})
 find_package(Glog)
 include_directories(${Glog_INCLUDE_DIRS})
 list(APPEND LIBS ${Glog_LIBRARIES})
+list(APPEND LIBS pthread)
 
 option(ENABLE_SF1_TEST "Enable compilation of SF1 tests" false)
 if (ENABLE_SF1_TEST)
@@ -68,6 +69,15 @@ target_link_libraries(t_JsonWriter ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_JsonWriter)
 
 
+# RegexLexer
+set(RegexLexer_SOURCES
+    distributed/RegexLexerTest.cpp
+)
+add_executable(t_RegexLexer ${RegexLexer_SOURCES})
+target_link_libraries(t_RegexLexer ${LIBS})
+list(APPEND ALL_TEST t_RegexLexer)
+
+
 # ConnectionPool
 set(ConnectionPool_SOURCES
     ${SOURCE_DIR}/RawClient.cpp
@@ -77,6 +87,19 @@ set(ConnectionPool_SOURCES
 add_executable(t_ConnectionPool ${ConnectionPool_SOURCES})
 target_link_libraries(t_ConnectionPool ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 list(APPEND ALL_TESTS t_ConnectionPool)
+
+
+# PoolFactory
+set(PoolFactory_SOURCES
+    ${SOURCE_DIR}/RawClient.cpp
+    ${SOURCE_DIR}/ConnectionPool.cpp
+    ${SOURCE_DIR}/distributed/Sf1Node.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    PoolFactoryTest.cpp
+)
+add_executable(t_PoolFactory ${PoolFactory_SOURCES})
+target_link_libraries(t_PoolFactory ${LIBS})
+list(APPEND ALL_TESTS t_PoolFactory)
 
 
 # Sf1Driver

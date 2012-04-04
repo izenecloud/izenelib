@@ -51,8 +51,16 @@ namespace aggregator{
 class AggregatorBase
 {
 public:
+    AggregatorBase(const std::string& collection) : collection_(collection) {}
+
     virtual ~AggregatorBase(){}
+
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+
+    const std::string& collection() const { return collection_; }
+
+protected:
+    std::string collection_;
 };
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -67,9 +75,13 @@ public:
      * Constructor.
      * @param mergerProxy merger proxy
      * @param localWorkerProxy local worker proxy, it could be NULL if there is no local worker
+     * @param collection collection name
      * @note Aggregator would take the ownership for @p mergerProxy and @p localWorkerProxy
      */
-    Aggregator(MergerProxy* mergerProxy, LocalWorkerProxy* localWorkerProxy = NULL);
+    Aggregator(
+        MergerProxy* mergerProxy,
+        LocalWorkerProxy* localWorkerProxy = NULL,
+        const std::string& collection = "");
 
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig);
 
@@ -190,13 +202,17 @@ protected:
 };
 
 template <class MergerProxy, class LocalWorkerProxy>
-Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(MergerProxy* mergerProxy, LocalWorkerProxy* localWorkerProxy)
-    : debug_(false)
-    , hasLocalWorker_(false)
-    , localWorkerId_(0)
-    , mergerProxy_(mergerProxy)
-    , localWorkerProxy_(localWorkerProxy)
-    , timeout_(0)
+Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
+    MergerProxy* mergerProxy,
+    LocalWorkerProxy* localWorkerProxy,
+    const std::string& collection)
+: AggregatorBase(collection)
+, debug_(false)
+, hasLocalWorker_(false)
+, localWorkerId_(0)
+, mergerProxy_(mergerProxy)
+, localWorkerProxy_(localWorkerProxy)
+, timeout_(0)
 {
 }
 

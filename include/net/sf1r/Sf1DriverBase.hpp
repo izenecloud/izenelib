@@ -38,7 +38,7 @@ public:
     };
     
     /**
-     * Creates a new instance of the driver and connects to the server. 
+     * Initializes the pool factory and the data writer. 
      * @param parameters configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
      */
@@ -56,19 +56,17 @@ public:
      * Sf1Driver driver(host, port);
      * std::string response = driver.call(request);
      * \endcode
-     * @param uri Requested URI.
-     * @param tokens Custom tokens.
-     * @param request Request body.
-     * @throw ClientError if errors due to client request occur.
-     * @throw ServerError if errors due to server response occur.
-     * @throw ConnectionPoolError if there is no connection available.
-     * @throw RoutingError if no route is available for the request
-     *        (distributed only).
-     * @throw ZooKeeperException if cannot connect to ZooKeeper.
+     * @param[in] uri Requested URI.
+     * @param[in] tokens Custom tokens.
+     * @param[in,out] request Request body.
      * @return The response body.
+     * @throw ClientError if errors due to client request occur.
+     * @throw ConnectionPoolError if there is no connection available.
+     * @throw ServerError if errors due to server response occur.
+     * @throw std::runtime_error if other errors occur.
      */ 
-    std::string call(const std::string& uri, const std::string& tokens,
-        std::string& request);
+    virtual std::string call(const std::string& uri, const std::string& tokens,
+                             std::string& request) = 0;
     
     /**
      * @return The sequence number of the next request.
@@ -100,11 +98,12 @@ public:
     
 protected:
     
+    /* Hooks */
+    
     /// Hook for operations to be performed before connection acquisition.
     virtual inline void beforeAcquire() {}
     
-#if 0 // enable these in case of need 
-    
+#if 0 /* enable these in case of need */
     /// Hook for operations to be performed after connection acquisition.
     virtual inline void afterAcquire() {}
     
@@ -113,10 +112,9 @@ protected:
     
     /// Hook for operations to be performed after connection release.
     virtual inline void afterRelease() {}
-    
 #endif
     
-protected: // pure virtual methods
+    /* pure virtual methods */
     
     /// Acquire a connection to the SF1 according to the given collection.
     virtual RawClient& acquire(const std::string& collection) const = 0;
@@ -124,29 +122,69 @@ protected: // pure virtual methods
     /// Release the given connection.
     virtual void release(const RawClient& connection) const = 0;
     
-private:
+    /* basic methods */
     
-    /// Actually send request to and receive response from the SF1
-    std::string sendAndReceive(RawClient& connection, const std::string& request);
+    /**
+     * Parse the uri for controller and action.
+     * @param[in] uri The request URI.
+     * @param[out] controller The request controller.
+     * @param[out] action The request action (may be empty).
+     * @throw ClientError if the controller is not specified.
+     */
+    void parseUri(const std::string& uri, std::string& controller, 
+                  std::string& action) const;
+    
+    /**
+     * Preprocess the request:
+     * - check data format
+     * - set request header
+     * - extract collection
+     * @param[in] controller The request controller.
+     * @param[in] action The request action.
+     * @param[in] tokens The request tokens.
+     * @param[in,out] request The current request.
+     * @param[out] collection The request collection.
+     * @throw ClientError if the request is not valid.
+     */
+    void preprocessRequest(const std::string& controller, const std::string& action,
+                           const std::string& tokens, std::string& request, 
+                           std::string& collection) const;
+    
+    /// Increment the request sequence number.
+    void incrementSequence();
+    
+    /// Acquire a connection.
+    RawClient& getConnection(const std::string collection);
+    
+    /// Release a connection.
+    void releaseConnection(const RawClient& connection);
+    
+    /**
+     * Send request to and receive response from the SF1.
+     * @param[in] connection The current connection to the SF1.
+     * @param[in] request The current request.
+     * @param[out] response The response to the current request.
+     * @throw ServerError if error occur on SF1 while processing the request.
+     * @see RawClient
+     */
+    void sendAndReceive(RawClient& connection, const std::string& request,
+                        std::string& response);
     
 protected:
+    
+    friend class Releaser;
     
     /// Set data format used for request and responses.
     void setFormat();
     
-    /// Input/Output service.
-    ba::io_service service;
-    /// TCP host resolver.
-    ba::ip::tcp::resolver resolver;
-    
     /// Request sequence number.
     uint32_t sequence;
     
-    /// Actual driver configuration.
-    Sf1Config config;
-    
     /// Actual request/response format.
     Format format;
+    
+    /// Input/Output service.
+    ba::io_service service;
     
     /// Pointer to the actual request/response format handler.
     boost::scoped_ptr<Writer> writer;
