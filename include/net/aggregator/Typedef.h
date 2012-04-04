@@ -14,12 +14,10 @@
 namespace net{
 namespace aggregator{
 
-/// types
 typedef uint32_t workerid_t;
-typedef unsigned int timeout_t;
-
-/// constants
-const static timeout_t DEFAULT_TIME_OUT = 30; // seconds
+typedef msgpack::rpc::session_pool session_pool_t;
+typedef msgpack::rpc::session session_t;
+typedef msgpack::rpc::future future_t;
 
 struct ServerInfo
 {

@@ -8,7 +8,7 @@
 #ifndef TEST_WORKER_CONTROLLER_H_
 #define TEST_WORKER_CONTROLLER_H_
 
-#include "worker_service.h"
+#include "SearchWorker.h"
 #include <net/aggregator/WorkerController.h>
 
 namespace net{
@@ -17,14 +17,14 @@ namespace aggregator{
 class TestWorkerController : public WorkerController
 {
 public:
-    TestWorkerController(boost::shared_ptr<SearchService> searchService)
-    : searchService_(searchService)
+    TestWorkerController(boost::shared_ptr<SearchWorker> searchWorker)
+    : searchWorker_(searchWorker)
     {
     }
 
     virtual bool addWorkerHandler(WorkerRouter& router)
     {
-        ADD_WORKER_HANDLER_BEGIN(TestWorkerController)
+        ADD_WORKER_HANDLER_BEGIN(TestWorkerController, router)
 
         ADD_WORKER_HANDLER(getKeywordSearchResult)
         ADD_WORKER_HANDLER(add)
@@ -32,18 +32,12 @@ public:
         ADD_WORKER_HANDLER_END()
     }
 
-    WORKER_CONTROLLER_METHOD_2_OUT(getKeywordSearchResult, searchService_->getKeywordSearchResult, SearchRequest, SearchResult)
+    WORKER_CONTROLLER_METHOD_2(getKeywordSearchResult, searchWorker_->getKeywordSearchResult, SearchRequest, SearchResult)
 
-    WORKER_CONTROLLER_METHOD_2_OUT(add, processAdd, AddRequest, AddResult)
-
-private:
-    void processAdd(const AddRequest& req, AddResult& res)
-    {
-        res.i = req.i+req.j;
-    }
+    WORKER_CONTROLLER_METHOD_2(add, searchWorker_->add, AddRequest, AddResult)
 
 private:
-    boost::shared_ptr<SearchService> searchService_;
+    boost::shared_ptr<SearchWorker> searchWorker_;
 };
 
 }} // end - namespace

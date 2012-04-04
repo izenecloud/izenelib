@@ -1,61 +1,31 @@
 /**
- * @file worker_service.h
+ * @file SearchWorker.h
  * @author Zhongxia Li
  * @date Jun 27, 2011
  * @brief 
  */
-#ifndef WORKER_SERVICE_H_
-#define WORKER_SERVICE_H_
+#ifndef SEARCH_WORKER_H_
+#define SEARCH_WORKER_H_
 
-#include <3rdparty/msgpack/msgpack.hpp>
-
-struct AddRequest
-{
-    int i;
-    int j;
-
-    MSGPACK_DEFINE(i, j);
-};
-
-struct AddResult
-{
-    int i;
-    std::string s;
-
-    AddResult()
-    : i(0), s()
-    {}
-
-    MSGPACK_DEFINE(s, i);
-};
-
-struct SearchRequest
-{
-    std::string keyword;
-    MSGPACK_DEFINE(keyword);
-};
-
-struct SearchResult
-{
-    bool state;
-    std::string content;
-    std::string err;
-
-    SearchResult()
-    : state(false), content(), err()
-    {}
-
-    MSGPACK_DEFINE(state, content, err);
-};
+#include "TestParam.h"
+#include <net/aggregator/BindCallProxyBase.h>
 
 static const std::string TERM_ABC = "abc";
 static const std::string TERM_CHINESE = "中文";
 static const std::string ABC_DOC = "abc 123 ";
 static const std::string CHINESE_DOC = "中文#@￥ **";
 
-class SearchService
+class SearchWorker : public net::aggregator::BindCallProxyBase<SearchWorker>
 {
 public:
+    virtual bool bindCallProxy(CallProxyType& proxy)
+    {
+        BIND_CALL_PROXY_BEGIN(SearchWorker, proxy)
+        BIND_CALL_PROXY_2(getKeywordSearchResult, SearchRequest, SearchResult)
+        BIND_CALL_PROXY_2(add, AddRequest, AddResult)
+        BIND_CALL_PROXY_END()
+    }
+
     void getKeywordSearchResult(const SearchRequest& request, SearchResult& result)
     {
         if (request.keyword == TERM_ABC)
@@ -74,7 +44,11 @@ public:
             result.state = false;
         }
     }
+
+    void add(const AddRequest& request, AddResult& result)
+    {
+        result.sum = request.i + request.j;
+    }
 };
 
-
-#endif /* WORKER_SERVICE_H_ */
+#endif /* SEARCH_WORKER_H_ */

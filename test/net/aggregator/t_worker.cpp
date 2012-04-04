@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
-#include "worker_service.h"
+#include "SearchWorker.h"
 #include "TestWorkerController.h"
 #include <net/aggregator/WorkerServer.h>
 
@@ -22,14 +22,14 @@ int main( int argc, char * argv[])
         uint16_t port = atoi(argv[2]);
         std::cout << "[starting job woker..] " << host << ":" << port << std::endl;
 
-        boost::shared_ptr<SearchService> searchService(new SearchService());
+        boost::shared_ptr<SearchWorker> searchWorker(new SearchWorker);
 
         WorkerRouter router;
-        TestWorkerController(searchService).addWorkerHandler(router);
+        TestWorkerController(searchWorker).addWorkerHandler(router);
 
-        WorkerServer worker(router, host, port);
-        worker.start();
-        worker.join();
+        WorkerServer server(router, host, port);
+        server.start();
+        server.join();
     }
     catch (std::exception& e)
     {

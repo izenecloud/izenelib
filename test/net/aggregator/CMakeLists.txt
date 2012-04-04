@@ -31,3 +31,11 @@ SET(t_agg_SRC
 
 ADD_EXECUTABLE(t_aggregator ${t_agg_SRC})
 TARGET_LINK_LIBRARIES(t_aggregator ${libs})
+
+SET(t_CallProxy_SRC
+  Runner.cpp
+  t_CallProxy.cpp
+)
+
+ADD_EXECUTABLE(t_CallProxy ${t_CallProxy_SRC})
+TARGET_LINK_LIBRARIES(t_CallProxy ${libs})

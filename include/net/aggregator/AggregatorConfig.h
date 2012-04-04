@@ -20,7 +20,13 @@ namespace aggregator{
 class AggregatorConfig
 {
 public:
-    AggregatorConfig() {}
+    AggregatorConfig(
+        unsigned int timeout = 30,
+        unsigned int sessionPoolThreadNum = 30)
+    : timeout_(timeout)
+    , sessionPoolThreadNum_(sessionPoolThreadNum)
+    {
+    }
 
     void reset()
     {
@@ -36,6 +42,16 @@ public:
     const std::vector<WorkerServerInfo>& getWorkerList() const
     {
         return workerInfoList_;
+    }
+
+    unsigned int getTimeout() const
+    {
+        return timeout_;
+    }
+
+    unsigned int getSessionPoolThreadNum() const
+    {
+        return sessionPoolThreadNum_;
     }
 
     const WorkerServerInfo* getWorkerSrvInfoByWorkerId(uint32_t workerid) const
@@ -62,8 +78,10 @@ public:
         return ss.str();
     }
 
-public:
+private:
     std::vector<WorkerServerInfo> workerInfoList_;
+    unsigned int timeout_; // second
+    unsigned int sessionPoolThreadNum_;
 };
 
 

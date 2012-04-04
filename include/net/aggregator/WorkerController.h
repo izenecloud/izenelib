@@ -29,18 +29,33 @@ public:
 };
 
 /**
- * in @c WorkerController subclass, use below macros in @c addWorkerHandler() to add @c WorkerHandler:
+ * below is an example to define @c addWorkerHandler() in @c WorkerController subclass:
+ * <code>
+ * class ControllerExample : public WorkerController
+ * {
+ * public:
+ * virtual bool addWorkerHandler(WorkerRouter& router)
+ * {
+ *   ADD_WORKER_HANDLER_BEGIN(ControllerExample, router)
+ *   ADD_WORKER_HANDLER(add)
+ *   ADD_WORKER_HANDLER_END()
+ * }
+ *
+ * WORKER_CONTROLLER_METHOD_2(add, searchWorker_->add, AddRequest, AddResult)
+ * ...
+ * </code>
  */
 
-#define ADD_WORKER_HANDLER_BEGIN(ConcreteWorkerController)  \
-    typedef ConcreteWorkerController WorkerControllerType;
+#define ADD_WORKER_HANDLER_BEGIN(ConcreteWorkerController, RouterInstance)  \
+    typedef ConcreteWorkerController WorkerControllerType;                  \
+    net::aggregator::WorkerRouter& _router = RouterInstance;
 
 #define ADD_WORKER_HANDLER(Method)                                                  \
     {                                                                               \
         typedef net::aggregator::WorkerHandler<WorkerControllerType> handler_type;  \
         std::auto_ptr<handler_type> ptr(new handler_type(                           \
             *this, &WorkerControllerType::Method));                                 \
-        if (!router.add(#Method, ptr.get()))                                        \
+        if (!_router.add(#Method, ptr.get()))                                       \
             return false;                                                           \
         ptr.release();                                                              \
     }
@@ -56,51 +71,37 @@ public:
  * as @c req.params[0], the method parameters would start from @c req.params()[1].
  */
 
-/** "1_RET" means 1 param, and use the return value of @c Call as rpc result */
-#define WORKER_CONTROLLER_METHOD_1_RET(Method, Call, ParamT, ResultT)   \
-void Method(msgpack::rpc::request& req)                                 \
-{                                                                       \
-    msgpack::type::tuple<msgpack::object, ParamT> params;               \
-    req.params().convert(&params);                                      \
-    ParamT& param = params.get<1>();                                    \
-    ResultT result = Call(param);                                       \
-    req.result(result);                                                 \
+#define WORKER_CONTROLLER_METHOD_1(Method, Call, Out)   \
+void Method(msgpack::rpc::request& req)                 \
+{                                                       \
+    msgpack::type::tuple<msgpack::object, Out> params;  \
+    req.params().convert(&params);                      \
+    Out& out = params.get<1>();                         \
+    Call(out);                                          \
+    req.result(out);                                    \
 }
 
-/** "1_OUT" means 1 param, and use this param as rpc result */
-#define WORKER_CONTROLLER_METHOD_1_OUT(Method, Call, ParamT)    \
-void Method(msgpack::rpc::request& req)                         \
-{                                                               \
-    msgpack::type::tuple<msgpack::object, ParamT> params;       \
-    req.params().convert(&params);                              \
-    ParamT& param = params.get<1>();                            \
-    Call(param);                                                \
-    req.result(param);                                          \
+#define WORKER_CONTROLLER_METHOD_2(Method, Call, In, Out)   \
+void Method(msgpack::rpc::request& req)                     \
+{                                                           \
+    msgpack::type::tuple<msgpack::object, In, Out> params;  \
+    req.params().convert(&params);                          \
+    In& in = params.get<1>();                               \
+    Out& out = params.get<2>();                             \
+    Call(in, out);                                          \
+    req.result(out);                                        \
 }
 
-/** "2_OUT" means 2 params, and use the last param as rpc result */
-#define WORKER_CONTROLLER_METHOD_2_OUT(Method, Call, ParamT1, ParamT2)  \
-void Method(msgpack::rpc::request& req)                                 \
-{                                                                       \
-    msgpack::type::tuple<msgpack::object, ParamT1, ParamT2> params;     \
-    req.params().convert(&params);                                      \
-    ParamT1& param1 = params.get<1>();                                  \
-    ParamT2& param2 = params.get<2>();                                  \
-    Call(param1, param2);                                               \
-    req.result(param2);                                                 \
-}
-
-/** "3_OUT" means 3 params, and use the last param as rpc result */
-#define WORKER_CONTROLLER_METHOD_3_OUT(Method, Call, ParamT1, ParamT2, ParamT3) \
-void Method(msgpack::rpc::request& req)                                         \
-{                                                                               \
-    msgpack::type::tuple<msgpack::object, ParamT1, ParamT2, ParamT3> params;    \
-    req.params().convert(&params);                                              \
-    ParamT1& param1 = params.get<1>();                                          \
-    ParamT2& param2 = params.get<2>();                                          \
-    ParamT3& param3 = params.get<3>();                                          \
-    Call(param1, param2, param3);                                               \
-    req.result(param3);                                                         \
+#define WORKER_CONTROLLER_METHOD_3(Method, Call, In1, In2, Out)     \
+void Method(msgpack::rpc::request& req)                             \
+{                                                                   \
+    msgpack::type::tuple<msgpack::object, In1, In2, Out> params;    \
+    req.params().convert(&params);                                  \
+    In1& in1 = params.get<1>();                                     \
+    In2& in2 = params.get<2>();                                     \
+    Out& out = params.get<3>();                                     \
+    Call(in1, in2, out);                                            \
+    req.result(out);                                                \
 }
 
 }} // end - namespace
