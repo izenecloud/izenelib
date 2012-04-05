@@ -452,7 +452,7 @@ typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<uint128_t, uint32_t>,
-                   EmptyIDStorage<uint32_t, uint32_t> > IDManager;
+                   EmptyIDStorage<uint128_t, uint32_t> > IDManager;
 #endif
 
 } // end - namespace idmanager

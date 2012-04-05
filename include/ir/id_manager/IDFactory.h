@@ -171,7 +171,7 @@ template <typename NameString, typename NameID,
 inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameStringByNameID(
         const NameID& nameID, NameString& nameString)
 {
-    return idStorage_.get(nameID,nameString);
+    return idStorage_.get(nameID, nameString);
 } // end - getNameStringByNameID()
 
 }
