@@ -14,6 +14,7 @@
 #include <3rdparty/msgpack/rpc/session_pool.h>
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
 
 namespace net{
@@ -198,7 +199,12 @@ protected:
     std::vector<WorkerSessionPtr> workerSessionList_;
 
     unsigned int timeout_; // second
-    session_pool_t sessionPool_;
+    boost::scoped_ptr<session_pool_t> sessionPool_;
+
+    typedef boost::shared_mutex MutexType;
+    typedef boost::shared_lock<MutexType> ScopedReadLock;
+    typedef boost::unique_lock<MutexType> ScopedWriteLock;
+    MutexType mutex_;
 };
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -219,12 +225,15 @@ Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
 template <class MergerProxy, class LocalWorkerProxy>
 void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
 {
+    ScopedWriteLock lock(mutex_);
+
     workeridList_.clear();
     workerSessionList_.clear();
     hasLocalWorker_ = false;
     localWorkerId_ = 0;
     timeout_ = aggregatorConfig.getTimeout();
-    sessionPool_.start(aggregatorConfig.getSessionPoolThreadNum());
+    sessionPool_.reset(new session_pool_t);
+    sessionPool_->start(aggregatorConfig.getSessionPoolThreadNum());
 
     const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
     for (size_t i = 0; i < workerSrvList.size(); i ++)
@@ -297,6 +306,8 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     RequestGroup<In, Out>& requestGroup,
     Out& out)
 {
+    ScopedReadLock lock(mutex_);
+
     if (debug_)
         std::cout << "#[Aggregator] distribute request: " << func << "[" << identity << "]" << std::endl;
 
@@ -393,7 +404,7 @@ template <class MergerProxy, class LocalWorkerProxy>
 session_t Aggregator<MergerProxy, LocalWorkerProxy>::getMsgPackSession_(const WorkerSessionPtr& workerSessionPtr)
 {
     const ServerInfo& serverInfo = workerSessionPtr->getServerInfo();
-    session_t session = sessionPool_.get_session(serverInfo.host_, serverInfo.port_);
+    session_t session = sessionPool_->get_session(serverInfo.host_, serverInfo.port_);
     if (timeout_)
         session.set_timeout(timeout_);
 
@@ -440,6 +451,8 @@ template <typename AggregatorParamT>
 bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
     AggregatorParamT& param)
 {
+    ScopedReadLock lock(mutex_);
+
     if (debug_)
     {
         std::cout << "#[Aggregator] distribute request: " << param.funcName_
@@ -478,6 +491,8 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::singleRequestImpl_(
     AggregatorParamT& param,
     workerid_t workerid)
 {
+    ScopedReadLock lock(mutex_);
+
     if (debug_)
     {
         std::cout << "#[Aggregator] distribute request: " << param.funcName_
