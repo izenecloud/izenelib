@@ -27,68 +27,56 @@ template <typename  NameString,
           typename  LockType    = izenelib::util::NullLock>
 class SDBIDStorage
 {
-	typedef izenelib::sdb::unordered_sdb_tc<NameID, NameString, LockType> NameFinder;
+    typedef izenelib::sdb::unordered_sdb_tc<NameID, NameString, LockType> NameFinder;
 public:
 
-	/**
-	 * @brief Constructor.
-	 *
-	 * @param sdbName       name of sdb storage.
-	 */
-	SDBIDStorage(const std::string& sdbName);
-
-	virtual ~SDBIDStorage();
-
-	/**
-	 * @brief This function inserts a <ID, String> pair into storage.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if successfully inserted
-	 * @return false otherwise
+    /**
+     * @brief Constructor.
+     *
+     * @param sdbName       name of sdb storage.
      */
-	void put(const NameID& nameID, const typename NameString::value_type* termStringBuffer, const size_t termStringLength)
-	{
-	    put(nameID, NameString(termStringBuffer, termStringLength));
-	}
+    SDBIDStorage(const std::string& sdbName);
 
-	/**
-	 * @brief This function inserts a <ID, String> pair into storage.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if successfully inserted
-	 * @return false otherwise
+    virtual ~SDBIDStorage();
+
+    /**
+     * @brief This function inserts a <ID, String> pair into storage.
+     * @param nameID the Name ID
+     * @param nameString the name string
+     * @return true if successfully inserted
+     * @return false otherwise
      */
-	void put(const NameID& nameID, const NameString& nameString);
+    void put(const NameID& nameID, const NameString& nameString);
 
-	/**
-	 * @brief This function returns the String for a given ID.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if the name string is successfully returned
-	 * @return false if name id is not available
-	 */
-	bool get(const NameID& nameID, NameString& nameString);
+    /**
+     * @brief This function returns the String for a given ID.
+     * @param nameID the Name ID
+     * @param nameString the name string
+     * @return true if the name string is successfully returned
+     * @return false if name id is not available
+     */
+    bool get(const NameID& nameID, NameString& nameString);
 
-	void flush()
-	{
-	    nameFinder_.flush();
-	}
+    void flush()
+    {
+        nameFinder_.flush();
+    }
 
-	void close()
-	{
-	    nameFinder_.close();
-	}
+    void close()
+    {
+        nameFinder_.close();
+    }
 
-	void display()
-	{
-		nameFinder_.display();
-	}
+    void display()
+    {
+        nameFinder_.display();
+    }
 
 protected:
 
-	std::string sdbName_;
+    std::string sdbName_;
 
-	NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.
+    NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.
 }; // end - template SDBIDStorage
 
 template <typename NameString, typename NameID, typename LockType>
@@ -99,7 +87,7 @@ SDBIDStorage<NameString, NameID, LockType>::SDBIDStorage(
     nameFinder_(sdbName_ + "_id.sdb")
 {
   	nameFinder_.open();
-	//nameFinder_.setCacheSize(1000);
+    //nameFinder_.setCacheSize(1000);
 } // end - SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
@@ -111,14 +99,14 @@ template <typename NameString, typename NameID, typename LockType>
 void SDBIDStorage<NameString, NameID, LockType>::put( const NameID& nameID,
     const NameString& nameString)
 {
-	nameFinder_.insertValue(nameID, nameString);
+    nameFinder_.insertValue(nameID, nameString);
 } // end - put()
 
 template <typename NameString, typename NameID, typename LockType>
 bool SDBIDStorage<NameString, NameID, LockType>::get( const NameID& nameID,
     NameString& nameString)
 {
-	return nameFinder_.getValue(nameID, nameString);
+    return nameFinder_.getValue(nameID, nameString);
 } // end - get()
 
 
@@ -131,81 +119,68 @@ template <typename  NameString,
           typename  LockType    = izenelib::util::NullLock>
 class HDBIDStorage
 {
-	typedef izenelib::hdb::ordered_hdb_no_delta<NameID, NameString, LockType> NameFinder;
+    typedef izenelib::hdb::ordered_hdb_no_delta<NameID, NameString, LockType> NameFinder;
 public:
 
-	/**
-	 * @brief Constructor.
-	 *
-	 * @param sdbName       name of sdb storage.
-	 */
-	HDBIDStorage(const std::string& sdbName);
-
-	virtual ~HDBIDStorage();
-
-
-	/**
-	 * @brief This function inserts a <ID, String> pair into storage.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if successfully inserted
-	 * @return false otherwise
+    /**
+     * @brief Constructor.
+     *
+     * @param sdbName       name of sdb storage.
      */
-	void put(const NameID& nameID, const typename NameString::value_type* termStringBuffer, const size_t termStringLength)
-	{
-	    put(nameID, NameString(termStringBuffer, termStringLength));
-	}
+    HDBIDStorage(const std::string& sdbName);
 
-	/**
-	 * @brief This function inserts a <ID, String> pair into storage.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if successfully inserted
-	 * @return false otherwise
+    virtual ~HDBIDStorage();
+
+    /**
+     * @brief This function inserts a <ID, String> pair into storage.
+     * @param nameID the Name ID
+     * @param nameString the name string
+     * @return true if successfully inserted
+     * @return false otherwise
      */
-	void put(const NameID& nameID, const NameString& nameString);
+    void put(const NameID& nameID, const NameString& nameString);
 
-	/**
-	 * @brief This function returns the String for a given ID.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if the name string is successfully returned
-	 * @return false if name id is not available
-	 */
-	bool get(const NameID& nameID, NameString& nameString);
+    /**
+     * @brief This function returns the String for a given ID.
+     * @param nameID the Name ID
+     * @param nameString the name string
+     * @return true if the name string is successfully returned
+     * @return false if name id is not available
+     */
+    bool get(const NameID& nameID, NameString& nameString);
 
-	void flush()
-	{
-	    nameFinder_->flush();
-	}
+    void flush()
+    {
+        nameFinder_->flush();
+    }
 
-	void release()
-	{
-		nameFinder_->optimize();
-		nameFinder_->release();
-		if(nameFinder_)
-		{
-			delete(nameFinder_);
-			nameFinder_=new NameFinder(sdbName_ + "_id.sdb");
-		}
+    void release()
+    {
+        nameFinder_->optimize();
+        nameFinder_->release();
+        if(nameFinder_)
+        {
+            delete(nameFinder_);
+            nameFinder_=new NameFinder(sdbName_ + "_id.sdb");
+        }
 
-	}
+    }
 
-	void close()
-	{
-	    nameFinder_->close();
-	}
+    void close()
+    {
+        nameFinder_->close();
+    }
 
-	void display()
-	{
-		nameFinder_->display();
-	}
+    void display()
+    {
+        nameFinder_->display();
+    }
 
 protected:
 
-	std::string sdbName_;
+    std::string sdbName_;
 
-	NameFinder* nameFinder_; ///< an inverted indexer which gives name according to the id.
+    NameFinder* nameFinder_; ///< an inverted indexer which gives name according to the id.
 }; // end - template SDBIDStorage
 
 template <typename NameString, typename NameID, typename LockType>
@@ -223,22 +198,22 @@ HDBIDStorage<NameString, NameID, LockType>::HDBIDStorage(
 template <typename NameString, typename NameID, typename LockType>
 HDBIDStorage<NameString, NameID, LockType>::~HDBIDStorage()
 {
-	if(nameFinder_)
-		delete(nameFinder_);
+    if(nameFinder_)
+        delete(nameFinder_);
 } // end - ~SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
 void HDBIDStorage<NameString, NameID, LockType>::put( const NameID& nameID,
     const NameString& nameString)
 {
-	nameFinder_->insertValue(nameID, nameString);
+    nameFinder_->insertValue(nameID, nameString);
 } // end - put()
 
 template <typename NameString, typename NameID, typename LockType>
 bool HDBIDStorage<NameString, NameID, LockType>::get( const NameID& nameID,
     NameString& nameString)
 {
-	return nameFinder_->getValue(nameID, nameString);
+    return nameFinder_->getValue(nameID, nameString);
 } // end - get()
 
 
@@ -255,66 +230,53 @@ class TCIDStorage
     typedef izenelib::am::tc_hash<NameID, NameString, LockType> NameFinder;
     public:
 
-	/**
-	* @brief Constructor.
-	*
-	* @param sdbName       name of sdb storage.
-	*/
-	TCIDStorage(const std::string& sdbName);
+    /**
+    * @brief Constructor.
+    *
+    * @param sdbName       name of sdb storage.
+    */
+    TCIDStorage(const std::string& sdbName);
 
-	virtual ~TCIDStorage();
+    virtual ~TCIDStorage();
 
+    /**
+    * @brief This function inserts a <ID, String> pair into storage.
+    * @param nameID the Name ID
+    * @param nameString the name string
+    * @return true if successfully inserted
+    * @return false otherwise
+    */
+    void put(const NameID& nameID, const NameString& nameString);
 
-	/**
-	 * @brief This function inserts a <ID, String> pair into storage.
-	 * @param nameID the Name ID
-	 * @param nameString the name string
-	 * @return true if successfully inserted
-	 * @return false otherwise
-     */
-	void put(const NameID& nameID, const typename NameString::value_type* termStringBuffer, const size_t termStringLength)
-	{
-	    put(nameID, NameString(termStringBuffer, termStringLength));
-	}
+    /**
+    * @brief This function returns the String for a given ID.
+    * @param nameID the Name ID
+    * @param nameString the name string
+    * @return true if the name string is successfully returned
+    * @return false if name id is not available
+    */
+    bool get(const NameID& nameID, NameString& nameString);
 
-	/**
-	* @brief This function inserts a <ID, String> pair into storage.
-	* @param nameID the Name ID
-	* @param nameString the name string
-	* @return true if successfully inserted
-	* @return false otherwise
-	*/
-	void put(const NameID& nameID, const NameString& nameString);
+    void flush()
+    {
+        nameFinder_.release();
+    }
 
-	/**
-	* @brief This function returns the String for a given ID.
-	* @param nameID the Name ID
-	* @param nameString the name string
-	* @return true if the name string is successfully returned
-	* @return false if name id is not available
-	*/
-	bool get(const NameID& nameID, NameString& nameString);
+    void close()
+    {
+        nameFinder_.close();
+    }
 
-	void flush()
-	{
-	    nameFinder_.release();
-	}
-
-	void close()
-	{
-	    nameFinder_.close();
-	}
-
-	void display()
-	{
-	    nameFinder_.display();
-	}
+    void display()
+    {
+        nameFinder_.display();
+    }
 
     protected:
 
-	std::string sdbName_;
+    std::string sdbName_;
 
-	NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.
+    NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.
 }; // end - template SDBIDStorage
 
 template <typename NameString, typename NameID, typename LockType>
@@ -365,26 +327,22 @@ class EmptyIDStorage
 {
 public:
 
-	EmptyIDStorage(const std::string& ){}
+    EmptyIDStorage(const std::string& ){}
 
-	void put(const NameID& nameID, const typename NameString::value_type* termStringBuffer, const size_t termStringLength)
-	{
-	}
+    void put(const NameID& nameID, const NameString& nameString)
+    {
+    }
 
-	void put(const NameID& nameID, const NameString& nameString)
-	{
-	}
+    bool get(const NameID& nameID, NameString& nameString)
+    {
+        return false;
+    }
 
-	bool get(const NameID& nameID, NameString& nameString)
-	{
-	    return false;
-	}
+    void flush(){}
 
-	void flush(){}
+    void close(){}
 
-	void close(){}
-
-	void display(){}
+    void display(){}
 }; // end - template EmptyIDStorage
 
 }
