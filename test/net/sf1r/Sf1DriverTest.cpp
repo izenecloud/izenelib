@@ -11,6 +11,7 @@
 #include "common.h"
 #include "net/sf1r/Sf1Driver.hpp"
 #include <string>
+#include <boost/foreach.hpp>
 
 using namespace NS_IZENELIB_SF1R;
 using namespace std;
@@ -19,9 +20,20 @@ using namespace std;
 BOOST_AUTO_TEST_CASE(connection_fail) {
     const Sf1Config conf;
     
-    BOOST_CHECK_THROW(Sf1Driver("somewhere", conf), NetworkError);
-    BOOST_CHECK_THROW(Sf1Driver("somewhere:18181", conf), NetworkError);
-    BOOST_CHECK_THROW(Sf1Driver("somewhere:service", conf), NetworkError);
+    vector<string> hosts;
+    hosts.push_back("somewhere");
+    hosts.push_back("somewhere:18181");
+    hosts.push_back("somewhere:service");
+    
+    BOOST_FOREACH(const string& host, hosts) {
+        Sf1Driver* driver = NULL;
+        BOOST_CHECK_NO_THROW(driver = new Sf1Driver(host, conf));
+        
+        string request = "{\"message\":\"Ciao! 你好！\"}";
+        BOOST_CHECK_THROW(driver->call("test/echo", "", request), NetworkError);
+        
+        delete driver;
+    }
 }
 
 

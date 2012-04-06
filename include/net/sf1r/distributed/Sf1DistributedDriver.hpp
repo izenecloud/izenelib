@@ -33,11 +33,10 @@ class Sf1DistributedDriver : public Sf1DriverBase {
 public:
     
     /**
-     * Creates a new instance of the driver and connects to the ZooKeper server. 
+     * Creates a new instance of the driver. 
      * @param hosts list of ZooKeeper servers formatted as "host:port[,host:port]".
      * @param parameters configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
-     * @throw NetworkError if cannot connect to the server.
      */
     Sf1DistributedDriver(const std::string& hosts, const Sf1DistributedConfig& parameters, 
               const Format& format = JSON);

@@ -76,7 +76,7 @@ public:
      * @throw ClientError if errors due to client request occur.
      * @throw ConnectionPoolError if there is no connection available.
      * @throw ServerError if errors due to server response occur.
-     * @throw std::runtime_error if other errors occur.
+     * @throw NetworkError if cannot connect to the server.
      */ 
     virtual std::string call(const std::string& uri, const std::string& tokens,
                              std::string& request) = 0;
