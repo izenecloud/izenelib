@@ -47,50 +47,50 @@ namespace idmanager {
 
     public:
 
-		/**
-		 * @brief a constructor of DocIdManager.
-		 *
-		 * @details
-		 *  - Initialize IDFactory
-		 */
-		DocIdManager(const string& storageName="docid_manager");
+        /**
+         * @brief a constructor of DocIdManager.
+         *
+         * @details
+         *  - Initialize IDFactory
+         */
+        DocIdManager(const string& storageName="docid_manager");
 
-		~DocIdManager();
+        ~DocIdManager();
 
-	public:
+    public:
 
-		/**
-		 * @brief a member function to offer a document ID which exists in the dictionary.
-		 *
-		 * @param docName	    a document name string which is used to find the document ID.
-		 * @param docId         a document identifier which is the result of this interface.
-		 * @param insert	   whether insert docName to IDManager;
-		 * @return true     :   The document ID is in dictionary.
-		 * @return false    :   There is no matched ID in dictionary.
-		 */
-		bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true);
+        /**
+         * @brief a member function to offer a document ID which exists in the dictionary.
+         *
+         * @param docName	    a document name string which is used to find the document ID.
+         * @param docId         a document identifier which is the result of this interface.
+         * @param insert	   whether insert docName to IDManager;
+         * @return true     :   The document ID is in dictionary.
+         * @return false    :   There is no matched ID in dictionary.
+         */
+        bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true);
 
-		/**
-		 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
-		 * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
-		 *
-		 * @param docName		a unique string of the document which is used to distinguish between documents.
-		 * @param oldId 		the old document identifier which matches to the document name.
-		 * @param updatedId  the new old old document identifier which matches to the document name.
-		 * @return true  :		Document name exists in the dictionary.
-		 * @return false :		Document name does not exist in the dictionary.
-		 */
-		bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId);
+        /**
+         * @brief a member function to get document ID from the vocabulary which matches to the given document name.
+         * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
+         *
+         * @param docName		a unique string of the document which is used to distinguish between documents.
+         * @param oldId 		the old document identifier which matches to the document name.
+         * @param updatedId  the new old old document identifier which matches to the document name.
+         * @return true  :		Document name exists in the dictionary.
+         * @return false :		Document name does not exist in the dictionary.
+         */
+        bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId);
 
-		/**
-		 * @brief a member function to offer a document name according to the ID.
-		 *
-		 * @param docId	        a document identifier which is used to get document name.
-		 * @param docName	    a document name for the output.
-		 * @return true  :  Given docId exists in the dictionary.
-		 * @return false :	Given docId does not exist in the dictionary.
-		 */
-		bool getDocNameByDocId(NameID docId, NameString& docName);
+        /**
+         * @brief a member function to offer a document name according to the ID.
+         *
+         * @param docId	        a document identifier which is used to get document name.
+         * @param docName	    a document name for the output.
+         * @return true  :  Given docId exists in the dictionary.
+         * @return false :	Given docId does not exist in the dictionary.
+         */
+        bool getDocNameByDocId(const NameID& docId, NameString& docName);
 
         /**
         * @brief Get the maximum doc id.
@@ -101,31 +101,31 @@ namespace idmanager {
             return idFactory_.getMaxNameID();
         }
 
-		void flush()
-		{
-		    idFactory_.flush();
-		}
+        void flush()
+        {
+            idFactory_.flush();
+        }
 
-		void close()
-		{
-		    idFactory_.close();
-		}
+        void close()
+        {
+            idFactory_.close();
+        }
 
-		/**
-		 * @brief a member function to display all the contents of the sequential db.
-		 *          this function is provided for debugging purpose.
-		 */
-		void display();
+        /**
+         * @brief a member function to display all the contents of the sequential db.
+         *          this function is provided for debugging purpose.
+         */
+        void display();
 
-	private:
+    private:
 
         DocIDFactory idFactory_;
 
-	}; // end - class DocIdManager
+    }; // end - class DocIdManager
 
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	DocIdManager<NameString, NameID, IDGenerator, IDStorage>::DocIdManager(
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    DocIdManager<NameString, NameID, IDGenerator, IDStorage>::DocIdManager(
         const string& storageName)
     :
         idFactory_(storageName)
@@ -133,13 +133,13 @@ namespace idmanager {
     } // end - IDFactory()
 
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	DocIdManager<NameString, NameID, IDGenerator, IDStorage>::~DocIdManager()
-	{
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    DocIdManager<NameString, NameID, IDGenerator, IDStorage>::~DocIdManager()
+    {
     } // end - ~DocIdManager()
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocIdByDocName(
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocIdByDocName(
         const NameString& docName,
         NameID& docId,
         bool insert)
@@ -147,8 +147,8 @@ namespace idmanager {
         return idFactory_.getNameIDByNameString(docName, docId, insert);
     } // end - getDocIdByDocName()
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
         const NameString& docName,
         NameID& oldId,
         NameID& updatedId)
@@ -157,18 +157,18 @@ namespace idmanager {
     } // end - updateDocIdByDocName()
 
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocNameByDocId(
-        NameID docId,
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocNameByDocId(
+        const NameID& docId,
         NameString& docName)
     {
         return idFactory_.getNameStringByNameID(docId, docName);
     } // end - getDocNameByDocId()
 
-	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-	void DocIdManager<NameString, NameID, IDGenerator, IDStorage>::display()
-	{
-		idFactory_.display();
+    template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+    void DocIdManager<NameString, NameID, IDGenerator, IDStorage>::display()
+    {
+        idFactory_.display();
     } // end - display()
 
 } // end - namespace idmanager

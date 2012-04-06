@@ -76,59 +76,46 @@ public:
  * @brief Combination of both TermIdManager, DocIdManager and RegexpManager.
  */
 
-template<typename NameString,
-         typename NameID,
+template<typename TermType,
+         typename DocType,
+         typename IDType,
          typename LockType = izenelib::util::NullLock,
-         typename WildcardQueryHandler = DiskWildcardQueryHandler<NameString, NameID>,
-         typename TermIDGenerator = HashIDGenerator<NameString, NameID>,
-         typename TermIDStorage = HDBIDStorage<NameString, NameID, LockType>,
-         typename DocIDGenerator = UniqueIDGenerator<NameString, NameID, LockType>,
-         typename DocIDStorage = HDBIDStorage<NameString, NameID, LockType> >
+         typename WildcardQueryHandler = DiskWildcardQueryHandler<TermType, IDType>,
+         typename TermIDGenerator = HashIDGenerator<TermType, IDType>,
+         typename TermIDStorage = HDBIDStorage<TermType, IDType, LockType>,
+         typename DocIDGenerator = UniqueIDGenerator<DocType, IDType, LockType>,
+         typename DocIDStorage = HDBIDStorage<DocType, IDType, LockType> >
 class _IDManager : public IDManagerBase
 {
 
 public:
-	_IDManager(const string& storageName = "idm")
-	:
-		termIdManager_(storageName + "_tid"),
-		docIdManager_(storageName + "_did"),
-		wildcardQueryManager_(storageName + "_regexp")
+    _IDManager(const string& storageName = "idm")
+    :
+        termIdManager_(storageName + "_tid"),
+        docIdManager_(storageName + "_did"),
+        wildcardQueryManager_(storageName + "_regexp")
     {
-		version_ = "ID Manager - ver. alpha ";
-		version_ += MAJOR_VERSION;
-		version_ += ".";
-		version_ += MINOR_VERSION;
-		version_ += ".";
-		version_ += PATCH_VERSION;
-	}
+        version_ = "ID Manager - ver. alpha ";
+        version_ += MAJOR_VERSION;
+        version_ += ".";
+        version_ += MINOR_VERSION;
+        version_ += ".";
+        version_ += PATCH_VERSION;
+    }
 
-	~_IDManager()
-	{
-	}
+    ~_IDManager()
+    {
+    }
 
-	/**
-	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
-	 *
-	 * @param termStringBuffer	the content of term string.
-	 * @param termStringLength	the length of term string.
-	 * @param termId	    a term identifier which matches to the term string.
-	 * @return true  : 	Term exists in the dictionary.
-	 * @return false : 	Term does not exist in the dictionary.
-	 */
-	bool getTermIdByTermString(const typename NameString::value_type* termStringBuffer, const size_t termStringLength, NameID& termId)
-	{
-	    return termIdManager_.getTermIdByTermString(termStringBuffer, termStringLength, termId);
-	}
-
-	/**
-	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
-	 *
-	 * @param termString	a UString object which contains term string.
-	 * @param termId	    a term identifier which matches to the term string.
-	 * @return true  : 	Term exists in the dictionary.
-	 * @return false : 	Term does not exist in the dictionary.
-	 */
-	bool getTermIdByTermString(const NameString& termString, NameID& termId)
+    /**
+     * @brief a member function to get term ID from vocabulary which matches to the given term string.
+     *
+     * @param termString	a UString object which contains term string.
+     * @param termId	    a term identifier which matches to the term string.
+     * @return true  : 	Term exists in the dictionary.
+     * @return false : 	Term does not exist in the dictionary.
+     */
+    bool getTermIdByTermString(const TermType& termString, IDType& termId)
     {
         return termIdManager_.getTermIdByTermString(termString, termId);
     }
@@ -136,22 +123,22 @@ public:
     /**
      * @brief a member function to add a term to be candidate of wildcard queries
      */
-    bool addWildcardCandidate(const NameString& termString)
+    bool addWildcardCandidate(const TermType& termString)
     {
         wildcardQueryManager_.insert(termString);
         return true;
     }
 
-	/**
-	 * @brief a member function to get a set of term ID list which matches to the given term strings respectively.
-	 *
-	 * @param termStringList	a list of term strings.
-	 * @param termIdList	    a list of term IDs.
-	 * @return true  :		One or more terms exist in the dictionary.
-	 * @return false :		No term exists in the dictionary.
-	 */
-	bool getTermIdListByTermStringList( const std::vector<NameString>& termStringList,
-			std::vector<NameID>& termIdList)
+    /**
+     * @brief a member function to get a set of term ID list which matches to the given term strings respectively.
+     *
+     * @param termStringList	a list of term strings.
+     * @param termIdList	    a list of term IDs.
+     * @return true  :		One or more terms exist in the dictionary.
+     * @return false :		No term exists in the dictionary.
+     */
+    bool getTermIdListByTermStringList( const std::vector<TermType>& termStringList,
+            std::vector<IDType>& termIdList)
     {
         return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
     }
@@ -159,7 +146,7 @@ public:
     /**
      * @brief a member function to add a list of terms to be candidates of wildcard queries.
      */
-    bool addWildcardCandidateList( const std::vector<NameString>& termStringList)
+    bool addWildcardCandidateList( const std::vector<TermType>& termStringList)
     {
         for(size_t i =0; i< termStringList.size(); i++ ) {
             wildcardQueryManager_.insert(termStringList[i]);
@@ -167,101 +154,101 @@ public:
         return true;
     }
 
-	/**
-	 * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
-	 *
-	 * @param wildcardPattern   a UString of wildcard pattern which contains '*';
-	 * @param termIdList        a list of term IDs which is the result of WildcardSearchManager.
-	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
-	 * @return false :          Given wildcard pattern is not matched in the dictionary.
-	 */
-	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameID>& termIdList, int maximumResultNumber = 5)
+    /**
+     * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
+     *
+     * @param wildcardPattern   a UString of wildcard pattern which contains '*';
+     * @param termIdList        a list of term IDs which is the result of WildcardSearchManager.
+     * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
+     * @return false :          Given wildcard pattern is not matched in the dictionary.
+     */
+    bool getTermIdListByWildcardPattern(const TermType& wildcardPattern,
+            std::vector<IDType>& termIdList, int maximumResultNumber = 5)
     {
         return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList, maximumResultNumber);
     }
 
-	/**
-	 * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
-	 *
-	 * @param wildcardPattern   a UString of wildcard pattern which contains '*';
-	 * @param termList        a list of terms which is the result of WildcardSearchManager.
-	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
-	 * @return false :          Given wildcard pattern is not matched in the dictionary.
-	 */
-	bool getTermListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameString>& termList, int maximumResultNumber = 5)
+    /**
+     * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
+     *
+     * @param wildcardPattern   a UString of wildcard pattern which contains '*';
+     * @param termList        a list of terms which is the result of WildcardSearchManager.
+     * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
+     * @return false :          Given wildcard pattern is not matched in the dictionary.
+     */
+    bool getTermListByWildcardPattern(const TermType& wildcardPattern,
+            std::vector<TermType>& termList, int maximumResultNumber = 5)
     {
         return wildcardQueryManager_.findRegExp(wildcardPattern, termList, maximumResultNumber);
     }
 
 
-	/**
-	 * @brief a member function to get term string by its ID.
-	 *
-	 * @param termId	    a term identifier for the input.
-	 * @param termString	a UString object which contains term string.
-	 * @return true  :  Given term string exists in the dictionary.
-	 * @return false :  Given term string does not exist in the dictionary.
-	 */
-	bool getTermStringByTermId(const NameID& termId, NameString& termString)
+    /**
+     * @brief a member function to get term string by its ID.
+     *
+     * @param termId	    a term identifier for the input.
+     * @param termString	a UString object which contains term string.
+     * @return true  :  Given term string exists in the dictionary.
+     * @return false :  Given term string does not exist in the dictionary.
+     */
+    bool getTermStringByTermId(const IDType& termId, TermType& termString)
     {
         return termIdManager_.getTermStringByTermId(termId, termString);
     }
 
-	/**
-	 * @brief a member function to term string list by a set of term IDs.
-	 *
-	 * @param termIdList	    a list of term IDs.
-	 * @param termStringList	a list of term strings.
-	 * @return true  :      At least one term in the given list is matched in the dictionary.
-	 * @return false :      No term is matched in the dictionary.
-	 */
-	bool getTermStringListByTermIdList(const std::vector<NameID>& termIdList,
-			std::vector<NameString>& termStringList)
+    /**
+     * @brief a member function to term string list by a set of term IDs.
+     *
+     * @param termIdList	    a list of term IDs.
+     * @param termStringList	a list of term strings.
+     * @return true  :      At least one term in the given list is matched in the dictionary.
+     * @return false :      No term is matched in the dictionary.
+     */
+    bool getTermStringListByTermIdList(const std::vector<IDType>& termIdList,
+            std::vector<TermType>& termStringList)
     {
         return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
     }
 
-	/**
-	 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
-	 *
-	 * @param docName		a unique string of the document which is used to distinguish between documents.
-	 * @param docId    	    a document identifier which matches to the document name.
-	 * @param insert         whether insert docName to IDManager;
-	 * @return true  : 	    Document name exists in the dictionary.
-	 * @return false : 	    Document name does not exist in the dictionary.
-	 */
-	bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true)
+    /**
+     * @brief a member function to get document ID from the vocabulary which matches to the given document name.
+     *
+     * @param docName		a unique string of the document which is used to distinguish between documents.
+     * @param docId    	    a document identifier which matches to the document name.
+     * @param insert         whether insert docName to IDManager;
+     * @return true  : 	    Document name exists in the dictionary.
+     * @return false : 	    Document name does not exist in the dictionary.
+     */
+    bool getDocIdByDocName(const DocType& docName, IDType& docId, bool insert = true)
     {
         return docIdManager_.getDocIdByDocName(docName, docId, insert);
     }
 
-	/**
-	 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
-	 * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
-	 *
-	 * @param docName		a unique string of the document which is used to distinguish between documents.
-	 * @param oldId    	    the old document identifier which matches to the document name.
-	 * @param updatedId  the new old old document identifier which matches to the document name.
-	 * @return true  : 	    Document name exists in the dictionary.
-	 * @return false : 	    Document name does not exist in the dictionary.
-	 */
-	bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId)
+    /**
+     * @brief a member function to get document ID from the vocabulary which matches to the given document name.
+     * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
+     *
+     * @param docName		a unique string of the document which is used to distinguish between documents.
+     * @param oldId    	    the old document identifier which matches to the document name.
+     * @param updatedId  the new old old document identifier which matches to the document name.
+     * @return true  : 	    Document name exists in the dictionary.
+     * @return false : 	    Document name does not exist in the dictionary.
+     */
+    bool updateDocIdByDocName(const DocType& docName, IDType& oldId, IDType& updatedId)
     {
-        return docIdManager_.updateDocIdByDocName(docName, oldId,updatedId);
+        return docIdManager_.updateDocIdByDocName(docName, oldId, updatedId);
     }
 
-	/**
-	 * @brief a member function to get a name of the document by its ID.
-	 *
-	 * @param docId		    a document identifier.
-	 * @param docName	   	a unique string of the document which matches to the document ID.
-	 * @return true  : 	    Given document name exists in the dictionary.
-	 * @return false : 	    Given document name does not exist in the dictionary.
-	 */
-	bool getDocNameByDocId(const NameID& docId, NameString& docName)
-	{
+    /**
+     * @brief a member function to get a name of the document by its ID.
+     *
+     * @param docId		    a document identifier.
+     * @param docName	   	a unique string of the document which matches to the document ID.
+     * @return true  : 	    Given document name exists in the dictionary.
+     * @return false : 	    Given document name does not exist in the dictionary.
+     */
+    bool getDocNameByDocId(const IDType& docId, DocType& docName)
+    {
         return docIdManager_.getDocNameByDocId(docId, docName);
     }
 
@@ -269,7 +256,7 @@ public:
     * @brief Get the maximum doc id.
     * @return max doc id, 0 for no doc id exists or this function is not supported
     */
-    NameID getMaxDocId() const
+    IDType getMaxDocId() const
     {
         return docIdManager_.getMaxDocId();
     }
@@ -310,28 +297,27 @@ public:
         wildcardQueryManager_.close();
     }
 
-	/**
-	 * @brief retrieve version string of id-manager
-	 * @return version string of id-manager
-	 */
-	const std::string& getVersionString() const {
-		return version_;
-	}
+    /**
+     * @brief retrieve version string of id-manager
+     * @return version string of id-manager
+     */
+    const std::string& getVersionString() const {
+        return version_;
+    }
 
-	void display(){
-		termIdManager_.display();
-		docIdManager_.display();
-	}
+    void display(){
+        termIdManager_.display();
+        docIdManager_.display();
+    }
 
 private:
+    TermIdManager<TermType, IDType, TermIDGenerator, TermIDStorage> termIdManager_;
 
-	TermIdManager<NameString, NameID, TermIDGenerator, TermIDStorage> termIdManager_;
+    DocIdManager<DocType, IDType, DocIDGenerator, DocIDStorage> docIdManager_;
 
-	DocIdManager<NameString, NameID, DocIDGenerator, DocIDStorage> docIdManager_;
+    WildcardQueryManager<TermType, IDType, WildcardQueryHandler, LockType> wildcardQueryManager_;
 
-    WildcardQueryManager<NameString, NameID, WildcardQueryHandler, LockType> wildcardQueryManager_;
-
-	std::string version_;
+    std::string version_;
 
 };
 
@@ -364,7 +350,7 @@ private:
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
-typedef _IDManager<izenelib::util::UString, uint32_t> IDManagerDebug32;
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t> IDManagerDebug32;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
@@ -379,7 +365,7 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
                    UniqueIDGenerator<izenelib::util::UString, uint32_t>,
                    SDBIDStorage<izenelib::util::UString, uint32_t> > IDManagerRelease32;*/
 
-typedef _IDManager<izenelib::util::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
                    DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
@@ -391,13 +377,13 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<izenelib::util::UString, uint64_t> IDManagerDebug64;
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t> IDManagerDebug64;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<izenelib::util::UString, uint64_t,
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
                    izenelib::util::NullLock,
                    DiskWildcardQueryHandler<izenelib::util::UString, uint64_t>,
                    HashIDGenerator<izenelib::util::UString, uint64_t>,
@@ -418,7 +404,7 @@ typedef _IDManager<izenelib::util::UString, uint64_t,
 //                   EmptyIDGenerator<izenelib::util::UString, uint32_t>,
 //                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerIClassifier;
 
-typedef _IDManager<izenelib::util::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
                    EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
@@ -430,8 +416,8 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
  * This version of IDManager is provided for ESA, which requires TermId and DocId,
  * it dose not generate any file.
  */
-typedef _IDManager<izenelib::util::UString, uint32_t,
-		           izenelib::util::NullLock,
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
+                   izenelib::util::NullLock,
                    EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
@@ -442,7 +428,7 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
  * This version of IDManager is provided for MIA, which only wants TermID genrated by
  * hash and doesn't permit generating any file.
  */
-typedef _IDManager<izenelib::util::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    izenelib::util::NullLock,
                    EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
@@ -460,7 +446,13 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
 
  */
 #ifndef REPLACE_DEFAULT_IDMANAGER
-typedef IDManagerRelease32 IDManager;
+typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
+                   izenelib::util::ReadWriteLock,
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   UniqueIDGenerator<uint128_t, uint32_t>,
+                   EmptyIDStorage<uint128_t, uint32_t> > IDManager;
 #endif
 
 } // end - namespace idmanager

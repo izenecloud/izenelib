@@ -47,76 +47,59 @@ class TermIdManager
 
 public:
 
-	/**
-	 * @brief Constructor of TermIdManager having term ids within a given range
-	 */
-	TermIdManager(const string& storageName = "termid_manager")
-	:   idFactory_(storageName) {}
+    /**
+     * @brief Constructor of TermIdManager having term ids within a given range
+     */
+    TermIdManager(const string& storageName = "termid_manager")
+    :   idFactory_(storageName) {}
 
-	/**
-	 * @brief A Destructor.
-	 */
-	~TermIdManager() {}
+    /**
+     * @brief A Destructor.
+     */
+    ~TermIdManager() {}
 
 public:
-
-
-	/**
-	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
-	 *
-	 * @param termStringBuffer	the content of term string.
-	 * @param termStringLength	the length of term string.
-	 * @param termId	    a term identifier which matches to the term string.
-	 * @return true  : 	Term exists in the dictionary.
-	 * @return false : 	Term does not exist in the dictionary.
-	 */
-	bool getTermIdByTermString(const typename NameString::value_type* termStringBuffer, const size_t termStringLength, NameID& termId)
-	{
-	    return idFactory_.getTermIdByTermString(termStringBuffer, termStringLength, termId);
-	}
-
-
-	/**
-	 * @brief a member function to offer a termID which exists in the dictionary.
-	 * If it is not in the dictionary, termIdManager will generate new term id and automatically inserts into dictionary.
-	 *
-	 * @param termString	a term string which is used to find the term ID.
-	 * @param termId        a term identifier which is the matched id value of termString.
-	 * @return true     : The term ID is in dictionary.
-	 * @return false    : There is no matched term ID in dictionary. New term Id generation and Insertion processes are done.
-	 */
-	bool getTermIdByTermString(const NameString& termString, NameID& termId)
+    /**
+     * @brief a member function to offer a termID which exists in the dictionary.
+     * If it is not in the dictionary, termIdManager will generate new term id and automatically inserts into dictionary.
+     *
+     * @param termString	a term string which is used to find the term ID.
+     * @param termId        a term identifier which is the matched id value of termString.
+     * @return true     : The term ID is in dictionary.
+     * @return false    : There is no matched term ID in dictionary. New term Id generation and Insertion processes are done.
+     */
+    bool getTermIdByTermString(const NameString& termString, NameID& termId)
     {
         return idFactory_.getNameIDByNameString(termString, termId);
     }
 
 
-	/**
-	 * @brief a member function to offer a term string according to the ID.
-	 *
-	 * @param termId	    a term identifier which is used to get term string.
-	 * @param termString	a term string for the output.
-	 * @return true  :  Given id exists in the dictionary.
-	 * @return false :	Given id does not exist in the dictionary.
-	 */
-	bool getTermStringByTermId(NameID termId, NameString& termString)
+    /**
+     * @brief a member function to offer a term string according to the ID.
+     *
+     * @param termId	    a term identifier which is used to get term string.
+     * @param termString	a term string for the output.
+     * @return true  :  Given id exists in the dictionary.
+     * @return false :	Given id does not exist in the dictionary.
+     */
+    bool getTermStringByTermId(NameID termId, NameString& termString)
     {
         return idFactory_.getNameStringByNameID(termId, termString);
     }
 
-	/**
-	 * @brief a member function to offer a set of search result of term id list.
-	 * If one or more term strings are not matched in the dictionary,
-	 * 0 will be contained for each unmatched termIdList.
-	 *
-	 * @param termStringList    a string list
-	 * @param termIdList        a list of term IDs which is the result of searching
-	 * @return true  :          all the term strings in given list are matched in the dictionary.
-	 * @return false :          one or more term strings are not matched in the dictionary.
-	 */
-	bool getTermIdListByTermStringList(
+    /**
+     * @brief a member function to offer a set of search result of term id list.
+     * If one or more term strings are not matched in the dictionary,
+     * 0 will be contained for each unmatched termIdList.
+     *
+     * @param termStringList    a string list
+     * @param termIdList        a list of term IDs which is the result of searching
+     * @return true  :          all the term strings in given list are matched in the dictionary.
+     * @return false :          one or more term strings are not matched in the dictionary.
+     */
+    bool getTermIdListByTermStringList(
             const std::vector<NameString>& termStringList,
-			std::vector<NameID>& termIdList)
+            std::vector<NameID>& termIdList)
     {
         bool ret;
         bool isAllIDFound = true;
@@ -134,17 +117,17 @@ public:
 
         return isAllIDFound;
     }
-	/**
-	 * @brief a memeber function to offer a list of term string by term id list. If one or more ids are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
-	 *
-	 * @param termIdList        a list of term Ids which indicates the identifier.
-	 * @param termStringList    a list of term string which is the result of searching
-	 *
-	 * @return true     :       all the term ids are matched in the dictionary.
-	 * @return false    :       one or more term ids are not matched in the dictionary.
-	 */
-	bool getTermStringListByTermIdList(const std::vector<NameID>& termIdList,
-			std::vector<NameString>& termStringList)
+    /**
+     * @brief a memeber function to offer a list of term string by term id list. If one or more ids are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
+     *
+     * @param termIdList        a list of term Ids which indicates the identifier.
+     * @param termStringList    a list of term string which is the result of searching
+     *
+     * @return true     :       all the term ids are matched in the dictionary.
+     * @return false    :       one or more term ids are not matched in the dictionary.
+     */
+    bool getTermStringListByTermIdList(const std::vector<NameID>& termIdList,
+            std::vector<NameString>& termStringList)
     {
         bool ret;
         bool isAllTermFound = true;
@@ -163,20 +146,20 @@ public:
     }
 
     void flush()
-	{
-	    idFactory_.flush();
-	}
+    {
+        idFactory_.flush();
+    }
 
     void close()
-	{
-	    idFactory_.close();
-	}
+    {
+        idFactory_.close();
+    }
 
-	/**
-	 * @brief a member function to display all the contents of the sequential db.
-	 *        this function is used for debugging.
-	 */
-	void display()
+    /**
+     * @brief a member function to display all the contents of the sequential db.
+     *        this function is used for debugging.
+     */
+    void display()
     {
         idFactory_.display();
     }
@@ -184,10 +167,10 @@ public:
 
 private:
 
-	/**
-	 * @brief ID generator
-	 */
-	TermIDFactory idFactory_;
+    /**
+     * @brief ID generator
+     */
+    TermIDFactory idFactory_;
 
 }; // end - class TermIdManager
 
@@ -197,4 +180,3 @@ private:
 NS_IZENELIB_IR_END
 
 #endif // _TERM_ID_MANAGER_
-

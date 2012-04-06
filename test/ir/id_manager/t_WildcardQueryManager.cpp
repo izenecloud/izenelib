@@ -5,20 +5,20 @@ using namespace boost::unit_test;
 
 BOOST_FIXTURE_TEST_SUITE( t_Regexp, IDManagerFixture )
 
-typedef _IDManager< UString, uint32_t, izenelib::util::NullLock,
+typedef _IDManager< UString, uint128_t, uint32_t, izenelib::util::NullLock,
                     EmptyWildcardQueryHandler<UString, uint32_t>,
                     HashIDGenerator<UString, uint32_t>,
                     SDBIDStorage<UString, uint32_t>,
-                    UniqueIDGenerator<UString, uint32_t>,
-                    SDBIDStorage<UString, uint32_t> >
+                    UniqueIDGenerator<uint128_t, uint32_t>,
+                    SDBIDStorage<uint128_t, uint32_t> >
 IDManagerEmptyRegexpHandler;
 
-typedef _IDManager< UString, uint32_t, izenelib::util::NullLock,
+typedef _IDManager< UString, uint128_t, uint32_t, izenelib::util::NullLock,
                     DiskWildcardQueryHandler<UString, uint32_t>,
                     HashIDGenerator<UString, uint32_t>,
                     SDBIDStorage<UString, uint32_t>,
-                    UniqueIDGenerator<UString, uint32_t>,
-                    SDBIDStorage<UString, uint32_t> >
+                    UniqueIDGenerator<uint128_t, uint32_t>,
+                    SDBIDStorage<uint128_t, uint32_t> >
 IDManagerDiskRegexpHandler;
 
 BOOST_AUTO_TEST_CASE( EmptyRegexpHandler )

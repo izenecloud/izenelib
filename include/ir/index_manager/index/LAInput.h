@@ -66,7 +66,7 @@ public:
     inline void add( IDManagerType* idm, const UString::CharT* termStr, const size_t termLen, const unsigned int offset )
     {
         push_back(globalTemporary_);
-        idm->getTermIdByTermString(termStr, termLen, back().termid_);
+        idm->getTermIdByTermString(UString(termStr, termLen), back().termid_);
         back().wordOffset_ = offset;
     }
 
