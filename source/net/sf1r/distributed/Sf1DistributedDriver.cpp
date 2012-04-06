@@ -15,24 +15,27 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-using boost::system::system_error;
 using std::string;
 using std::vector;
 
 
 Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
         const Sf1DistributedConfig& parameters, const Format& format)
-try : Sf1DriverBase(parameters, format), hosts(zkhosts), config(parameters) {
+      : Sf1DriverBase(parameters, format), hosts(zkhosts), config(parameters) {
+    try {
+        LOG(INFO) << "Initializing routing";
+        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+    } catch (izenelib::zookeeper::ZooKeeperException& e) {
+        LOG(ERROR) << e.what();
+        throw NetworkError(e.what());
+    }
+    
     DLOG(INFO) << "Initializing matchers ...";
     BOOST_FOREACH(const string& pattern, config.broadcast) {
         matchers.push_back(new RegexLexer(pattern));
         DLOG(INFO) << "Added broadcast matcher for [" << pattern << "]";
     }
     LOG(INFO) << "Driver ready.";
-} catch (system_error& e) {
-    string message = e.what();
-    LOG(ERROR) << message;
-    throw ServerError(e.what());
 }
 
 
@@ -88,7 +91,7 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
 
     incrementSequence();
 
-    RawClient& client = getConnection(collection);
+    RawClient& client = acquire(collection);
 
     // process request
     Releaser r(*this, client);
@@ -106,9 +109,6 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
 bool 
 Sf1DistributedDriver::broadcastRequest(const string& uri, const string& tokens,
         const string& collection, string& request, vector<std::string>& responses) {
-    // check that zookeeper has been initialized
-    initZooKeeperRouter();
-    
     // get all the connections
     vector<RawClient*> connections = router->getConnections(collection);
     DLOG(INFO) << "Broadcasting request to (" << connections.size() << ") nodes ...";
@@ -136,21 +136,6 @@ Sf1DistributedDriver::broadcastRequest(const string& uri, const string& tokens,
     return success;
 }
 
-
-inline void
-Sf1DistributedDriver::initZooKeeperRouter() {
-    if (router.get() == NULL) {
-        LOG(INFO) << "Initializing routing";
-        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
-    }
-}
-
-
-inline void
-Sf1DistributedDriver::beforeAcquire() {
-    // lazy initialization because of problems with Nginx
-    initZooKeeperRouter();
-}
 
 inline RawClient&
 Sf1DistributedDriver::acquire(const string& collection) const {

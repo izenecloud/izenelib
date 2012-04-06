@@ -37,7 +37,7 @@ public:
      * @param hosts list of ZooKeeper servers formatted as "host:port[,host:port]".
      * @param parameters configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
-     * @throw SeverError if cannot connect to the server.
+     * @throw NetworkError if cannot connect to the server.
      */
     Sf1DistributedDriver(const std::string& hosts, const Sf1DistributedConfig& parameters, 
               const Format& format = JSON);
@@ -53,9 +53,6 @@ public:
                      std::string& request);
     
 private:
-    
-    /// Initializes the ZooKeeper router.
-    void initZooKeeperRouter();
     
     /**
      * Dispatch a single request.
@@ -81,9 +78,6 @@ private:
     bool broadcastRequest(const std::string& uri, const std::string& tokens,
                           const std::string& collection, std::string& request, 
                           std::vector<std::string>& responses);
-    
-    /// Perform lazy initialization here.
-    void beforeAcquire();
     
     /// Acquire a connection from the ZooKeeper router.
     RawClient& acquire(const std::string& collection) const;

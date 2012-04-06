@@ -21,13 +21,9 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
     const string host = "somewhere";
     const Sf1DistributedConfig conf;
     
-    Sf1DistributedDriver* driver;
-    BOOST_CHECK_NO_THROW(driver = new Sf1DistributedDriver(host, conf));
-    
-    string request = "{}";
-    BOOST_CHECK_THROW(driver->call("/test/echo", "", request), izenelib::zookeeper::ZooKeeperException);
-    
-    delete driver;
+    BOOST_CHECK_THROW(Sf1DistributedDriver("somewhere", conf), NetworkError);
+    BOOST_CHECK_THROW(Sf1DistributedDriver("somewhere:18181", conf), NetworkError);
+    BOOST_CHECK_THROW(Sf1DistributedDriver("somewhere:service", conf), NetworkError);
 }
 
 /*
