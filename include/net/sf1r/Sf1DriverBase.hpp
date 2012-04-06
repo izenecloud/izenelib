@@ -25,6 +25,19 @@ class PoolFactory;
 class RawClient;
 class Writer;
 
+namespace {
+
+/**
+ * Max sequence number.
+ * Valued 4294967294 as defined in the Ruby client:
+ * \code 
+ * MAX_SEQUENCE = (1 << 31) - 2
+ * \endcode
+ * @see \ref limits
+ */
+const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
+
+}
 
 /**
  * Base class for SF1 driver.
@@ -98,22 +111,6 @@ public:
     
 protected:
     
-    /* Hooks */
-    
-    /// Hook for operations to be performed before connection acquisition.
-    virtual inline void beforeAcquire() {}
-    
-#if 0 /* enable these in case of need */
-    /// Hook for operations to be performed after connection acquisition.
-    virtual inline void afterAcquire() {}
-    
-    /// Hook for operations to be performed before connection release.
-    virtual inline void beforeRelease() {}
-    
-    /// Hook for operations to be performed after connection release.
-    virtual inline void afterRelease() {}
-#endif
-    
     /* pure virtual methods */
     
     /// Acquire a connection to the SF1 according to the given collection.
@@ -151,13 +148,11 @@ protected:
                            std::string& collection) const;
     
     /// Increment the request sequence number.
-    void incrementSequence();
-    
-    /// Acquire a connection.
-    RawClient& getConnection(const std::string collection);
-    
-    /// Release a connection.
-    void releaseConnection(const RawClient& connection);
+    void incrementSequence() {
+        if (++sequence == MAX_SEQUENCE) {
+            sequence = 1; // sequence == 0 means server error
+        }  
+    }
     
     /**
      * Send request to and receive response from the SF1.

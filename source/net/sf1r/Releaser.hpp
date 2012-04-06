@@ -23,7 +23,7 @@ public:
     Releaser(Sf1DriverBase& drv, const RawClient& cli) : driver(drv), client(cli) {}
     
     ~Releaser() {
-        driver.releaseConnection(client);
+        driver.release(client);
     }
     
 private:

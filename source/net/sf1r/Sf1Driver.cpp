@@ -16,20 +16,21 @@ NS_IZENELIB_SF1R_BEGIN
 
 
 using ba::ip::tcp;
-using boost::system::system_error;
 using std::string;
 using std::vector;
 
 
 Sf1Driver::Sf1Driver(const string& h, const Sf1Config& parameters, 
-        const Format& fmt) 
-try : Sf1DriverBase(parameters, fmt), host(h), mustReconnect(false),
-      pool(factory->newConnectionPool(host)) {
+        const Format& fmt) : Sf1DriverBase(parameters, fmt), host(h), 
+        mustReconnect(false) {
+    try {
+        pool.reset(factory->newConnectionPool(host));
+    } catch (NetworkError& e) {
+        LOG(ERROR) << e.what();
+        throw e;
+    }
+    
     LOG(INFO) << "Driver ready.";
-} catch (system_error& e) {
-    string message = e.what();
-    LOG(ERROR) << message;
-    throw ServerError(message);
 }
 
 
@@ -54,7 +55,7 @@ Sf1Driver::call(const string& uri, const string& tokens, string& request) {
         reconnect();
     }
     
-    RawClient& client = getConnection(collection);
+    RawClient& client = acquire(collection);
     
     // process request
     Releaser r(*this, client);

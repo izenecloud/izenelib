@@ -22,21 +22,6 @@ using std::string;
 using std::vector;
 
 
-namespace {
-
-/**
- * Max sequence number.
- * Valued 4294967294 as defined in the Ruby client:
- * \code 
- * MAX_SEQUENCE = (1 << 31) - 2
- * \endcode
- * @see \ref limits
- */
-const uint32_t MAX_SEQUENCE = std::numeric_limits<uint32_t>::max() - 1;
-
-}
-
-
 Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt) 
         : sequence(1), format(fmt),
         factory(new PoolFactory(service, parameters)) {
@@ -95,37 +80,6 @@ Sf1DriverBase::preprocessRequest(const string& controller, const string& action,
     // process header: set action, controller, tokens and get collections
     writer->setHeader(controller, action, tokens, request, collection);
     DLOG(INFO) << "collection: " << collection;
-}
-
-
-void
-Sf1DriverBase::incrementSequence() {
-    if (++sequence == MAX_SEQUENCE) {
-        sequence = 1; // sequence == 0 means server error
-    }  
-}
-
-
-RawClient&
-Sf1DriverBase::getConnection(const string collection) {
-    beforeAcquire();
-    RawClient& client = acquire(collection);
-#if 0
-    afterAcquire();
-#endif
-    return client;
-}
-
-
-void
-Sf1DriverBase::releaseConnection(const RawClient& connection) {
-#if 0
-    beforeRelease();
-#endif
-    release(connection);
-#if 0
-    afterRelease();
-#endif
 }
 
 
