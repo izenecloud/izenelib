@@ -20,8 +20,7 @@ using namespace std;
 
 
 BOOST_AUTO_TEST_CASE(dummy) {
-    BOOST_TEST_MESSAGE("dummy empty test");
-    cout << "For this test you need an SF1 running on you machine." << endl;
+    cout << "For this test you need ZooKeeper running on you machine." << endl;
 }
 
 /*
@@ -43,7 +42,7 @@ struct ZooKeeperClient {
     }
     
     /** Simulates the connection of a new SF1. */
-    void addSf1(const string& name) {
+    void addSf1(const string& name, bool master = true) {
         string sf1name = getName(name);
         cout << "adding fake SF1 " << sf1name << " ... ";
         
@@ -52,7 +51,8 @@ struct ZooKeeperClient {
         createNode(sf1name + "/SearchTopology");
         createNode(sf1name + "/SearchTopology/Replica1");
         createNode(sf1name + "/SearchTopology/Replica1/Node1", 
-                   "collection#foo$dataport#18121$baport#18181$masterport#18131$host#localhost");
+                   master ? "collection#foo$dataport#18121$baport#18181$masterport#18131$host#localhost"
+                          : "collection#foo$dataport#18121$baport#18181$host#localhost");
         
         cout << "done" << endl;
     }
@@ -195,6 +195,16 @@ BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
     checkCollections("bar", router, 0);
     printLine();
     
+    printLine("adding fake3 no master");
+    addSf1("fake3", false);
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes + 2);
+    checkCollections("foo", router, 2, 
+                "/SF1R-fake1/SearchTopology/Replica1/Node1",
+                "/SF1R-fake2/SearchTopology/Replica1/Node1");
+    checkCollections("bar", router, 0);
+    printLine();
+    
     printLine("changing fake2");
     change("fake2");
     wait();
@@ -252,6 +262,13 @@ BOOST_FIXTURE_TEST_CASE(topology_test, ZooKeeperClient) {
     
     printLine("re-removing fake2");
     removeSf1("fake2");
+    wait();
+    checkNodes(router.getSf1Nodes(), numNodes);
+    checkCollections("foo", router, 0);
+    checkCollections("bar", router, 0);
+    
+    printLine("removing fake3");
+    removeSf1("fake3");
     wait();
     checkNodes(router.getSf1Nodes(), numNodes);
     checkCollections("foo", router, 0);

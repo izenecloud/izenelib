@@ -135,6 +135,14 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     client->getZNodeData(path, data, ZooKeeper::WATCH);
     LOG(INFO) << "node data: [" << data << "]";
 
+    izenelib::util::kv2string parser;
+    parser.loadKvString(data);
+    
+    if (parser.getUInt32Value(MASTERPORT_KEY) == 0) {
+        DLOG(INFO) << "Not a master node, skipping";
+        return;
+    }
+    
     // add node into topology
     topology->addNode(path, data);
 
@@ -157,6 +165,11 @@ void
 ZooKeeperRouter::updateNodeData(const string& path) {
     boost::lock_guard<boost::mutex> lock(mutex);
 
+    if (not topology->isPresent(path)) {
+        LOG(INFO) << "Node not in topology, skipping";
+        return;
+    }
+    
     LOG(INFO) << "updating SF1 node: [" << path << "]";
     
     string data;
@@ -171,7 +184,12 @@ void
 ZooKeeperRouter::removeSf1Node(const string& path) {
     boost::unique_lock<boost::mutex> lock(mutex);
     
-    LOG(INFO) << "SF1 node: [" << path << "]";
+    if (not topology->isPresent(path)) {
+        LOG(INFO) << "Node not in topology, skipping";
+        return;
+    }
+    
+    LOG(INFO) << "removing SF1 node: [" << path << "]";
     
     // remove node from topology
     topology->removeNode(path);

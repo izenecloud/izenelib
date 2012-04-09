@@ -51,6 +51,31 @@ const boost::regex SEARCH_TOPOLOGY_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
  */
 const boost::regex SEARCH_NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
 
+/**
+ * Noda data key for the host.
+ */
+const std::string       HOST_KEY = "host";
+
+/**
+ * Noda data key for the SF1 baport.
+ */
+const std::string     BAPORT_KEY = "baport";
+
+/**
+ * Noda data key for the SF1 masterport.
+ */
+const std::string MASTERPORT_KEY = "masterport";
+
+/**
+ * Noda data key for the collection.
+ */
+const std::string COLLECTION_KEY = "collection";
+
+/**
+ * Noda data delimiter character.
+ */
+const char   DELIMITER_CHAR = ',';
+
 NS_IZENELIB_SF1R_END
 
 #endif	/* ZOOKEEPERNAMESPACE_HPP */

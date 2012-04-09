@@ -13,7 +13,7 @@
 #include "NodeContainer.hpp"
 #include "PoolContainer.hpp"
 #include "Sf1Node.hpp"
-#include <3rdparty/zookeeper/ZooKeeper.hpp>
+#include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>

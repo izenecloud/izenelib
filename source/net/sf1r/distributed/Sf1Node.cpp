@@ -6,6 +6,7 @@
  */
 
 #include "net/sf1r/distributed/Sf1Node.hpp"
+#include "ZooKeeperNamespace.hpp"
 #include "util/kv2string.h"
 #include "../Utils.hpp"
 
@@ -14,14 +15,6 @@ NS_IZENELIB_SF1R_BEGIN
 using izenelib::util::kv2string;
 using std::string;
 using std::ostream;
-
-
-namespace {
-    const string       HOST_KEY = "host";
-    const string     BAPORT_KEY = "baport";
-    const string COLLECTION_KEY = "collection";
-    const char   DELIMITER_CHAR = ',';
-}
 
 
 Sf1Node::Sf1Node(const string& path_, const string& data) 
