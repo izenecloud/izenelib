@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(reconnect) {
     
     cout << endl << "Restart the SF1 ... ";
     cout.flush(); 
-    sleep(5);
+    sleep(10);
     cout << "continue!" << endl << endl;
     
     // ensure that the invalid connections are discarded and cannot estabilish 

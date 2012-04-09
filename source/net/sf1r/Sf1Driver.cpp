@@ -22,7 +22,7 @@ using std::vector;
 
 Sf1Driver::Sf1Driver(const string& h, const Sf1Config& parameters, 
         const Format& fmt) : Sf1DriverBase(parameters, fmt), host(h), 
-        mustReconnect(false) {
+        mustReconnect(true) {
     LOG(INFO) << "Driver ready.";
 }
 
@@ -35,13 +35,8 @@ Sf1Driver::~Sf1Driver() {
 std::string
 Sf1Driver::call(const string& uri, const string& tokens, string& request) {
     // lazy initialization
-    if (pool.get() == NULL) {
-        try {
-            pool.reset(factory->newConnectionPool(host));
-        } catch (NetworkError& e) {
-            LOG(ERROR) << e.what();
-            throw e;
-        }
+    if (mustReconnect or pool.get() == NULL) {
+        reconnect();
     }
     
     string controller, action;
@@ -53,10 +48,6 @@ Sf1Driver::call(const string& uri, const string& tokens, string& request) {
     LOG(INFO) << "Send " << getFormatString() << " request: " << request;
     
     incrementSequence();
-    
-    if (mustReconnect) {
-        reconnect();
-    }
     
     RawClient& client = acquire(collection);
     

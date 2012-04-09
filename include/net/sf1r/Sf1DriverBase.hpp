@@ -119,7 +119,7 @@ protected:
     /// Release the given connection.
     virtual void release(const RawClient& connection) const = 0;
     
-    /* basic methods */
+    /* basic methods (private API) */
     
     /**
      * Parse the uri for controller and action.
