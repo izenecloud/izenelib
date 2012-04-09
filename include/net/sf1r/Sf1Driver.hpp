@@ -26,11 +26,10 @@ class Sf1Driver : public Sf1DriverBase {
 public:
 
     /**
-     * Creates a new instance of the driver and connects to the server. 
+     * Creates a new instance of the driver.
      * @param host The address of the SF1 server in the format "host:port".
      * @param parameters The configuration parameters.
      * @param format The format of request/response body (defaults to JSON).
-     * @throw NetworkError if cannot connect to the server.
      */
     Sf1Driver(const std::string& host, const Sf1Config& parameters, 
               const Format& format = JSON);

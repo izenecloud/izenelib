@@ -22,14 +22,6 @@ using std::vector;
 Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts, 
         const Sf1DistributedConfig& parameters, const Format& format)
       : Sf1DriverBase(parameters, format), hosts(zkhosts), config(parameters) {
-    try {
-        LOG(INFO) << "Initializing routing";
-        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
-    } catch (izenelib::zookeeper::ZooKeeperException& e) {
-        LOG(ERROR) << e.what();
-        throw NetworkError(e.what());
-    }
-    
     DLOG(INFO) << "Initializing matchers ...";
     BOOST_FOREACH(const string& pattern, config.broadcast) {
         matchers.push_back(new RegexLexer(pattern));
@@ -46,6 +38,17 @@ Sf1DistributedDriver::~Sf1DistributedDriver() {
 
 string
 Sf1DistributedDriver::call(const string& uri, const string& tokens, string& request) {
+    // lazy initialization
+    if (router.get() == NULL) {
+        try {
+            LOG(INFO) << "Initializing routing";
+            router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+        } catch (izenelib::zookeeper::ZooKeeperException& e) {
+            LOG(ERROR) << e.what();
+            throw NetworkError(e.what());
+        }
+    }
+    
     string controller, action;
     parseUri(uri, controller, action);
     
