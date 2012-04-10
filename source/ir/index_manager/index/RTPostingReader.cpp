@@ -609,11 +609,15 @@ docid_t RTDiskPostingReader::DecodeTo(
     {
         nDocID += pDPostingInput->readVInt();
         ++nDecodedCount;
-
-        if(nDocID >= target)
+        if(!pDocFilter_ || !pDocFilter_->test((size_t)nDocID))
         {
-            nFreq = pDPostingInput->readVInt();
-            break;
+            if(nDocID >= target)
+            {
+                nFreq = pDPostingInput->readVInt();
+                break;
+            }
+            else
+                nSkipPCount += pDPostingInput->readVInt();
         }
         else
             nSkipPCount += pDPostingInput->readVInt();
