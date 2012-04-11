@@ -34,6 +34,9 @@
 
 #include "CallProxy.h"
 
+#include <string>
+#include <iostream>
+
 namespace net{
 namespace aggregator{
 
@@ -50,28 +53,26 @@ public:
 
 #define BIND_CALL_PROXY_BEGIN(BindClassName, ProxyInstance) \
     typedef BindClassName BindClassType;                    \
-    CallProxyType& _proxy = ProxyInstance;
+    const std::string _className = #BindClassName;          \
+    CallProxyType& _proxy = ProxyInstance;                  \
+    bool _result = true;
 
 #define BIND_CALL_PROXY_1(Method, Out)                          \
-    {                                                           \
         if (!_proxy.bind<Out>(#Method, &BindClassType::Method)) \
-            return false;                                       \
-    }
+            _result = false;
 
 #define BIND_CALL_PROXY_2(Method, In, Out)                          \
-    {                                                               \
         if (!_proxy.bind<In, Out>(#Method, &BindClassType::Method)) \
-            return false;                                           \
-    }
+            _result = false;
 
 #define BIND_CALL_PROXY_3(Method, In1, In2, Out)                            \
-    {                                                                       \
         if (!_proxy.bind<In1, In2, Out>(#Method, &BindClassType::Method))   \
-            return false;                                                   \
-    }
+            _result = false;
 
-#define BIND_CALL_PROXY_END()   \
-    return true;
+#define BIND_CALL_PROXY_END()                                                       \
+    if (!_result)                                                                   \
+        std::cerr << "error in binding CallProxy to " << _className << std::endl;   \
+    return _result;
 
 }} // end - namespace
 
