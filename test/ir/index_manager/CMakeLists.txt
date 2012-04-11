@@ -1,5 +1,3 @@
-
-
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS
   system
@@ -22,8 +20,8 @@ SET(libs
   am
   index_manager
   izene_util
-  
-  
+  procmeminfo
+
 )
 
 IF(Boost_FOUND)
