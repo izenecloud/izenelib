@@ -27,6 +27,8 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
     luxio/Db.cpp
     leveldb/Db.cpp
+
+    succinct/t_succinct_vector.cpp
     )
 
   ADD_EXECUTABLE(t_am ${t_am_SRC})
