@@ -80,6 +80,9 @@ BOOST_AUTO_TEST_CASE(testProxy)
     BOOST_CHECK(proxy.call("concat", hello, i, result));
     BOOST_CHECK_EQUAL(result, "hello123");
 
+    // duplicated binding
+    BOOST_CHECK(strUtil.bindCallProxy(proxy) == false);
+
     // unknown function
     BOOST_CHECK(proxy.call("unknown", hello) == false);
 
