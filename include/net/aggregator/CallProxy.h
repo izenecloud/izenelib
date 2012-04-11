@@ -171,7 +171,11 @@ template <typename FuncT>
 bool CallProxy<ClassT>::bindImpl_(const std::string& name, const FuncT& func)
 {
     FuncMap::value_type methodPair(name, func);
-    return funcMap_.insert(methodPair).second;
+    if (funcMap_.insert(methodPair).second)
+        return true;
+
+    LOG(ERROR) << "failed to bind duplicated function name: " << name;
+    return false;
 }
 
 template <class ClassT>
