@@ -31,36 +31,6 @@
 #define atomic_cmpxchg_bool(P, O, N) __sync_bool_compare_and_swap((P), (O), (N))
 #define atomic_access(V) (*(volatile typeof(V) *)&(V))
 
-static inline int bts(volatile void *mem, size_t offset)
-{
-	asm goto (
-		"lock; bts %0, (%1)\n"
-		"jc %l[carry]\n"
-		:
-		: "r" (offset), "r" (mem)
-		: "memory", "cc"
-		: carry);
-	return 0;
-
-	carry:
-	return 1;
-}
-
-static inline int btr(volatile void *mem, size_t offset)
-{
-	asm goto (
-		"lock; btr %0, (%1)\n"
-		"jnc %l[ncarry]\n"
-		:
-		: "r" (offset), "r" (mem)
-		: "memory", "cc"
-		: ncarry);
-	return 1;
-
-	ncarry:
-	return 0;
-}
-
 static inline int ffsu(unsigned x)
 {
 	int result;
