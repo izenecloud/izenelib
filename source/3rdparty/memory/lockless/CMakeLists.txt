@@ -2,7 +2,7 @@ MACRO_CHECK_SHOULD_BUILD(llalloc)
 
 IF(llalloc_SHOULD_BUILD)
 
-  SET(llalloc_DEFINITIONS "-fomit-frame-pointer -Wcast-qual -Wmissing-format-attribute -Wlogical-op -Wstrict-aliasing 
+  SET(llalloc_DEFINITIONS "-fomit-frame-pointer -Wcast-qual -Wmissing-format-attribute -Wstrict-aliasing 
   -Wsign-compare -Wdeclaration-after-statement -Wnested-externs -Wdisabled-optimization -Winline -Wundef 
   -Wimplicit -Wunused -Wfloat-equal -Winit-self -Wformat=2 -Wswitch -Wsequence-point -Wparentheses -Wimplicit 
   -Wchar-subscripts -Wredundant-decls -Wstrict-prototypes -Wbad-function-cast -Wpointer-arith -Wwrite-strings 
