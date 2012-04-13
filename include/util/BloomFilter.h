@@ -123,17 +123,24 @@ public:
     template<class DataIO> friend
     void DataIO_loadObject(DataIO& dio, BloomFilter& x)
     {
+        dio & x.items_estimate_;
+        dio & x.false_positive_prob_;
+        dio & x.num_hash_functions_;
+        dio & x.num_bits_;
         dio & x.num_bytes_;
         x.bloom_bits_ = new uint8_t[x.num_bytes_];
-        dio.ensureRead(x.bloom_bits_, x.num_bytes_);
-        x.num_bits_ = x.num_bytes_ * BloomFilter::CHARBIT;
+        dio.ensureRead(x.bloom_bits_, sizeof(uint8_t)*x.num_bytes_);
     }
  
     template<class DataIO> friend
     void DataIO_saveObject(DataIO& dio, const BloomFilter& x)
     {
+        dio & x.items_estimate_;
+        dio & x.false_positive_prob_;
+        dio & x.num_hash_functions_;
+        dio & x.num_bits_;
         dio & x.num_bytes_;
-        dio.ensureWrite(x.bloom_bits_, x.num_bytes_);
+        dio.ensureWrite(x.bloom_bits_, sizeof(uint8_t)*x.num_bytes_);
     }
 
     size_t Size()
@@ -143,7 +150,6 @@ public:
 private:
     DISALLOW_COPY_AND_ASSIGN(BloomFilter);	
 
-protected:
     HashIDTraits<KeyType,HashType> hasher_;
     size_t items_estimate_;
     float false_positive_prob_;

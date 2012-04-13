@@ -55,12 +55,12 @@ BOOST_AUTO_TEST_CASE(BloomFilter_storage_test)
     for(unsigned i =0; i < 100; ++i)
     {
         std::string key(Int2String(i).x);
-        BOOST_CHECK(bloomfiler.Get(key)); 
+        BOOST_CHECK(inFilter.Get(key)); 
     }
     for(unsigned i =101; i < 200; ++i)
     {
         std::string key(Int2String(i).x);
-        BOOST_CHECK(!bloomfiler.Get(key)); 
+        BOOST_CHECK(!inFilter.Get(key)); 
     }
 }
 
@@ -108,12 +108,11 @@ BOOST_AUTO_TEST_CASE(DynamicBloomFilter_storage_test)
     for(unsigned i =0; i < 100; ++i)
     {
         std::string key(Int2String(i).x);
-        BOOST_CHECK(bloomfiler.Get(key)); 
+        BOOST_CHECK(inFilter.Get(key)); 
     }
     for(unsigned i =101; i < 200; ++i)
     {
         std::string key(Int2String(i).x);
-        BOOST_CHECK(!bloomfiler.Get(key)); 
+        BOOST_CHECK(!inFilter.Get(key)); 
     }
 }
-
