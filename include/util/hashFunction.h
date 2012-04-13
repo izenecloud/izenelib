@@ -47,6 +47,65 @@ typedef unsigned char ub1; /** unsigned 1-byte quantities */
   c=c-a;  c=c-b;  c=c^(b>>22); \
 }
 
+#if defined(_MSC_VER)
+
+#include <stdlib.h>
+
+#define ROTL64(x,y)	_rotl64(x,y)
+
+#define BIG_CONSTANT(x) (x)
+
+// Other compilers
+
+#else	// defined(_MSC_VER)
+
+inline uint64_t rotl64(uint64_t x, int8_t r)
+{
+    return (x << r) | (x >> (64 - r));
+}
+
+#define	ROTL32(x,y)	rotl32(x,y)
+#define ROTL64(x,y)	rotl64(x,y)
+
+#define BIG_CONSTANT(x) (x##LLU)
+
+#endif // !defined(_MSC_VER)
+
+inline uint32_t getblock ( const uint32_t * p, int i )
+{
+    return p[i];
+}
+
+inline uint64_t getblock ( const uint64_t * p, int i )
+{
+    return p[i];
+}
+
+//-----------------------------------------------------------------------------
+// Finalization mix - force all bits of a hash block to avalanche
+
+inline uint32_t fmix ( uint32_t h )
+{
+    h ^= h >> 16;
+    h *= 0x85ebca6b;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >> 16;
+
+    return h;
+}
+
+inline uint64_t fmix ( uint64_t k )
+{
+    k ^= k >> 33;
+    k *= BIG_CONSTANT(0xff51afd7ed558ccd);
+    k ^= k >> 33;
+    k *= BIG_CONSTANT(0xc4ceb9fe1a85ec53);
+    k ^= k >> 33;
+
+    return k;
+}
+
 inline uint32_t MurmurHash2(const void* key, int32_t len, uint32_t seed)
 {
     // 'm' and 'r' are mixing constants generated offline.
@@ -96,41 +155,6 @@ inline uint32_t MurmurHash2(const void* key, int32_t len, uint32_t seed)
     h ^= h >> 15;
 
     return h;
-}
-
-#if defined(_MSC_VER)
-
-#include <stdlib.h>
-
-#define ROTL64(x,y)	_rotl64(x,y)
-
-#define BIG_CONSTANT(x) (x)
-
-// Other compilers
-
-#else	// defined(_MSC_VER)
-
-inline uint64_t rotl64(uint64_t x, int8_t r)
-{
-    return (x << r) | (x >> (64 - r));
-}
-
-#define	ROTL32(x,y)	rotl32(x,y)
-#define ROTL64(x,y)	rotl64(x,y)
-
-#define BIG_CONSTANT(x) (x##LLU)
-
-#endif // !defined(_MSC_VER)
-
-inline uint64_t fmix ( uint64_t k )
-{
-    k ^= k >> 33;
-    k *= BIG_CONSTANT(0xff51afd7ed558ccd);
-    k ^= k >> 33;
-    k *= BIG_CONSTANT(0xc4ceb9fe1a85ec53);
-    k ^= k >> 33;
-
-    return k;
 }
 
 inline uint64_t MurmurHash64A(const void* key, int32_t len, uint64_t seed)
@@ -527,6 +551,50 @@ template<class T> struct izene_HashFunctor {
 size_t operator()(const T& key) const {
     return izene_hashing(key);
 }
+};
+
+template <typename KeyType, typename HashType> class HashIDTraits;
+
+template<typename KeyType>
+class HashIDTraits<KeyType, uint32_t>
+{
+    uint32_t operator()(const KeyType& key) const {
+        using namespace izenelib::am::util;
+        char* ptr = 0;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+
+        return MurmurHash2(ptr,ksize,0);
+    }
+};
+
+template<typename KeyType>
+class HashIDTraits<KeyType, uint64_t>
+{
+    uint64_t operator()(const KeyType& key) const {
+        using namespace izenelib::am::util;
+        char* ptr = 0;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+
+        return MurmurHash64A(ptr,ksize,0);
+    }
+};
+
+template<typename KeyType>
+class HashIDTraits<KeyType, uint128_t>
+{
+    uint128_t operator()(const KeyType& key) const {
+        using namespace izenelib::am::util;
+        char* ptr = 0;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+
+        return MurmurHash3_x64_128(ptr,ksize,0);
+    }
 };
 
 NS_IZENELIB_UTIL_END
