@@ -553,10 +553,10 @@ size_t operator()(const T& key) const {
 }
 };
 
-template <typename KeyType, typename HashType> class HashIDTraits;
+template <typename KeyType, typename HashType> struct HashIDTraits;
 
 template<typename KeyType>
-class HashIDTraits<KeyType, uint32_t>
+struct HashIDTraits<KeyType, uint32_t>
 {
     uint32_t operator()(const KeyType& key) const {
         using namespace izenelib::am::util;
@@ -570,7 +570,7 @@ class HashIDTraits<KeyType, uint32_t>
 };
 
 template<typename KeyType>
-class HashIDTraits<KeyType, uint64_t>
+struct HashIDTraits<KeyType, uint64_t>
 {
     uint64_t operator()(const KeyType& key) const {
         using namespace izenelib::am::util;
@@ -584,7 +584,7 @@ class HashIDTraits<KeyType, uint64_t>
 };
 
 template<typename KeyType>
-class HashIDTraits<KeyType, uint128_t>
+struct HashIDTraits<KeyType, uint128_t>
 {
     uint128_t operator()(const KeyType& key) const {
         using namespace izenelib::am::util;
