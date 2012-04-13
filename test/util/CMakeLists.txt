@@ -30,6 +30,7 @@ ADD_EXECUTABLE(t_util
   t_criterion.cpp
   t_timsort.cpp
   t_fileno.cpp
+  t_bloomfilter.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
