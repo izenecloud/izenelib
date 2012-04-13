@@ -1,4 +1,4 @@
-#include <util/BloomFilter.h>
+#include <util/DynamicBloomFilter.h>
 #include <util/Int2String.h>
 
 #include <boost/test/unit_test.hpp>
@@ -50,6 +50,59 @@ BOOST_AUTO_TEST_CASE(BloomFilter_storage_test)
     BloomFilterType inFilter;
 
     izene_deserialization_febird<BloomFilterType > idb(ptr, sz);
+    idb.read_image(inFilter);
+
+    for(unsigned i =0; i < 100; ++i)
+    {
+        std::string key(Int2String(i).x);
+        BOOST_CHECK(bloomfiler.Get(key)); 
+    }
+    for(unsigned i =101; i < 200; ++i)
+    {
+        std::string key(Int2String(i).x);
+        BOOST_CHECK(!bloomfiler.Get(key)); 
+    }
+}
+
+BOOST_AUTO_TEST_CASE(DynamicBloomFilter_test)
+{
+    DynamicBloomFilter<std::string> bloomfiler(10000,0.01,10);
+    for(unsigned i =0; i < 100; ++i)
+    {
+        std::string key(Int2String(i).x);
+        bloomfiler.Insert(key); 
+    }
+    for(unsigned i =0; i < 100; ++i)
+    {
+        std::string key(Int2String(i).x);
+        BOOST_CHECK(bloomfiler.Get(key)); 
+    }
+    for(unsigned i =101; i < 200; ++i)
+    {
+        std::string key(Int2String(i).x);
+        BOOST_CHECK(!bloomfiler.Get(key)); 
+    }
+}
+
+typedef DynamicBloomFilter<std::string> DynamicBloomFilterType;
+MAKE_FEBIRD_SERIALIZATION(DynamicBloomFilterType )
+
+BOOST_AUTO_TEST_CASE(DynamicBloomFilter_storage_test)
+{
+    DynamicBloomFilterType bloomfiler(10000,0.01,10);
+    for(unsigned i =0; i < 100; ++i)
+    {
+        std::string key(Int2String(i).x);
+        bloomfiler.Insert(key); 
+    }
+
+    izene_serialization_febird<DynamicBloomFilterType > isb(bloomfiler);
+    char* ptr;
+    size_t sz;
+    isb.write_image(ptr, sz);
+    DynamicBloomFilterType inFilter;
+
+    izene_deserialization_febird<DynamicBloomFilterType > idb(ptr, sz);
     idb.read_image(inFilter);
 
     for(unsigned i =0; i < 100; ++i)

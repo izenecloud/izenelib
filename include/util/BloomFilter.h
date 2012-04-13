@@ -13,7 +13,7 @@ namespace izenelib { namespace util {
 /**
  * Standard BloomFilter
  */
-template <typename KeyType, typename HashID = uint32_t>
+template <typename KeyType, typename HashType = uint32_t>
 class BloomFilter
 {
     enum{CHARBIT = 8};
@@ -144,7 +144,7 @@ private:
     DISALLOW_COPY_AND_ASSIGN(BloomFilter);	
 
 protected:
-    HashIDTraits<KeyType,HashID> hasher_;
+    HashIDTraits<KeyType,HashType> hasher_;
     size_t items_estimate_;
     float false_positive_prob_;
     size_t num_hash_functions_;
