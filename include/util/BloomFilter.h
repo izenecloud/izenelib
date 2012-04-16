@@ -95,9 +95,10 @@ public:
 
     void Insert(const KeyType& key)
     {
+        uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
         {
-            uint32_t hash = hasher_(key) % num_bits_;
+            hash = hasher_(key,hash) % num_bits_;
             bloom_bits_[hash / CHARBIT] |= (1 << (hash % CHARBIT));
         }
     }
@@ -106,9 +107,10 @@ public:
     {
         uint8_t byte_mask;
         uint8_t byte;
+        uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
         {
-            uint32_t hash = hasher_(key) % num_bits_;
+            hash = hasher_(key,hash) % num_bits_;
             byte = bloom_bits_[hash / CHARBIT];
             byte_mask = (1 << (hash % CHARBIT));
 
