@@ -49,6 +49,9 @@ public:
 
     void UniqueKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
     void DuplicateKeyAppend(key_t const&, value_t const&, aux_t const&) const {}
+
+    void UniqueKeyExpel(key_t const&, value_t const&, aux_t const&) const {}
+    void DuplicateKeyExpel(key_t const&, value_t const&, aux_t const&) const {}
 };
 
 DRUM_END_NAMESPACE
