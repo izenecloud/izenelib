@@ -183,7 +183,7 @@ protected:
     bool mergeResults_(
         const std::string& func,
         worker_future_list_t& futureList,
-        const Out* localOut,
+        WorkerResults<Out>& workerResults,
         Out& totalOut);
 
 protected:
@@ -343,16 +343,19 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
         futureList.push_back(worker_future_pair_t(workerid, future));
     }
 
+    WorkerResults<Out> workerResults;
     if (pLocalIn && hasLocalWorker_)
     {
         if (debug_)
             std::cout << "#[Aggregator] call local worker" << localWorkerId_ << endl;
 
-        if (!localWorkerProxy_->call(func, *pLocalIn, *pLocalOut))
-            pLocalOut = NULL;
+        if (localWorkerProxy_->call(func, *pLocalIn, *pLocalOut))
+        {
+            workerResults.add(localWorkerId_, *pLocalOut);
+        }
     }
 
-    return mergeResults_(func, futureList, pLocalOut, out);
+    return mergeResults_(func, futureList, workerResults, out);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -472,17 +475,21 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
         futureList.push_back(worker_future_pair_t(workerid, future));
     }
 
-    const typename AggregatorParamT::out_type* localOut = NULL;
+    typedef typename AggregatorParamT::out_type Out;
+    WorkerResults<Out> workerResults;
     if (hasLocalWorker_)
     {
         if (debug_)
             std::cout << "#[Aggregator] call local worker" << localWorkerId_ << endl;
 
-        if (param.getLocalResult())
-            localOut = &param.out_;
+        Out localOut(param.out_);
+        if (param.getLocalResult(localOut))
+        {
+            workerResults.add(localWorkerId_, localOut);
+        }
     }
 
-    return mergeResults_(param.funcName_, futureList, localOut, param.out_);
+    return mergeResults_(param.funcName_, futureList, workerResults, param.out_);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -502,7 +509,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::singleRequestImpl_(
     if (workerid == localWorkerId_)
     {
         if (hasLocalWorker_)
-            return param.getLocalResult();
+            return param.getLocalResult(param.out_);
 
         std::cerr << "#[Aggregator] Error: local worker was required but not enabled." << std::endl;
         return false;
@@ -536,13 +543,9 @@ template <typename Out>
 bool Aggregator<MergerProxy, LocalWorkerProxy>::mergeResults_(
     const std::string& func,
     worker_future_list_t& futureList,
-    const Out* localOut,
+    WorkerResults<Out>& workerResults,
     Out& totalOut)
 {
-    WorkerResults<Out> workerResults;
-    if (NULL != localOut)
-        workerResults.add(localWorkerId_, *localOut);
-
     for (worker_future_list_t::iterator it = futureList.begin();
         it != futureList.end(); ++it)
     {
