@@ -2,7 +2,7 @@
  * @file Typedef.h
  * @author Zhongxia Li
  * @date Jun 24, 2011
- * @brief 
+ * @brief
  */
 #ifndef IZENELIB_NET_AGGREGATOR_TYPEDEF_H_
 #define IZENELIB_NET_AGGREGATOR_TYPEDEF_H_
@@ -61,10 +61,7 @@ public:
 
     bool check()
     {
-        if (requestList_.size() > 0)
-            return true;
-
-        return false;
+        return !requestList_.empty();
     }
 };
 

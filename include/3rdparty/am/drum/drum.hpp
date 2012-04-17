@@ -110,6 +110,8 @@ public:
     template <class T1, class T2, class T3>
     bool Expel(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right) const
     {
+        if (left.empty()) return false;
+
         std::size_t old_size = left.size();
         left.erase(right.begin(), right.end());
 
@@ -119,6 +121,8 @@ public:
     template <class T1, class T2, class T3, class T4>
     bool Expel(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right) const
     {
+        if (left.empty()) return false;
+
         std::size_t old_size = left.size();
         for (typename std::map<T1, T2, T3, T4>::const_iterator it = right.begin();
                 it != right.end(); ++it)
