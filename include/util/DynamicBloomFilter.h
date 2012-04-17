@@ -88,7 +88,8 @@ public:
         dio & num_bfs;
         for(unsigned i = 0; i < num_bfs; ++i)
         {
-            DynamicBloomFilter::StandardBloomFilterType* bloomfilter = new DynamicBloomFilter::StandardBloomFilterType;
+            typename DynamicBloomFilter::StandardBloomFilterType* bloomfilter 
+                = new typename DynamicBloomFilter::StandardBloomFilterType;
             dio & *bloomfilter;
             x.bloom_filters_.push_back(bloomfilter);
         }
