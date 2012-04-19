@@ -42,6 +42,11 @@ public:
      */
     static bool copy(const std::string& src, const std::string& dest, bool isRecursively=false, bool isOverwrite=false);
 
+    /**
+     * A simple way to move (copy) file or dir
+     */
+    static bool rename(const std::string& src, const std::string& dest);
+
 private:
     /**
      * Recursively sent dir

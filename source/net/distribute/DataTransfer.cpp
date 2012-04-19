@@ -132,6 +132,22 @@ DataTransfer::copy(const std::string& src, const std::string& dest, bool isRecur
     return true;
 }
 
+/*static*/
+bool DataTransfer::rename(const std::string& src, const std::string& dest)
+{
+    try
+    {
+        bfs::rename(src, dest);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 /// private ////////////////////////////////////////////////////////////////////
 int
 DataTransfer::syncSendDirRecur(const std::string& curDir, const std::string& parentDir)
