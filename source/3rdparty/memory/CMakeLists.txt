@@ -1,4 +1,3 @@
 ADD_SUBDIRECTORY(nvwa)
 ADD_SUBDIRECTORY(jemalloc)
 ADD_SUBDIRECTORY(lockless)
-ADD_SUBDIRECTORY(jemalloc_linux)
