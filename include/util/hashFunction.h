@@ -558,42 +558,42 @@ template <typename KeyType, typename HashType> struct HashIDTraits;
 template<typename KeyType>
 struct HashIDTraits<KeyType, uint32_t>
 {
-    uint32_t operator()(const KeyType& key) const {
+    uint32_t operator()(const KeyType& key, uint32_t seed = 0) const {
         using namespace izenelib::am::util;
         char* ptr = 0;
         size_t ksize;
         izene_serialization<KeyType> izs(key);
         izs.write_image(ptr, ksize);
 
-        return MurmurHash2(ptr,ksize,0);
+        return MurmurHash2(ptr,ksize,seed);
     }
 };
 
 template<typename KeyType>
 struct HashIDTraits<KeyType, uint64_t>
 {
-    uint64_t operator()(const KeyType& key) const {
+    uint64_t operator()(const KeyType& key, uint64_t seed = 0) const {
         using namespace izenelib::am::util;
         char* ptr = 0;
         size_t ksize;
         izene_serialization<KeyType> izs(key);
         izs.write_image(ptr, ksize);
 
-        return MurmurHash64A(ptr,ksize,0);
+        return MurmurHash64A(ptr,ksize,seed);
     }
 };
 
 template<typename KeyType>
 struct HashIDTraits<KeyType, uint128_t>
 {
-    uint128_t operator()(const KeyType& key) const {
+    uint128_t operator()(const KeyType& key, uint32_t seed = 0) const {
         using namespace izenelib::am::util;
         char* ptr = 0;
         size_t ksize;
         izene_serialization<KeyType> izs(key);
         izs.write_image(ptr, ksize);
 
-        return MurmurHash3_x64_128(ptr,ksize,0);
+        return MurmurHash3_x64_128(ptr,ksize,seed);
     }
 };
 

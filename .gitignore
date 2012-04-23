@@ -14,6 +14,8 @@ dump.*
 !dump.cpp
 *.log
 *.gz
+*.out
+cscope.files
 /cmake
 /testbin/*
 !/testbin/r_IndexStats.config

@@ -58,17 +58,17 @@ DRUM_BEGIN_NAMESPACE
  * - Check the documentation that comes with the source for an overview.
  */
 
-class DefaultAppender
+class DefaultMerger
 {
 public:
     template <class T>
-    bool operator()(T& left, const T& right) const
+    bool Append(T& left, const T& right) const
     {
         return false;
     }
 
     template <class T1, class T2>
-    bool operator()(std::basic_string<T1, T2>& left, const std::basic_string<T1, T2>& right) const
+    bool Append(std::basic_string<T1, T2>& left, const std::basic_string<T1, T2>& right) const
     {
         left.append(right);
 
@@ -76,7 +76,7 @@ public:
     }
 
     template <class T1, class T2>
-    bool operator()(std::vector<T1, T2>& left, const std::vector<T1, T2>& right) const
+    bool Append(std::vector<T1, T2>& left, const std::vector<T1, T2>& right) const
     {
         left.insert(left.end(), right.begin(), right.end());
 
@@ -84,7 +84,7 @@ public:
     }
 
     template <class T1, class T2, class T3>
-    bool operator()(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right) const
+    bool Append(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right) const
     {
         std::size_t old_size = left.size();
         left.insert(right.begin(), right.end());
@@ -93,12 +93,44 @@ public:
     }
 
     template <class T1, class T2, class T3, class T4>
-    bool operator()(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right) const
+    bool Append(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right) const
     {
         std::size_t old_size = left.size();
         left.insert(right.begin(), right.end());
 
         return left.size() > old_size;
+    }
+
+    template <class T>
+    bool Expel(T& left, const T& right) const
+    {
+        return false;
+    }
+
+    template <class T1, class T2, class T3>
+    bool Expel(std::set<T1, T2, T3>& left, const std::set<T1, T2, T3>& right) const
+    {
+        if (left.empty()) return false;
+
+        std::size_t old_size = left.size();
+        left.erase(right.begin(), right.end());
+
+        return left.size() < old_size;
+    }
+
+    template <class T1, class T2, class T3, class T4>
+    bool Expel(std::map<T1, T2, T3, T4>& left, const std::map<T1, T2, T3, T4>& right) const
+    {
+        if (left.empty()) return false;
+
+        std::size_t old_size = left.size();
+        for (typename std::map<T1, T2, T3, T4>::const_iterator it = right.begin();
+                it != right.end(); ++it)
+        {
+            left.erase(it->first);
+        }
+
+        return left.size() < old_size;
     }
 };
 
@@ -108,7 +140,7 @@ template<class key_t,
          template <class> class key_comp_t,
          template <class, class, class> class ordered_db_t,
          template <class, class, class> class dispatcher_t = NullDispatcher,
-         class appender_t = DefaultAppender>
+         class merger_t = DefaultMerger>
 class Drum : public boost::noncopyable
 {
 public:
@@ -118,7 +150,7 @@ public:
     typedef key_comp_t<key_t> KeyCompType;
     typedef ordered_db_t<key_t, value_t, key_comp_t<key_t> > DbType;
     typedef dispatcher_t<key_t, value_t, aux_t> DispatcherType;
-    typedef appender_t AppenderType;
+    typedef merger_t MergerType;
 
 private:
     typedef boost::tuple<key_t,
@@ -191,7 +223,7 @@ public:
          std::size_t bucket_buff_elem_size,
          std::size_t bucket_byte_size,
          DispatcherType const& dispatcher = DispatcherType(),
-         AppenderType const& appender = AppenderType()
+         MergerType const& merger = MergerType()
     );
     ~Drum(); //Not intended to be inherited.
 
@@ -208,6 +240,8 @@ public:
     void CheckDelete(key_t const&, aux_t const&);
     void Append(key_t const&, value_t const&);
     void Append(key_t const&, value_t const&, aux_t const&);
+    void Expel(key_t const&, value_t const&);
+    void Expel(key_t const&, value_t const&, aux_t const&);
 
     void Synchronize(); //Force synchronization (merge).
     void Dispose(); //Done with Drum.
@@ -221,7 +255,7 @@ private:
     DbType db_; //Disk repository.
     bool db_closed_;
     DispatcherType const& dispatcher_;
-    AppenderType const& appender_;
+    MergerType const& merger_;
 
     //According to Effective C++ it's not necessary to provide definitions for such integral constant
     //variables as long as their addresses are not taken.
@@ -231,6 +265,7 @@ private:
     static const char DELETE = 3;
     static const char CHECK_DELETE = 4;
     static const char APPEND = 5;
+    static const char EXPEL = 6;
 
     static const char UNIQUE_KEY = 100;
     static const char DUPLICATE_KEY = 101;
@@ -261,7 +296,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 Drum<
     key_t,
     value_t,
@@ -269,20 +304,20 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Drum(std::string const& name,
      std::size_t num_buckets,
      std::size_t bucket_buff_elem_size,
      std::size_t bucket_byte_size,
      DispatcherType const& dispatcher,
-     AppenderType const& appender
+     MergerType const& merger
 )
     : merge_buckets_(false)
     , feed_buckets_(false)
     , drum_name_(name)
     , db_closed_(false)
     , dispatcher_(dispatcher)
-    , appender_(appender)
+    , merger_(merger)
     , num_buckets_(num_buckets)
     , bucket_buff_elem_size_(bucket_buff_elem_size)
     , bucket_byte_size_(bucket_byte_size)
@@ -308,7 +343,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 Drum<
     key_t,
     value_t,
@@ -316,7 +351,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ~Drum()
 {
     try
@@ -338,7 +373,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -347,7 +382,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 SetUp()
 {
     this->AssignFileNames();
@@ -362,7 +397,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -371,7 +406,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 AssignFileNames()
 {
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
@@ -395,7 +430,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -404,7 +439,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CreateRepository()
 {
     if (!db_.open(drum_name_ + "/ordered_db"))
@@ -418,7 +453,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -427,7 +462,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Dispose()
 {
     db_.close();
@@ -441,7 +476,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -450,7 +485,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Init()
 {
     this->ResetFilePointers();
@@ -464,7 +499,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -473,7 +508,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ResetFilePointers()
 {
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)
@@ -487,7 +522,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -496,7 +531,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ResetNextBufferPositions()
 {
     //Boost array's size() method cannot be used for the number of *valid* elements since it's
@@ -512,7 +547,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -521,7 +556,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ResetSynchronizationBuffers()
 {
     sorted_merge_buffer_.clear();
@@ -536,7 +571,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -545,7 +580,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 InitFile(std::string const& file_name)
 {
     // Create empty file if not existed yet
@@ -575,7 +610,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -584,7 +619,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 OpenFile(std::string const& file_name, std::fstream & file)
 {
     file.open(file_name.c_str(), std::ios_base::out | std::ios_base::in | std::ios_base::binary);
@@ -598,7 +633,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -607,7 +642,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CloseFile(std::fstream & file)
 {
     if (file.is_open()) file.close();
@@ -621,7 +656,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 std::pair<std::size_t, std::size_t>
 Drum<
     key_t,
@@ -630,7 +665,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 GetBucketAndBufferPos(key_t const& key)
 {
     std::size_t bucket_id = std::min(num_buckets_ - 1, BucketIdentifier<KeyType>::Calculate(key, num_bucket_bits_));
@@ -650,7 +685,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 std::pair<std::size_t, std::size_t>
 Drum<
     key_t,
@@ -659,7 +694,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Add(key_t const& key, char op)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->GetBucketAndBufferPos(key);
@@ -676,7 +711,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 std::pair<std::size_t, std::size_t>
 Drum<
     key_t,
@@ -685,7 +720,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Add(key_t const& key, value_t const& value, char op)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->GetBucketAndBufferPos(key);
@@ -702,7 +737,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -711,7 +746,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Make(CompoundType & element, key_t const& key, char op) const
 {
     element.template get<0>() = key;
@@ -725,7 +760,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -734,7 +769,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Make(CompoundType & element, key_t const& key, value_t const& value, char op) const
 {
     this->Make(element, key, op);
@@ -748,7 +783,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -757,7 +792,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Make(CompoundType & element,
         key_t const& key,
         value_t const& value,
@@ -775,7 +810,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -784,7 +819,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckTimeToFeed()
 {
     if (feed_buckets_) this->FeedBuckets();
@@ -799,7 +834,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -808,7 +843,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckTimeToMerge()
 {
     if (merge_buckets_) this->MergeBuckets();
@@ -821,7 +856,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -830,7 +865,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 FeedBuckets()
 {
     std::cout << "start FeedBuckets (" << num_buckets_ << ")" << std::endl;
@@ -851,7 +886,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -860,7 +895,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 FeedBucket(std::size_t bucket_id)
 {
     //Positions in each aux buffer is controlled by position in the corresponding info buffer.
@@ -954,7 +989,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -963,7 +998,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 MergeBuckets()
 {
     std::cout << "start MergeBuckets (" << num_buckets_ << ") " << std::endl;
@@ -993,7 +1028,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1002,7 +1037,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ReadInfoBucketIntoMergeBuffer(std::size_t bucket_id)
 {
     std::fstream kv_file;
@@ -1057,7 +1092,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1066,7 +1101,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 SortMergeBuffer()
 {
     std::sort(sorted_merge_buffer_.begin(), sorted_merge_buffer_.end(), KeyCompare());
@@ -1079,7 +1114,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1088,15 +1123,15 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 SynchronizeWithDisk()
 {
     //Fast Berkeley DB queries are expected due to the locality of the keys in the bucket (and
     //consequently in the merge buffer).
 
-    KeyType append_key;
-    ValueType append_value;
-    bool append_dirty = false;
+    KeyType merge_key;
+    ValueType merge_value;
+    bool merge_dirty = false;
 
     for (typename std::vector<CompoundType>::size_type i = 0; i < sorted_merge_buffer_.size(); ++i)
     {
@@ -1105,7 +1140,7 @@ SynchronizeWithDisk()
         KeyType const& key = element.template get<0>();
 
         char op = element.template get<2>();
-        assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE || op == APPEND) && "Impossible operation.");
+//      assert((op == CHECK || op == UPDATE || op == CHECK_UPDATE || op == DELETE || op == CHECK_DELETE || op == APPEND || op == EXPEL) && "Impossible operation.");
 
         if (CHECK == op || CHECK_UPDATE == op || CHECK_DELETE == op)
         {
@@ -1149,31 +1184,68 @@ SynchronizeWithDisk()
 
             if (i == 0)
             {
-                append_key = key;
+                merge_key = key;
 
                 boost::lock_guard<boost::mutex> lock(mutex_);
-                db_.get(append_key, append_value);
+                db_.get(merge_key, merge_value);
             }
-            else if (append_key != key)
+            else if (merge_key != key)
             {
-                if (append_dirty)
+                if (merge_dirty)
                 {
-                    append_dirty = false;
+                    merge_dirty = false;
                     boost::lock_guard<boost::mutex> lock(mutex_);
-                    if (!db_.update(append_key, append_value))
+                    if (!db_.update(merge_key, merge_value))
                         throw DrumException("Error merging with repository.");
                 }
 
-                append_key = key;
-                append_value = ValueType();
+                merge_key = key;
+                merge_value = ValueType();
 
                 boost::lock_guard<boost::mutex> lock(mutex_);
-                db_.get(append_key, append_value);
+                db_.get(merge_key, merge_value);
             }
 
-            if (appender_(append_value, value))
+            if (merger_.Append(merge_value, value))
             {
-                append_dirty = true;
+                merge_dirty = true;
+                element.template get<4>() = UNIQUE_KEY;
+            }
+            else
+                element.template get<4>() = DUPLICATE_KEY;
+        }
+
+        if (EXPEL == op)
+        {
+            ValueType const& value = element.template get<1>();
+
+            if (i == 0)
+            {
+                merge_key = key;
+
+                boost::lock_guard<boost::mutex> lock(mutex_);
+                db_.get(merge_key, merge_value);
+            }
+            else if (merge_key != key)
+            {
+                if (merge_dirty)
+                {
+                    merge_dirty = false;
+                    boost::lock_guard<boost::mutex> lock(mutex_);
+                    if (!db_.update(merge_key, merge_value))
+                        throw DrumException("Error merging with repository.");
+                }
+
+                merge_key = key;
+                merge_value = ValueType();
+
+                boost::lock_guard<boost::mutex> lock(mutex_);
+                db_.get(merge_key, merge_value);
+            }
+
+            if (merger_.Expel(merge_value, value))
+            {
+                merge_dirty = true;
                 element.template get<4>() = UNIQUE_KEY;
             }
             else
@@ -1181,10 +1253,10 @@ SynchronizeWithDisk()
         }
     }
 
-    if (append_dirty)
+    if (merge_dirty)
     {
         boost::lock_guard<boost::mutex> lock(mutex_);
-        if (!db_.update(append_key, append_value))
+        if (!db_.update(merge_key, merge_value))
             throw DrumException("Error merging with repository.");
     }
 
@@ -1200,7 +1272,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1209,7 +1281,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 UnsortMergeBuffer()
 {
     //When elements were read into the merge buffer their original positions were stored.
@@ -1233,7 +1305,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1242,7 +1314,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ReadAuxBucketForDispatching(std::size_t bucket_id)
 {
     std::fstream aux_file;
@@ -1272,7 +1344,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1281,7 +1353,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Dispatch()
 {
     std::size_t total = static_cast<std::size_t>(unsorting_helper_.size());
@@ -1334,6 +1406,13 @@ Dispatch()
                     dispatcher_.DuplicateKeyAppend(key, value, aux);
                 break;
 
+            case EXPEL:
+                if (UNIQUE_KEY == result)
+                    dispatcher_.UniqueKeyExpel(key, value, aux);
+                else if (DUPLICATE_KEY == result)
+                    dispatcher_.DuplicateKeyExpel(key, value, aux);
+                break;
+
             default:
                 assert("Invalid combination of operation and result.");
                 break;
@@ -1348,7 +1427,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1357,7 +1436,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Check(key_t const& key)
 {
     this->Check(key, aux_t());
@@ -1370,7 +1449,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1379,7 +1458,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Check(key_t const& key, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, CHECK);
@@ -1395,7 +1474,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1404,7 +1483,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Update(key_t const& key, value_t const& value)
 {
     Update(key, value, aux_t());
@@ -1417,7 +1496,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1426,7 +1505,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Update(key_t const& key, value_t const& value, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, UPDATE);
@@ -1441,7 +1520,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1450,7 +1529,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckUpdate(key_t const& key, value_t const& value)
 {
     CheckUpdate(key, value, aux_t());
@@ -1463,7 +1542,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1472,7 +1551,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckUpdate(key_t const& key, value_t const& value, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, CHECK_UPDATE);
@@ -1487,7 +1566,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1496,7 +1575,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Delete(key_t const& key)
 {
     Delete(key, aux_t());
@@ -1509,7 +1588,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1518,7 +1597,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Delete(key_t const& key, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, DELETE);
@@ -1533,7 +1612,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1542,7 +1621,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckDelete(key_t const& key)
 {
     CheckDelete(key, aux_t());
@@ -1555,7 +1634,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1564,7 +1643,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CheckDelete(key_t const& key, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, CHECK_DELETE);
@@ -1579,7 +1658,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1588,7 +1667,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Append(key_t const& key, value_t const& value)
 {
     Append(key, value, aux_t());
@@ -1601,7 +1680,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1610,7 +1689,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 Append(key_t const& key, value_t const& value, aux_t const& aux)
 {
     std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, APPEND);
@@ -1625,7 +1704,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1634,7 +1713,53 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
+Expel(key_t const& key, value_t const& value)
+{
+    Expel(key, value, aux_t());
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t,
+    class merger_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t,
+    merger_t>::
+Expel(key_t const& key, value_t const& value, aux_t const& aux)
+{
+    std::pair<std::size_t, std::size_t> bucket_pos = this->Add(key, value, EXPEL);
+    aux_buffers_[bucket_pos.first][bucket_pos.second] = aux;
+    this->CheckTimeToFeed();
+}
+
+template <
+    class key_t,
+    class value_t,
+    class aux_t,
+    template <class> class key_comp_t,
+    template <class, class, class> class ordered_db_t,
+    template <class, class, class> class dispatcher_t,
+    class merger_t>
+void
+Drum<
+    key_t,
+    value_t,
+    aux_t,
+    key_comp_t,
+    ordered_db_t,
+    dispatcher_t,
+    merger_t>::
 Synchronize()
 {
     this->FeedBuckets();
@@ -1650,7 +1775,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 bool
 Drum<
     key_t,
@@ -1659,7 +1784,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 GetValue(key_t const& key, value_t & value)
 {
     bool ret;
@@ -1678,7 +1803,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1687,7 +1812,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 CaptureBufferSpace()
 {
     kv_buffers_.resize(num_buckets_);
@@ -1711,7 +1836,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1720,7 +1845,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 ReleaseBufferSpace()
 {
     CompoundBucketBufferContainer().swap(kv_buffers_);
@@ -1738,7 +1863,7 @@ template <
     template <class> class key_comp_t,
     template <class, class, class> class ordered_db_t,
     template <class, class, class> class dispatcher_t,
-    class appender_t>
+    class merger_t>
 void
 Drum<
     key_t,
@@ -1747,7 +1872,7 @@ Drum<
     key_comp_t,
     ordered_db_t,
     dispatcher_t,
-    appender_t>::
+    merger_t>::
 TruncateBuckets()
 {
     for (std::size_t bucket_id = 0; bucket_id < num_buckets_; ++bucket_id)

@@ -1,25 +1,25 @@
-MACRO_CHECK_SHOULD_BUILD(jemalloc2)
+MACRO_CHECK_SHOULD_BUILD(jemalloc)
 
-IF(jemalloc2_SHOULD_BUILD)
+IF(jemalloc_SHOULD_BUILD)
 
-  SET(jemalloc2_DEFINITIONS "-std=gnu99 -Wall -pipe -g3 -fvisibility=hidden -O3 -funroll-loops -fPIC -DPIC -c -D_GNU_SOURCE -D_REENTRANT")
-  ADD_DEFINITIONS("${jemalloc2_DEFINITIONS}")
-  MESSAGE(STATUS "jemalloc2_DEFINITIONS=${jemalloc2_DEFINITIONS}")
+  SET(jemalloc_DEFINITIONS "-std=gnu99 -Wall -pipe -g3 -fvisibility=hidden -O3 -funroll-loops -fPIC -DPIC -c -D_GNU_SOURCE -D_REENTRANT")
+  ADD_DEFINITIONS("${jemalloc_DEFINITIONS}")
+  MESSAGE(STATUS "jemalloc_DEFINITIONS=${jemalloc_DEFINITIONS}")
 
   INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
   FILE(GLOB
-    jemalloc2_SRC
+    jemalloc_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "src/*.c"
     )
 
-  LIST(REMOVE_ITEM jemalloc2_SRC "src/zone.c")
+  LIST(REMOVE_ITEM jemalloc_SRC "src/zone.c")
 
-  MACRO_ADD_LIBRARY(jemalloc2 SRCS ${jemalloc2_SRC})
+  MACRO_ADD_LIBRARY(jemalloc SRCS ${jemalloc_SRC})
 
-  TARGET_LINK_LIBRARIES(jemalloc2 pthread)
-ENDIF(jemalloc2_SHOULD_BUILD)
+  TARGET_LINK_LIBRARIES(jemalloc pthread)
+ENDIF(jemalloc_SHOULD_BUILD)

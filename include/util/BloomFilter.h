@@ -35,7 +35,7 @@ public:
         {
             throw std::runtime_error("Empty bloom filter");
         }
-        num_bytes_ = (num_bits_ / CHARBIT) + (num_bits_ % CHARBIT ? 1 : 0);
+        num_bytes_ = (num_bits_ - 1) / CHARBIT + 1;
         bloom_bits_ = new uint8_t[num_bytes_];
 
         memset(bloom_bits_, 0, num_bytes_);
@@ -56,7 +56,7 @@ public:
         {
             throw std::runtime_error("Empty bloom filter");
         }
-        num_bytes_ = (num_bits_ / CHARBIT) + (num_bits_ % CHARBIT ? 1 : 0);
+        num_bytes_ = (num_bits_ - 1) / CHARBIT + 1;
         bloom_bits_ = new uint8_t[num_bytes_];
 
         memset(bloom_bits_, 0, num_bytes_);
@@ -77,7 +77,7 @@ public:
         {
             throw std::runtime_error("Empty bloom filter");
         }
-        num_bytes_ = (num_bits_ / CHARBIT) + (num_bits_ % CHARBIT ? 1 : 0);
+        num_bytes_ = (num_bits_ - 1) / CHARBIT + 1;
         bloom_bits_ = new uint8_t[num_bytes_];
 
         memset(bloom_bits_, 0, num_bytes_);
@@ -95,9 +95,10 @@ public:
 
     void Insert(const KeyType& key)
     {
+        uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
         {
-            uint32_t hash = hasher_(key) % num_bits_;
+            hash = hasher_(key,hash) % num_bits_;
             bloom_bits_[hash / CHARBIT] |= (1 << (hash % CHARBIT));
         }
     }
@@ -106,9 +107,10 @@ public:
     {
         uint8_t byte_mask;
         uint8_t byte;
+        uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
         {
-            uint32_t hash = hasher_(key) % num_bits_;
+            hash = hasher_(key,hash) % num_bits_;
             byte = bloom_bits_[hash / CHARBIT];
             byte_mask = (1 << (hash % CHARBIT));
 
@@ -131,7 +133,7 @@ public:
         x.bloom_bits_ = new uint8_t[x.num_bytes_];
         dio.ensureRead(x.bloom_bits_, sizeof(uint8_t)*x.num_bytes_);
     }
- 
+
     template<class DataIO> friend
     void DataIO_saveObject(DataIO& dio, const BloomFilter& x)
     {
@@ -148,7 +150,7 @@ public:
         return num_bytes_;
     }
 private:
-    DISALLOW_COPY_AND_ASSIGN(BloomFilter);	
+    DISALLOW_COPY_AND_ASSIGN(BloomFilter);
 
     HashIDTraits<KeyType,HashType> hasher_;
     size_t items_estimate_;
