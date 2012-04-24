@@ -42,9 +42,9 @@ struct AggregatorParam<LocalWorkerProxy, Out>
     {
     }
 
-    bool getLocalResult()
+    bool getLocalResult(Out& localResult)
     {
-        return localWorkerProxy_->call(funcName_, out_);
+        return localWorkerProxy_->call(funcName_, localResult);
     }
 
     future_t getFuture(session_t& session)
@@ -79,9 +79,9 @@ struct AggregatorParam<LocalWorkerProxy, Out, In1>
     {
     }
 
-    bool getLocalResult()
+    bool getLocalResult(Out& localResult)
     {
-        return localWorkerProxy_->call(funcName_, in1_, out_);
+        return localWorkerProxy_->call(funcName_, in1_, localResult);
     }
 
     future_t getFuture(session_t& session)
@@ -120,9 +120,9 @@ struct AggregatorParam<LocalWorkerProxy, Out, In1, In2>
     {
     }
 
-    bool getLocalResult()
+    bool getLocalResult(Out& localResult)
     {
-        return localWorkerProxy_->call(funcName_, in1_, in2_, out_);
+        return localWorkerProxy_->call(funcName_, in1_, in2_, localResult);
     }
 
     future_t getFuture(session_t& session)
