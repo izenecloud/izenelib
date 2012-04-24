@@ -110,6 +110,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<info<<": "<<endl;
     unsigned int * compresseddata = new unsigned int[data_size];
     unsigned int * decompresseddata = new unsigned int[data_size * 2];
+    memset(compresseddata,0,data_size*sizeof(unsigned));
 
     init_small_and_sorted_data(data_size);
     izenelib::util::ClockTimer timer_small;
@@ -127,6 +128,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     delete[] int_data;
 
     init_large_and_sorted_data(data_size);
+    memset(compresseddata,0,data_size*sizeof(unsigned));
     izenelib::util::ClockTimer timer_large;
     compressNum = compressor.compress(int_data, compresseddata, data_size);
     cout<<"Large_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
