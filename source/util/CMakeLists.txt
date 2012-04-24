@@ -84,6 +84,13 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/err_utils.cpp
     compression/int/int_utils.cpp
     compression/int/OPTPForDelta.cpp
+    compression/int/VSE-R.cpp
+    compression/int/BitsReader.cpp
+    compression/int/VSEncoding.cpp
+    compression/int/VSEncodingNaive.cpp
+    compression/int/decGamma.cpp
+    compression/int/decDelta.cpp
+    compression/int/decUnary.cpp
 
     compressed_vector/detail/Compressor.cpp
 
