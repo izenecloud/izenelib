@@ -20,7 +20,7 @@ using namespace izenelib::util::compression;
 using namespace std;
 
 static unsigned *int_data;
-const uint32_t data_size = 1024 * 128;
+const uint32_t data_size = 1024;
 
 
 void init_large_and_sorted_data(int data_size)
@@ -110,15 +110,15 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<info<<": "<<endl;
     unsigned int * compresseddata = new unsigned int[data_size];
     unsigned int * decompresseddata = new unsigned int[data_size * 2];
-    izenelib::util::ClockTimer timer;
 
     init_small_and_sorted_data(data_size);
+    izenelib::util::ClockTimer timer_small;
     int compressNum = compressor.compress(int_data, compresseddata, data_size);
-    cout<<"Small_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Small_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     int decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
     BOOST_CHECK_EQUAL(decompressNum, compressNum);
-    cout<<"Small_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Small_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
         if(int_data[i] != decompresseddata[i])
@@ -127,12 +127,13 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     delete[] int_data;
 
     init_large_and_sorted_data(data_size);
+    izenelib::util::ClockTimer timer_large;
     compressNum = compressor.compress(int_data, compresseddata, data_size);
-    cout<<"Large_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Large_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
     BOOST_CHECK_EQUAL(decompressNum, compressNum);
-    cout<<"Large_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Large_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
         if(int_data[i] != decompresseddata[i])
@@ -150,17 +151,17 @@ void test_compressor(Compressor<T>& compressor, std::string info){
 BOOST_AUTO_TEST_CASE(VSE_R_test)
 {
     cout<<"VSE_R: "<<endl;
-    uint32_t * compressed_data = new uint32_t[data_size*2];
+    uint32_t * compressed_data = new uint32_t[data_size];
     unsigned * decompressed_data = new uint32_t[data_size*2];
-    izenelib::util::ClockTimer timer;
     uint32_t nvalue;
 
     init_small_and_sorted_data(data_size);
+    izenelib::util::ClockTimer timer_small;
     VSE_R::encodeArray(int_data, data_size, compressed_data, nvalue);
-    cout<<"Small_sorted_data, compress, length: "<<nvalue<<", time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Small_sorted_data, compress, length: "<<nvalue<<", time elapsed: "<<timer_small.elapsed()<<endl;
     BOOST_CHECK(nvalue < data_size);
     VSE_R::decodeArray(compressed_data, nvalue, decompressed_data, data_size);
-    cout<<"Small_sorted_data, decompress, length: "<<nvalue<<", time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Small_sorted_data, decompress, length: "<<nvalue<<", time elapsed: "<<timer_small.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
        BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
        if(int_data[i] != decompressed_data[i])
@@ -169,11 +170,12 @@ BOOST_AUTO_TEST_CASE(VSE_R_test)
     delete[] int_data;
 
     init_large_and_sorted_data(data_size);
+    izenelib::util::ClockTimer timer_large;
     VSE_R::encodeArray(int_data, data_size, compressed_data, nvalue);
-    cout<<"Large_sorted_data, compress, length: "<<nvalue<<", time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Large_sorted_data, compress, length: "<<nvalue<<", time elapsed: "<<timer_large.elapsed()<<endl;
     BOOST_CHECK(nvalue < data_size);
     VSE_R::decodeArray(compressed_data, nvalue, decompressed_data, data_size);
-    cout<<"Large_sorted_data, decompress, length: "<<nvalue<<", time elapsed: "<<timer.elapsed()<<endl;
+    cout<<"Large_sorted_data, decompress, length: "<<nvalue<<", time elapsed: "<<timer_large.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
        BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
        if(int_data[i] != decompressed_data[i])
@@ -197,7 +199,7 @@ BOOST_AUTO_TEST_CASE(compressor)
     PForDeltaMix_Compressor pformix;
     test_compressor(pformix, "PForDeltaMix_Compressor");
     PForDeltaMixS16_Compressor pformix16;
-   // test_compressor(pformix16, "PForDeltaMixS16_Compressor");
+    test_compressor(pformix16, "PForDeltaMixS16_Compressor");
     PForDeltaMixS9_Compressor pformixs9;
     test_compressor(pformixs9, "PForDeltaMixS9_Compressor");
 }
