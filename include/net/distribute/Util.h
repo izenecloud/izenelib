@@ -18,18 +18,20 @@ class Util
 {
 public:
     /// @brief get local host ip
-    /// Support linux version currently
     static bool getLoalHostIp(std::string& localHostIp)
     {
         struct ifaddrs *ifaddr, *ifa;
         int family, s;
         char host[NI_MAXHOST];
 
-        if (getifaddrs(&ifaddr) == -1) {
+        if (getifaddrs(&ifaddr) == -1)
+        {
            return false;
         }
 
-        for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        bool ret = false;
+        for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+        {
             if (ifa->ifa_addr == NULL) {
                 continue;
             }
@@ -49,15 +51,24 @@ public:
 
                // support ipv4 currently, Fixme
                //printf("%s, %s\n", ifa->ifa_name, host);
-               if (family == AF_INET && (strncmp(ifa->ifa_name, "eth", 3) == 0)) // e.g. eth0
+               if (family == AF_INET)
                {
-                   localHostIp = host;
-                   return true;
+                   if ((strncmp(ifa->ifa_name, "eth1", 4) == 0))
+                   {
+                       localHostIp = host;
+                       ret = true;
+                       break; // Usually we use LAN address firstly (eth1)
+                   }
+                   else if ((strncmp(ifa->ifa_name, "eth0", 4) == 0))
+                   {
+                       localHostIp = host;
+                       ret = true;
+                   }
                }
            }
         }
 
-        return false;
+        return ret;
     }
 };
 
