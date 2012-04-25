@@ -15,6 +15,7 @@ IF(am_SHOULD_BUILD)
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "filemapper/*.cpp"
     "vsynonym/*.cpp"
+    "succinct/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(
