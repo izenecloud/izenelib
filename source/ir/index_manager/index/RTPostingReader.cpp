@@ -622,11 +622,15 @@ docid_t RTDiskPostingReader::DecodeTo(
         else
             nSkipPCount += pDPostingInput->readVInt();
     }
+	
     ///update state
     ds_.lastDecodedDocID = nDocID;
     ds_.lastDecodedDocTF = nFreq;
     ds_.decodedDocCount = nDecodedCount;
     ds_.skipPosCount_ += nSkipPCount;
+
+    if(pDocFilter_ && pDocFilter_->test((size_t)nDocID))
+        return -1;
 
     pPosting[0] = ( nDocID >= target )? nDocID : -1;
     pPosting[length>>1] = ds_.lastDecodedDocTF;
