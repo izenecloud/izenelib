@@ -25,6 +25,11 @@ enum IndexLevel
     WORDLEVEL ///  position postings create
 };
 
+enum SamplePolicy
+{
+    WITHSAMPLE,
+    NOSAMPLE
+};
 /**
  * @brief   IndexManagerConfig Holds the configuration data of IndexManager and provides interfaces for the IndexManager
  *          to retrieve the data.
@@ -62,6 +67,7 @@ private:
             ar & indexLevel_;
             ar & indexDocLength_;
             ar & skipInterval_;
+            ar & samplePolicy_;
             ar & maxSkipLevel_;
             ar & isIndexBTree_;
         }
@@ -91,6 +97,8 @@ private:
         bool indexDocLength_;
 
         int skipInterval_;
+
+        int samplePolicy_;
 
         int maxSkipLevel_;
 
@@ -134,13 +142,13 @@ private:
         bool isAsync_;
 
         /// when merging postings on disks(not SSD), if skiplist is enabled,
-        /// we need an extra storage space to store merged posting. 
-        /// in some cases, such an extra storage could not be file, because it will lead to 
+        /// we need an extra storage space to store merged posting.
+        /// in some cases, such an extra storage could not be file, because it will lead to
         /// low efficiency caused by too many random read, and it will be much more serious
         /// when there exist mutiple disks with huge capacity.
         bool requireIntermediateFileForMerging_;
 
-        /// Each posting merger requires a seperate mem pool, the size of which should 
+        /// Each posting merger requires a seperate mem pool, the size of which should
         /// be able to contain single posting. Default value is 16MB
         size_t memPoolSizeForPostingMerger_;
     };
@@ -245,4 +253,3 @@ private:
 NS_IZENELIB_IR_END
 
 #endif //_INDEX_MANAGER_CONFIG_H_
-
