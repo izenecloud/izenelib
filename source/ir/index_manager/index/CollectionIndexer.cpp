@@ -94,13 +94,13 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    doc.getPropertyList(propertyValueList);
+    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >& 
+        propertyValueList = doc.getPropertyList();
 
     doclen_t docLength[docLengthWidth_];
     memset(docLength, 0, docLengthWidth_*sizeof(doclen_t));
 
-    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter 
+    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator iter 
                             = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (!iter->first.isIndex())

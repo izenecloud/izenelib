@@ -185,17 +185,17 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    doc.getPropertyList(propertyValueList);
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldPropertyValueList;
-    oldDoc.getPropertyList(oldPropertyValueList);
-    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter
+    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >& 
+        propertyValueList = doc.getPropertyList();
+    std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldDocMap;
+    oldDoc.to_map(oldDocMap);
+    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator iter
                 = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (iter->first.isIndex() && iter->first.isFilter())
         {
             map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator it;
-            if( (it = oldPropertyValueList.find(iter->first)) != oldPropertyValueList.end() )
+            if( (it = oldDocMap.find(iter->first)) != oldDocMap.end() )
             {
                 if(it->first.isMultiValue())
                 {

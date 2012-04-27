@@ -19,10 +19,11 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-#include <boost/serialization/map.hpp> 
+#include <boost/serialization/vector.hpp> 
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <vector>
 #include <map>
 #include <list>
 
@@ -85,15 +86,9 @@ public:
     bool insertProperty(const IndexerPropertyConfig& config, T& property)
     {
         IndexerDocumentPropertyType p(property);
-        std::pair<std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator, bool> ret 
-			= propertyList_.insert(std::make_pair(config, p));
-        if(ret.second)
-        {
-            termIterator_ = ret.first;
-            return true;
-        }
-        else
-            return false;
+        propertyList_.push_back(std::make_pair(config, p));
+        termIterator_ = propertyList_.rbegin();
+        return true;
     }
 
     ///This interface is dedicated to the data with type of LAInput, because it can reduce
@@ -105,10 +100,21 @@ public:
         izenelib::util::boost_variant_visit(boost::bind(deque_visitor(), _1, unit), termIterator_->second);
     }
 
-    void getPropertyList(map<IndexerPropertyConfig, IndexerDocumentPropertyType>& propertyList)
+    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >& getPropertyList()
     {
-        propertyList = propertyList_;
+        return propertyList_;
     }
+
+    void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> docMap)
+    {
+        std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator
+            it = propertyList_.begin();
+        for(; it!= propertyList_.end(); ++it)
+        {
+            docMap[it->first] = it->second;
+        }
+    }
+
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version)
@@ -119,6 +125,14 @@ public:
     }
 
     bool empty() { return propertyList_.empty();}
+
+    void clear() 
+    {
+        id_ = 0;
+        docId_ = 0;
+        colId_ = 0;
+        propertyList_.clear();
+    }
 private:
 	friend class boost::serialization::access;
 	docid_t id_;
@@ -127,9 +141,9 @@ private:
 	
 	docid_t colId_;
 	
-	map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyList_;
+	std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> > propertyList_;
 
-	map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator termIterator_;
+	std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::reverse_iterator termIterator_;
 };	
 }
 
