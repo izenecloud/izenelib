@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
-
+    boost::filesystem::remove_all("idm1");
     boost::filesystem::create_directory("idm1/");
     IDManagerDebug32 idManager("idm1/");
     unsigned int i;
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
 
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
-
+    boost::filesystem::remove_all("idm2");
     boost::filesystem::create_directory("idm2/");
     IDManagerDebug32 idManager("idm2/");
 
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // remove previous index file
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
     // remove(CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
-
+    boost::filesystem::remove_all("idm4");
     boost::filesystem::create_directory("idm4/");
     IDManagerDebug32 idManager("idm4/");
 
@@ -194,13 +194,13 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
 BOOST_AUTO_TEST_CASE( TestCase5 )
 {
     cerr << "[ IDManager ] Test Case 5 : Bloom filter check for large amount of insertions .............";
-
+    boost::filesystem::remove_all("idm5");
     boost::filesystem::create_directory("idm5/");
     IDManager idManager("idm5/");
 
     izenelib::util::ClockTimer t;
     uint32_t id = 0, count = 0;
-    for (uint64_t i = 0; i < 50000000; i++)
+    for (uint64_t i = 0; i < 100; i++)
     {
         BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id) , false );
         if (++count % 100000 == 0)
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE( TestCase5 )
 
     count = 0;
     t.restart();
-    for (uint64_t i = 0; i < 50000000; i++)
+    for (uint64_t i = 0; i < 100; i++)
     {
         BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id , false) , true );
         if (++count % 100000 == 0)
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE( TestCase5 )
 
     count = 50000000;
     t.restart();
-    for (uint64_t i = 50000000; i < 100000000; i++)
+    for (uint64_t i = 100; i < 200; i++)
     {
         BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id) , false );
         if (++count % 100000 == 0)
