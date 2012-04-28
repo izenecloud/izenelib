@@ -72,8 +72,8 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-
-    IDManagerDebug32 idManager("idm1");
+    boost::filesystem::create_directory("idm1/");
+    IDManagerDebug32 idManager("idm1/");
     unsigned int i;
     UString compare;
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     idManager.flush();
     idManager.close();
 
-    clean("idm1");
+    clean("idm1/");
     cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase1 )
@@ -121,8 +121,8 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-
-    IDManagerDebug32 idManager("idm2");
+    boost::filesystem::create_directory("idm2/");
+    IDManagerDebug32 idManager("idm2/");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     idManager.flush();
     idManager.close();
 
-    clean("idm2");
+    clean("idm2/");
     cerr << "OK"<< endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase2 )
@@ -163,8 +163,8 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
     // remove(CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
-
-    IDManagerDebug32 idManager("idm4");
+    boost::filesystem::create_directory("idm4/");
+    IDManagerDebug32 idManager("idm4/");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -186,11 +186,55 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     idManager.flush();
     idManager.close();
 
-	// Clear data of this test case
-    clean("idm4");
+    // Clear data of this test case
+    clean("idm4/");
     cerr << "OK" << endl;
 } // end - BOOST_AUTO_TEST_CASE( TestCase4 )
 
+BOOST_AUTO_TEST_CASE( TestCase5 )
+{
+    cerr << "[ IDManager ] Test Case 5 : Bloom filter check for large amount of insertions .............";
+
+    boost::filesystem::create_directory("idm5/");
+    IDManager idManager("idm5/");
+
+    izenelib::util::ClockTimer t;
+    uint32_t id = 0, count = 0;
+    for (uint64_t i = 0; i < 50000000; i++)
+    {
+        BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id) , false );
+        if (++count % 100000 == 0)
+            cerr << "DOCIDs inserted " << count << endl;
+    }
+    cout << "time elapsed for inserting " << t.elapsed() << endl;
+
+    count = 0;
+    t.restart();
+    for (uint64_t i = 0; i < 50000000; i++)
+    {
+        BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id , false) , true );
+        if (++count % 100000 == 0)
+            cerr << "DOCIDs queried " << count << endl;
+    }
+    cout << "time elapsed for querying " << t.elapsed() << endl;
+
+    count = 50000000;
+    t.restart();
+    for (uint64_t i = 50000000; i < 100000000; i++)
+    {
+        BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(MurmurHash3_x64_128((const void *)&i, sizeof(i), 0), id) , false );
+        if (++count % 100000 == 0)
+            cerr << "DOCIDs inserted " << count << endl;
+    }
+    cout << "time elapsed for inserting " << t.elapsed() << endl;
+
+    idManager.flush();
+    idManager.close();
+
+    // Clear data of this test case
+    clean("idm5/");
+    cerr << "OK" << endl;
+} // end - BOOST_AUTO_TEST_CASE( TestCase5 )
 
 ///**
 // * @brief Test Case 8 : test read/write interfaces of IDManager

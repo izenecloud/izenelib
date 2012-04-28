@@ -15,8 +15,10 @@
 #include <types.h>
 
 #include <util/hashFunction.h>
+#include <util/DynamicBloomFilter.h>
 #include <util/ThreadModel.h>
 #include <sdb/SequentialDB.h>
+#include <am/leveldb/Table.h>
 
 #include "IDFactoryException.h"
 #include "IDFactoryErrorString.h"
@@ -113,7 +115,7 @@ template <
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
-    typedef izenelib::sdb::unordered_sdb_tc<NameString, NameID, LockType> IdFinder;
+    typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
 
 public:
 
@@ -161,6 +163,7 @@ public:
 
     void flush()
     {
+        saveBloomFilter_();
         saveNewId_();
         idFinder_.flush();
     }
@@ -173,16 +176,51 @@ public:
 
     void display()
     {
-        idFinder_.display();
+//      idFinder_.display();
     }
 
 protected:
+
+    bool saveBloomFilter_() const
+    {
+        try
+        {
+            std::ofstream ofs(bloomFilterFile_.c_str());
+            if (ofs)
+            {
+                bloomFilter_.save(ofs);
+            }
+            return ofs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            return false;
+        }
+    }
+
+    bool loadBloomFilter_()
+    {
+        try
+        {
+            std::ifstream ifs(bloomFilterFile_.c_str(), std::ios_base::binary);
+            if (ifs)
+            {
+                bloomFilter_.load(ifs);
+            }
+            return ifs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            newID_ = minID_;
+            return false;
+        }
+    }
 
     bool saveNewId_() const
     {
         try
         {
-            std::ofstream ofs(newIdFile_.c_str());
+            std::ofstream ofs(newIdFile_.c_str(), std::ios_base::binary);
             if (ofs)
             {
                 boost::archive::xml_oarchive oa(ofs);
@@ -226,10 +264,12 @@ protected:
     NameID maxID_; ///< An maximum ID.
     NameID newID_; ///< An ID for new name.
     string sdbName_;
+    string bloomFilterFile_;
     string newIdFile_;
 
     LockType mutex_;
 
+    DynamicBloomFilter<NameString> bloomFilter_;
     IdFinder idFinder_; ///< an indexer which gives ids according to the name.
 }; // end - template UniqueIDGenerator
 
@@ -243,24 +283,14 @@ UniqueIDGenerator<NameString, NameID,
     maxID_(MaxValueID),
     newID_(MinValueID),
     sdbName_(sdbName),
-    newIdFile_(sdbName_+"_newid.xml"),
-    idFinder_(sdbName_ + "_name.sdb")
+    bloomFilterFile_(sdbName_ + "_bloom_filter"),
+    newIdFile_(sdbName_ + "_newid.xml"),
+    bloomFilter_(10000000, 0.001, 10000000),
+    idFinder_(sdbName_ + "_name_storage")
 {
+    loadBloomFilter_();
     idFinder_.open();
     restoreNewId_();
-    // reset newID_
-// 	if(idFinder_.numItems() > 0)
-// 	{
-// 	    NameID maxValue = MinValueID;
-//         NameString k; NameID v;
-//         typename IdFinder::SDBCursor locn = idFinder_.get_first_locn();
-//         while (idFinder_.get(locn, k, v) ) {
-//             if(maxValue < v)
-//                 maxValue = v;
-//             idFinder_.seq(locn);
-//         }
-//         newID_ = maxValue + 1;
-// 	}
 } // end - UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
@@ -282,17 +312,22 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
-    if (idFinder_.getValue(nameString, nameID) ) {
+    if (bloomFilter_.Get(nameString))
+    {
+        if (idFinder_.get(nameString, nameID))
+        {
+            mutex_.release_write_lock();
+            return true;
+        }
+    }// end - if
+
+    if (!insert)
+    {
         mutex_.release_write_lock();
-        return true;
-    } // end - if
+        return false;
+    }
 
-       if(!insert)
-       	{
-       	    mutex_.release_write_lock();
-           return false;
-       	}
-
+    bloomFilter_.Insert(nameString);
     // Because there's no name string in idFinder, create new id according to the string.
     nameID = newID_;
     newID_++;
@@ -304,7 +339,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
-    idFinder_.insertValue(nameString, nameID);
+    idFinder_.insert(nameString, nameID);
     mutex_.release_write_lock();
     return false;
 } // end - conv()
@@ -320,22 +355,22 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
-    bool ret = idFinder_.getValue(nameString, oldID);
+    bool ret = bloomFilter_.Get(nameString) && idFinder_.get(nameString, oldID);
 
-       if(!ret)
-       	{
-       	oldID = 0;
+    if (!ret)
+    {
+        oldID = 0;
         ///will be removed until MIA can support index unexist documents from Update SCDs
         mutex_.release_write_lock();
         return ret;
-       	}
+    }
 
     // Because there's no name string in idFinder, create new id according to the string.
     updatedID = newID_;
     newID_++;
 
     // check correctness of input nameID
-    if (newID_> maxID_)
+    if (newID_ > maxID_)
     {
         mutex_.release_write_lock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
@@ -345,7 +380,6 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.release_write_lock();
     return ret;
 } // end - conv()
-
 
 }
 // end - namespace idmanager

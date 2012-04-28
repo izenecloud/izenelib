@@ -145,10 +145,32 @@ public:
         dio.ensureWrite(x.bloom_bits_, sizeof(uint8_t)*x.num_bytes_);
     }
 
+    void save(std::ostream& ostr) const
+    {
+        ostr.write((const char *)&items_estimate_, sizeof(items_estimate_));
+        ostr.write((const char *)&false_positive_prob_, sizeof(false_positive_prob_));
+        ostr.write((const char *)&num_hash_functions_, sizeof(num_hash_functions_));
+        ostr.write((const char *)&num_bits_, sizeof(num_bits_));
+        ostr.write((const char *)&num_bytes_, sizeof(num_bytes_));
+        ostr.write((const char *)bloom_bits_, num_bytes_);
+    }
+
+    void load(std::istream& istr)
+    {
+        istr.read((char *)&items_estimate_, sizeof(items_estimate_));
+        istr.read((char *)&false_positive_prob_, sizeof(false_positive_prob_));
+        istr.read((char *)&num_hash_functions_, sizeof(num_hash_functions_));
+        istr.read((char *)&num_bits_, sizeof(num_bits_));
+        istr.read((char *)&num_bytes_, sizeof(num_bytes_));
+        if (!bloom_bits_) bloom_bits_ = new uint8_t[num_bytes_];
+        istr.read((char *)bloom_bits_, num_bytes_);
+    }
+
     size_t Size()
     {
         return num_bytes_;
     }
+
 private:
     DISALLOW_COPY_AND_ASSIGN(BloomFilter);
 

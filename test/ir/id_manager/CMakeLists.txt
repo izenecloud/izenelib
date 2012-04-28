@@ -28,6 +28,8 @@ ADD_EXECUTABLE(t_idm ${t_idm_SRC})
 TARGET_LINK_LIBRARIES(t_idm
   izene_util
   febird
+  snappy
+  leveldb
   ${Glog_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Boost_LIBRARIES}
