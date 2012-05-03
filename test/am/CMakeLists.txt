@@ -30,6 +30,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
     succinct/t_succinct_vector.cpp
     succinct/t_fujimap.cpp
+    succinct/t_minimal_perfect_hash.cpp
     )
 
   ADD_EXECUTABLE(t_am ${t_am_SRC})
