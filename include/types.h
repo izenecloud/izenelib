@@ -1,6 +1,9 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <cassert>
+#include <stdexcept>
+
 #if !defined(WIN32) || defined(__MINGW32__)
 
 #include <stddef.h>
@@ -9,6 +12,20 @@
 
 typedef int                 int128_t    __attribute__((mode(TI)));
 typedef unsigned int        uint128_t   __attribute__((mode(TI)));
+
+namespace boost {
+
+inline std::size_t hash_value(const int128_t& value)
+{
+    return std::size_t(value);
+}
+
+inline std::size_t hash_value(const uint128_t& value)
+{
+    return std::size_t(value);
+}
+
+}
 
 #else
 
@@ -41,8 +58,6 @@ typedef unsigned __int64    uint64_t;
 #define BEGIN_SERIALIZATION namespace izenelib{ namespace am{ namespace util{
 #define END_SERIALIZATION }}}
 
-#include <cassert>
-#include <stdexcept>
 #define IASSERT(exp)\
   {              \
     if (!(exp))    \
