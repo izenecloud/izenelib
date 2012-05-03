@@ -19,7 +19,37 @@ struct IsFixedType
 {
     enum
     {
-        yes = (is_arithmetic<T>::value || is_empty<T>::value),
+        yes = is_arithmetic<T>::value || is_empty<T>::value,
+        no = !yes
+    };
+};
+
+template <typename T1, typename T2>
+struct IsFixedType<std::pair<T1, T2> >
+{
+    enum
+    {
+        yes = IsFixedType<T1>::yes && IsFixedType<T2>::yes,
+        no = !yes
+    };
+};
+
+template <>
+struct IsFixedType<int128_t>
+{
+    enum
+    {
+        yes = 1,
+        no = !yes
+    };
+};
+
+template <>
+struct IsFixedType<uint128_t>
+{
+    enum
+    {
+        yes = 1,
         no = !yes
     };
 };
@@ -194,9 +224,7 @@ namespace util \
 }
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
-MAKE_MEMCPY_SERIALIZATION(std::vector<uint128_t>)
 MAKE_FEBIRD_SERIALIZATION(std::vector<std::string>)
-MAKE_FEBIRD_SERIALIZATION(std::vector<uint128_t>)
 
 //////////////////////////////////////////////////////
 

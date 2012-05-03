@@ -15,9 +15,9 @@
 #ifndef IZENE_SERIALIZATION_H_
 #define IZENE_SERIALIZATION_H_
 
-#include "detail/izene_serialization_boost.h"
-#include "detail/izene_serialization_febird.h"
 #include "detail/izene_serialization_memcpy.h"
+#include "detail/izene_serialization_febird.h"
+#include "detail/izene_serialization_boost.h"
 
 NS_IZENELIB_UTIL_BEGIN
 
