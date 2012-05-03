@@ -1,6 +1,7 @@
 #include <am/succinct/fujimap/fujimap_common.hpp>
 #include <cassert>
 #include <iostream>
+
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
@@ -83,4 +84,3 @@ void printBit(const uint64_t v, const uint64_t len)
 }}
 
 NS_IZENELIB_AM_END
-

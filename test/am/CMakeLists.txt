@@ -37,20 +37,21 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
    ${Boost_SYSTEM_LIBRARY}
    ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}    
-   ${Boost_IOSTREAMS_LIBRARY}    
+   ${Boost_THREAD_LIBRARY}
+   ${Boost_IOSTREAMS_LIBRARY}
    am
    izene_util
-   bz2 
+   bz2
    ${Glog_LIBRARIES}
    febird
    procmeminfo
    luxio
    izene_log
-   ${TokyoCabinet_LIBRARIES} 
+   ${TokyoCabinet_LIBRARIES}
    lzo
    leveldb
    snappy
+   jemalloc
     )
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
@@ -118,8 +119,8 @@ TARGET_LINK_LIBRARIES(t_matrix
    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
    ${Boost_SYSTEM_LIBRARY}
    ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}    
-   ${Boost_IOSTREAMS_LIBRARY}    
+   ${Boost_THREAD_LIBRARY}
+   ${Boost_IOSTREAMS_LIBRARY}
    ${TokyoCabinet_LIBRARIES}
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
@@ -163,4 +164,3 @@ TARGET_LINK_LIBRARIES(t_bitmap
    izene_util
    luxio
   )
-

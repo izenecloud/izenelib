@@ -16,46 +16,47 @@
 
 using namespace std;
 
-double gettimeofday_sec()
+uint64_t gettimeofday_usec()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec + (double)tv.tv_usec*1e-6;
+    return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
 BOOST_AUTO_TEST_SUITE( t_fujimap )
 
 BOOST_AUTO_TEST_CASE(Insert)
 {
-    static uint64_t N = 1000;
+    static uint64_t N = 100000000;
 
-    izenelib::am::succinct::fujimap::Fujimap fm;
-    fm.initFP(0);
-    fm.initTmpN(0);
+    izenelib::am::succinct::fujimap::Fujimap<uint128_t> fm("tmp.kf");
+    fm.initFP(32);
+    fm.initTmpN(10000000);
 
-    char buf[100];
-    double t1 = gettimeofday_sec();
+    uint64_t t1 = gettimeofday_usec();
     for (uint64_t i = 0; i < N; ++i)
     {
-        snprintf(buf, 100, "%llu", (unsigned long long int)i);
-        fm.setInteger(buf, strlen(buf), i, false);
+        if (i % 1000000 == 999999)
+            fprintf(stderr, "fm inserted: %llu\n", i + 1);
+        fm.setInteger(i, i, false);
     }
     fm.build();
-    double t2 = gettimeofday_sec();
-    fprintf(stderr, "fm  set   : %f (%f)\n", t2 - t1, (t2 - t1) / N);
+    uint64_t t2 = gettimeofday_usec();
+    fprintf(stderr, "fm  set   : %llu (%f)\n", t2 - t1, double(t2 - t1) / N);
 
-    int dummy = 0;
+    uint64_t fp = 0;
     for (uint64_t i = 0; i < N; ++i)
     {
-        snprintf(buf, 100, "%llu", (unsigned long long int)i);
-        dummy += fm.getInteger(buf, strlen(buf));
+        if (i % 1000000 == 999999)
+            fprintf(stderr, "fm queried: %llu\n", i + 1);
+        uint64_t tmp = fm.getInteger(i);
+        if (i != tmp) ++fp;
     }
-    double t3 = gettimeofday_sec();
-    fprintf(stderr, "fm  lookup: %f (%f)\n", t3 - t2, (t3 - t2) / N);
+    uint64_t t3 = gettimeofday_usec();
+    fprintf(stderr, "fm  lookup: %llu (%f)\n", t3 - t2, double(t3 - t2) / N);
     cerr <<"fm    size: " << fm.getWorkingSize() << endl;
-
+    fprintf(stderr, "false positive: %llu\n", fp);
 }
 
 
 BOOST_AUTO_TEST_SUITE_END()
-
