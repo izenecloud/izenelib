@@ -285,7 +285,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 
     // If name string is found, return the id.
     nameID = fujimap_.getInteger(nameString);
-    if (izenelib::am::succinct::fujimap::NOTFOUND != nameID)
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
         mutex_.release_write_lock();
         return true;
@@ -325,7 +325,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
     // If name string is found, return the id.
     oldID = fujimap_.getInteger(nameString);
 
-    if (izenelib::am::succinct::fujimap::NOTFOUND == oldID)
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND == oldID)
     {
         oldID = 0;
         ///will be removed until MIA can support index unexist documents from Update SCDs
