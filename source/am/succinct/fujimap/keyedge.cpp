@@ -82,7 +82,7 @@ void hash(const char* str, size_t len, uint64_t seed,
     const uint64_t* data = (const uint64_t *)str;
     const uint64_t* end = data + len / 24;
 
-    a = 0x9e3779b97f4a7c13LL;
+    a = 0x9e3779b97f4a7c13LLU;
     b = seed;
     c = seed;
     while (data != end)

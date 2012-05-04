@@ -44,7 +44,6 @@ namespace succinct{ namespace fujimap{
  * used in HashMap.
  */
 
-uint64_t hash(const char* str, size_t len);
 void hash(const char* str, const size_t len, const uint64_t seed,
           uint64_t& a, uint64_t& b, uint64_t& c);
 
