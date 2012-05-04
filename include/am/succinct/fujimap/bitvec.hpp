@@ -65,4 +65,3 @@ private:
 NS_IZENELIB_AM_END
 
 #endif /// BITVEC_HPP__
-

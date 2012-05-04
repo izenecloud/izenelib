@@ -163,6 +163,11 @@ public:
     int save(const char* index); ///< Load a map from index
 
     /**
+     * Clear the stage
+     */
+    void clear(bool kf_clear = false);
+
+    /**
      * Report the current status when some error occured.
      * @return the current status message
      */
@@ -201,14 +206,12 @@ public:
 private:
     int build_(std::vector<std::pair<KeyType, uint64_t> >& kvs, FujimapBlock& fb);
 
-    void saveString(const std::string& s, std::ofstream& ofs) const; ///< Util for save
-    void loadString(std::string& s, std::ifstream& ifs) const; ///< Util for load
     uint64_t getBlockID(const KeyType& key) const;
     uint64_t getCode(const std::string& value); ///< Return corresponding code of a given value
 
     std::ostringstream what_; ///< Store a message
 
-    boost::unordered_map<KeyType, uint64_t> val2code_; ///< Map from value to code
+    boost::unordered_map<std::string, uint64_t> val2code_; ///< Map from value to code
     std::vector<std::string> code2val_; ///< Map from code to value
 
     KeyFile<KeyType> kf_; ///< A set of non-searchable key/values
@@ -544,7 +547,10 @@ int Fujimap<KeyType>::load(const char* index)
     code2val_.resize(code2valSize);
     for (uint64_t i = 0; i < code2valSize; ++i)
     {
-        loadString(code2val_[i], ifs);
+        std::size_t len = 0;
+        ifs.read((char*)(&len), sizeof(len));
+        code2val_[i].resize(len);
+        ifs.read((char*)(&code2val_[i][0]), len);
     }
     for (size_t i = 0; i < code2val_.size(); ++i)
     {
@@ -560,14 +566,15 @@ int Fujimap<KeyType>::load(const char* index)
 
     for (uint64_t i = 0; i < tmpEdgeSize; ++i)
     {
+        std::size_t len = 0;
+        ifs.read((char*)(&len), sizeof(len));
         std::string s;
-        loadString(s, ifs);
-        KeyType key;
-        izenelib::util::izene_deserialization<KeyType> izsKey(s.c_str(), s.size());
-        izsKey.read_image(key);
-        uint32_t code = 0;
-        ifs.read((char*)(&code), sizeof(uint32_t));
-        tmpEdges_[key] = code;
+        s.resize(len);
+        ifs.read((char*)(&s[0]), len);
+        std::pair<KeyType, uint64_t> kv;
+        izenelib::util::izene_deserialization<std::pair<KeyType, uint64_t> > izsKey(s.c_str(), s.size());
+        izsKey.read_image(kv);
+        tmpEdges_.insert(kv);
     }
 
     uint64_t fbs_Size = 0;
@@ -595,24 +602,6 @@ int Fujimap<KeyType>::load(const char* index)
 }
 
 template <class KeyType>
-void Fujimap<KeyType>::saveString(const std::string& s, ofstream& ofs) const
-{
-    uint64_t len =  static_cast<uint64_t>(s.size());
-    ofs.write((const char*)(&len), sizeof(len));
-    ofs.write(s.c_str(), len);
-}
-
-template <class KeyType>
-void Fujimap<KeyType>::loadString(std::string& s, ifstream& ifs) const
-{
-    uint64_t len = 0;
-    ifs.read((char*)(&len), sizeof(len));
-    s.resize(len);
-    ifs.read((char*)(&s[0]), len);
-}
-
-
-template <class KeyType>
 int Fujimap<KeyType>::save(const char* index)
 {
     ofstream ofs(index);
@@ -626,7 +615,9 @@ int Fujimap<KeyType>::save(const char* index)
     ofs.write((const char*)(&code2valSize), sizeof(uint64_t));
     for (uint64_t i = 0; i < code2valSize; ++i)
     {
-        saveString(code2val_[i], ofs);
+        const std::size_t len = code2val_[i].size();
+        ofs.write((const char*)(&len), sizeof(len));
+        ofs.write(code2val_[i].c_str(), len);
     }
 
     ofs.write((const char*)(&seed_), sizeof(seed_));
@@ -640,10 +631,10 @@ int Fujimap<KeyType>::save(const char* index)
     {
         char* kbuf;
         std::size_t klen;
-        izenelib::util::izene_serialization<KeyType> izsKey(it->first);
+        izenelib::util::izene_serialization<std::pair<KeyType, uint64_t> > izsKey(*it);
         izsKey.write_image(kbuf, klen);
-        saveString(std::string(kbuf, klen), ofs);
-        ofs.write((const char*)(&it->second), sizeof(it->second));
+        ofs.write((const char*)(&klen), sizeof(klen));
+        ofs.write(kbuf, klen);
     }
 
     uint64_t fbs_Size = static_cast<uint64_t>(fbs_.size());
@@ -665,6 +656,19 @@ int Fujimap<KeyType>::save(const char* index)
     }
 
     return 0;
+}
+
+template <class KeyType>
+void Fujimap<KeyType>::clear(bool kf_clear)
+{
+    boost::unordered_map<std::string, uint64_t>().swap(val2code_);
+    std::vector<std::string>().swap(code2val_);
+
+    boost::unordered_map<KeyType, uint64_t>().swap(tmpEdges_);
+    std::vector<std::vector<FujimapBlock> >().swap(fbs_);
+
+    if (kf_clear)
+        kf_.clear();
 }
 
 template <class KeyType>

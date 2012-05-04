@@ -165,12 +165,12 @@ int KeyFile<KeyType>::write(const uint64_t id, const KeyType& key, const uint64_
         std::size_t vlen = 0;
         izenelib::util::izene_serialization<std::vector<std::pair<KeyType, uint64_t> > > izsKey(v);
         izsKey.write_image(vbuf, vlen);
-        ofs.write((const char *)&vlen, sizeof(std::size_t));
-        ofs.write((const char *)vbuf, vlen);
+        ofs.write((const char*)(&vlen), sizeof(std::size_t));
+        ofs.write((const char*)vbuf, vlen);
 
         nextPointers_[id] = static_cast<uint64_t>(ofs.tellp());
         uint64_t dummy = 0;
-        ofs.write((const char *)&dummy, sizeof(uint64_t));
+        ofs.write((const char*)(&dummy), sizeof(uint64_t));
         if (!ofs)
         {
             return -1;
@@ -194,10 +194,10 @@ int KeyFile<KeyType>::read(const uint64_t id, std::vector<std::pair<KeyType, uin
         ifs.seekg(readPos, ios::beg);
 
         std::size_t vlen = 0;
-        ifs.read((char *)&vlen, sizeof(std::size_t));
+        ifs.read((char*)(&vlen), sizeof(std::size_t));
         std::string vstr;
         vstr.resize(vlen);
-        ifs.read((char *)&vstr[0], vlen);
+        ifs.read((char*)(&vstr[0]), vlen);
         izenelib::util::izene_deserialization<std::vector<std::pair<KeyType, uint64_t> > > izsKey(vstr.c_str(), vlen);
         std::vector<std::pair<KeyType, uint64_t> > kvs_buffer;
         izsKey.read_image(kvs_buffer);

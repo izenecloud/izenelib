@@ -38,9 +38,8 @@ BOOST_AUTO_TEST_CASE(Insert)
     {
         if (i % 1000000 == 999999)
             fprintf(stderr, "fm inserted: %llu\n", i + 1);
-        fm.setInteger(i, i, false);
+        fm.setInteger(i, i, true);
     }
-    fm.build();
     uint64_t t2 = gettimeofday_usec();
     fprintf(stderr, "fm  set   : %llu (%f)\n", t2 - t1, double(t2 - t1) / N);
 
@@ -56,6 +55,13 @@ BOOST_AUTO_TEST_CASE(Insert)
     fprintf(stderr, "fm  lookup: %llu (%f)\n", t3 - t2, double(t3 - t2) / N);
     cerr <<"fm    size: " << fm.getWorkingSize() << endl;
     fprintf(stderr, "false positive: %llu\n", fp);
+    fm.save("tmp.fm");
+    uint64_t t4 = gettimeofday_usec();
+    fprintf(stderr, "fm  serialize: %llu\n", t4 - t3);
+    fm.clear();
+    fm.load("tmp.fm");
+    uint64_t t5 = gettimeofday_usec();
+    fprintf(stderr, "fm  deserialize: %llu\n", t5 - t4 - 10000000);
 }
 
 

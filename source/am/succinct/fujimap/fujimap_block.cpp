@@ -39,17 +39,21 @@ namespace succinct{ namespace fujimap{
 const double   FujimapBlock::C_R = 1.3;
 const uint64_t FujimapBlock::intercept = 10;
 
-
-FujimapBlock::FujimapBlock() :
-    keyNum_(0), minCodeVal_(0), maxCodeVal_(0), maxCodeLen_(0), fpLen_(FPLEN), seed_(0x12345678),
-    bn_(0), et_(BINARY)
+FujimapBlock::FujimapBlock()
+    : keyNum_(0)
+    , minCodeVal_(0)
+    , maxCodeVal_(0)
+    , maxCodeLen_(0)
+    , fpLen_(FPLEN)
+    , seed_(0x12345678)
+    , bn_(0)
+    , et_(BINARY)
 {
 }
 
 FujimapBlock::~FujimapBlock()
 {
 }
-
 
 size_t FujimapBlock::getBSize() const
 {
@@ -96,8 +100,6 @@ uint64_t FujimapBlock::getVal(const KeyEdge& ke) const
     return code + minCodeVal_;
 }
 
-
-
 uint64_t FujimapBlock::getSeed() const
 {
     return seed_;
@@ -116,10 +118,6 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
     maxCodeVal_ = 0;
     for (size_t i = 0; i < keyEdges.size(); ++i)
     {
-        if (keyEdges[i].code > maxCodeVal_)
-        {
-            maxCodeVal_ = keyEdges[i].code;
-        }
         if (keyEdges[i].code < minCodeVal_)
         {
             minCodeVal_ = keyEdges[i].code;
@@ -129,14 +127,18 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
     for (size_t i = 0; i < keyEdges.size(); ++i)
     {
         keyEdges[i].code -= minCodeVal_;
+        if (keyEdges[i].code > maxCodeVal_)
+        {
+            maxCodeVal_ = keyEdges[i].code;
+        }
     }
 
     uint64_t totalCodeLen = 0;
     if (et_ == BINARY)
     {
-        maxCodeLen_   = log2(maxCodeVal_);
+        maxCodeLen_  = log2(maxCodeVal_);
         totalCodeLen = (maxCodeLen_ + fpLen_) * keyNum_;
-        bn_           = (uint64_t)(keyNum_ * C_R / (double)R + intercept);
+        bn_          = (uint64_t)(keyNum_ * C_R / (double)R + intercept);
     }
     else if (et_ == GAMMA)
     {
@@ -154,11 +156,11 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
     }
 
     uint64_t maxCodeFPLen = maxCodeLen_ + fpLen_;
-    uint64_t pointsPerKey  = (et_ == BINARY) ? 1 : maxCodeFPLen;
+    uint64_t pointsPerKey = (et_ == BINARY) ? 1 : maxCodeFPLen;
 
     // set_ keyEdge
     uint64_t space = (et_ == BINARY) ? 0 : maxCodeFPLen;
-    vector<uint8_t>  degs   (bn_ * R + space);
+    vector<uint8_t> degs(bn_ * R + space);
     vector<uint64_t> offset_s(bn_ * R + space + 1);
 
     for (size_t i = 0; i < keyEdges.size(); ++i)
@@ -191,7 +193,7 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
 
     // set_ edges
     uint64_t totalEdgeNum = (et_ == BINARY) ? keyNum_ * R : totalCodeLen * R;
-    vector<uint64_t> edges (totalEdgeNum);
+    vector<uint64_t> edges(totalEdgeNum);
     for (size_t i = 0; i < keyEdges.size(); ++i)
     {
         const KeyEdge& ke(keyEdges[i]);
@@ -292,11 +294,11 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
     BitVec visitedVerticies(assignNum * R);
     reverse(extractedEdges.begin(), extractedEdges.end());
     for (vector<pair<uint64_t, uint8_t> >::const_iterator it =
-                extractedEdges.begin(); it != extractedEdges.end(); ++it)
+            extractedEdges.begin(); it != extractedEdges.end(); ++it)
     {
-        const uint64_t v       = it->first;
+        const uint64_t v = it->first;
 
-        uint64_t keyID  = v / pointsPerKey;
+        uint64_t keyID = v / pointsPerKey;
         uint64_t offset_ = v % pointsPerKey;
 
         const KeyEdge& ke(keyEdges[keyID]);
@@ -344,7 +346,6 @@ int FujimapBlock::build(vector<KeyEdge>& keyEdges,
     return 0;
 }
 
-
 size_t FujimapBlock::getKeyNum() const
 {
     return keyNum_;
@@ -386,4 +387,3 @@ void FujimapBlock::load(ifstream& ifs)
 }}
 
 NS_IZENELIB_AM_END
-

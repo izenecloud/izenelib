@@ -137,7 +137,7 @@ uint64_t BitVec::getBits(const size_t pos, const size_t len) const
     }
     else
     {
-        uint64_t blockInd2    = ((pos + len - 1) / BITNUM) % bv_.size();
+        uint64_t blockInd2 = ((pos + len - 1) / BITNUM) % bv_.size();
         return  mask((bv_[blockInd1] >> blockOffset1) + (bv_[blockInd2] << (BITNUM - blockOffset1)), len);
     }
 }
@@ -168,4 +168,3 @@ void BitVec::setBits(const size_t pos, const size_t len, const uint64_t bits)
 }}
 
 NS_IZENELIB_AM_END
-
