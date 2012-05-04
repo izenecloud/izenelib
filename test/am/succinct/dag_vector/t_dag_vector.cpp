@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <stdlib.h>
 #include <iostream>
-#include <dag_vector/dag_vector.hpp>
+#include <am/succinct/dag_vector/dag_vector.hpp>
 
 using namespace std;
 
@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(dag_vector)
     int vmax = 100;
 
     cout << "n=" << n << " vmax=" << vmax << endl;
-    dag::dag_vector dagv;
+    izenelib::am::succinct::dag_vector dagv;
     vector<uint64_t> vals;
     vector<uint64_t> sums;
     uint64_t sum = 0;
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(dag_vector)
     }
 
     size_t pos = 0;
-    for (dag::dag_vector::const_iterator it = dagv.begin(); it != dagv.end(); ++it, ++pos)
+    for (izenelib::am::succinct::dag_vector::const_iterator it = dagv.begin(); it != dagv.end(); ++it, ++pos)
     {
         if (*it != vals[pos])
         {

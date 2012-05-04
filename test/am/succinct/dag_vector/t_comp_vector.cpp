@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <dag_vector/comp_vector.hpp>
+#include <am/succinct/dag_vector/comp_vector.hpp>
 #include <string>
 #include <cstdio>
 
@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE(comp_vector)
     int n = 10000;
     cout << "n=" << n << endl;
 
-    dag::comp_vector<string> cv;
+    izenelib::am::succinct::comp_vector<string> cv;
     vector<string> origs;
     char buf[256];
     for (int i = 0; i < n; ++i)
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(comp_vector)
     }
 
     uint64_t pos = 0;
-    for (dag::comp_vector<string>::const_iterator it = cv.begin(); it != cv.end(); ++it, ++pos)
+    for (izenelib::am::succinct::comp_vector<string>::const_iterator it = cv.begin(); it != cv.end(); ++it, ++pos)
     {
         if (origs[pos] != *it)
         {

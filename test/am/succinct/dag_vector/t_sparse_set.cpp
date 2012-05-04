@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <dag_vector/sparse_set.hpp>
+#include <am/succinct/dag_vector/sparse_set.hpp>
 
 using namespace std;
 
@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE(sparse_set)
 
     cout << "n=" << n << " vmax=" << vmax << endl;
 
-    dag::sparse_set ds(n, vmax / 2 * n + n);
+    izenelib::am::succinct::sparse_set ds(n, vmax / 2 * n + n);
     uint64_t size = 0;
     uint64_t one_num = 0;
     vector<uint64_t> results;
@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(sparse_set)
     }
 
     size_t i = 0;
-    dag::sparse_set::const_iterator end = ds.end();
-    for (dag::sparse_set::const_iterator it = ds.begin(); it != end; ++it, ++i)
+    izenelib::am::succinct::sparse_set::const_iterator end = ds.end();
+    for (izenelib::am::succinct::sparse_set::const_iterator it = ds.begin(); it != end; ++it, ++i)
     {
         if (results[i] != *it)
         {
