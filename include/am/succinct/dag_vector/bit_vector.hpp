@@ -17,14 +17,15 @@
  *      software without specific prior written permission.
  */
 
-#ifndef BIT_VECTOR_HPP_
-#define BIT_VECTOR_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_BIT_VECTOR_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_BIT_VECTOR_HPP_
 
+#include <types.h>
 #include <vector>
-#include <stdint.h>
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 class bit_vector
 {
@@ -103,5 +104,6 @@ private:
 };
 
 }
+NS_IZENELIB_AM_END
 
-#endif // BIT_VECTOR_HPP_
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_BIT_VECTOR_HPP_

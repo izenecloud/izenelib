@@ -17,14 +17,15 @@
  *      software without specific prior written permission.
  */
 
-#ifndef SPARSE_SET_HPP_
-#define SPARSE_SET_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_SET_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_SET_HPP_
 
 #include "dag_vector.hpp"
 #include "bit_vector.hpp"
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 /**
  * Sparse Set supporting rank/select operations
@@ -383,5 +384,6 @@ private:
 };
 
 }
+NS_IZENELIB_AM_END
 
-#endif // SPARSE_SET_HPP_
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_SET_HPP_

@@ -18,14 +18,15 @@
  */
 
 
-#ifndef RANK_VECTOR_HPP_
-#define RANK_VECTOR_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_RANK_VECTOR_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_RANK_VECTOR_HPP_
 
+#include <types.h>
 #include <vector>
-#include <stdint.h>
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 /**
  * Bit Vector supporing Rank operation
@@ -149,4 +150,5 @@ private:
 
 }
 
-#endif // RANK_VECTOR_HPP_
+NS_IZENELIB_AM_END
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_RANK_VECTOR_HPP_
