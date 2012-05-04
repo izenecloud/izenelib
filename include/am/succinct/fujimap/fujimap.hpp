@@ -24,7 +24,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 #ifndef FUJIMAP_HPP__
 #define FUJIMAP_HPP__
 
@@ -146,7 +145,6 @@ public:
      * @return the interge value for a key, or fujimap::NOTFOUND on failure.
     */
     uint64_t getInteger(const KeyType& key) const;
-
 
     /**
      * Load the previous status from a file
@@ -343,7 +341,6 @@ bool kvsComp(const pair<KeyType, uint64_t>& v1,
     return v1.first < v2.first; // ignore second
 }
 
-
 template <class KeyType>
 uint64_t Fujimap<KeyType>::getBlockID(const KeyType& key) const
 {
@@ -352,12 +349,6 @@ uint64_t Fujimap<KeyType>::getBlockID(const KeyType& key) const
     izenelib::util::izene_serialization<KeyType> izsKey(key);
     izsKey.write_image(kbuf, klen);
     return MurmurHash64A(kbuf, klen, 0) % keyBlockN_;
-}
-
-template <>
-uint64_t Fujimap<uint128_t>::getBlockID(const uint128_t& key) const
-{
-    return key % keyBlockN_;
 }
 
 template <class KeyType>

@@ -26,6 +26,7 @@ SET(t_idm_SRC
 ADD_EXECUTABLE(t_idm ${t_idm_SRC})
 
 TARGET_LINK_LIBRARIES(t_idm
+  am
   izene_util
   febird
   snappy

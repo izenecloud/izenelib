@@ -15,10 +15,8 @@
 #include <types.h>
 
 #include <util/hashFunction.h>
-#include <util/DynamicBloomFilter.h>
 #include <util/ThreadModel.h>
-#include <sdb/SequentialDB.h>
-#include <am/leveldb/Table.h>
+#include <am/succinct/fujimap/fujimap.hpp>
 
 #include "IDFactoryException.h"
 #include "IDFactoryErrorString.h"
@@ -115,16 +113,14 @@ template <
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
-    typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
-
 public:
 
     /**
      * @brief Constructor.
      *
-     * @param sdbName       name of sdb storage.
+     * @param path       name of idstorage.
      */
-    UniqueIDGenerator(const string& sdbName);
+    UniqueIDGenerator(const string& path);
 
     virtual ~UniqueIDGenerator();
 
@@ -163,57 +159,36 @@ public:
 
     void flush()
     {
-        saveBloomFilter_();
+        saveFujimap_();
         saveNewId_();
-        idFinder_.flush();
     }
 
     void close()
     {
         flush();
-        idFinder_.close();
     }
 
     void display()
     {
-//      idFinder_.display();
     }
 
 protected:
 
-    bool saveBloomFilter_() const
+    bool saveFujimap_()
     {
-        try
-        {
-            std::ofstream ofs(bloomFilterFile_.c_str());
-            if (ofs)
-            {
-                bloomFilter_.save(ofs);
-            }
-            return ofs;
-        }
-        catch (boost::archive::archive_exception& e)
-        {
-            return false;
-        }
+        return fujimap_.save(fujimapFile_.c_str()) == 0;
     }
 
-    bool loadBloomFilter_()
+    bool loadFujimap_()
     {
-        try
+        if (fujimap_.load(fujimapFile_.c_str()) == -1)
         {
-            std::ifstream ifs(bloomFilterFile_.c_str(), std::ios_base::binary);
-            if (ifs)
-            {
-                bloomFilter_.load(ifs);
-            }
-            return ifs;
-        }
-        catch (boost::archive::archive_exception& e)
-        {
+            fujimap_.initFP(32);
+            fujimap_.initTmpN(10000000);
             newID_ = minID_;
             return false;
         }
+        return true;
     }
 
     bool saveNewId_() const
@@ -263,34 +238,31 @@ protected:
     NameID minID_; ///< An minimum ID.
     NameID maxID_; ///< An maximum ID.
     NameID newID_; ///< An ID for new name.
-    string sdbName_;
-    string bloomFilterFile_;
+    string keyFile_;
+    string fujimapFile_;
     string newIdFile_;
 
     LockType mutex_;
 
-    DynamicBloomFilter<NameString> bloomFilter_;
-    IdFinder idFinder_; ///< an indexer which gives ids according to the name.
+    izenelib::am::succinct::fujimap::Fujimap<NameString> fujimap_;
 }; // end - template UniqueIDGenerator
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
 UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
-        const string& sdbName)
+        const string& path)
 :
     minID_(MinValueID),
     maxID_(MaxValueID),
     newID_(MinValueID),
-    sdbName_(sdbName),
-    bloomFilterFile_(sdbName_ + "_bloom_filter"),
-    newIdFile_(sdbName_ + "_newid.xml"),
-    bloomFilter_(10000000, 0.001, 10000000),
-    idFinder_(sdbName_ + "_name_storage")
+    keyFile_(path + "_keyfile.tmp"),
+    fujimapFile_(path + "_fujimap.bin"),
+    newIdFile_(path + "_newid.xml"),
+    fujimap_(keyFile_.c_str())
 {
-    loadBloomFilter_();
-    idFinder_.open();
     restoreNewId_();
+    loadFujimap_();
 } // end - UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
@@ -312,13 +284,11 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
-    if (bloomFilter_.Get(nameString))
+    nameID = fujimap_.getInteger(nameString);
+    if (izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
-        if (idFinder_.get(nameString, nameID))
-        {
-            mutex_.release_write_lock();
-            return true;
-        }
+        mutex_.release_write_lock();
+        return true;
     }// end - if
 
     if (!insert)
@@ -327,8 +297,6 @@ inline bool UniqueIDGenerator<NameString, NameID,
         return false;
     }
 
-    bloomFilter_.Insert(nameString);
-    // Because there's no name string in idFinder, create new id according to the string.
     nameID = newID_;
     newID_++;
 
@@ -339,7 +307,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
-    idFinder_.insert(nameString, nameID);
+    fujimap_.setInteger(nameString, nameID, true);
     mutex_.release_write_lock();
     return false;
 } // end - conv()
@@ -355,17 +323,16 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
-    bool ret = bloomFilter_.Get(nameString) && idFinder_.get(nameString, oldID);
+    oldID = fujimap_.getInteger(nameString);
 
-    if (!ret)
+    if (izenelib::am::succinct::fujimap::NOTFOUND == oldID)
     {
         oldID = 0;
         ///will be removed until MIA can support index unexist documents from Update SCDs
         mutex_.release_write_lock();
-        return ret;
+        return false;
     }
 
-    // Because there's no name string in idFinder, create new id according to the string.
     updatedID = newID_;
     newID_++;
 
@@ -376,9 +343,9 @@ inline bool UniqueIDGenerator<NameString, NameID,
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
-    idFinder_.update(nameString, updatedID);
+    fujimap_.setInteger(nameString, updatedID, true);
     mutex_.release_write_lock();
-    return ret;
+    return true;
 } // end - conv()
 
 }
