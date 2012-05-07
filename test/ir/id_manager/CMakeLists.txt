@@ -31,6 +31,7 @@ TARGET_LINK_LIBRARIES(t_idm
   febird
   snappy
   leveldb
+  jemalloc
   ${Glog_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Boost_LIBRARIES}

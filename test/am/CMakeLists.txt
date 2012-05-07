@@ -76,6 +76,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    am
    izene_util
    bz2
+   jemalloc
    ${Glog_LIBRARIES}
     )
 

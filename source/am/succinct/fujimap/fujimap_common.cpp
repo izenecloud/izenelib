@@ -20,13 +20,9 @@ uint64_t log2(uint64_t x)
 {
     if (x == 0) return 0;
     uint64_t ret = 1;
-    while (x >> ret && ret < 64)
+    while (x >> ret)
     {
         ++ret;
-    }
-    if (ret == 64)
-    {
-        cerr << "x:" << x << endl;
     }
     return ret;
 }
@@ -35,7 +31,7 @@ uint64_t gammaLen(uint64_t x)
 {
     x++;
     assert(x > 0);
-    return log2(x)*2 - 1;
+    return log2(x) * 2 - 1;
 }
 
 uint64_t mask(uint64_t x, uint64_t len)

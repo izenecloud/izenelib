@@ -351,6 +351,12 @@ uint64_t Fujimap<KeyType>::getBlockID(const KeyType& key) const
     return MurmurHash64A(kbuf, klen, 0) % keyBlockN_;
 }
 
+template <>
+inline uint64_t Fujimap<uint128_t>::getBlockID(const uint128_t& key) const
+{
+    return (uint64_t)key & (keyBlockN_ - 1);
+}
+
 template <class KeyType>
 int Fujimap<KeyType>::build()
 {
