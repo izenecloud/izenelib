@@ -61,6 +61,10 @@ public:
 
     void close(){}
 
+    void warmUp(){}
+
+    void coolDown(){}
+
     void display(){}
 
 }; // end - template EmptyIDGenerator
@@ -102,6 +106,10 @@ public:
 
     void close(){}
 
+    void warmUp(){}
+
+    void coolDown(){}
+
     void display(){}
 
 }; // end - template HashIDGenerator
@@ -113,7 +121,7 @@ template <
           typename  LockType    = izenelib::util::NullLock,
           NameID    MinIDValue  = NameIDTraits<NameID>::MinValue,
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
-class UniqueIDGenerator
+class OldUniqueIDGenerator
 {
     typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
 
@@ -124,9 +132,9 @@ public:
      *
      * @param sdbName       name of sdb storage.
      */
-    UniqueIDGenerator(const string& sdbName);
+    OldUniqueIDGenerator(const string& sdbName);
 
-    virtual ~UniqueIDGenerator();
+    virtual ~OldUniqueIDGenerator();
 
     /**
      * @brief This function returns a unique name id given a name string.
@@ -173,6 +181,10 @@ public:
         flush();
         idFinder_.close();
     }
+
+    void warmUp(){}
+
+    void coolDown(){}
 
     void display()
     {
@@ -271,12 +283,12 @@ protected:
 
     DynamicBloomFilter<NameString> bloomFilter_;
     IdFinder idFinder_; ///< an indexer which gives ids according to the name.
-}; // end - template UniqueIDGenerator
+}; // end - template OldUniqueIDGenerator
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
+OldUniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::OldUniqueIDGenerator(
         const string& sdbName)
 :
     minID_(MinValueID),
@@ -291,19 +303,19 @@ UniqueIDGenerator<NameString, NameID,
     loadBloomFilter_();
     idFinder_.open();
     restoreNewId_();
-} // end - UniqueIDGenerator()
+} // end - OldUniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
+OldUniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::~OldUniqueIDGenerator()
 {
     close();
-} // end - ~UniqueIDGenerator()
+} // end - ~OldUniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator<NameString, NameID,
+inline bool OldUniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& nameID,
@@ -346,7 +358,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator<NameString, NameID,
+inline bool OldUniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& oldID,
@@ -387,7 +399,7 @@ template <
           typename  LockType    = izenelib::util::NullLock,
           NameID    MinIDValue  = NameIDTraits<NameID>::MinValue,
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
-class UniqueIDGenerator2
+class UniqueIDGenerator
 {
 public:
 
@@ -396,9 +408,9 @@ public:
      *
      * @param path       name of idstorage.
      */
-    UniqueIDGenerator2(const string& path);
+    UniqueIDGenerator(const string& path);
 
-    virtual ~UniqueIDGenerator2();
+    virtual ~UniqueIDGenerator();
 
     /**
      * @brief This function returns a unique name id given a name string.
@@ -442,6 +454,16 @@ public:
     void close()
     {
         flush();
+    }
+
+    void warmUp()
+    {
+        loadFujimap_();
+    }
+
+    void coolDown()
+    {
+        fujimap_.clear();
     }
 
     void display()
@@ -521,12 +543,12 @@ protected:
     LockType mutex_;
 
     izenelib::am::succinct::fujimap::Fujimap<NameString> fujimap_;
-}; // end - template UniqueIDGenerator2
+}; // end - template UniqueIDGenerator
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator2<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::UniqueIDGenerator2(
+UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
         const string& path)
 :
     minID_(MinValueID),
@@ -538,20 +560,19 @@ UniqueIDGenerator2<NameString, NameID,
     fujimap_(keyFile_.c_str())
 {
     restoreNewId_();
-    loadFujimap_();
-} // end - UniqueIDGenerator2()
+} // end - UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator2<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator2()
+UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
 {
     close();
-} // end - ~UniqueIDGenerator2()
+} // end - ~UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator2<NameString, NameID,
+inline bool UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& nameID,
@@ -590,7 +611,7 @@ inline bool UniqueIDGenerator2<NameString, NameID,
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator2<NameString, NameID,
+inline bool UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& oldID,

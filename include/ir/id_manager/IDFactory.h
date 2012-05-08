@@ -105,6 +105,16 @@ public:
         idStorage_.close();
     }
 
+    void warmUp()
+    {
+        idGenerator_.warmUp();
+    }
+
+    void coolDown()
+    {
+        idGenerator_.coolDown();
+    }
+
     void display()
     {
         idGenerator_.display();
