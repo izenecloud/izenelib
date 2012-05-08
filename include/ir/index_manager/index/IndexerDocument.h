@@ -105,7 +105,7 @@ public:
         return propertyList_;
     }
 
-    void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> docMap)
+    void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>& docMap)
     {
         std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator
             it = propertyList_.begin();
