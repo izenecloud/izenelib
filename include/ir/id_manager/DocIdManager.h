@@ -39,7 +39,7 @@ namespace idmanager {
 
 template<typename NameString,
          typename NameID,
-         typename IDGenerator   = UniqueIDGenerator<NameString, NameID>,
+         typename IDGenerator   = OldUniqueIDGenerator<NameString, NameID>,
          typename IDStorage     = TCIDStorage<NameString, NameID> >
 class DocIdManager {
 

@@ -401,6 +401,8 @@ template <
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
+    typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
+
 public:
 
     /**
@@ -449,20 +451,25 @@ public:
     {
         saveFujimap_();
         saveNewId_();
+        idFinder_.flush();
     }
 
     void close()
     {
         flush();
+        fujimap_.clear();
+        idFinder_.close();
     }
 
     void warmUp()
     {
+        fujimapStatus_ = true;
         loadFujimap_();
     }
 
     void coolDown()
     {
+        fujimapStatus_ = false;
         fujimap_.clear();
     }
 
@@ -474,7 +481,7 @@ protected:
 
     bool saveFujimap_()
     {
-        return fujimap_.save(fujimapFile_.c_str()) == 0;
+        return fujimap_.empty() || fujimap_.save(fujimapFile_.c_str()) == 0;
     }
 
     bool loadFujimap_()
@@ -543,6 +550,9 @@ protected:
     LockType mutex_;
 
     izenelib::am::succinct::fujimap::Fujimap<NameString> fujimap_;
+    IdFinder idFinder_;
+
+    bool fujimapStatus_;
 }; // end - template UniqueIDGenerator
 
 template <typename NameString, typename NameID,
@@ -557,8 +567,11 @@ UniqueIDGenerator<NameString, NameID,
     keyFile_(path + "_keyfile.tmp"),
     fujimapFile_(path + "_fujimap.bin"),
     newIdFile_(path + "_newid.xml"),
-    fujimap_(keyFile_.c_str())
+    fujimap_(keyFile_.c_str()),
+    idFinder_(path + "_name_storage"),
+    fujimapStatus_(false)
 {
+    idFinder_.open();
     restoreNewId_();
 } // end - UniqueIDGenerator()
 
@@ -581,18 +594,28 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
+    if (!insert)
+    {
+        if (fujimapStatus_)
+        {
+            nameID = fujimap_.getInteger(nameString);
+            mutex_.release_write_lock();
+            return (NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID;
+        }
+        else
+        {
+            bool ret = idFinder_.get(nameString, nameID);
+            mutex_.release_write_lock();
+            return ret;
+        }
+    }
+
     nameID = fujimap_.getInteger(nameString);
     if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
         mutex_.release_write_lock();
         return true;
     }// end - if
-
-    if (!insert)
-    {
-        mutex_.release_write_lock();
-        return false;
-    }
 
     nameID = newID_;
     newID_++;
@@ -605,6 +628,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
     }
 
     fujimap_.setInteger(nameString, nameID, true);
+    idFinder_.insert(nameString, nameID);
     mutex_.release_write_lock();
     return false;
 } // end - conv()
@@ -641,6 +665,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
     }
 
     fujimap_.setInteger(nameString, updatedID, true);
+    idFinder_.update(nameString, updatedID);
     mutex_.release_write_lock();
     return true;
 } // end - conv()

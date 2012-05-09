@@ -201,6 +201,8 @@ public:
      */
     std::string getEncodeTypeStr() const;
 
+    bool empty() const;
+
 private:
     int build_(std::vector<std::pair<KeyType, uint64_t> >& kvs, FujimapBlock& fb);
 
@@ -672,6 +674,12 @@ template <class KeyType>
 std::string Fujimap<KeyType>::what() const
 {
     return what_.str();
+}
+
+template <class KeyType>
+bool empty() const
+{
+    return fbs_.empty() && tmpEdges_.empty();
 }
 
 }}
