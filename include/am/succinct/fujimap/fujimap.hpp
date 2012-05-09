@@ -677,7 +677,7 @@ std::string Fujimap<KeyType>::what() const
 }
 
 template <class KeyType>
-bool empty() const
+bool Fujimap<KeyType>::empty() const
 {
     return fbs_.empty() && tmpEdges_.empty();
 }
