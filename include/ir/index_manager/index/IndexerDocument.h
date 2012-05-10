@@ -115,6 +115,14 @@ public:
         }
     }
 
+    void swap(IndexerDocument& rhs)
+    {
+        using std::swap;
+        swap(id_, rhs.id_);
+        swap(docId_, rhs.docId_);
+        swap(colId_, rhs.colId_);
+        swap(propertyList_, rhs.propertyList_);
+    }
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version)
