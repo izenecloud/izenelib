@@ -174,8 +174,8 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if(doc.getId() > pBarrelsInfo_->maxDocId())
-        return;
+//    if(doc.getId() > pBarrelsInfo_->maxDocId())
+//        return;
     indexDocument(doc);
     removeDocument(uniqueID.colId,doc.getId());
 }
