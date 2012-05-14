@@ -457,7 +457,7 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    EmptyIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerMIA;
 
-//#define USE_FUJIMAP
+#define USE_FUJIMAP
 #ifdef USE_FUJIMAP
 typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    izenelib::util::ReadWriteLock,
