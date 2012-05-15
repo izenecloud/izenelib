@@ -13,7 +13,8 @@
 
 NS_IZENELIB_SF1R_BEGIN
 
-using boost::system::system_error;
+namespace bs = boost::system;
+
 using ba::ip::tcp;
 using std::string;
 
@@ -44,7 +45,7 @@ RawClient::RawClient(ba::io_service& service,
                      const string& zkpath) 
         : socket(service), status(Idle), path(zkpath), id(++idSequence) {
     try {
-        DLOG(INFO) << "connecting (" << id << ") ...";
+        DLOG(INFO) << "connecting to [" << host << ":" << port << "] (" << id << ") ...";
         
         ba::ip::tcp::resolver resolver(service);
         ba::ip::tcp::resolver::query query(host, port);
@@ -52,7 +53,7 @@ RawClient::RawClient(ba::io_service& service,
         ba::connect(socket, resolver.resolve(query)); 
         
         DLOG(INFO) << "connected (" << id << ")";
-    } catch (system_error& e) {
+    } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -72,11 +73,31 @@ RawClient::~RawClient() {
         socket.close();
         
         DLOG(INFO) << "connection closed (" << id << ")";
-    } catch (system_error& e) {
+    } catch (bs::system_error& e) {
         LOG(WARNING) << e.what();
     }
     
     DLOG(INFO) << "Correctly destroyed (" << id << ")";
+}
+
+
+bool
+RawClient::isConnected() {
+    // is the socket open?
+    if (not socket.is_open()) {
+        DLOG(WARNING) << "Socket is not open";
+        return false;
+    }
+    
+    // is the endpoint active?
+    try {
+        socket.remote_endpoint();
+    } catch (bs::system_error& e) {
+        DLOG(WARNING) << "Endpoint error: " << e.what();
+        return false;
+    }
+    
+    return true;
 }
 
 
@@ -107,7 +128,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     size_t n = 0;
     try {
         n += ba::write(socket, buffers);
-    } catch (system_error& e) {
+    } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -141,7 +162,7 @@ RawClient::getResponse() {
 
     try {
         n += ba::read(socket, ba::buffer(header));
-    } catch (system_error& e) {
+    } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -162,7 +183,7 @@ RawClient::getResponse() {
     char data[length];
     try {
         n = ba::read(socket, ba::buffer(data, length));
-    } catch (system_error& e) {
+    } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());

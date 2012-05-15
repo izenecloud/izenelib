@@ -32,7 +32,8 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(RawClient(service, "somewhere", "8888"), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "somewhere", ""), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "somewhere", "port"), NetworkError);
     BOOST_CHECK_THROW(RawClient(service, "localhost", "12345"), NetworkError);
 }
 
