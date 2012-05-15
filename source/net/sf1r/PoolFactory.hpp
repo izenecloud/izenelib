@@ -53,7 +53,7 @@ public:
      * @throw NetworkError if network-related errors occur
      */
     ConnectionPool* newConnectionPool(const std::string& address) const {
-        DLOG(INFO) << "new connection pool to: [" << address << "]";
+        LOG(INFO) << "new connection pool to: [" << address << "]";
         
         size_t pos = address.find(':');
         return new ConnectionPool(service, 
@@ -68,7 +68,7 @@ public:
      * @throw NetworkError if network-related errors occur
      */
     ConnectionPool* newConnectionPool(const Sf1Node& node) const {
-        DLOG(INFO) << "new connection pool to: [" << node << "]";
+        LOG(INFO) << "new connection pool to: [" << node << "]";
         
         return new ConnectionPool(service, node.getHost(), 
                 boost::lexical_cast<std::string>(node.getPort()),

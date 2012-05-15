@@ -22,9 +22,18 @@ using std::string;
 using std::vector;
 
 
+namespace {
+
+/// Timestamp-like version.
+string VERSION = "201205151216";
+
+}
+
+
 Sf1DriverBase::Sf1DriverBase(const Sf1Config& parameters, const Format& fmt) 
         : sequence(1), format(fmt),
         factory(new PoolFactory(service, parameters)) {
+    LOG(INFO) << "Sf1Driver-" << VERSION;
     setFormat();
     DLOG(INFO) << "initialized";
 }

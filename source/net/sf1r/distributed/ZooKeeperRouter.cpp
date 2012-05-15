@@ -138,7 +138,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     izenelib::util::kv2string parser;
     parser.loadKvString(data);
     
-    if (parser.getUInt32Value(MASTERPORT_KEY) == 0) {
+    if (not parser.hasKey(MASTERPORT_KEY)) {
         DLOG(INFO) << "Not a master node, skipping";
         return;
     }
