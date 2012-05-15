@@ -88,6 +88,9 @@ Sf1DriverBase::sendAndReceive(RawClient& client, const string& request,
         string& responseBody) {
     client.sendRequest(sequence, request);
     
+    // Probing must be done here, after using the connection.
+    DLOG(INFO) << "is connected? " << client.isConnected();
+    
     Response response = client.getResponse();
     uint32_t responseSequence = response.get<RESPONSE_SEQUENCE>();
 
