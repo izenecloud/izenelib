@@ -70,7 +70,9 @@ public:
     IndexerDocument():id_(0),docId_(0),colId_(0){}
 
     IndexerDocument(unsigned int docId, unsigned int colId):id_(0),docId_(docId),colId_(colId){}
-	
+
+    IndexerDocument(const IndexerDocument& rhs):id_(rhs.id_),docId_(rhs.docId_),colId_(rhs.colId_),propertyList_(rhs.propertyList_){}
+
     ~IndexerDocument(){}
 public:
     void setId(docid_t id) {id_ = id;}
@@ -122,6 +124,15 @@ public:
         swap(docId_, rhs.docId_);
         swap(colId_, rhs.colId_);
         swap(propertyList_, rhs.propertyList_);
+    }
+
+    IndexerDocument& operator=(const IndexerDocument& other)
+    {
+        id_ = other.id_;
+        docId_ = other.docId_;
+        colId_ = other.colId_;
+        propertyList_ = other.propertyList_;
+        return *this;
     }
 
     template<class Archive>
