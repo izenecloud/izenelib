@@ -171,13 +171,38 @@ public:
         return ( propertyName_ < other.propertyName_);
     }
 
+    void swap(IndexerPropertyConfig& rhs)
+    {
+        using std::swap;
+        swap(propertyId_,rhs.propertyId_);
+        swap(propertyName_,rhs.propertyName_);
+        swap(index_,rhs.index_);
+        swap(analyzed_,rhs.analyzed_);
+        swap(filter_,rhs.filter_);
+        swap(type_,rhs.type_);
+        swap(multiValue_,rhs.multiValue_);
+        swap(storeDocLen_,rhs.storeDocLen_);
+    }
+
+    IndexerPropertyConfig& operator=(const IndexerPropertyConfig& rhs)
+    {
+        propertyId_ = rhs.propertyId_;
+        propertyName_ = rhs.propertyName_;
+        index_ = rhs.index_;
+        analyzed_ = rhs.analyzed_;
+        filter_ = rhs.filter_;
+        type_ = rhs.type_;
+        multiValue_ = rhs.multiValue_;
+        storeDocLen_ = rhs.storeDocLen_;
+        return *this;
+    }
+
 protected:
     friend class boost::serialization::access;
 
     uint32_t propertyId_;
 
     std::string propertyName_;
-
     /// if only true, then inverted or BTree index will be built
     bool index_;
     ///whether this property is analyzed by LA,
@@ -186,11 +211,8 @@ protected:
     ///whether filter index is going to be built on this property,
     ///BTree index will only be built when both index_ and filter_ are true
     bool filter_;
-    
-    
     ///record the type information for BTreeIndexer
     PropertyType type_;
-    
     ///only used for filter
     bool multiValue_;
     /// whether store doclen;
