@@ -508,7 +508,7 @@ namespace irdb
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument document;
-                document.setId(oldDocId);
+                document.setOldId(oldDocId);
                 document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 
@@ -968,7 +968,7 @@ namespace irdb
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument document;
-                document.setId(oldDocId);
+                document.setOldId(oldDocId);
                 document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 

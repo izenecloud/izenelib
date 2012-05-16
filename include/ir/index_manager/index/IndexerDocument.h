@@ -75,9 +75,9 @@ public:
 
     ~IndexerDocument(){}
 public:
-    void setId(docid_t id) {id_ = id;}
+    void setOldId(docid_t id) {id_ = id;}
 
-    docid_t getId() {return id_;}
+    docid_t getOldId() {return id_;}
 
     void setDocId(unsigned int docId, unsigned int colId){docId_ = docId;colId_ = colId;}
 

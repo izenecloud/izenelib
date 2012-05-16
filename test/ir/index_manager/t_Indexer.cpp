@@ -85,7 +85,7 @@ void initIndexer(boost::shared_ptr<Indexer>& indexer,
 
 void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter = true)
 {
-    document.setId(docId);
+    document.setOldId(docId);
     document.setDocId(docId, 1);
 
     IndexerPropertyConfig propertyConfig(propertyMap["content"],"content",true,true);
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(update)
     {
         IndexerDocument document;
         prepareDocument(i, document);
-        document.setId(i - 1000);
+        document.setOldId(i - 1000);
         indexer->updateDocument(document);
     }
     indexer->flush();

@@ -177,7 +177,7 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 //    if(doc.getId() > pBarrelsInfo_->maxDocId())
 //        return;
     indexDocument(doc);
-    removeDocument(uniqueID.colId,doc.getId());
+    removeDocument(uniqueID.colId,doc.getOldId());
 }
 
 void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
