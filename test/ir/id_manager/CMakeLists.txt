@@ -29,12 +29,12 @@ TARGET_LINK_LIBRARIES(t_idm
   am
   izene_util
   febird
-  snappy
-  leveldb
   jemalloc
   ${Glog_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Boost_LIBRARIES}
+  leveldb
+  snappy
 )
 
 ENDIF(Boost_FOUND)

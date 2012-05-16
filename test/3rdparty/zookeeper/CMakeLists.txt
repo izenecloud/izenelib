@@ -15,8 +15,8 @@ INCLUDE_DIRECTORIES(
 
 SET(libs
    zookeeper
-   izene_util
    ${Boost_LIBRARIES}
+   izene_util
    ${Glog_LIBRARIES}
 )
 

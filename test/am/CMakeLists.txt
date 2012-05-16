@@ -79,6 +79,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(manual_t_fmm
+    ${CMAKE_THREAD_LIBS_INIT}
     am
     lzo
     febird
