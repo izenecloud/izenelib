@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(Insert)
 {
     static uint64_t N = 100;
 
-    izenelib::am::succinct::fujimap::Fujimap<uint128_t> fm("tmp.kf");
+    izenelib::am::succinct::fujimap::Fujimap<uint128_t, uint32_t> fm("tmp.kf");
     fm.initFP(32);
     fm.initTmpN(10000000);
 
