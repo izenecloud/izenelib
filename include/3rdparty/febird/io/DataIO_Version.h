@@ -8,7 +8,7 @@
 
 #include "../stdtypes.h"
 //#include "var_int.h"
-#include <boost/strong_typedef.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include "../pass_by_value.h"
 
 namespace febird {
