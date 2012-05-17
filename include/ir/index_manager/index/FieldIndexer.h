@@ -190,7 +190,7 @@ public:
                 size_t after = readBufferStart_+readBufferPosition_+len;
                 //if(after > length_)
                 //_CLTHROWA(CL_ERR_IO, "read past EOF");
-                if (fread(b,len,1,fd_) == 0);
+                fread(b,len,1,fd_);
                 readBufferStart_ = after;
                 readBufferPosition_ = 0;
                 readBufferLength_ = 0; 				   // trigger refill() on read
@@ -250,7 +250,7 @@ private:
         if (readBufferLength_ <= 0)
            SF1V5_THROW(ERROR_FILEIO,"Izenesort :read past EOF.");
 
-        if (fread(readBuffer_, readBufferLength_, 1, fd_) == 0);
+        fread(readBuffer_, readBufferLength_, 1, fd_);
         readBufferStart_ = start;
         readBufferPosition_ = 0;
     }
