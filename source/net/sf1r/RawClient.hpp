@@ -75,9 +75,7 @@ public:
      * Checks the connection status.
      * @return \c true if connected, \c false otherwise.
      */
-    bool isConnected() const {
-        return socket.is_open();
-    }
+    bool isConnected();
 
     /**
      * Reads the client status.

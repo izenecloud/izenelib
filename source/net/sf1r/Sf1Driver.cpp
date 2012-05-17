@@ -34,38 +34,46 @@ Sf1Driver::~Sf1Driver() {
 
 std::string
 Sf1Driver::call(const string& uri, const string& tokens, string& request) {
-    // lazy initialization
-    if (mustReconnect or pool.get() == NULL) {
-        reconnect();
-    }
-    
-    string controller, action;
-    parseUri(uri, controller, action);
-    
-    string collection;
-    preprocessRequest(controller, action, tokens, request, collection);
-    
-    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
-    
-    incrementSequence();
-    
-    RawClient& client = acquire(collection);
-    
-    // process request
-    Releaser r(*this, client);
-    try {
-        string response;
-        sendAndReceive(client, request, response); 
-        return response;
-    } catch (NetworkError& e) {
-        LOG(WARNING) << e.what();
-        mustReconnect = true;
-        DLOG(INFO) << "Reconnect flag set to: " << mustReconnect;
-        throw e;
-    } catch (ServerError& e) { // do not intercept ServerError
-        DLOG(INFO) << e.what();
-        throw e;
-    }
+    bool retry = false;
+    do {
+        // lazy initialization
+        if (mustReconnect or pool.get() == NULL) {
+            reconnect();
+        }
+        
+        string controller, action;
+        parseUri(uri, controller, action);
+        
+        string collection;
+        preprocessRequest(controller, action, tokens, request, collection);
+        
+        LOG(INFO) << "Send " << getFormatString() << " request: " << request;
+        
+        incrementSequence();
+        
+        RawClient& client = acquire(collection);
+        
+        // process request
+        Releaser r(*this, client);
+        try {
+            string response;
+            sendAndReceive(client, request, response); 
+            return response;
+        } catch (NetworkError& e) {
+            LOG(WARNING) << e.what();
+            mustReconnect = true;
+            DLOG(INFO) << "Reconnect flag set to: " << mustReconnect;
+            if (not retry) { // retry only once
+                retry = true;
+                LOG(INFO) << "Retry flag set to: " << retry;
+            } else {
+                throw e;
+            }
+        } catch (ServerError& e) { // do not intercept ServerError
+            DLOG(INFO) << e.what();
+            throw e;
+        }
+    } while (retry);
 }
 
 
