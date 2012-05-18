@@ -51,7 +51,7 @@ public:
 
     void _readBytes(char* data, size_t len)
     {
-        if (fread(data,1,len,fd_) == 0);
+        fread(data,1,len,fd_);
     }
     size_t _tell()
     {

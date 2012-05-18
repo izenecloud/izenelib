@@ -17,13 +17,14 @@
  *      software without specific prior written permission.
  */
 
-#ifndef SPARSE_MAP_HPP_
-#define SPARSE_MAP_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_MAP_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_MAP_HPP_
 
 #include "sparse_set.hpp"
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 /**
  * Sparse Map
@@ -234,5 +235,6 @@ private:
 };
 
 }
+NS_IZENELIB_AM_END
 
-#endif // SPARSE_MAP_HPP_
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_SPARSE_MAP_HPP_

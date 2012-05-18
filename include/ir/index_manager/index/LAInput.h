@@ -35,6 +35,7 @@ private:
     void serialize(Archive& ar, const unsigned int version)
     {
         ar& termid_;
+        ar& docId_;
         ar& wordOffset_;
     }
 };

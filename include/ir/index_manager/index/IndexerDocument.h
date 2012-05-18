@@ -70,12 +70,14 @@ public:
     IndexerDocument():id_(0),docId_(0),colId_(0){}
 
     IndexerDocument(unsigned int docId, unsigned int colId):id_(0),docId_(docId),colId_(colId){}
-	
+
+    IndexerDocument(const IndexerDocument& rhs):id_(rhs.id_),docId_(rhs.docId_),colId_(rhs.colId_),propertyList_(rhs.propertyList_){}
+
     ~IndexerDocument(){}
 public:
-    void setId(docid_t id) {id_ = id;}
+    void setOldId(docid_t id) {id_ = id;}
 
-    docid_t getId() {return id_;}
+    docid_t getOldId() {return id_;}
 
     void setDocId(unsigned int docId, unsigned int colId){docId_ = docId;colId_ = colId;}
 
@@ -105,7 +107,7 @@ public:
         return propertyList_;
     }
 
-    void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> docMap)
+    void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>& docMap)
     {
         std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator
             it = propertyList_.begin();
@@ -115,6 +117,23 @@ public:
         }
     }
 
+    void swap(IndexerDocument& rhs)
+    {
+        using std::swap;
+        swap(id_, rhs.id_);
+        swap(docId_, rhs.docId_);
+        swap(colId_, rhs.colId_);
+        swap(propertyList_, rhs.propertyList_);
+    }
+
+    IndexerDocument& operator=(const IndexerDocument& other)
+    {
+        id_ = other.id_;
+        docId_ = other.docId_;
+        colId_ = other.colId_;
+        propertyList_ = other.propertyList_;
+        return *this;
+    }
 
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version)

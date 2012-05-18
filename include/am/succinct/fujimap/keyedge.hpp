@@ -44,14 +44,14 @@ namespace succinct{ namespace fujimap{
  * used in HashMap.
  */
 
-uint64_t hash(const char* str, size_t len);
 void hash(const char* str, const size_t len, const uint64_t seed,
           uint64_t& a, uint64_t& b, uint64_t& c);
 
+template <class ValueType>
 struct KeyEdge
 {
     KeyEdge();
-    KeyEdge(const char* str, const size_t len, const uint64_t code,
+    KeyEdge(const char* str, const size_t len, const ValueType& code,
             const uint64_t seed);
 
     uint64_t get(uint64_t i, uint64_t bn) const
@@ -72,8 +72,35 @@ struct KeyEdge
     void load(std::ifstream& ifs);
 
     uint64_t v[3];
-    uint64_t code;
+    ValueType code;
 };
+
+template <class ValueType>
+KeyEdge<ValueType>::KeyEdge(const char* str, const size_t len, const ValueType& code,
+                            const uint64_t seed) : code(code)
+{
+    hash(str, len, seed, v[0], v[1], v[2]);
+}
+
+template <class ValueType>
+KeyEdge<ValueType>::KeyEdge() : code(0)
+{
+}
+
+template <class ValueType>
+void KeyEdge<ValueType>::save(std::ofstream& ofs)
+{
+    ofs.write((const char*)(&code), sizeof(code));
+    ofs.write((const char*)(&v[0]), sizeof(v[0]) * R);
+}
+
+template <class ValueType>
+void KeyEdge<ValueType>::load(std::ifstream& ifs)
+{
+    ifs.read((char*)(&code), sizeof(code));
+    ifs.read((char*)(&v[0]), sizeof(v[0]) * R);
+
+}
 
 }}
 

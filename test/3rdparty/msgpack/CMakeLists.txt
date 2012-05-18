@@ -8,6 +8,8 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   program_options
   )
   
+FIND_PACKAGE(Threads)
+
 INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/msgpack
@@ -20,6 +22,7 @@ INCLUDE_DIRECTORIES(
     
 SET(libs
    msgpack
+   ${CMAKE_THREAD_LIBS_INIT}
    izene_util
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
@@ -40,3 +43,4 @@ TARGET_LINK_LIBRARIES(t_msgpack_server ${libs})
 
 ADD_EXECUTABLE(t_msgpack_client t_msgpack_client.cc)
 TARGET_LINK_LIBRARIES(t_msgpack_client ${libs})
+

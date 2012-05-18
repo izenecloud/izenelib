@@ -174,10 +174,10 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if(doc.getId() > pBarrelsInfo_->maxDocId())
-        return;
+//    if(doc.getId() > pBarrelsInfo_->maxDocId())
+//        return;
     indexDocument(doc);
-    removeDocument(uniqueID.colId,doc.getId());
+    removeDocument(uniqueID.colId,doc.getOldId());
 }
 
 void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
@@ -210,20 +210,19 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
                     oldProp = boost::get<PropertyType>(it->second);
                     pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), oldProp, uniqueID.docId);
                 }
-
-                if(iter->first.isMultiValue())
-                {
-                    MultiValuePropertyType prop;
-                    prop = boost::get<MultiValuePropertyType>(iter->second);
-                    for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
-                        pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *multiIt, uniqueID.docId);
-                }
-                else
-                {
-                    PropertyType prop;
-                    prop = boost::get<PropertyType>(iter->second);
-                    pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
-                }
+            }
+            if(iter->first.isMultiValue())
+            {
+                MultiValuePropertyType prop;
+                prop = boost::get<MultiValuePropertyType>(iter->second);
+                for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
+                    pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *multiIt, uniqueID.docId);
+            }
+            else
+            {
+                PropertyType prop;
+                prop = boost::get<PropertyType>(iter->second);
+                pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
             }
         }
     }

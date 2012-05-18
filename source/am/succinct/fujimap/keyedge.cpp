@@ -26,8 +26,6 @@
 
 #include <am/succinct/fujimap/keyedge.hpp>
 
-using namespace std;
-
 NS_IZENELIB_AM_BEGIN
 
 namespace succinct{ namespace fujimap{
@@ -82,7 +80,7 @@ void hash(const char* str, size_t len, uint64_t seed,
     const uint64_t* data = (const uint64_t *)str;
     const uint64_t* end = data + len / 24;
 
-    a = 0x9e3779b97f4a7c13LL;
+    a = 0x9e3779b97f4a7c13LLU;
     b = seed;
     c = seed;
     while (data != end)
@@ -130,30 +128,6 @@ void hash(const char* str, size_t len, uint64_t seed,
     }
 
     bob_mix(a, b, c);
-}
-
-
-KeyEdge::KeyEdge(const char* str, const size_t len,
-                 const uint64_t code, const uint64_t seed) : code(code)
-{
-    hash(str, len, seed, v[0], v[1], v[2]);
-}
-
-KeyEdge::KeyEdge() :  code(0)
-{
-}
-
-void KeyEdge::save(ofstream& ofs)
-{
-    ofs.write((const char*)(&code), sizeof(code));
-    ofs.write((const char*)(&v[0]), sizeof(v[0]) * R);
-}
-
-void KeyEdge::load(ifstream& ifs)
-{
-    ifs.read((char*)(&code), sizeof(code));
-    ifs.read((char*)(&v[0]), sizeof(v[0]) * R);
-
 }
 
 }}

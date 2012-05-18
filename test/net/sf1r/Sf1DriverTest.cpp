@@ -192,9 +192,9 @@ BOOST_AUTO_TEST_CASE(reconnect) {
         BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
     }
     
-    cout << endl << "Restart the SF1 ... ";
+    cout << endl << "Stop the SF1 and then press ENTER ... ";
     cout.flush(); 
-    sleep(10);
+    cin.get();
     cout << "continue!" << endl << endl;
     
     // ensure that the invalid connections are discarded and cannot estabilish 
@@ -203,9 +203,34 @@ BOOST_AUTO_TEST_CASE(reconnect) {
         BOOST_CHECK_THROW(driver.call(uri, tokens, body), NetworkError);
     }
     
-    cout << endl << "Sleeping ensuring the SF1 has completely restarted ... ";
+    cout << endl << "Press ENTER when the SF1 has completely restarted ... ";
     cout.flush(); 
-    sleep(10);
+    cin.get();
+    cout << "continue!" << endl << endl;
+    
+    // use again twice all the connection in the pool
+    for (size_t i = 0; i < 2 * CONF.initialSize; i++) {
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(reconnect2) {
+    const string uri    = "test/echo";
+    const string tokens = "token";
+          string body   = "{\"message\":\"Ciao! 你好！\"}";
+    
+    CONF.initialSize = 2;
+    Sf1Driver driver(HOST, CONF);
+    
+    // use twice all the connection in the pool
+    for (size_t i = 0; i < 2 * CONF.initialSize; i++) {
+        BOOST_CHECK_NO_THROW(driver.call(uri, tokens, body));
+    }
+    
+    cout << endl << "Restart the SF1 and then press ENTER ... ";
+    cout.flush(); 
+    cin.get();
     cout << "continue!" << endl << endl;
     
     // use again twice all the connection in the pool

@@ -38,7 +38,7 @@ NS_IZENELIB_AM_BEGIN
 
 namespace succinct{ namespace fujimap{
 
-template <class KeyType>
+template <class KeyType, class ValueType>
 class KeyFile
 {
     enum
@@ -53,16 +53,13 @@ public:
     int initWorkingFile(const char* fn);
     void initMaxID(const uint64_t maxID);
     int clear();
-    int write(const uint64_t id, const KeyType& key, const uint64_t value);
-    int read(const uint64_t id, std::vector<std::pair<KeyType, uint64_t> >& kvs);
+    int write(const uint64_t id, const KeyType& key, const ValueType& value);
+    int read(const uint64_t id, std::vector<std::pair<KeyType, ValueType> >& kvs);
     size_t getNum() const;
 
 private:
-    static void writeUint64(std::vector<char>& v, const uint64_t x);
-    static uint64_t readUint64(std::vector<char>::const_iterator& it);
-
     std::string fns_;
-    std::vector<std::vector<std::pair<KeyType, uint64_t> > > buffers_;
+    std::vector<std::vector<std::pair<KeyType, ValueType> > > buffers_;
     std::vector<uint64_t> nextPointers_;
     std::vector<uint64_t> firstPointers_;
     size_t num_;
@@ -70,28 +67,28 @@ private:
 
 };
 
-template <class KeyType>
-KeyFile<KeyType>::KeyFile(const char* fn) :  fns_(fn), num_(0), maxID_(0)
+template <class KeyType, class ValueType>
+KeyFile<KeyType, ValueType>::KeyFile(const char* fn) :  fns_(fn), num_(0), maxID_(0)
 {
     initWorkingFile(fns_.c_str());
 }
 
-template <class KeyType>
-KeyFile<KeyType>::~KeyFile()
+template <class KeyType, class ValueType>
+KeyFile<KeyType, ValueType>::~KeyFile()
 {
 }
 
-template <class KeyType>
-size_t KeyFile<KeyType>::getNum() const
+template <class KeyType, class ValueType>
+size_t KeyFile<KeyType, ValueType>::getNum() const
 {
     return num_;
 }
 
-template <class KeyType>
-int KeyFile<KeyType>::clear()
+template <class KeyType, class ValueType>
+int KeyFile<KeyType, ValueType>::clear()
 {
     num_ = 0;
-    std::vector<std::vector<std::pair<KeyType, uint64_t> > >().swap(buffers_);
+    std::vector<std::vector<std::pair<KeyType, ValueType> > >().swap(buffers_);
     nextPointers_.clear();
     firstPointers_.clear();
     buffers_.resize(maxID_);
@@ -108,8 +105,8 @@ int KeyFile<KeyType>::clear()
     return 0;
 }
 
-template <class KeyType>
-int KeyFile<KeyType>::initWorkingFile(const char* fn)
+template <class KeyType, class ValueType>
+int KeyFile<KeyType, ValueType>::initWorkingFile(const char* fn)
 {
     fns_ = fn;
     ofstream ofs(fns_.c_str());
@@ -121,8 +118,8 @@ int KeyFile<KeyType>::initWorkingFile(const char* fn)
     return 0;
 }
 
-template <class KeyType>
-void KeyFile<KeyType>::initMaxID(const uint64_t maxID)
+template <class KeyType, class ValueType>
+void KeyFile<KeyType, ValueType>::initMaxID(const uint64_t maxID)
 {
     maxID_ = maxID;
     buffers_.resize(maxID_);
@@ -130,16 +127,16 @@ void KeyFile<KeyType>::initMaxID(const uint64_t maxID)
     firstPointers_.resize(maxID_);
 }
 
-template <class KeyType>
-int KeyFile<KeyType>::write(const uint64_t id, const KeyType& key, const uint64_t value)
+template <class KeyType, class ValueType>
+int KeyFile<KeyType, ValueType>::write(const uint64_t id, const KeyType& key, const ValueType& value)
 {
     assert(id < maxID_);
-    std::vector<std::pair<KeyType, uint64_t> >& v(buffers_[id]);
+    std::vector<std::pair<KeyType, ValueType> >& v(buffers_[id]);
     v.push_back(make_pair(key, value));
 
     if (v.size() >= BLOCKSIZE)
     {
-        fstream ofs(fns_.c_str(),  std::ios::in | std::ios::out);
+        fstream ofs(fns_.c_str(), std::ios::in | std::ios::out);
         ofs.seekp(0, ios::end);
         uint64_t curPos = ofs.tellp();
         if (firstPointers_[id] == 0)
@@ -163,14 +160,14 @@ int KeyFile<KeyType>::write(const uint64_t id, const KeyType& key, const uint64_
 
         char* vbuf;
         std::size_t vlen = 0;
-        izenelib::util::izene_serialization<std::vector<std::pair<KeyType, uint64_t> > > izsKey(v);
+        izenelib::util::izene_serialization<std::vector<std::pair<KeyType, ValueType> > > izsKey(v);
         izsKey.write_image(vbuf, vlen);
-        ofs.write((const char *)&vlen, sizeof(std::size_t));
-        ofs.write((const char *)vbuf, vlen);
+        ofs.write((const char*)(&vlen), sizeof(std::size_t));
+        ofs.write((const char*)vbuf, vlen);
 
         nextPointers_[id] = static_cast<uint64_t>(ofs.tellp());
-        uint64_t dummy = 0;
-        ofs.write((const char *)&dummy, sizeof(uint64_t));
+        static const uint64_t dummy = 0;
+        ofs.write((const char*)(&dummy), sizeof(uint64_t));
         if (!ofs)
         {
             return -1;
@@ -182,8 +179,8 @@ int KeyFile<KeyType>::write(const uint64_t id, const KeyType& key, const uint64_
     return 0;
 }
 
-template <class KeyType>
-int KeyFile<KeyType>::read(const uint64_t id, std::vector<std::pair<KeyType, uint64_t> >& kvs)
+template <class KeyType, class ValueType>
+int KeyFile<KeyType, ValueType>::read(const uint64_t id, std::vector<std::pair<KeyType, ValueType> >& kvs)
 {
     uint64_t readPos = firstPointers_[id];
     std::ifstream ifs(fns_.c_str());
@@ -194,12 +191,12 @@ int KeyFile<KeyType>::read(const uint64_t id, std::vector<std::pair<KeyType, uin
         ifs.seekg(readPos, ios::beg);
 
         std::size_t vlen = 0;
-        ifs.read((char *)&vlen, sizeof(std::size_t));
+        ifs.read((char*)(&vlen), sizeof(std::size_t));
         std::string vstr;
         vstr.resize(vlen);
-        ifs.read((char *)&vstr[0], vlen);
-        izenelib::util::izene_deserialization<std::vector<std::pair<KeyType, uint64_t> > > izsKey(vstr.c_str(), vlen);
-        std::vector<std::pair<KeyType, uint64_t> > kvs_buffer;
+        ifs.read((char*)(&vstr[0]), vlen);
+        izenelib::util::izene_deserialization<std::vector<std::pair<KeyType, ValueType> > > izsKey(vstr.c_str(), vlen);
+        std::vector<std::pair<KeyType, ValueType> > kvs_buffer;
         izsKey.read_image(kvs_buffer);
         kvs.insert(kvs.end(), kvs_buffer.begin(), kvs_buffer.end());
 

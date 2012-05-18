@@ -93,7 +93,8 @@ public:
     :
         termIdManager_(storageName + "_tid"),
         docIdManager_(storageName + "_did"),
-        wildcardQueryManager_(storageName + "_regexp")
+        wildcardQueryManager_(storageName + "_regexp"),
+        status_(0)
     {
         version_ = "ID Manager - ver. alpha ";
         version_ += MAJOR_VERSION;
@@ -297,6 +298,25 @@ public:
         wildcardQueryManager_.close();
     }
 
+    void warmUp()
+    {
+        if (status_++ == 0)
+        {
+            termIdManager_.warmUp();
+            docIdManager_.warmUp();
+        }
+    }
+
+    void coolDown()
+    {
+        if (status_ == 0) return;
+        if (--status_ == 0)
+        {
+            termIdManager_.coolDown();
+            docIdManager_.coolDown();
+        }
+    }
+
     /**
      * @brief retrieve version string of id-manager
      * @return version string of id-manager
@@ -319,6 +339,7 @@ private:
 
     std::string version_;
 
+    uint64_t status_;
 };
 
 /*****************************************************************************
@@ -435,23 +456,23 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    HDBIDStorage<izenelib::util::UString, uint32_t>,
                    EmptyIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerMIA;
-/**
- * The default IDManager is IDManagerRelease32, If you want to use a different version,
- * write code like following:
 
-    #include <ir/id_manager/IDManager.h>
-
-    #define REPLACE_DEFAULT_IDMANAGER
-    typedef IDManagerDebug64 IDManager;
-
- */
-#ifndef REPLACE_DEFAULT_IDMANAGER
+#define USE_FUJIMAP
+#ifdef USE_FUJIMAP
 typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    izenelib::util::ReadWriteLock,
                    DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<uint128_t, uint32_t>,
+                   EmptyIDStorage<uint128_t, uint32_t> > IDManager;
+#else
+typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
+                   izenelib::util::ReadWriteLock,
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   OldUniqueIDGenerator<uint128_t, uint32_t>,
                    EmptyIDStorage<uint128_t, uint32_t> > IDManager;
 #endif
 

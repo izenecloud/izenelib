@@ -28,9 +28,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     luxio/Db.cpp
     leveldb/Db.cpp
 
-    succinct/t_succinct_vector.cpp
-    succinct/t_fujimap.cpp
-    succinct/t_minimal_perfect_hash.cpp
     )
 
   ADD_EXECUTABLE(t_am ${t_am_SRC})
@@ -55,8 +52,34 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    jemalloc
     )
 
+  SET(t_succinct_SRC
+    succinct/t_master_suite.cpp
+    succinct/t_succinct_vector.cpp
+    succinct/t_fujimap.cpp
+    succinct/t_minimal_perfect_hash.cpp
+    succinct/dag_vector/t_dag_vector.cpp
+    succinct/dag_vector/t_sparse_set.cpp
+    succinct/dag_vector/t_sparse_map.cpp
+    succinct/dag_vector/t_comp_vector.cpp
+    )
+
+  ADD_EXECUTABLE(t_succinct ${t_succinct_SRC})
+  TARGET_LINK_LIBRARIES(t_succinct
+   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+   ${Boost_SYSTEM_LIBRARY}
+   ${Boost_FILESYSTEM_LIBRARY}
+   ${Boost_THREAD_LIBRARY}
+   ${Boost_IOSTREAMS_LIBRARY}
+   am
+   izene_util
+   bz2
+   jemalloc
+   ${Glog_LIBRARIES}
+    )
+
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(manual_t_fmm
+    ${CMAKE_THREAD_LIBS_INIT}
     am
     lzo
     febird

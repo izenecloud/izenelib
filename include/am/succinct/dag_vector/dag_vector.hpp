@@ -17,15 +17,14 @@
  *      software without specific prior written permission.
  */
 
-#ifndef DAG_VECTOR_HPP_
-#define DAG_VECTOR_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_DAG_VECTOR_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_DAG_VECTOR_HPP_
 
-#include <vector>
-#include <stdint.h>
 #include "rank_vector.hpp"
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 /**
  * Direct Accessible Gamma code Vector
@@ -373,5 +372,7 @@ private:
 
 }
 
-#endif // DAG_VECTOR_HPP_
+NS_IZENELIB_AM_END
+
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_DAG_VECTOR_HPP_
 

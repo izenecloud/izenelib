@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <dag_vector/sparse_map.hpp>
+#include <am/succinct/dag_vector/sparse_map.hpp>
 
 using namespace std;
 
@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE(sparse_map)
 
     cout << "n=" << n << " vmax=" << vmax << endl;
 
-    dag::sparse_map<uint64_t> dm(n, vmax / 2 * n + n);
+    izenelib::am::succinct::sparse_map<uint64_t> dm(n, vmax / 2 * n + n);
     uint64_t size = 0;
     uint64_t one_num = 0;
     vector<uint64_t> results;
@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(sparse_map)
     }
 
     size_t i = 0;
-    dag::sparse_map<uint64_t>::const_iterator end = dm.end();
-    for (dag::sparse_map<uint64_t>::const_iterator it = dm.begin(); it != end; ++it, ++i)
+    izenelib::am::succinct::sparse_map<uint64_t>::const_iterator end = dm.end();
+    for (izenelib::am::succinct::sparse_map<uint64_t>::const_iterator it = dm.begin(); it != end; ++it, ++i)
     {
         pair<uint64_t, uint64_t> ret = *it;
         if (results[i] != ret.first)

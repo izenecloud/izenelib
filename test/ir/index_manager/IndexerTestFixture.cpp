@@ -175,7 +175,7 @@ void IndexerTestFixture::updateDocument(bool manualFlush)
         BOOST_TEST_MESSAGE("update doc id: " << it->first << " to new doc id: " << newDocID);
 #endif
         IndexerDocument document;
-        document.setId(it->first);
+        document.setOldId(it->first);
         prepareDocument(document, newDocID);
 
         if(isRealIndex_)

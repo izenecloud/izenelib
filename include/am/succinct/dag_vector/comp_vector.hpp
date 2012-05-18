@@ -18,16 +18,15 @@
  */
 
 
-#ifndef COMP_VECTOR_HPP_
-#define COMP_VECTOR_HPP_
+#ifndef IZENELIB_AM_SUCCINCT_DAG_VECTOR_COMP_VECTOR_HPP_
+#define IZENELIB_AM_SUCCINCT_DAG_VECTOR_COMP_VECTOR_HPP_
 
-#include <vector>
-#include <stdint.h>
 #include <map>
 #include "dag_vector.hpp"
 
-namespace dag
-{
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct{
 
 /**
  * Compressed Vector using Direct Accessible Gamma code Vector
@@ -329,6 +328,6 @@ private:
 
 
 }
+NS_IZENELIB_AM_END
 
-
-#endif // COMP_VECTOR_HPP_
+#endif // IZENELIB_AM_SUCCINCT_DAG_VECTOR_COMP_VECTOR_HPP_

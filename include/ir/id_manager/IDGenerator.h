@@ -17,8 +17,8 @@
 #include <util/hashFunction.h>
 #include <util/DynamicBloomFilter.h>
 #include <util/ThreadModel.h>
-#include <sdb/SequentialDB.h>
 #include <am/leveldb/Table.h>
+#include <am/succinct/fujimap/fujimap.hpp>
 
 #include "IDFactoryException.h"
 #include "IDFactoryErrorString.h"
@@ -61,6 +61,10 @@ public:
 
     void close(){}
 
+    void warmUp(){}
+
+    void coolDown(){}
+
     void display(){}
 
 }; // end - template EmptyIDGenerator
@@ -102,6 +106,10 @@ public:
 
     void close(){}
 
+    void warmUp(){}
+
+    void coolDown(){}
+
     void display(){}
 
 }; // end - template HashIDGenerator
@@ -113,7 +121,7 @@ template <
           typename  LockType    = izenelib::util::NullLock,
           NameID    MinIDValue  = NameIDTraits<NameID>::MinValue,
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
-class UniqueIDGenerator
+class OldUniqueIDGenerator
 {
     typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
 
@@ -124,9 +132,9 @@ public:
      *
      * @param sdbName       name of sdb storage.
      */
-    UniqueIDGenerator(const string& sdbName);
+    OldUniqueIDGenerator(const string& sdbName);
 
-    virtual ~UniqueIDGenerator();
+    virtual ~OldUniqueIDGenerator();
 
     /**
      * @brief This function returns a unique name id given a name string.
@@ -173,6 +181,10 @@ public:
         flush();
         idFinder_.close();
     }
+
+    void warmUp(){}
+
+    void coolDown(){}
 
     void display()
     {
@@ -271,12 +283,12 @@ protected:
 
     DynamicBloomFilter<NameString> bloomFilter_;
     IdFinder idFinder_; ///< an indexer which gives ids according to the name.
-}; // end - template UniqueIDGenerator
+}; // end - template OldUniqueIDGenerator
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
+OldUniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::OldUniqueIDGenerator(
         const string& sdbName)
 :
     minID_(MinValueID),
@@ -291,19 +303,19 @@ UniqueIDGenerator<NameString, NameID,
     loadBloomFilter_();
     idFinder_.open();
     restoreNewId_();
-} // end - UniqueIDGenerator()
+} // end - OldUniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-UniqueIDGenerator<NameString, NameID,
-    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
+OldUniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::~OldUniqueIDGenerator()
 {
     close();
-} // end - ~UniqueIDGenerator()
+} // end - ~OldUniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator<NameString, NameID,
+inline bool OldUniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& nameID,
@@ -346,7 +358,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
-inline bool UniqueIDGenerator<NameString, NameID,
+inline bool OldUniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& oldID,
@@ -379,6 +391,283 @@ inline bool UniqueIDGenerator<NameString, NameID,
     idFinder_.update(nameString, updatedID);
     mutex_.release_write_lock();
     return ret;
+} // end - conv()
+
+template <
+          typename  NameString,
+          typename  NameID,
+          typename  LockType    = izenelib::util::NullLock,
+          NameID    MinIDValue  = NameIDTraits<NameID>::MinValue,
+          NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
+class UniqueIDGenerator
+{
+    typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
+
+public:
+
+    /**
+     * @brief Constructor.
+     *
+     * @param path       name of idstorage.
+     */
+    UniqueIDGenerator(const string& path);
+
+    virtual ~UniqueIDGenerator();
+
+    /**
+     * @brief This function returns a unique name id given a name string.
+     * @param nameString the name string
+     * @param nameID the unique NameID
+     * @param insert whether insert nameString if it does not exist
+     * @return true if DocID already in dictionary
+     * @return false otherwise
+     */
+    inline bool conv(const NameString& nameString, NameID& nameID, bool insert = true);
+
+    /**
+     * @brief This function returns a unique name id given a name string, update old id to
+     * satisfy the incremental semantic
+     * @param nameString the name string
+     * @param oldID the old unique NameID
+     * @param updatedID the updated unique NameID
+     * @return true if DocID already in dictionary
+     * @return false otherwise
+     */
+    inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID);
+
+    /**
+     * @brief Get the maximum converted id.
+     * @return max converted id, 0 for no id converted before.
+     */
+    NameID maxConvID() const
+    {
+        if (newID_ != MinIDValue)
+            return newID_ - 1;
+
+        return 0;
+    }
+
+    void flush()
+    {
+        saveFujimap_();
+        saveNewId_();
+        idFinder_.flush();
+    }
+
+    void close()
+    {
+        flush();
+        fujimap_.clear();
+        idFinder_.close();
+    }
+
+    void warmUp()
+    {
+        fujimapStatus_ = true;
+        loadFujimap_();
+    }
+
+    void coolDown()
+    {
+        fujimapStatus_ = false;
+        fujimap_.clear();
+    }
+
+    void display()
+    {
+    }
+
+protected:
+
+    bool saveFujimap_()
+    {
+        return fujimap_.empty() || fujimap_.save(fujimapFile_.c_str()) == 0;
+    }
+
+    bool loadFujimap_()
+    {
+        if (fujimap_.load(fujimapFile_.c_str()) == -1)
+        {
+            fujimap_.initFP(32);
+            fujimap_.initTmpN(10000000);
+            newID_ = minID_;
+            return false;
+        }
+        return true;
+    }
+
+    bool saveNewId_() const
+    {
+        try
+        {
+            std::ofstream ofs(newIdFile_.c_str(), std::ios_base::binary);
+            if (ofs)
+            {
+                boost::archive::xml_oarchive oa(ofs);
+                oa << boost::serialization::make_nvp(
+                    "NewID", newID_
+                );
+            }
+
+            return ofs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            return false;
+        }
+    }
+
+    bool restoreNewId_()
+    {
+        try
+        {
+            std::ifstream ifs(newIdFile_.c_str());
+            if (ifs)
+            {
+                boost::archive::xml_iarchive ia(ifs);
+                ia >> boost::serialization::make_nvp(
+                    "NewID", newID_
+                );
+            }
+            return ifs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            newID_ = minID_;
+            return false;
+        }
+    }
+
+protected:
+
+    NameID minID_; ///< An minimum ID.
+    NameID maxID_; ///< An maximum ID.
+    NameID newID_; ///< An ID for new name.
+    string keyFile_;
+    string fujimapFile_;
+    string newIdFile_;
+
+    LockType mutex_;
+
+    izenelib::am::succinct::fujimap::Fujimap<NameString> fujimap_;
+    IdFinder idFinder_;
+
+    bool fujimapStatus_;
+}; // end - template UniqueIDGenerator
+
+template <typename NameString, typename NameID,
+    typename LockType, NameID MinValueID, NameID MaxValueID>
+UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
+        const string& path)
+:
+    minID_(MinValueID),
+    maxID_(MaxValueID),
+    newID_(MinValueID),
+    keyFile_(path + "_keyfile.tmp"),
+    fujimapFile_(path + "_fujimap.bin"),
+    newIdFile_(path + "_newid.xml"),
+    fujimap_(keyFile_.c_str()),
+    idFinder_(path + "_name_storage"),
+    fujimapStatus_(false)
+{
+    idFinder_.open();
+    restoreNewId_();
+} // end - UniqueIDGenerator()
+
+template <typename NameString, typename NameID,
+    typename LockType, NameID MinValueID, NameID MaxValueID>
+UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
+{
+    close();
+} // end - ~UniqueIDGenerator()
+
+template <typename NameString, typename NameID,
+    typename LockType, NameID MinValueID, NameID MaxValueID>
+inline bool UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::conv(
+        const NameString& nameString,
+        NameID& nameID,
+        bool insert)
+{
+    mutex_.acquire_write_lock();
+
+    // If name string is found, return the id.
+    if (!insert)
+    {
+        if (fujimapStatus_)
+        {
+            nameID = fujimap_.getInteger(nameString);
+            mutex_.release_write_lock();
+            return (NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID;
+        }
+        else
+        {
+            bool ret = idFinder_.get(nameString, nameID);
+            mutex_.release_write_lock();
+            return ret;
+        }
+    }
+
+    nameID = fujimap_.getInteger(nameString);
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
+    {
+        mutex_.release_write_lock();
+        return true;
+    }// end - if
+
+    nameID = newID_;
+    newID_++;
+
+    // check correctness of input nameID
+    if (newID_> maxID_)
+    {
+        mutex_.release_write_lock();
+        throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
+    }
+
+    fujimap_.setInteger(nameString, nameID, true);
+    idFinder_.insert(nameString, nameID);
+    mutex_.release_write_lock();
+    return false;
+} // end - conv()
+
+template <typename NameString, typename NameID,
+    typename LockType, NameID MinValueID, NameID MaxValueID>
+inline bool UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::conv(
+        const NameString& nameString,
+        NameID& oldID,
+        NameID& updatedID)
+{
+    mutex_.acquire_write_lock();
+
+    // If name string is found, return the id.
+    oldID = fujimap_.getInteger(nameString);
+
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND == oldID)
+    {
+        oldID = 0;
+        ///will be removed until MIA can support index unexist documents from Update SCDs
+        mutex_.release_write_lock();
+        return false;
+    }
+
+    updatedID = newID_;
+    newID_++;
+
+    // check correctness of input nameID
+    if (newID_ > maxID_)
+    {
+        mutex_.release_write_lock();
+        throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
+    }
+
+    fujimap_.setInteger(nameString, updatedID, true);
+    idFinder_.update(nameString, updatedID);
+    mutex_.release_write_lock();
+    return true;
 } // end - conv()
 
 }
