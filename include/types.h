@@ -13,19 +13,24 @@
 typedef int                 int128_t    __attribute__((mode(TI)));
 typedef unsigned int        uint128_t   __attribute__((mode(TI)));
 
-namespace boost {
-
-inline std::size_t hash_value(const int128_t& value)
+struct uint128_hash : std::unary_function<uint128_t, std::size_t>
 {
-    return std::size_t(value);
-}
+    std::size_t operator()(const uint128_t& value) const
+    {
+        return (std::size_t)value;
+    }
+};
 
-inline std::size_t hash_value(const uint128_t& value)
+struct int128_hash : std::unary_function<int128_t, std::size_t>
 {
-    return std::size_t(value);
-}
+    std::size_t operator()(const int128_t& value) const
+    {
+        return (std::size_t)value;
+    }
+};
 
-}
+// 128 hash usage: 
+// typedef boost::unordered_map<uint128_t, bool, uint128_hash> Uint128Map;
 
 #else
 
