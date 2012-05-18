@@ -3,8 +3,8 @@
    @author Kevin Hu
    @date  2009.11.24
  */
-#ifndef USTRING_H
-#define USTRING_H
+#ifndef IZENELIB_UTIL_USTRING_H
+#define IZENELIB_UTIL_USTRING_H
 
 #include <util/izene_serialization.h>
 #include "vector_string.hpp"
