@@ -80,7 +80,7 @@ public:
      * @return true  :		Document name exists in the dictionary.
      * @return false :		Document name does not exist in the dictionary.
      */
-    bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId);
+    bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId, bool insert = true);
 
     /**
      * @brief a member function to offer a document name according to the ID.
@@ -161,9 +161,10 @@ template<typename NameString, typename NameID, typename IDGenerator, typename ID
 bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
     const NameString& docName,
     NameID& oldId,
-    NameID& updatedId)
+    NameID& updatedId,
+    bool insert)
 {
-    return idFactory_.updateNameIDByNameString(docName, oldId, updatedId);
+    return idFactory_.updateNameIDByNameString(docName, oldId, updatedId, insert);
 } // end - updateDocIdByDocName()
 
 
