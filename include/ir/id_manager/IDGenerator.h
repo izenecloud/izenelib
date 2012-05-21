@@ -155,7 +155,7 @@ public:
      * @return true if DocID already in dictionary
      * @return false otherwise
      */
-    inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID, bool insert = true);
+    inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID);
 
     /**
      * @brief Get the maximum converted id.
@@ -362,15 +362,14 @@ inline bool OldUniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& oldID,
-        NameID& updatedID,
-        bool insert)
+        NameID& updatedID)
 {
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
     bool ret = bloomFilter_.Get(nameString) && idFinder_.get(nameString, oldID);
 
-    if (!ret && !insert)
+    if (!ret)
     {
         oldID = 0;
         ///will be removed until MIA can support index unexist documents from Update SCDs
@@ -434,7 +433,7 @@ public:
      * @return true if DocID already in dictionary
      * @return false otherwise
      */
-    inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID, bool insert = true);
+    inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID);
 
     /**
      * @brief Get the maximum converted id.
@@ -640,15 +639,14 @@ inline bool UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& oldID,
-        NameID& updatedID,
-        bool insert)
+        NameID& updatedID)
 {
     mutex_.acquire_write_lock();
 
     // If name string is found, return the id.
     oldID = fujimap_.getInteger(nameString);
 
-    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND == oldID && !insert)
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND == oldID)
     {
         oldID = 0;
         ///will be removed until MIA can support index unexist documents from Update SCDs

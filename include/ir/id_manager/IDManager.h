@@ -235,9 +235,9 @@ public:
      * @return true  : 	    Document name exists in the dictionary.
      * @return false : 	    Document name does not exist in the dictionary.
      */
-    bool updateDocIdByDocName(const DocType& docName, IDType& oldId, IDType& updatedId, bool insert = true)
+    bool updateDocIdByDocName(const DocType& docName, IDType& oldId, IDType& updatedId)
     {
-        return docIdManager_.updateDocIdByDocName(docName, oldId, updatedId, insert);
+        return docIdManager_.updateDocIdByDocName(docName, oldId, updatedId);
     }
 
     /**

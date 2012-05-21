@@ -73,7 +73,7 @@ public:
      * @return true if the name id is successfully returned
      * @return false if no more name id is available
      */
-    inline bool updateNameIDByNameString(const NameString& nameString, NameID& oldId, NameID& updatedId, bool insert = true);
+    inline bool updateNameIDByNameString(const NameString& nameString, NameID& oldId, NameID& updatedId);
 
     /**
      * @brief This function returns a name string given name ID
@@ -168,10 +168,9 @@ template <typename NameString, typename NameID,
 inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::updateNameIDByNameString(
         const NameString& nameString,
         NameID& oldId,
-        NameID& updatedId,
-        bool insert)
+        NameID& updatedId)
 {
-    bool ret = idGenerator_.conv(nameString, oldId, updatedId, insert);
+    bool ret = idGenerator_.conv(nameString, oldId, updatedId);
     idStorage_.put(updatedId, nameString);
     return ret;
 } // end - updateNameIDByNameString()
