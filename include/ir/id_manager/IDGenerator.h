@@ -531,7 +531,7 @@ protected:
 
     LockType mutex_;
 
-    izenelib::am::succinct::fujimap::Fujimap<NameString, NameID> fujimap_;
+    izenelib::am::succinct::fujimap::Fujimap<NameString, uint64_t> fujimap_;
     IdFinder idFinder_;
 
     bool fujimapStatus_;
