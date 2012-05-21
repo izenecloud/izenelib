@@ -71,16 +71,12 @@ public:
     bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true);
 
     /**
-     * @brief a member function to get document ID from the vocabulary which matches to the given document name.
-     * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
+     * @brief a member function to set the document ID to the new value so that it can satisfy the incremental document ID semantic.
      *
      * @param docName		a unique string of the document which is used to distinguish between documents.
-     * @param oldId 		the old document identifier which matches to the document name.
      * @param updatedId  the new old old document identifier which matches to the document name.
-     * @return true  :		Document name exists in the dictionary.
-     * @return false :		Document name does not exist in the dictionary.
      */
-    bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId);
+    void updateDocIdByDocName(const NameString& docName, NameID& updatedId);
 
     /**
      * @brief a member function to offer a document name according to the ID.
@@ -158,12 +154,11 @@ bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocIdByDocName
 } // end - getDocIdByDocName()
 
 template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
-bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
+void DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
     const NameString& docName,
-    NameID& oldId,
     NameID& updatedId)
 {
-    return idFactory_.updateNameIDByNameString(docName, oldId, updatedId);
+    idFactory_.updateNameIDByNameString(docName, updatedId);
 } // end - updateDocIdByDocName()
 
 
