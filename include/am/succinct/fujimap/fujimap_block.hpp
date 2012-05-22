@@ -109,7 +109,7 @@ ValueType FujimapBlock<ValueType>::getVal(const KeyEdge<ValueType>& ke) const
         uint64_t fpCheck = 0;
         for (uint64_t i = 0; i < R; ++i)
         {
-            fpCheck ^= B_.getBits(ke.get(i, bn_) * blockSize, fpLen_);
+            fpCheck ^= (uint64_t)B_.getBits(ke.get(i, bn_) * blockSize, fpLen_);
         }
         if (fpCheck != FujimapCommon::mask(ke.v[0] ^ ke.v[1], fpLen_))
         {
@@ -242,7 +242,7 @@ int FujimapBlock<ValueType>::build(
             uint64_t t = ke.get(j, bn_);
             for (uint64_t k = 0; k < len; ++k)
             {
-                edges[offset_s[t+k] + degs[t+k]++] = i * pointsPerKey + k;
+                edges[offset_s[t + k] + degs[t + k]++] = i * pointsPerKey + k;
             }
         }
     }
@@ -260,7 +260,7 @@ int FujimapBlock<ValueType>::build(
     std::vector<std::pair<uint64_t, uint8_t> > extractedEdges;
     uint64_t assignNum = keyNum_ * pointsPerKey;
 
-    BitVec<ValueType> visitedEdges(assignNum);
+    BitVec<uint64_t> visitedEdges(assignNum);
     uint64_t delet_edNum = 0;
     while (!q.empty())
     {
@@ -330,7 +330,7 @@ int FujimapBlock<ValueType>::build(
     }
 
     uint64_t blockSize = (et_ == BINARY ) ? maxCodeFPLen : 1;
-    BitVec<ValueType> visitedVerticies(assignNum * R);
+    BitVec<uint64_t> visitedVerticies(assignNum * R);
     std::reverse(extractedEdges.begin(), extractedEdges.end());
     for (std::vector<std::pair<uint64_t, uint8_t> >::const_iterator it =
             extractedEdges.begin(); it != extractedEdges.end(); ++it)
@@ -343,16 +343,28 @@ int FujimapBlock<ValueType>::build(
         const KeyEdge<ValueType>& ke(keyEdges[keyID]);
 
         uint64_t signature    = FujimapCommon::mask(ke.v[0] ^ ke.v[1], fpLen_);
-        uint64_t writeCodeLen = 0;
-        ValueType bits        = 0;
+        ValueType bits        = ke.code;
         if (et_ == BINARY)
         {
-            writeCodeLen = maxCodeFPLen;
-            bits = (ke.code << fpLen_) + signature; // ke.code + 1111
+            for (uint64_t i = 0; i < R; ++i)
+            {
+                const uint64_t t = ke.get(i, bn_);
+                if (!(visitedVerticies.getBit(t + offset_)))
+                {
+                    continue;
+                }
+                signature ^= B_.getBits(t * blockSize + offset_, fpLen_);
+                bits ^= B_.getBits(t * blockSize + offset_ + fpLen_, maxCodeLen_);
+            }
+
+            const uint64_t set_Pos = ke.get(it->second, bn_);
+            B_.setBits(set_Pos * blockSize + offset_, fpLen_, signature);
+            B_.setBits(set_Pos * blockSize + offset_ + fpLen_, maxCodeLen_, bits);
+            visitedVerticies.setBit(set_Pos + offset_);
         }
         else if (et_ == GAMMA)
         {
-            writeCodeLen = 1;
+            uint64_t writeCodeLen = 1;
             if (offset_ < fpLen_)
             {
                 bits = (signature >> offset_) & 1;
@@ -361,25 +373,25 @@ int FujimapBlock<ValueType>::build(
             {
                 bits = FujimapCommon::gammaEncodeBit(offset_ - fpLen_, ke.code);
             }
+            for (uint64_t i = 0; i < R; ++i)
+            {
+                const uint64_t t = ke.get(i, bn_);
+                if (!(visitedVerticies.getBit(t + offset_)))
+                {
+                    continue;
+                }
+                bits ^= B_.getBits(t * blockSize + offset_, writeCodeLen);
+            }
+
+            const uint64_t set_Pos = ke.get(it->second, bn_);
+            B_.setBits(set_Pos * blockSize + offset_, writeCodeLen, bits);
+            visitedVerticies.setBit(set_Pos + offset_);
         }
         else
         {
             assert(false);
         }
 
-        for (uint64_t i = 0; i < R; ++i)
-        {
-            const uint64_t t = ke.get(i, bn_);
-            if (!(visitedVerticies.getBit(t+offset_)))
-            {
-                continue;
-            }
-            bits ^= B_.getBits(t * blockSize + offset_, writeCodeLen);
-        }
-
-        const uint64_t set_Pos = ke.get(it->second, bn_);
-        B_.setBits(set_Pos * blockSize + offset_, writeCodeLen, bits);
-        visitedVerticies.setBit(set_Pos + offset_);
     }
 
     return 0;

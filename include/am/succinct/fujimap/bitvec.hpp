@@ -42,13 +42,13 @@ class BitVec
 {
 public:
     BitVec();
-    BitVec(const size_t size);
+    BitVec(size_t size);
 
-    void resize(const size_t size);
-    bool getBit(const size_t pos) const;
-    ValueType getBits(const size_t pos, const size_t len) const;
-    void setBit(const size_t pos);
-    void setBits(const size_t pos, const size_t len, const ValueType& bits);
+    void resize(size_t size);
+    bool getBit(size_t pos) const;
+    ValueType getBits(size_t pos, size_t len) const;
+    void setBit(size_t pos);
+    void setBits(size_t pos, size_t len, const ValueType& bits);
 
     size_t bvBitSize() const;
 
@@ -56,8 +56,7 @@ public:
     void read(std::ifstream& ifs);
 
 private:
-    std::vector<ValueType> bv_;
-    static const uint64_t bit_num_ = sizeof(ValueType) * 8;
+    std::vector<uint64_t> bv_;
 };
 
 template <class ValueType>
@@ -66,7 +65,7 @@ BitVec<ValueType>::BitVec()
 }
 
 template <class ValueType>
-BitVec<ValueType>::BitVec(const size_t size)
+BitVec<ValueType>::BitVec(size_t size)
 {
     resize(size);
 }
@@ -92,61 +91,78 @@ void BitVec<ValueType>::read(std::ifstream& ifs)
 template <class ValueType>
 size_t BitVec<ValueType>::bvBitSize() const
 {
-    return bv_.size() * bit_num_;
+    return bv_.size() * BITNUM;
 }
 
 template <class ValueType>
-void BitVec<ValueType>::resize(const size_t size)
+void BitVec<ValueType>::resize(size_t size)
 {
-    bv_.resize((size + bit_num_ -1)/ bit_num_);
+    bv_.resize((size + BITNUM - 1)/ BITNUM);
     fill(bv_.begin(), bv_.end(), 0);
 }
 
 template <class ValueType>
-bool BitVec<ValueType>::getBit(const size_t pos) const
+bool BitVec<ValueType>::getBit(size_t pos) const
 {
-    return (bv_[(pos / bit_num_) % bv_.size()] >> (pos % bit_num_)) & 1;
+    return (bv_[(pos / BITNUM) % bv_.size()] >> (pos % BITNUM)) & 1LLU;
 }
 
 template <class ValueType>
-ValueType BitVec<ValueType>::getBits(const size_t pos, const size_t len) const
+ValueType BitVec<ValueType>::getBits(size_t pos, size_t len) const
 {
-    assert(len <= bit_num_);
-    uint64_t blockInd1    = pos / bit_num_;
-    uint64_t blockOffset1 = pos % bit_num_;
-    if (blockOffset1 + len <= bit_num_)
+    assert(len <= BITNUM);
+    uint64_t blockInd = pos / BITNUM;
+    uint64_t blockOff = pos % BITNUM;
+    if (blockOff + len <= BITNUM)
     {
-        return FujimapCommon::mask(bv_[blockInd1] >> blockOffset1, len);
+        return FujimapCommon::mask(bv_[blockInd] >> blockOff, len);
     }
-    else
+    ValueType ret = bv_[blockInd++] >> blockOff;
+    blockOff = BITNUM - blockOff;
+    len -= blockOff;
+    while (len >= BITNUM)
     {
-        uint64_t blockInd2 = ((pos + len - 1) / bit_num_) % bv_.size();
-        return  FujimapCommon::mask((bv_[blockInd1] >> blockOffset1) + (bv_[blockInd2] << (bit_num_ - blockOffset1)), len);
+        ret |= ValueType(bv_[blockInd++]) << blockOff;
+        blockOff += BITNUM;
+        len -= BITNUM;
     }
+    if (len)
+    {
+        ret |= ValueType(FujimapCommon::mask(bv_[blockInd], len)) << blockOff;
+    }
+    return ret;
 }
 
 template <class ValueType>
-void BitVec<ValueType>::setBit(const size_t pos)
+void BitVec<ValueType>::setBit(size_t pos)
 {
-    bv_[(pos / bit_num_) % bv_.size()] |= (ValueType)1 << (pos % bit_num_);
+    bv_[(pos / BITNUM) % bv_.size()] |= 1LLU << (pos % BITNUM);
 }
 
 template <class ValueType>
-void BitVec<ValueType>::setBits(const size_t pos, const size_t len, const ValueType& bits)
+void BitVec<ValueType>::setBits(size_t pos, size_t len, const ValueType& bits)
 {
-    assert((pos + len - 1) / bit_num_ < bv_.size());
-    uint64_t blockInd1    = pos / bit_num_;
-    uint64_t blockOffset1 = pos % bit_num_;
-    if (blockOffset1 + len <= bit_num_)
+    assert((pos + len - 1) / BITNUM < bv_.size());
+    uint64_t blockInd = pos / BITNUM;
+    uint64_t blockOff = pos % BITNUM;
+    if (blockOff + len <= BITNUM)
     {
-        bv_[blockInd1] = (bv_[blockInd1] & (~((((ValueType)1 << len) - 1) << blockOffset1))) |
-                         bits << blockOffset1;
+        bv_[blockInd] = (bv_[blockInd] & (~(((1LLU << len) - 1) << blockOff))) | uint64_t(bits << blockOff);
+        return;
     }
-    else
+    bv_[blockInd] = FujimapCommon::mask(bv_[blockInd], blockOff);
+    bv_[blockInd++] |= uint64_t(bits << blockOff);
+    blockOff = BITNUM - blockOff;
+    len -= blockOff;
+    while (len > BITNUM)
     {
-        uint64_t blockOffset2 = (pos + len) % bit_num_;
-        bv_[blockInd1] = FujimapCommon::mask(bv_[blockInd1], blockOffset1) | (bits << blockOffset1);
-        bv_[blockInd1+1] = (bv_[blockInd1 + 1] & (~(((ValueType)1 << blockOffset2) - 1))) | (bits >> (bit_num_ - blockOffset1));
+        bv_[blockInd++] = uint64_t(bits >> blockOff);
+        blockOff += BITNUM;
+        len -= BITNUM;
+    }
+    if (len)
+    {
+        bv_[blockInd] = (bv_[blockInd] & (~((1LLU << len) - 1))) | uint64_t(bits >> blockOff);
     }
 }
 

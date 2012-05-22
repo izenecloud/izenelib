@@ -46,6 +46,7 @@ namespace succinct{ namespace fujimap{
 /**
   * Succinct Associative Array
   * Support basic key/value store operations (set/get)
+  * XXX The ValueType must be uint64_t or uint128_t
   */
 template <class KeyType, class ValueType = uint64_t>
 class Fujimap
@@ -204,9 +205,28 @@ public:
     bool empty() const;
 
 private:
+    struct BlockID
+    {
+        uint64_t keyBlockN_;
+
+        template <class key_t>
+        inline uint64_t operator()(const key_t& key) const
+        {
+            char* kbuf;
+            std::size_t klen;
+            izenelib::util::izene_serialization<key_t> izsKey(key);
+            izsKey.write_image(kbuf, klen);
+            return MurmurHash64A(kbuf, klen, 0) % keyBlockN_;
+        }
+
+        inline uint64_t operator()(const uint128_t& key) const
+        {
+            return (uint64_t)key & (keyBlockN_ - 1);
+        }
+    };
+
     int build_(std::vector<std::pair<KeyType, ValueType> >& kvs, FujimapBlock<ValueType>& fb);
 
-    uint64_t getBlockID(const KeyType& key) const;
     ValueType getCode(const std::string& value); ///< Return corresponding code of a given value
 
     std::ostringstream what_; ///< Store a message
@@ -224,6 +244,7 @@ private:
     uint64_t tmpN_; ///< A size of temporary map
     uint64_t tmpC_; ///< Current size of temporary map
     uint64_t keyBlockN_; ///< A number of blocks
+    BlockID blockID_;
     EncodeType et_; ///< An encode type of values
 };
 
@@ -237,6 +258,7 @@ Fujimap<KeyType, ValueType>::Fujimap(const char* fn)
     , keyBlockN_(KEYBLOCK)
     , et_(BINARY)
 {
+    blockID_.keyBlockN_ = keyBlockN_;
     kf_.initMaxID(keyBlockN_);
 }
 
@@ -267,6 +289,7 @@ template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initKeyBlockN(const uint64_t keyBlockN)
 {
     keyBlockN_ = keyBlockN;
+    blockID_.keyBlockN_ = keyBlockN_;
     kf_.initMaxID(keyBlockN_);
 }
 
@@ -303,7 +326,7 @@ void Fujimap<KeyType, ValueType>::setInteger(const KeyType& key, const ValueType
     }
     else
     {
-        uint64_t id = getBlockID(key);
+        uint64_t id = blockID_(key);
         kf_.write(id, key, value);
     }
     if (++tmpC_ == tmpN_)
@@ -344,22 +367,6 @@ bool kvsComp(const pair<KeyType, uint64_t>& v1,
 }
 
 template <class KeyType, class ValueType>
-uint64_t Fujimap<KeyType, ValueType>::getBlockID(const KeyType& key) const
-{
-    char* kbuf;
-    std::size_t klen;
-    izenelib::util::izene_serialization<KeyType> izsKey(key);
-    izsKey.write_image(kbuf, klen);
-    return MurmurHash64A(kbuf, klen, 0) % keyBlockN_;
-}
-
-//template <class ValueType>
-//inline uint64_t Fujimap<uint128_t, ValueType>::getBlockID(const uint128_t& key) const
-//{
-//    return (uint64_t)key & (keyBlockN_ - 1);
-//}
-
-template <class KeyType, class ValueType>
 int Fujimap<KeyType, ValueType>::build()
 {
     if (tmpC_ == 0) return 0;
@@ -367,7 +374,7 @@ int Fujimap<KeyType, ValueType>::build()
     for (typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
             it != tmpEdges_.end(); ++it)
     {
-        uint64_t id = getBlockID(it->first);
+        uint64_t id = blockID_(it->first);
         kf_.write(id, it->first, it->second);
     }
     boost::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
@@ -516,7 +523,7 @@ ValueType Fujimap<KeyType, ValueType>::getInteger(const KeyType& key) const
     std::size_t klen;
     izenelib::util::izene_serialization<KeyType> izsKey(key);
     izsKey.write_image(kbuf, klen);
-    const uint64_t id = getBlockID(key);
+    const uint64_t id = blockID_(key);
     for (typename std::vector<std::vector<FujimapBlock<ValueType> > >::const_reverse_iterator it2
             = fbs_.rbegin(); it2 != fbs_.rend(); ++it2)
     {

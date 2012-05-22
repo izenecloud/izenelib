@@ -39,6 +39,7 @@ static const uint32_t FPLEN    = 0;             ///< Default length of false pos
 static const uint32_t TMPN     = 1000000;        ///< Default size of temporary associative array
 static const uint32_t KEYBLOCK = 128;        ///< # of minimum perfect hash function in fujimap_block
 static const uint32_t NOTFOUND = 0x7FFFFFFFU; ///< Indicate that key is not found
+static const uint64_t BITNUM   = 64;
 
 enum EncodeType
 {
@@ -69,7 +70,8 @@ uint64_t FujimapCommon::log2(const ValueType& x)
 {
     if (x == 0) return 0;
     uint64_t ret = 1;
-    while (x >> ret)
+    uint64_t max = sizeof(x) * 8;
+    while (ret < max && x >> ret)
     {
         ++ret;
     }
