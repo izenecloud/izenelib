@@ -113,7 +113,7 @@ ValueType BitVec<ValueType>::getBits(size_t pos, size_t len) const
     assert(len <= BITNUM);
     uint64_t blockInd = pos / BITNUM;
     uint64_t blockOff = pos % BITNUM;
-    if (blockOff + len <= BITNUM)
+    if (blockOff + len < BITNUM)
     {
         return FujimapCommon::mask(bv_[blockInd] >> blockOff, len);
     }
@@ -145,13 +145,13 @@ void BitVec<ValueType>::setBits(size_t pos, size_t len, const ValueType& bits)
     assert((pos + len - 1) / BITNUM < bv_.size());
     uint64_t blockInd = pos / BITNUM;
     uint64_t blockOff = pos % BITNUM;
-    if (blockOff + len <= BITNUM)
+    if (blockOff + len < BITNUM)
     {
-        bv_[blockInd] = (bv_[blockInd] & (~(((1LLU << len) - 1) << blockOff))) | uint64_t(bits << blockOff);
+        bv_[blockInd] = (bv_[blockInd] & (~(((1LLU << len) - 1) << blockOff))) | uint64_t(bits) << blockOff;
         return;
     }
     bv_[blockInd] = FujimapCommon::mask(bv_[blockInd], blockOff);
-    bv_[blockInd++] |= uint64_t(bits << blockOff);
+    bv_[blockInd++] |= uint64_t(bits) << blockOff;
     blockOff = BITNUM - blockOff;
     len -= blockOff;
     while (len > BITNUM)

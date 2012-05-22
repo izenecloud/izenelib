@@ -211,11 +211,11 @@ int FujimapBlock<ValueType>::build(
             uint64_t t = ke.get(j, bn_);
             for (uint64_t k = 0; k < len; ++k)
             {
-                if (degs[t+k] == 0xFF)
+                if (degs[t + k] == 0xFF)
                 {
                     return -1;
                 }
-                degs[t+k]++;
+                degs[t + k]++;
             }
         }
     }
@@ -291,8 +291,8 @@ int FujimapBlock<ValueType>::build(
                 continue;
             }
             // degs[t] == 1
-            const uint64_t end = offset_s[t+offset_+1];
-            for (uint64_t j = offset_s[t+offset_]; j < end; ++j)
+            const uint64_t end = offset_s[t + offset_ + 1];
+            for (uint64_t j = offset_s[t + offset_]; j < end; ++j)
             {
                 if (!visitedEdges.getBit(edges[j]))
                 {
