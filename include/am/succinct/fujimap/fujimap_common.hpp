@@ -53,7 +53,7 @@ struct FujimapCommon
     static uint64_t log2(const ValueType& x);
 
     template <class ValueType>
-    static uint64_t mask(const ValueType& x, const uint64_t& len);
+    static ValueType mask(const ValueType& x, const uint64_t& len);
 
     template <class ValueType>
     static uint64_t gammaLen(const ValueType& x);
@@ -79,8 +79,10 @@ uint64_t FujimapCommon::log2(const ValueType& x)
 }
 
 template <class ValueType>
-uint64_t FujimapCommon::mask(const ValueType& x, const uint64_t& len)
+ValueType FujimapCommon::mask(const ValueType& x, const uint64_t& len)
 {
+    if (len == sizeof(ValueType) * 8)
+        return x;
     return x & (((ValueType)1 << len) - 1);
 }
 
