@@ -46,13 +46,11 @@ void CassandraConnectionManager::clear()
 bool CassandraConnectionManager::reconnect()
 {
     time_t new_timestamp = createTimeStamp();
+    boost::unique_lock<boost::mutex> lock(mutex_);
     if (new_timestamp - last_connect_ < 10000000)
-    {
         return false;
-    }
 
     last_connect_ = new_timestamp;
-    boost::unique_lock<boost::mutex> lock(mutex_);
     clear();
     for (size_t i = 0; i < pool_size_; ++i)
     {
