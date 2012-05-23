@@ -56,10 +56,13 @@ struct FujimapCommon
     static ValueType mask(const ValueType& x, const uint64_t& len);
 
     template <class ValueType>
+    static ValueType maskCheckLen(const ValueType& x, const uint64_t& len);
+
+    template <class ValueType>
     static uint64_t gammaLen(const ValueType& x);
 
     template <class ValueType>
-    static uint64_t gammaEncodeBit(const uint64_t& pos, const ValueType& x);
+    static bool gammaEncodeBit(const uint64_t& pos, const ValueType& x);
 
     template <class ValueType>
     static ValueType gammaDecode(const ValueType& x);
@@ -81,9 +84,15 @@ uint64_t FujimapCommon::log2(const ValueType& x)
 template <class ValueType>
 ValueType FujimapCommon::mask(const ValueType& x, const uint64_t& len)
 {
-    if (len == sizeof(ValueType) * 8)
-        return x;
     return x & (((ValueType)1 << len) - 1);
+}
+
+template <class ValueType>
+ValueType FujimapCommon::maskCheckLen(const ValueType& x, const uint64_t& len)
+{
+    if (len >= sizeof(ValueType) * 8)
+        return x;
+    return mask(x, len);
 }
 
 template <class ValueType>
@@ -93,13 +102,13 @@ uint64_t FujimapCommon::gammaLen(const ValueType& x)
 }
 
 template <class ValueType>
-uint64_t FujimapCommon::gammaEncodeBit(const uint64_t& pos, const ValueType& x)
+bool FujimapCommon::gammaEncodeBit(const uint64_t& pos, const ValueType& x)
 {
     ValueType tmp = x + 1;
     uint64_t flagLen = log2(tmp) - 1;
-    assert(pos < 2 * log2(tmp) - 1);
-    if (pos < flagLen) return 0;
-    else if (pos == flagLen) return 1;
+    assert(pos < 2 * flagLen + 1);
+    if (pos < flagLen) return false;
+    else if (pos == flagLen) return true;
     else return (tmp >> (pos - flagLen - 1)) & 1;
 }
 
@@ -107,12 +116,13 @@ template <class ValueType>
 ValueType FujimapCommon::gammaDecode(const ValueType& code)
 {
     uint64_t flagPos = 0;
-    while (((code >> flagPos) & 1LLU) == 0 && flagPos < 64)
+    uint64_t bit_num = sizeof(ValueType) * 8;
+    while (((code >> flagPos) & 1LLU) == 0 && flagPos < bit_num)
     {
         ++flagPos;
     }
-    if (flagPos == 64) return NOTFOUND;
-    return  mask(code >> (flagPos+1), flagPos) + ((ValueType)1 << flagPos) - 1;
+    if (flagPos == bit_num) return NOTFOUND;
+    return  mask(code >> (flagPos + 1), flagPos) + ((ValueType)1 << flagPos) - 1;
 }
 
 }}
