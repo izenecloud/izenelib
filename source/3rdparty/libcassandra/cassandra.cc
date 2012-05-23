@@ -39,9 +39,43 @@ private:
     MyCassandraClient* client_;
 };
 
-#define BORROW_CLIENT \
-    ScopedClient client; \
-    org::apache::cassandra::CassandraClient* thrift_client = client.get(current_keyspace_); \
+#define THRIFT_FUNC( func ) \
+    do \
+    { \
+        try \
+        { \
+            ScopedClient client; \
+            client.get(current_keyspace_)->func; \
+        } \
+        catch (const ::apache::thrift::TException& tex) \
+        { \
+            if (CassandraConnectionManager::instance()->reconnect()) \
+            { \
+                ScopedClient client; \
+                client.get(current_keyspace_)->func; \
+            } \
+            else throw tex; \
+        } \
+    } while (0)
+
+#define THRIFT_RETURN_FUNC( func, result ) \
+    do \
+    { \
+        try \
+        { \
+            ScopedClient client; \
+            result = client.get(current_keyspace_)->func; \
+        } \
+        catch (const ::apache::thrift::TException& tex) \
+        { \
+            if (CassandraConnectionManager::instance()->reconnect()) \
+            { \
+                ScopedClient client; \
+                result = client.get(current_keyspace_)->func; \
+            } \
+            else throw tex; \
+        } \
+    } while (0)
 
 Cassandra::Cassandra()
     : cluster_name_()
@@ -70,8 +104,7 @@ void Cassandra::login(const map<string, string>& credentials)
 {
     AuthenticationRequest req;
     req.__set_credentials(credentials);
-    BORROW_CLIENT
-    thrift_client->login(req);
+    THRIFT_FUNC(login(req));
 }
 
 void Cassandra::login(const string& user, const string& password)
@@ -81,8 +114,7 @@ void Cassandra::login(const string& user, const string& password)
     credentials["username"]= user;
     credentials["password"]= password;
     req.__set_credentials(credentials);
-    BORROW_CLIENT
-    thrift_client->login(req);
+    THRIFT_FUNC(login(req));
 }
 
 void Cassandra::setKeyspace(const string& ks_name)
@@ -133,8 +165,7 @@ void Cassandra::insertColumn(
      * actually perform the insert
      * TODO - validate the ColumnParent before the insert
      */
-    BORROW_CLIENT
-    thrift_client->insert(key, col_parent, col, level);
+    THRIFT_FUNC(insert(key, col_parent, col, level));
 }
 
 void Cassandra::insertColumn(
@@ -195,8 +226,7 @@ void Cassandra::incCounter(
      * actually perform the insert
      * TODO - validate the ColumnParent before the insert
      */
-    BORROW_CLIENT
-    thrift_client->add(key, col_parent, col, level);
+    THRIFT_FUNC(add(key, col_parent, col, level));
 }
 
 void Cassandra::incCounter(
@@ -215,14 +245,13 @@ void Cassandra::remove(
         bool is_counter,
         const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
     if (is_counter)
     {
-        thrift_client->remove_counter(key, col_path, level);
+        THRIFT_FUNC(remove_counter(key, col_path, level));
     }
     else
     {
-        thrift_client->remove(key, col_path, createTimestamp(), level);
+        THRIFT_FUNC(remove(key, col_path, createTimestamp(), level));
     }
 }
 
@@ -295,8 +324,7 @@ void Cassandra::getColumn(
     col_path.__set_column(column_name);
     ColumnOrSuperColumn cosc;
     /* TODO - validate column path */
-    BORROW_CLIENT
-    thrift_client->get(cosc, key, col_path, level);
+    THRIFT_FUNC(get(cosc, key, col_path, level));
 
     if (cosc.column.name.empty())
     {
@@ -370,8 +398,7 @@ void Cassandra::getSuperColumn(
     col_path.__set_super_column(super_column_name);
     ColumnOrSuperColumn cosc;
     /* TODO - validate super column path */
-    BORROW_CLIENT
-    thrift_client->get(cosc, key, col_path, level);
+    THRIFT_FUNC(get(cosc, key, col_path, level));
 
     if (cosc.super_column.name.empty())
     {
@@ -388,8 +415,7 @@ void Cassandra::getRawSlice(
         const SlicePredicate& pred,
         const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
-    thrift_client->get_slice(ret, key, col_parent, pred, level);
+    THRIFT_FUNC(get_slice(ret, key, col_parent, pred, level));
 }
 
 void Cassandra::getSlice(
@@ -400,8 +426,7 @@ void Cassandra::getSlice(
         const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
-    BORROW_CLIENT
-    thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
+    THRIFT_FUNC(get_slice(ret_cosc, key, col_parent, pred, level));
 
     for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
             it != ret_cosc.end();
@@ -422,8 +447,7 @@ void Cassandra::getSuperSlice(
         const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
-    BORROW_CLIENT
-    thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
+    THRIFT_FUNC(get_slice(ret_cosc, key, col_parent, pred, level));
 
     for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
             it != ret_cosc.end();
@@ -443,8 +467,7 @@ void Cassandra::getMultiSlice(
         const SlicePredicate& pred,
         const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
-    thrift_client->multiget_slice(ret, key_list, col_parent, pred, level);
+    THRIFT_FUNC(multiget_slice(ret, key_list, col_parent, pred, level));
 }
 
 void Cassandra::getRawRangeSlices(
@@ -455,12 +478,7 @@ void Cassandra::getRawRangeSlices(
         const ConsistencyLevel::type level)
 {
     vector<KeySlice> key_slices;
-    BORROW_CLIENT
-    thrift_client->get_range_slices(key_slices,
-            col_parent,
-            pred,
-            range,
-            level);
+    THRIFT_FUNC(get_range_slices(key_slices, col_parent, pred, range, level));
 
     if (! key_slices.empty())
     {
@@ -497,12 +515,7 @@ void Cassandra::getRangeSlices(
         const ConsistencyLevel::type level)
 {
     vector<KeySlice> key_slices;
-    BORROW_CLIENT
-    thrift_client->get_range_slices(key_slices,
-            col_parent,
-            pred,
-            range,
-            level);
+    THRIFT_FUNC(get_range_slices(key_slices, col_parent, pred, range, level));
 
     if (! key_slices.empty())
     {
@@ -540,12 +553,7 @@ void Cassandra::getSuperRangeSlices(
         const ConsistencyLevel::type level)
 {
     vector<KeySlice> key_slices;
-    BORROW_CLIENT
-    thrift_client->get_range_slices(key_slices,
-                                    col_parent,
-                                    pred,
-                                    range,
-                                    level);
+    THRIFT_FUNC(get_range_slices(key_slices, col_parent, pred, range, level));
 
     if (! key_slices.empty())
     {
@@ -584,12 +592,7 @@ void Cassandra::getIndexedSlices(
     createSlicePredicateObject(thrift_slice_pred, query);
     ColumnParent thrift_col_parent;
     thrift_col_parent.column_family.assign(query.getColumnFamily());
-    BORROW_CLIENT
-    thrift_client->get_indexed_slices(ret_vec,
-                                      thrift_col_parent,
-                                      query.getIndexClause(),
-                                      thrift_slice_pred,
-                                      query.getConsistencyLevel());
+    THRIFT_FUNC(get_indexed_slices(ret_vec, thrift_col_parent, query.getIndexClause(), thrift_slice_pred, query.getConsistencyLevel()));
 
 
     for (vector<KeySlice>::const_iterator it= ret_vec.begin();
@@ -615,8 +618,8 @@ int32_t Cassandra::getCount(
         const SlicePredicate& pred,
         const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
-    int32_t ret = thrift_client->get_count(key, col_parent, pred, level);
+    int32_t ret = 0;
+    THRIFT_RETURN_FUNC(get_count(key, col_parent, pred, level), ret);
     return ret;
 }
 
@@ -627,16 +630,14 @@ void Cassandra::getMultiCount(
         const SlicePredicate& pred,
         const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
-    thrift_client->multiget_count(ret, key_list, col_parent, pred, level);
+    THRIFT_FUNC(multiget_count(ret, key_list, col_parent, pred, level));
 }
 
 void Cassandra::reloadKeyspaces()
 {
     key_spaces_.clear();
 
-    BORROW_CLIENT
-    thrift_client->describe_keyspaces(key_spaces_);
+    THRIFT_FUNC(describe_keyspaces(key_spaces_));
     if (!current_keyspace_.empty() && (current_ks_num_ = findKeyspace(current_keyspace_)) == (uint32_t) -1)
         current_keyspace_.clear();
 }
@@ -653,13 +654,12 @@ string Cassandra::createColumnFamily(const CfDef& cf_def)
 
     uint32_t ks_num = (cf_def.keyspace == current_keyspace_) ? current_ks_num_ : findKeyspace(cf_def.keyspace);
     uint32_t cf_num = findColumnFamily(ks_num, cf_def.name);
-    BORROW_CLIENT
     if (cf_num == (uint32_t) -1)
-        thrift_client->system_add_column_family(schema_id, cf_def);
+        THRIFT_FUNC(system_add_column_family(schema_id, cf_def));
     else
     {
         const_cast<CfDef &>(cf_def).__set_id(key_spaces_[ks_num].cf_defs[cf_num].id);
-        thrift_client->system_update_column_family(schema_id, cf_def);
+        THRIFT_FUNC(system_update_column_family(schema_id, cf_def));
     }
     return schema_id;
 }
@@ -667,16 +667,14 @@ string Cassandra::createColumnFamily(const CfDef& cf_def)
 string Cassandra::dropColumnFamily(const string& cf_name)
 {
     string schema_id;
-    BORROW_CLIENT
-    thrift_client->system_drop_column_family(schema_id, cf_name);
+    THRIFT_FUNC(system_drop_column_family(schema_id, cf_name));
     return schema_id;
 }
 
 string Cassandra::updateColumnFamily(const CfDef& cf_def)
 {
     string schema_id;
-    BORROW_CLIENT
-    thrift_client->system_update_column_family(schema_id, cf_def);
+    THRIFT_FUNC(system_update_column_family(schema_id, cf_def));
     return schema_id;
 }
 
@@ -686,45 +684,39 @@ string Cassandra::createKeyspace(const KsDef& ks_def)
     reloadKeyspaces();
 
     uint32_t ks_num = findKeyspace(ks_def.name);
-    BORROW_CLIENT
     if (ks_num == (uint32_t) -1)
-        thrift_client->system_add_keyspace(ret, ks_def);
+        THRIFT_FUNC(system_add_keyspace(ret, ks_def));
     else
-        thrift_client->system_update_keyspace(ret, ks_def);
+        THRIFT_FUNC(system_update_keyspace(ret, ks_def));
     return ret;
 }
 
 string Cassandra::updateKeyspace(const KsDef& ks_def)
 {
     string ret;
-    BORROW_CLIENT
-    thrift_client->system_update_keyspace(ret, ks_def);
+    THRIFT_FUNC(system_update_keyspace(ret, ks_def));
     return ret;
 }
 
 void Cassandra::truncateColumnFamily(const string& cf_name)
 {
-    BORROW_CLIENT
-    thrift_client->truncate(cf_name);
+    THRIFT_FUNC(truncate(cf_name));
 }
 
 void Cassandra::batchMutate(const map<string, map<string, vector<Mutation> > >& mutation_map, const ConsistencyLevel::type level)
 {
-    BORROW_CLIENT
-    thrift_client->batch_mutate(mutation_map, level);
+    THRIFT_FUNC(batch_mutate(mutation_map, level));
 }
 
 void Cassandra::executeCqlQuery(CqlResult& result, const string& query, const Compression::type compression)
 {
-    BORROW_CLIENT
-    thrift_client->execute_cql_query(result, query, compression);
+    THRIFT_FUNC(execute_cql_query(result, query, compression));
 }
 
 string Cassandra::dropKeyspace(const string& ks_name)
 {
     string ret;
-    BORROW_CLIENT
-    thrift_client->system_drop_keyspace(ret, ks_name);
+    THRIFT_FUNC(system_drop_keyspace(ret, ks_name));
     if (current_keyspace_ == ks_name)
     {
         current_keyspace_.clear();
@@ -738,8 +730,7 @@ const string& Cassandra::getClusterName()
 {
     if (cluster_name_.empty())
     {
-        BORROW_CLIENT
-        thrift_client->describe_cluster_name(cluster_name_);
+        THRIFT_FUNC(describe_cluster_name(cluster_name_));
     }
     return cluster_name_;
 }
@@ -748,8 +739,7 @@ const string& Cassandra::getServerVersion()
 {
     if (server_version_.empty())
     {
-        BORROW_CLIENT
-        thrift_client->describe_version(server_version_);
+        THRIFT_FUNC(describe_version(server_version_));
     }
     return server_version_;
 }

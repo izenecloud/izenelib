@@ -7,6 +7,7 @@ namespace libcassandra
 {
 
 CassandraConnectionManager::CassandraConnectionManager()
+    : port_(0), pool_size_(0), last_connect_(0)
 {}
 
 CassandraConnectionManager::~CassandraConnectionManager()
@@ -14,27 +15,51 @@ CassandraConnectionManager::~CassandraConnectionManager()
     clear();
 }
 
+time_t CassandraConnectionManager::createTimeStamp() const
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
 void CassandraConnectionManager::init(
         const std::string& host,
         int port,
         size_t pool_size)
 {
-    clear();
-    for (size_t i = 0; i < pool_size; ++i)
-    {
-        clients_.push_back(new MyCassandraClient(host, port));
-        clients_.back()->open();
-    }
+    host_ = host;
+    port_ = port;
+    pool_size_ = pool_size;
+    reconnect();
 }
 
 void CassandraConnectionManager::clear()
 {
-    std::list<MyCassandraClient*>::iterator it = clients_.begin();
-    for (;it != clients_.end(); ++it)
+    std::list<MyCassandraClient *>::iterator it = clients_.begin();
+    for (; it != clients_.end(); ++it)
     {
         delete *it;
     }
     clients_.clear();
+}
+
+bool CassandraConnectionManager::reconnect()
+{
+    time_t new_timestamp = createTimeStamp();
+    if (new_timestamp - last_connect_ < 10000000)
+    {
+        return false;
+    }
+
+    last_connect_ = new_timestamp;
+    boost::unique_lock<boost::mutex> lock(mutex_);
+    clear();
+    for (size_t i = 0; i < pool_size_; ++i)
+    {
+        clients_.push_back(new MyCassandraClient(host_, port_));
+        clients_.back()->open();
+    }
+    return true;
 }
 
 MyCassandraClient * CassandraConnectionManager::borrowClient()

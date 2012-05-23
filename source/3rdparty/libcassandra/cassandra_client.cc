@@ -18,13 +18,13 @@ MyCassandraClient::MyCassandraClient(const std::string& host, int port)
 MyCassandraClient::~MyCassandraClient()
 {
     close();
-    if(thrift_client_) delete thrift_client_;
+    if (thrift_client_) delete thrift_client_;
 }
 
 CassandraClient* MyCassandraClient::getCassandra(const std::string& keyspace)
 {
     getCassandra();
-    if(key_space_.compare(keyspace))
+    if (key_space_.compare(keyspace))
     {
         thrift_client_->set_keyspace(keyspace);
         key_space_.assign(keyspace);
@@ -34,7 +34,7 @@ CassandraClient* MyCassandraClient::getCassandra(const std::string& keyspace)
 
 CassandraClient* MyCassandraClient::getCassandra()
 {
-    if(!thrift_client_)
+    if (!thrift_client_)
     {
         boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport_));
         thrift_client_= new(std::nothrow) CassandraClient(protocol);
@@ -51,20 +51,19 @@ void MyCassandraClient::open()
 
 bool MyCassandraClient::isOpen()
 {
-    if(transport_)
-        return transport_->isOpen();
-
-    return false;
+    return transport_ && transport_->isOpen();
 }
 
 void MyCassandraClient::close()
 {
-    if ( isOpen() )
+    if (isOpen())
     {
-        try{
+        try
+        {
             transport_->flush();
             transport_->close();
-        }catch(::apache::thrift::TException& e)
+        }
+        catch (const ::apache::thrift::TException& e)
         {
             LOG(ERROR) << "exception in closing thrift transport: " << e.what();
         }

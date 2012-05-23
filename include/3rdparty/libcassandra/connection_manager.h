@@ -32,12 +32,20 @@ public:
 
     void clear();
 
+    bool reconnect();
+
     MyCassandraClient * borrowClient();
 
     void releaseClient(MyCassandraClient * client);
 
 private:
+    time_t createTimeStamp() const;
+
+private:
+    std::string host_;
+    int port_;
     size_t pool_size_;
+    time_t last_connect_;
 
     std::list<MyCassandraClient *> clients_;
 
