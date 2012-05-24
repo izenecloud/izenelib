@@ -26,6 +26,15 @@ target_link_libraries(t_data_receiver distribute ${LIBS})
 add_executable(t_data_transfer t_data_transfer.cpp)
 target_link_libraries(t_data_transfer distribute ${LIBS})
 
+option(ENABLE_FT_TEST "Enable tests for izelib::net::distribute" false)
+if(ENABLE_FT_TEST)
+  add_definitions(-DENABLE_TEST)
+endif()
+
+
 # DataTransfer2
 add_executable(t_DataTransfer2 DataTransfer2Test.cpp)
 target_link_libraries(t_DataTransfer2 distribute ${LIBS})
+
+# shortcut for building all tests
+add_custom_target(distribute_test DEPENDS t_DataTransfer2)
