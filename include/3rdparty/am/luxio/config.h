@@ -44,7 +44,7 @@
 #define HAVE_MUNMAP 1
 
 /* define if the compiler implements namespaces */
-#define HAVE_NAMESPACES 
+#define HAVE_NAMESPACES
 
 /* Define to 1 if you have the `pread' function. */
 #define HAVE_PREAD 1
@@ -53,7 +53,7 @@
 #define HAVE_PWRITE 1
 
 /* define if the compiler supports ISO C++ standard library */
-#define HAVE_STD 
+#define HAVE_STD
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1

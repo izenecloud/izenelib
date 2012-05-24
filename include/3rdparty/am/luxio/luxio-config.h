@@ -51,7 +51,7 @@
 #define LUXIO_HAVE_MUNMAP 1
 
 /* define if the compiler implements namespaces */
-#define LUXIO_HAVE_NAMESPACES 
+#define LUXIO_HAVE_NAMESPACES
 
 /* Define to 1 if you have the `pread' function. */
 #define LUXIO_HAVE_PREAD 1
@@ -60,7 +60,7 @@
 #define LUXIO_HAVE_PWRITE 1
 
 /* define if the compiler supports ISO C++ standard library */
-#define LUXIO_HAVE_STD 
+#define LUXIO_HAVE_STD
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #define LUXIO_HAVE_STDBOOL_H 1

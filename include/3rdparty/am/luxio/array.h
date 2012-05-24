@@ -1,15 +1,15 @@
 /*
  * Copyright (C) 2008 Hiroyuki Yamada
- *  
- * This program is free software; you can redistribute it and/or modify it 
- * under the terms of the GNU Lesser General Public License as published 
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; version 3 of the License.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
@@ -20,15 +20,18 @@
 
 #include "dbm.h"
 
-namespace Lux {
-namespace IO {
+namespace Lux
+{
+namespace IO
+{
 
-  class Data;
-  const int DEFAULT_PAGESIZE = getpagesize();
-  static const uint32_t ARY_ALLOCATE_UNIT = 100;
+class Data;
+const int DEFAULT_PAGESIZE = getpagesize();
+static const uint32_t ARY_ALLOCATE_UNIT = 100;
 
-  // global header
-  typedef struct {
+// global header
+typedef struct
+{
     char magic[8];
     uint32_t num_keys;
     uint32_t num_pages;
@@ -36,13 +39,14 @@ namespace IO {
     uint8_t index_type;
     uint8_t data_size; // for fixed length value in cluster index
     uint32_t num_resized;
-  } array_header_t;
+} array_header_t;
 
-  /*
-   * Class Array
-   */
-  class Array {
-  public:
+/*
+ * Class Array
+ */
+class Array
+{
+public:
     Array(db_index_t index_type = CLUSTER,
           uint8_t data_size = sizeof(uint32_t));
     ~Array(void);
@@ -64,7 +68,7 @@ namespace IO {
     void show_db_header(void);
     size_t num_items(void);
 
-  private:
+private:
     int fd_;
     db_flags_t oflags_;
     char *map_;
@@ -91,7 +95,7 @@ namespace IO {
     bool unlock_db(void);
     bool rlock_db(void);
     bool wlock_db(void);
-  };
+};
 
 }
 }

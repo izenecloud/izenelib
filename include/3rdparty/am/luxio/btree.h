@@ -1,15 +1,15 @@
 /*
  * Copyright (C) 2008-2009 Hiroyuki Yamada
- *  
- * This program is free software; you can redistribute it and/or modify it 
- * under the terms of the GNU Lesser General Public License as published 
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; version 3 of the License.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
@@ -20,19 +20,22 @@
 
 #include "dbm.h"
 
-namespace Lux {
-namespace IO {
+namespace Lux
+{
+namespace IO
+{
 
-  class Data;
+class Data;
 
-  static const uint32_t MAX_KSIZE = 255;
-  static const uint32_t CLUSTER_MAX_VSIZE = 255;
-  static const uint32_t NONCLUSTER_MAX_VSIZE
-                          = std::numeric_limits<uint32_t>::max();
-  static const uint32_t BT_ALLOCATE_UNIT = 100;
+static const uint32_t MAX_KSIZE = 255;
+static const uint32_t CLUSTER_MAX_VSIZE = 255;
+static const uint32_t NONCLUSTER_MAX_VSIZE
+= std::numeric_limits<uint32_t>::max();
+static const uint32_t BT_ALLOCATE_UNIT = 100;
 
-  // global header
-  typedef struct {
+// global header
+typedef struct
+{
     char magic[8];
     uint32_t num_keys;
     uint32_t num_nodes;
@@ -47,10 +50,11 @@ namespace IO {
     uint32_t padding;
     uint16_t init_data_size;
     uint8_t index_type;
-  } btree_header_t;
+} btree_header_t;
 
-  typedef uint32_t node_id_t;
-  typedef struct {
+typedef uint32_t node_id_t;
+typedef struct
+{
     bool is_root;
     bool is_leaf;
     uint32_t id;
@@ -60,43 +64,49 @@ namespace IO {
     uint16_t free_size;
     uint32_t prev_id; // used only in leaf
     uint32_t next_id; // used only in leaf
-  } node_header_t;
-  typedef char * node_body_t;
+} node_header_t;
+typedef char * node_body_t;
 
-  typedef struct {
+typedef struct
+{
     node_header_t *h;
-    node_body_t *b; 
-  } node_t;
+    node_body_t *b;
+} node_t;
 
-  typedef struct {
+typedef struct
+{
     const void *key;
     uint16_t key_size;
     const void *val;
     uint32_t val_size;
     uint32_t size; // entry size stored in pages
     insert_mode_t mode;
-  } entry_t;
-  typedef entry_t up_entry_t;
+} entry_t;
+typedef entry_t up_entry_t;
 
-  typedef struct {
+typedef struct
+{
     uint16_t off;
     uint16_t size;
-  } slot_t;
+} slot_t;
 
-  typedef enum {
+typedef enum
+{
     KEY_FOUND,
     KEY_BIGGER,
     KEY_SMALLEST,
     KEY_BIGGEST
-  } find_key_t;
+} find_key_t;
 
-  typedef struct {
+typedef struct
+{
     char *data_p;
     char *slot_p;
     find_key_t type;
-  } find_res_t;
+} find_res_t;
 
-  typedef enum {
+typedef enum
+{
     OP_UNSPECIFIED,
     OP_SELCT,
     OP_INSERT,
@@ -105,21 +115,23 @@ namespace IO {
     OP_CUR_LAST,
     OP_CUR_GET,
     OP_CUR_LBOUND
-  } op_mode_t;
+} op_mode_t;
 
-  typedef struct {
+typedef struct
+{
     node_id_t node_id;
     uint16_t slot_index; // 0: biggest, num_keys-1: smallest
     bool is_set;
-  } cursor_t;
+} cursor_t;
 
-  typedef int (*CMP)(data_t &d1, data_t &d2);
+typedef int (*CMP)(data_t &d1, data_t &d2);
 
-  /*
-   * Class Btree
-   */
-  class Btree {
-  public:
+/*
+ * Class Btree
+ */
+class Btree
+{
+public:
     Btree(db_index_t index_type = NONCLUSTER);
     ~Btree();
     bool open(std::string db_name, db_flags_t oflags);
@@ -163,7 +175,7 @@ namespace IO {
     void show_db_header(void);
     void show_node(uint32_t id);
 
-  private:
+private:
     int fd_;
     db_flags_t oflags_;
     char *map_;
@@ -209,7 +221,7 @@ namespace IO {
     void copy_entries(char *dp, char *sp, node_t *node, slot_t *slots,
                       uint16_t &data_off, int slot_from, int slot_to);
     char *get_prefix_key(char *big, char *small);
-    up_entry_t *get_up_entry(node_t *node, slot_t *slots, 
+    up_entry_t *get_up_entry(node_t *node, slot_t *slots,
                              uint16_t boundary_off, node_id_t up_node_id);
     void clean_up_entry(up_entry_t **up_entry);
     bool remap(void);
@@ -219,8 +231,8 @@ namespace IO {
     bool check_key(uint32_t key_size);
     bool check_val(uint32_t val_size);
     bool cursor_find(cursor_t *c, node_id_t id,
-                          data_t *key, op_mode_t op_mode);
-  };
+                     data_t *key, op_mode_t op_mode);
+};
 
 }
 }
