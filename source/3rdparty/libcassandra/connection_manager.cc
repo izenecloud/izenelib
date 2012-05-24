@@ -30,6 +30,7 @@ void CassandraConnectionManager::init(
     host_ = host;
     port_ = port;
     pool_size_ = pool_size;
+    last_connect_ = 0;
     reconnect();
 }
 
