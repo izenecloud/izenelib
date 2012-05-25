@@ -1,2 +1,38 @@
-ADD_SUBDIRECTORY(snappy)
-ADD_SUBDIRECTORY(minilzo)
+SET(lzo_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true")
+MESSAGE(STATUS "lzo_DEFINITIONS=${lzo_DEFINITIONS}")
+ADD_DEFINITIONS("${lzo_DEFINITIONS}")
+
+ADD_DEFINITIONS("-fPIC")
+
+INCLUDE_DIRECTORIES(
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lz4hc
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lz77
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lzfx
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/minilzo
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/snappy
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lzend
+	
+)
+
+FILE(GLOB compressor_SRC
+	"lz4hc/*.c"
+	"lz77/*.c"
+	"lzfx/*.c"
+	"minilzo/*.c"
+	"compressor.cpp"
+)
+
+FILE(GLOB snappy_SRC
+	"snappy/*.cc"
+)
+
+MACRO_ADD_LIBRARY(compressor
+	SRCS
+	${compressor_SRC}
+)
+
+MACRO_ADD_LIBRARY(snappy
+	SRCS
+	${snappy_SRC}
+)

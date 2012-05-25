@@ -46,7 +46,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    luxio
    izene_log
    ${TokyoCabinet_LIBRARIES}
-   lzo
+   compressor
    leveldb
    snappy
    jemalloc
@@ -81,7 +81,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
   TARGET_LINK_LIBRARIES(manual_t_fmm
     ${CMAKE_THREAD_LIBS_INIT}
     am
-    lzo
+    compressor
     febird
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
