@@ -65,6 +65,6 @@ public:
     virtual bool decompress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t destLen);
 };
 
-typedef Lz4hcCompressor DocumentCompressor;
+typedef LzoCompressor DocumentCompressor;
 
 #endif
