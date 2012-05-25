@@ -7,7 +7,7 @@ namespace libcassandra
 {
 
 CassandraConnectionManager::CassandraConnectionManager()
-    : port_(0), pool_size_(0), last_connect_(0)
+    : port_(0), pool_size_(0), last_connect_(0), connected_(false)
 {}
 
 CassandraConnectionManager::~CassandraConnectionManager()
@@ -49,15 +49,18 @@ bool CassandraConnectionManager::reconnect()
     time_t new_timestamp = createTimeStamp();
     boost::unique_lock<boost::mutex> lock(mutex_);
     if (new_timestamp - last_connect_ < 10000000)
-        return false;
+        return connected_;
 
     last_connect_ = new_timestamp;
+    connected_ = false;
     clear();
     for (size_t i = 0; i < pool_size_; ++i)
     {
         clients_.push_back(new MyCassandraClient(host_, port_));
         clients_.back()->open();
     }
+    connected_ = true;
+
     return true;
 }
 

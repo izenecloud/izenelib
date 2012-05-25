@@ -45,7 +45,9 @@ private:
     std::string host_;
     int port_;
     size_t pool_size_;
+
     time_t last_connect_;
+    bool connected_;
 
     std::list<MyCassandraClient *> clients_;
 
