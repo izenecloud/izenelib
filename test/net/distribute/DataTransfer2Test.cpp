@@ -12,7 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
-using namespace izenelib::net::distribute;
+using namespace NS_IZENELIB_DISTRIBUTE;
 using namespace std;
 
 namespace {

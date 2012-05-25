@@ -8,24 +8,15 @@
 #ifndef DATATRANSFER2_HPP
 #define	DATATRANSFER2_HPP
 
+#include "common.hpp"
+
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 
 namespace ba = boost::asio;
 namespace bfs = boost::filesystem;
 
-namespace izenelib {
-namespace net {
-namespace distribute {
-
-namespace {
-/// Default buffer size. Value: 64 KiB.
-const size_t DEFAULT_BUFFER_SIZE = 64 * 1024;
-/// Default port. Value: 18121.
-const unsigned DEFAULT_PORT = 18121;
-/// Default destination dir. Value: ".".
-const std::string DEFAULT_DESTINATION = ".";
-}
+NS_IZENELIB_DISTRIBUTE_BEGIN
 
 /**
  * @brief Transfer data files via TCP socket.
@@ -94,6 +85,6 @@ private:
     boost::system::error_code error;
 };
 
-}}} /* izenelib::net::distribute */
+NS_IZENELIB_DISTRIBUTE_END
 
 #endif	/* DATATRANSFER2_HPP */

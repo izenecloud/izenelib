@@ -20,9 +20,7 @@ using std::ifstream;
 using std::string;
 
 
-namespace izenelib {
-namespace net {
-namespace distribute {
+NS_IZENELIB_DISTRIBUTE_BEGIN
 
 
 DataTransfer2::DataTransfer2(const string& host_, const unsigned& port_,
@@ -229,5 +227,5 @@ DataTransfer2::sendFileData(ifstream& input) {
     return sentSize;
 }
 
-}}}
 
+NS_IZENELIB_DISTRIBUTE_END
