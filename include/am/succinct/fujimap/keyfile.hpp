@@ -132,7 +132,7 @@ int KeyFile<KeyType, ValueType>::write(const uint64_t id, const KeyType& key, co
 {
     assert(id < maxID_);
     std::vector<std::pair<KeyType, ValueType> >& v(buffers_[id]);
-    v.push_back(make_pair(key, value));
+    v.push_back(std::make_pair(key, value));
 
     if (v.size() >= BLOCKSIZE)
     {

@@ -205,9 +205,17 @@ public:
     bool empty() const;
 
 private:
-    struct BlockID
+    class BlockID
     {
-        uint64_t keyBlockN_;
+    public:
+        BlockID() : keyBlockN_(1), truncKeyBlockN_(0) {}
+        ~BlockID() {}
+
+        void setKeyBlockN(const uint64_t keyBlockN)
+        {
+            keyBlockN_ = keyBlockN;
+            truncKeyBlockN_ = (1LLU << (FujimapCommon::log2(keyBlockN) - 1)) - 1;
+        }
 
         template <class key_t>
         inline uint64_t operator()(const key_t& key) const
@@ -221,8 +229,12 @@ private:
 
         inline uint64_t operator()(const uint128_t& key) const
         {
-            return (uint64_t)key & (keyBlockN_ - 1);
+            return (uint64_t)key & truncKeyBlockN_;
         }
+
+    private:
+        uint64_t keyBlockN_;
+        uint64_t truncKeyBlockN_;
     };
 
     int build_(std::vector<std::pair<KeyType, ValueType> >& kvs, FujimapBlock<ValueType>& fb);
@@ -258,7 +270,7 @@ Fujimap<KeyType, ValueType>::Fujimap(const char* fn)
     , keyBlockN_(KEYBLOCK)
     , et_(BINARY)
 {
-    blockID_.keyBlockN_ = keyBlockN_;
+    blockID_.setKeyBlockN(keyBlockN_);
     kf_.initMaxID(keyBlockN_);
 }
 
@@ -289,7 +301,7 @@ template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initKeyBlockN(const uint64_t keyBlockN)
 {
     keyBlockN_ = keyBlockN;
-    blockID_.keyBlockN_ = keyBlockN_;
+    blockID_.setKeyBlockN(keyBlockN_);
     kf_.initMaxID(keyBlockN_);
 }
 

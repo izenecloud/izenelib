@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(Insert)
     fm.clear();
     fm.load("tmp.fm");
     uint64_t t5 = gettimeofday_usec();
-    fprintf(stderr, "fm  deserialize: %llu\n", t5 - t4 - 10000000);
+    fprintf(stderr, "fm  deserialize: %llu\n", t5 - t4);
 }
 
 
