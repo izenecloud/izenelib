@@ -17,6 +17,8 @@ IF(distribute_SHOULD_BUILD)
     Msg.cpp
     SocketIO.cpp
     DataTransfer2.cpp
+    DataReceiver2.cpp
+    Connection.cpp
   )
 
   ADD_DEFINITIONS("-fPIC")

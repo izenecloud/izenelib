@@ -56,6 +56,18 @@ DataTransfer2::syncSend(const string& source, const string& destination,
 }
 
 
+bool
+DataTransfer2::probe() {
+    try {
+        connect();
+    } catch (std::exception& e) {
+        LOG(ERROR) << "Unable to connect: " << e.what();
+        return false;
+    }
+    return true;
+}
+
+
 void
 DataTransfer2::connect() {
     DLOG(INFO) << "connecting ...";

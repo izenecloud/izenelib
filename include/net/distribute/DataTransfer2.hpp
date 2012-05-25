@@ -55,6 +55,9 @@ public:
                 const std::string& destination = DEFAULT_DESTINATION, 
                 bool recursive = false);
      
+     /// Check for connection.
+     bool probe();
+     
 private:
     
     /// Connect to the destination.
