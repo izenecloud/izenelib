@@ -5,8 +5,8 @@
  * Created on May 24, 2012, 3:03 PM
  */
 
-#ifndef DATARECEIVER2_HPP
-#define	DATARECEIVER2_HPP
+#ifndef IZENELIB_NET_DISTRIBUTE_DATARECEIVER2_HPP
+#define	IZENELIB_NET_DISTRIBUTE_DATARECEIVER2_HPP
 
 #include "Connection.hpp"
 
@@ -18,16 +18,23 @@ namespace ba = boost::asio;
 NS_IZENELIB_DISTRIBUTE_BEGIN
 
 /**
- * @brief Transfer data file server via TCP socket.
+ * @brief File transfer server.
+ * Transfer data file server via TCP socket.
  */
 class DataReceiver2 : private boost::noncopyable {
 public:
     
     /**
      * Constructor.
+     * @param basedir The directory for saved files.
      * @param port The port on which listen for connections.
+     *          Default: \c DEFAULT_PORT
+     * @param bufferSize The buffer size. 
+     *          Default: \c DEFAULT_BUFFER_SIZE
      */
-    DataReceiver2(const unsigned& port);
+    DataReceiver2(const std::string& basedir,
+            const unsigned& port = DEFAULT_PORT,
+            const size_t& bufferSize = DEFAULT_BUFFER_SIZE);
     
     /// Destructor.
     ~DataReceiver2();
@@ -61,8 +68,11 @@ private:
     
     ba::signal_set signals;
     boost::thread runThread;
+    
+    const std::string basedir;
+    const size_t bufferSize;
 };
 
 NS_IZENELIB_DISTRIBUTE_END
 
-#endif	/* DATARECEIVER2_HPP */
+#endif	/* IZENELIB_NET_DISTRIBUTE_DATARECEIVER2_HPP */

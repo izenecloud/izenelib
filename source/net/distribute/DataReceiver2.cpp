@@ -16,10 +16,12 @@
 NS_IZENELIB_DISTRIBUTE_BEGIN
 
 
-DataReceiver2::DataReceiver2(const unsigned& port) 
+DataReceiver2::DataReceiver2(const std::string& dir,
+            const unsigned& port, const size_t& size) 
         : endpoint(ba::ip::tcp::v4(), port), acceptor(service, endpoint),
-            signals(service) {
+            signals(service), basedir(dir), bufferSize(size) {
     LOG(INFO) << "DataReceiver2 on port: " << port;
+    LOG(INFO) << " - base directory: " << dir;
     
     // registering signals
     signals.add(SIGINT);
@@ -64,8 +66,7 @@ DataReceiver2::run() {
 
 void
 DataReceiver2::startAccept() {
-    // TODO: use a connection pool
-    Connection::pointer newConnection = Connection::create(service);
+    Connection::pointer newConnection = Connection::create(service, bufferSize, basedir);
     acceptor.async_accept(newConnection->getSocket(),
             boost::bind(&DataReceiver2::handleAccept, this, newConnection,
             boost::asio::placeholders::error));

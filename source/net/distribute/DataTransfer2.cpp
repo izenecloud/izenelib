@@ -10,13 +10,11 @@
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
-#include <fstream>
 
 using net::distribute::SendFileReqMsg;
 using net::distribute::ResponseMsg;
 
 using ba::ip::tcp;
-using std::ifstream;
 using std::string;
 
 
@@ -60,6 +58,7 @@ bool
 DataTransfer2::probe() {
     try {
         connect();
+        ba::write(socket, ba::buffer("probe", 5));
     } catch (std::exception& e) {
         LOG(ERROR) << "Unable to connect: " << e.what();
         return false;
@@ -82,7 +81,7 @@ DataTransfer2::connect() {
 bool
 DataTransfer2::sendFile(const string& file, const string& destination) {
     // open the file, input mode
-    ifstream input(file.c_str(), ifstream::in);
+    ifstream input(file.c_str());
     if (not input.good()) {
         LOG(ERROR) << file << ": cannot open";
         return false;
@@ -96,24 +95,24 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
         return false;
     }
     
-    bfs::path filepath(file);
-    size_t fileSize = bfs::file_size(filepath);
-    
-    bfs::path destpath(destination);
-    string filename = (destpath /= filepath.relative_path()).string();
-    DLOG(INFO) << file << " --> " << filename; 
-    
     // 1. send head
     DLOG(INFO) << "sending request header ...";
     
-    // TODO: rewrite this data structure using msgpack
-    SendFileReqMsg msg;
-    msg.setFileName(filename);
+    bfs::path filepath(file);
+    size_t fileSize = bfs::file_size(filepath);
+    
+    SendFileReqMsg msg; // TODO: rewrite this data structure using msgpack
+    msg.setFileName(file);
     msg.setFileSize(fileSize);
+    msg.setDestination(destination);
     string msg_head = msg.toString();
     DLOG(INFO) << "header: [" << msg_head << "]";
     
-    size_t n = ba::write(socket, ba::buffer(msg_head));
+    size_t n = ba::write(socket, ba::buffer(msg_head), error);
+    if (error) {
+        LOG(ERROR) << error.message();
+        return false;
+    }
     if (n != msg_head.size()) {
         LOG(ERROR) << "Sent only " << n << "/" << msg_head.size() << "bytes";
         return false;
@@ -122,14 +121,17 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     // 2. receive ack
     DLOG(INFO) << "receiving header ack ...";
     
-    n = socket.read_some(ba::buffer(buffer, bufferSize));
+    n = socket.read_some(ba::buffer(buffer, bufferSize), error);
+    if (error) {
+        LOG(ERROR) << error.message();
+        return false;
+    }
     if (n == 0) {
         LOG(ERROR) << "No data received";
         return false;
     }
     
-    // TODO: rewrite this data structure using msgpack
-    ResponseMsg resMsg;
+    ResponseMsg resMsg; // TODO: rewrite this data structure using msgpack
     resMsg.loadMsg(string(buffer, n));
     DLOG(INFO) << "header ack: [" << resMsg.toString() << "]";
     if (resMsg.getStatus() != "success") {
@@ -141,7 +143,7 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     LOG(INFO) << "sending file: " << file << " ...";
     
     size_t sentSize = sendFileData(input);
-    if (sentSize < fileSize) {
+    if (sentSize != fileSize) {
         LOG(ERROR) << "Sent " << sentSize << "/" << fileSize << " bytes";
         return false;
     }
@@ -149,7 +151,11 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     // 4. receive ack
     DLOG(INFO) << "receiving file ack ...";
     
-    n = socket.read_some(ba::buffer(buffer, bufferSize));
+    n = socket.read_some(ba::buffer(buffer, bufferSize), error);
+    if (error) {
+        LOG(ERROR) << error.message();
+        return false;
+    }
     if (n == 0) {
         LOG(ERROR) << "No data received";
         return false;
@@ -178,7 +184,7 @@ DataTransfer2::sendDir(const string& dir, const string& dest, bool recursive) {
     bfs::path destpath(dest);
     
     // select the proper iterator
-    // TODO: can we do: if (recursive) { typedef ... iterator; } else { typedef ... iterator; } ?
+    // XXX: cannot do: if (recursive) { typedef ... iterator; } else { typedef ... iterator; } ?
     if (recursive) {
         bfs::recursive_directory_iterator end;
         for (bfs::recursive_directory_iterator it(dirpath); it != end; ++it) {
@@ -228,7 +234,7 @@ DataTransfer2::sendFileData(ifstream& input) {
         //DLOG(INFO) << "writing " << readSize << " bytes to socket ...";
         writeSize = ba::write(socket, ba::buffer(buffer, readSize), ba::transfer_all(), error);
         if (error) {
-            LOG(ERROR) << "send error:" << error;
+            LOG(ERROR) << "send error:" << error.message();
             return sentSize;
         }
         //DLOG(INFO) << "written " << writeSize << " bytes";

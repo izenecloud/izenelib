@@ -1,17 +1,24 @@
-MACRO_CHECK_SHOULD_BUILD(
+macro_check_should_build(
   distribute
   Boost_FOUND
   Glog_FOUND
 )
 
-IF(distribute_SHOULD_BUILD)
+if(distribute_SHOULD_BUILD)
 
-  INCLUDE_DIRECTORIES(
+  find_package(Boost ${Boost_FIND_VERSION}
+    REQUIRED COMPONENTS
+    filesystem
+    thread
+  )
+
+  include_directories(
     ${Boost_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
   )
 
-  SET(distribute_SRC
+  set(distribute_SRC
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
     DataReceiver.cpp
     DataTransfer.cpp
     Msg.cpp
@@ -21,12 +28,8 @@ IF(distribute_SHOULD_BUILD)
     Connection.cpp
   )
 
-  ADD_DEFINITIONS("-fPIC")
-  MACRO_ADD_LIBRARY(distribute SRCS ${distribute_SRC})
-  
-# TODO: remove izene_util
-  TARGET_LINK_LIBRARIES(distribute
-    izene_util
-  )
+  add_definitions("-fPIC")
 
-ENDIF(distribute_SHOULD_BUILD)
+  macro_add_library(distribute SRCS ${distribute_SRC})
+  target_link_libraries(distribute ${Boost_LIBRARIES})
+endif(distribute_SHOULD_BUILD)

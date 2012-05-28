@@ -5,8 +5,8 @@
  * Created on May 22, 2012, 2:54 PM
  */
 
-#ifndef DATATRANSFER2_HPP
-#define	DATATRANSFER2_HPP
+#ifndef IZENELIB_NET_DISTRIBUTE_DATATRANSFER2_HPP
+#define	IZENELIB_NET_DISTRIBUTE_DATATRANSFER2_HPP
 
 #include "common.hpp"
 
@@ -19,7 +19,8 @@ namespace bfs = boost::filesystem;
 NS_IZENELIB_DISTRIBUTE_BEGIN
 
 /**
- * @brief Transfer data files via TCP socket.
+ * @brief File transfer client.
+ * Transfer data files via TCP socket.
  */
 class DataTransfer2 : private boost::noncopyable {
 public:
@@ -44,7 +45,7 @@ public:
      *          Path to the source file or directory be sent.
      * @param destination
      *          Target directory in remote host relative to its basedir.
-     *          Default: \c DEFAULT_DESTINATION
+     *          Default: unspecified (use destination's basedir)
      * @param recursive  
      *          Flag indicating whether send file recursively (only available
      *          when \c source is a directory).
@@ -52,10 +53,13 @@ public:
      * @return \c true on success, \c false on failure.
      */
      bool syncSend(const std::string& source, 
-                const std::string& destination = DEFAULT_DESTINATION, 
+                const std::string& destination = "", 
                 bool recursive = false);
      
-     /// Check for connection.
+     /**
+      * Check for connection.
+      * @return \c true if can connect to the destination, \c false otherwise.
+      */
      bool probe();
      
 private:
@@ -90,4 +94,4 @@ private:
 
 NS_IZENELIB_DISTRIBUTE_END
 
-#endif	/* DATATRANSFER2_HPP */
+#endif	/* IZENELIB_NET_DISTRIBUTE_DATATRANSFER2_HPP */

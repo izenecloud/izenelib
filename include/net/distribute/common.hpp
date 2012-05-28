@@ -8,7 +8,8 @@
 #ifndef IZENELIB_NET_DISTRIBUTE_COMMON_HPP
 #define	IZENELIB_NET_DISTRIBUTE_COMMON_HPP
 
-#include <string>
+#include <cstddef>
+
 
 #define NS_IZENELIB_DISTRIBUTE izenelib::net::distribute
 
@@ -20,14 +21,10 @@
 
 
 namespace {
-
 /// Default buffer size. Value: 64 KiB.
 const size_t DEFAULT_BUFFER_SIZE = 64 * 1024;
 /// Default port. Value: 18121.
 const unsigned DEFAULT_PORT = 18121;
-/// Default destination dir. Value: ".".
-const std::string DEFAULT_DESTINATION = ".";
-
 }
 
 

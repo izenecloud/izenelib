@@ -1,6 +1,6 @@
 /* 
  * File:   Connection.cpp
- * Author: paolo
+ * Author: Paolo D'Apice
  * 
  * Created on May 24, 2012, 3:43 PM
  */
@@ -14,17 +14,23 @@ using net::distribute::SendFileReqMsg;
 using net::distribute::ResponseMsg;
 
 using ba::ip::tcp;
-using std::ofstream;
 using std::string;
+
+namespace {
+/// Connection ID sequence.
+unsigned i = 0;
+}
+
+// Get connection ID to be printed in logs.
+#define ID "(" << id << ") "
+
 
 NS_IZENELIB_DISTRIBUTE_BEGIN
 
-static unsigned i = 0;
 
-#define ID "(" << id << ") "
-
-Connection::Connection(ba::io_service& service, const size_t& size) 
-        : id(i++), socket(service), bufferSize(size), basedir(DEFAULT_DESTINATION) {
+Connection::Connection(ba::io_service& service, const size_t& size,
+            const string& dir) 
+        : id(i++), socket(service), bufferSize(size), basedir(dir) {
     // TODO: use class FileWriter
     buffer = new char[bufferSize];
     DLOG(INFO) << ID << "connection instantiated";
@@ -43,7 +49,7 @@ Connection::start() {
     
     // read request header
     socket.async_read_some(ba::buffer(buffer, bufferSize),
-            boost::bind(&Connection::handleReceivedHeader, this,
+            boost::bind(&Connection::handleReceivedHeader, shared_from_this(),
                         ba::placeholders::error,
                         ba::placeholders::bytes_transferred));
 }
@@ -60,19 +66,19 @@ Connection::handleReceivedHeader(const bs::error_code& error, size_t size) {
         LOG(ERROR) << ID << "No data received";
         return;
     }
-    DLOG(INFO) << ID << "header: " << string(buffer, size);
+    DLOG(INFO) << ID << "request header: " << string(buffer, size);
     header.loadMsg(string(buffer, size));
+    fileSize = header.getFileSize();
     
-    // TODO: create file
-    bool flag = createFile(header.getFileName());
+    bool flag = createFile();
     
     ResponseMsg headerAck;
-    headerAck.setStatus(flag ? "failed" : "success");
+    headerAck.setStatus(flag ? "success" : "failed");
     string s(headerAck.toString());
     
-    // TODO: send ack
+    DLOG(INFO) << ID << "sending ack [" << s << "]";
     ba::async_write(socket, ba::buffer(s, s.length()),
-            boost::bind(&Connection::handleSentHeaderAck, this,
+            boost::bind(&Connection::handleSentHeaderAck, shared_from_this(),
                         ba::placeholders::error,
                         ba::placeholders::bytes_transferred));
 }
@@ -82,37 +88,104 @@ void
 Connection::handleSentHeaderAck(const bs::error_code& error, size_t size) {
     DLOG(INFO) << ID << "sent " << size << " bytes";
     if (error) {
-        LOG(ERROR) << error.message();
+        LOG(ERROR) << ID << error.message();
+        return;
+    }
+    if (size <= 0) {
+        LOG(ERROR) << ID << "No data sent";
         return;
     }
     
-    // TODO: receive file using stream or plain socket (as in DataTransfer2)
+    bool flag = true;
+    size_t receivedSize = receiveFileData();
+    if (receivedSize != fileSize) {
+        LOG(ERROR) << ID << "Received " << receivedSize << "/" << fileSize << " bytes";
+        flag = false;
+    }
     
-    // TODO: use handleReceiveFileData callback
-    DLOG(INFO) << ID << "header ack correctly sent";
+    ResponseMsg dataAck;
+    dataAck.setStatus(flag ? "success" : "failed");
+    dataAck.setReceivedSize(receivedSize);
+    string s(dataAck.toString());
     
-}
-
-
-void
-Connection::handleReceivedFileData(const bs::error_code& error, size_t size) {
-    DLOG(WARNING) << ID << "TODO: receive file data";
+    DLOG(INFO) << ID << "sending data ack [" << s << "]";
+    ba::async_write(socket, ba::buffer(s, s.length()),
+            boost::bind(&Connection::handleSentFileDataAck, shared_from_this(),
+                        ba::placeholders::error,
+                        ba::placeholders::bytes_transferred));
 }
 
 
 void 
 Connection::handleSentFileDataAck(const bs::error_code& error, size_t size) {
-    DLOG(WARNING) << ID << "TODO: send file data ack";
+    DLOG(INFO) << ID << "sent " << size << " bytes";
+    if (error) {
+        LOG(ERROR) << ID << error.message();
+        return;
+    }
+    if (size <= 0) {
+        LOG(ERROR) << ID << "No data sent";
+        return;
+    }
 }
 
 
 bool
-Connection::createFile(const string& fileName) {
-    bfs::path filepath = basedir / bfs::path(fileName);
-    DLOG(INFO) << ID << "filepath: " << filepath;
+Connection::createFile() {
+    // actual file path
+    bfs::path outputpath;
     
-    // FIXME: completare
+    string destination(header.getDestination());
+    if (not destination.empty()) {
+        outputpath = basedir/bfs::path(destination)/bfs::path(header.getFileName());
+    } else {
+        outputpath = basedir/bfs::path(header.getFileName());
+    }
+    DLOG(INFO) << ID << "outputpath: " << outputpath;
+    
+    if (not bfs::exists(outputpath.parent_path())) {
+        DLOG(INFO) << ID << "creating path: " << outputpath.parent_path();
+        bfs::create_directories(outputpath.parent_path());
+    }
+    
+    output.open(outputpath, ofstream::out);
+    if (not output.good()) {
+        LOG(ERROR) << ID << "Cannot open file: " << outputpath;
+        return false;
+    }
+    
+    DLOG(INFO) << ID << "File correctly opened";
     return true;
+}
+
+
+size_t
+Connection::receiveFileData() {
+    LOG(INFO) << ID << "receiving file data ...";
+    
+    size_t receivedSize = 0;
+    size_t readSize = 0;
+    
+    do {
+        boost::system::error_code error;
+        readSize = socket.read_some(ba::buffer(buffer, bufferSize), error);
+        if (error) {
+            LOG(ERROR) << ID << error.message();
+            return receivedSize;
+        }
+        if (readSize > 0) {
+            output.write(buffer, readSize);
+            receivedSize += readSize;
+        }
+    } while (output.tellp() != (std::streamsize) fileSize);
+    
+    if (output.is_open()) {
+        output.close();
+        DLOG(INFO) << ID << "file output closed";
+    }
+    
+    DLOG(INFO) << ID << "received " << receivedSize << " bytes";
+    return receivedSize;
 }
 
 
