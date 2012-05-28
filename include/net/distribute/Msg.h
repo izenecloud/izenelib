@@ -21,6 +21,7 @@ struct MsgHead
     static const char* MSG_KEY_FILENAME;
     static const char* MSG_KEY_DATALENGTH;
     static const char* MSG_KEY_COLLECTION;
+    static const char* MSG_KEY_DESTINATION;
 
     static const char* MSG_KEY_STATUS;
     static const char* MSG_KEY_ERRORINFO;
@@ -154,6 +155,15 @@ struct SendFileReqMsg : public MsgHead
     uint64_t getFileSize()
     {
         return msgpack_.getUInt64Value(MSG_KEY_DATALENGTH);
+    }
+    
+    // temporary
+    void setDestination(const std::string& d) {
+        msgpack_.setValue(MSG_KEY_DESTINATION, d);
+    }
+    
+    std::string getDestination() {
+        return msgpack_.getStrValue(MSG_KEY_DESTINATION);
     }
 };
 
