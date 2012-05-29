@@ -89,7 +89,8 @@ public:
             p += RECORD_VALUE_LENGTH;
             count += RECORD_ALL_LENGTH;
         }
-        _flush();
+        if (writeBufferPosition_)
+            _flush();
         return 1;
     }
 
@@ -107,7 +108,8 @@ public:
             _writeVInt(*q++);
             count += RECORD_VALUE_LENGTH;
         }
-        _flush();
+        if (writeBufferPosition_)
+            _flush();
     }
 
     size_t _read(char* data, size_t length)
@@ -190,7 +192,7 @@ public:
                 size_t after = readBufferStart_+readBufferPosition_+len;
                 //if(after > length_)
                 //_CLTHROWA(CL_ERR_IO, "read past EOF");
-                fread(b,len,1,fd_);
+                IASSERT(fread(b,len,1,fd_) == 1);
                 readBufferStart_ = after;
                 readBufferPosition_ = 0;
                 readBufferLength_ = 0; 				   // trigger refill() on read
@@ -250,7 +252,7 @@ private:
         if (readBufferLength_ <= 0)
            SF1V5_THROW(ERROR_FILEIO,"Izenesort :read past EOF.");
 
-        fread(readBuffer_, readBufferLength_, 1, fd_);
+        IASSERT(fread(readBuffer_, readBufferLength_, 1, fd_) == 1);
         readBufferStart_ = start;
         readBufferPosition_ = 0;
     }
@@ -302,7 +304,7 @@ private:
 
     void _flush()
     {
-        fwrite(writeBuffer_, 1, writeBufferPosition_, fd_);
+        IASSERT(fwrite(writeBuffer_, 1, writeBufferPosition_, fd_));
         writeBufferPosition_ = 0;
     }
 
