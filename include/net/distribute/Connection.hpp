@@ -9,7 +9,7 @@
 #define	IZENELIB_NET_DISTRIBUTE_CONNECTION_HPP
 
 #include "common.hpp"
-#include "Msg.h"
+#include "Message.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -86,7 +86,7 @@ private:
     bfs::path basedir;
     size_t fileSize;
     
-    ::net::distribute::SendFileReqMsg header;
+    Request request;
 };
 
 NS_IZENELIB_DISTRIBUTE_END

@@ -6,13 +6,10 @@
  */
 
 #include "net/distribute/DataTransfer2.hpp"
-#include "net/distribute/Msg.h"
+#include "net/distribute/Message.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
-
-using net::distribute::SendFileReqMsg;
-using net::distribute::ResponseMsg;
 
 using ba::ip::tcp;
 using std::string;
@@ -101,20 +98,19 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     bfs::path filepath(file);
     size_t fileSize = bfs::file_size(filepath);
     
-    SendFileReqMsg msg; // TODO: rewrite this data structure using msgpack
-    msg.setFileName(file);
-    msg.setFileSize(fileSize);
-    msg.setDestination(destination);
-    string msg_head = msg.toString();
-    DLOG(INFO) << "header: [" << msg_head << "]";
+    Request request(file, fileSize, destination);
+    DLOG(INFO) << "request: " << request;
     
-    size_t n = ba::write(socket, ba::buffer(msg_head), error);
+    // serialize and send
+    msgpack::sbuffer sbuff;
+    msgpack::pack(sbuff, request);
+    size_t n = ba::write(socket, ba::buffer(sbuff.data(), sbuff.size()), error);
     if (error) {
         LOG(ERROR) << error.message();
         return false;
     }
-    if (n != msg_head.size()) {
-        LOG(ERROR) << "Sent only " << n << "/" << msg_head.size() << "bytes";
+    if (n != sbuff.size()) {
+        LOG(ERROR) << "Sent only " << n << "/" << sbuff.size() << "bytes";
         return false;
     }
     
@@ -131,11 +127,13 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
         return false;
     }
     
-    ResponseMsg resMsg; // TODO: rewrite this data structure using msgpack
-    resMsg.loadMsg(string(buffer, n));
-    DLOG(INFO) << "header ack: [" << resMsg.toString() << "]";
-    if (resMsg.getStatus() != "success") {
-        LOG(ERROR) << "Receiver not ready";
+    // deserialize
+    msgpack::unpacked unp;
+    msgpack::unpack(&unp, buffer, n);
+    RequestAck ack = unp.get().as<RequestAck>();
+    DLOG(INFO) << "request ack: " << ack;
+    if (not ack.getStatus()) {
+        LOG(ERROR) << "Receiver error";
         return false;
     }
 
@@ -161,10 +159,15 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
         return false;
     }
     
-    resMsg.loadMsg(string(buffer, n));
-    DLOG(INFO) << "file ack: [" << resMsg.toString() << "]";
-    
-    size_t receivedSize = resMsg.getReceivedSize();
+    // deserialize
+    msgpack::unpack(&unp, buffer, n);
+    ack = unp.get().as<RequestAck>();
+    DLOG(INFO) << "file ack: " << ack;
+    if (not ack.getStatus()) {
+        LOG(ERROR) << "Receiver error";
+        return false;
+    }
+    size_t receivedSize = ack.getSize();
     if (receivedSize != sentSize) {
         LOG(ERROR) << "Received " << receivedSize << "/" << sentSize << " bytes";
         return false;

@@ -31,5 +31,6 @@ if(distribute_SHOULD_BUILD)
   add_definitions("-fPIC")
 
   macro_add_library(distribute SRCS ${distribute_SRC})
-  target_link_libraries(distribute ${Boost_LIBRARIES})
+  target_link_libraries(distribute msgpack ${Boost_LIBRARIES})
+
 endif(distribute_SHOULD_BUILD)

@@ -40,5 +40,13 @@ target_link_libraries(t_DataTransfer2 distribute ${LIBS})
 add_executable(t_DataReceiver2 DataReceiver2Test.cpp)
 target_link_libraries(t_DataReceiver2 distribute ${LIBS})
 
+# Message
+add_executable(t_Message MessageTest.cpp)
+target_link_libraries(t_Message distribute ${LIBS})
+
 # shortcut for building all tests
-add_custom_target(distribute_test DEPENDS t_DataTransfer2 t_DataReceiver2)
+add_custom_target(distribute_test DEPENDS 
+    t_DataTransfer2 
+    t_DataReceiver2 
+    t_Message
+)

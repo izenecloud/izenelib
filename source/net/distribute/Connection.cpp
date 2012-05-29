@@ -10,9 +10,6 @@
 #include <boost/bind.hpp>
 #include <glog/logging.h>
 
-using net::distribute::SendFileReqMsg;
-using net::distribute::ResponseMsg;
-
 using ba::ip::tcp;
 using std::string;
 
@@ -66,18 +63,21 @@ Connection::handleReceivedHeader(const bs::error_code& error, size_t size) {
         LOG(ERROR) << ID << "No data received";
         return;
     }
-    DLOG(INFO) << ID << "request header: " << string(buffer, size);
-    header.loadMsg(string(buffer, size));
-    fileSize = header.getFileSize();
     
-    bool flag = createFile();
+    // deserialize
+    msgpack::unpacked unp;
+    msgpack::unpack(&unp, buffer, size);
+    request = unp.get().as<Request>();
+    DLOG(INFO) << ID << "request: " << request;
+    fileSize = request.getFileSize(); //XXX server?
     
-    ResponseMsg headerAck;
-    headerAck.setStatus(flag ? "success" : "failed");
-    string s(headerAck.toString());
+    RequestAck ack(createFile());
     
-    DLOG(INFO) << ID << "sending ack [" << s << "]";
-    ba::async_write(socket, ba::buffer(s, s.length()),
+    // serialize and send
+    msgpack::sbuffer sbuff;
+    msgpack::pack(sbuff, ack);
+    DLOG(INFO) << ID << "sending ack: " << ack;
+    ba::async_write(socket, ba::buffer(sbuff.data(), sbuff.size()),
             boost::bind(&Connection::handleSentHeaderAck, shared_from_this(),
                         ba::placeholders::error,
                         ba::placeholders::bytes_transferred));
@@ -103,13 +103,13 @@ Connection::handleSentHeaderAck(const bs::error_code& error, size_t size) {
         flag = false;
     }
     
-    ResponseMsg dataAck;
-    dataAck.setStatus(flag ? "success" : "failed");
-    dataAck.setReceivedSize(receivedSize);
-    string s(dataAck.toString());
+    RequestAck ack(flag, receivedSize);
     
-    DLOG(INFO) << ID << "sending data ack [" << s << "]";
-    ba::async_write(socket, ba::buffer(s, s.length()),
+    // serialize and send
+    msgpack::sbuffer sbuff;
+    msgpack::pack(sbuff, ack);
+    DLOG(INFO) << ID << "sending data ack: " << ack;
+    ba::async_write(socket, ba::buffer(sbuff.data(), sbuff.size()),
             boost::bind(&Connection::handleSentFileDataAck, shared_from_this(),
                         ba::placeholders::error,
                         ba::placeholders::bytes_transferred));
@@ -135,11 +135,11 @@ Connection::createFile() {
     // actual file path
     bfs::path outputpath;
     
-    string destination(header.getDestination());
+    string destination(request.getDestination());
     if (not destination.empty()) {
-        outputpath = basedir/bfs::path(destination)/bfs::path(header.getFileName());
+        outputpath = basedir/bfs::path(destination)/bfs::path(request.getFileName());
     } else {
-        outputpath = basedir/bfs::path(header.getFileName());
+        outputpath = basedir/bfs::path(request.getFileName());
     }
     DLOG(INFO) << ID << "outputpath: " << outputpath;
     
