@@ -1,6 +1,5 @@
 ADD_EXECUTABLE(t_fp_index
   Runner.cpp
-  dup_det/t_dup_det.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_fp_index
@@ -12,4 +11,3 @@ TARGET_LINK_LIBRARIES(t_fp_index
 
 ADD_SUBDIRECTORY(index_manager)
 ADD_SUBDIRECTORY(id_manager)
-
