@@ -4,7 +4,7 @@ set(SOURCE_DIR ${IZENELIB_SOURCE_DIR}/source/net/distributed)
 find_package(Boost ${Boost_FIND_VERSION}
     REQUIRED COMPONENTS
 #    regex
-#    system
+    system
 #    thread
     unit_test_framework
 )
