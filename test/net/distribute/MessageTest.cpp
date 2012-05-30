@@ -15,10 +15,8 @@ using namespace NS_IZENELIB_DISTRIBUTE;
 
 #define PRINT(X) std::cout << #X << ": " << X << std::endl
 
-BOOST_AUTO_TEST_CASE(request) {
-    Request input("/path/to/file", 1024, "/dest/dir");
-    PRINT(input);
-    
+template <class Message>
+Message packUnpack(const Message& input) {
     // pack
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, input);
@@ -27,7 +25,15 @@ BOOST_AUTO_TEST_CASE(request) {
     msgpack::unpacked unp;
     msgpack::unpack(&unp, sbuf.data(), sbuf.size());
     
-    Request output = unp.get().as<Request>();
+    Message output = unp.get().as<Message>();
+    return output;
+}
+
+BOOST_AUTO_TEST_CASE(request) {
+    Request input("/path/to/file", 1024, "/dest/dir");
+    PRINT(input);
+
+    Request output =  packUnpack(input);
     PRINT(output);
     
     BOOST_CHECK_EQUAL(input.getFileName(), output.getFileName());
@@ -39,15 +45,7 @@ BOOST_AUTO_TEST_CASE(ack) {
     RequestAck input(true);
     PRINT(input);
     
-    // pack
-    msgpack::sbuffer sbuf;
-    msgpack::pack(sbuf, input);
-    
-    // unpack
-    msgpack::unpacked unp;
-    msgpack::unpack(&unp, sbuf.data(), sbuf.size());
-    
-    RequestAck output = unp.get().as<RequestAck>();
+    RequestAck output = packUnpack(input);
     PRINT(output);
     
     BOOST_CHECK_EQUAL(input.getStatus(), output.getStatus());

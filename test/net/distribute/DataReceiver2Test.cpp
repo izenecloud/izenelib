@@ -11,50 +11,26 @@
 #ifdef ENABLE_TEST
 
 #include "net/distribute/DataReceiver2.hpp"
+#include "net/distribute/DataTransfer2.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 using namespace NS_IZENELIB_DISTRIBUTE;
-using namespace boost::filesystem;
 
 namespace {
-const std::string BASEDIR = "/tmp";
+const std::string BASEDIR = bfs::temp_directory_path().string();
+const std::string HOST = "localhost";
 const unsigned PORT = 8121;
-}
-
-
-BOOST_AUTO_TEST_CASE(boost_fs) {
-    const string filenames[] = {
-        "file",
-        "./file",
-        "dest/file",
-        "dest/./file",
-        "dest/./tmp/file"
-    };
-    
-    BOOST_FOREACH(const string& filename, filenames) {
-        BOOST_TEST_MESSAGE("filename: " << filename);
-        path p(filename);
-        BOOST_TEST_MESSAGE("path: " << p);
-        
-        path parent = p.parent_path();
-        if (not parent.empty() and not exists(parent)) {
-            create_directories(parent);
-        }
-        bfs::ofstream output(p);
-        BOOST_CHECK(output.good());
-        output.write("this is a test", 14);
-        output.close();
-        remove(p);
-    }
 }
 
 
 BOOST_AUTO_TEST_CASE(service_test) {
     DataReceiver2 server(BASEDIR, PORT);
     server.start();
-    cout << "Press ENTER to stop" << endl;
-    cin.get();
+    { 
+        DataTransfer2 client(HOST, PORT);
+        BOOST_CHECK(client.probe());
+    }
     server.stop();
 }
 
