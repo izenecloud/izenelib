@@ -36,8 +36,8 @@ ADD_EXECUTABLE(t_util
 TARGET_LINK_LIBRARIES(t_util
   izene_util
   ${Boost_LIBRARIES}
-  bz2 
   ${Glog_LIBRARIES}
+  bz2 
   febird
   procmeminfo
   izene_log
@@ -104,11 +104,11 @@ ADD_EXECUTABLE(t_driver
     driver/value/t_ValueTypeHelper.cpp
     )
 TARGET_LINK_LIBRARIES(t_driver
+    izene_util
     ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}
     json
     febird
-    izene_util
     )
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${IZENELIB_SOURCE_DIR}/testbin")
 
@@ -130,10 +130,10 @@ ADD_EXECUTABLE(t_osgi
     osgi/LauncherTest.cpp
     )
 TARGET_LINK_LIBRARIES(t_osgi
+    izene_util
     ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}    
     json
-    izene_util
     )
 
 ADD_EXECUTABLE(t_class_register
@@ -150,7 +150,7 @@ ADD_EXECUTABLE(scd_tool
   )
 
 TARGET_LINK_LIBRARIES(scd_tool
-    ${Boost_LIBRARIES}
     izene_util
+    ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}    
   )
