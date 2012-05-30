@@ -201,10 +201,6 @@ void FieldIndexer::addField(
             flush_ = false;
         }
 
-        for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
-        {
-            iter->docId_ = docid;
-        }
         int iDocHits = laInput->size();
         TermId * pDocHits = (TermId*)&(* laInput->begin());
 
