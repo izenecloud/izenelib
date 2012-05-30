@@ -44,9 +44,14 @@ target_link_libraries(t_DataReceiver2 distribute ${LIBS})
 add_executable(t_Message MessageTest.cpp)
 target_link_libraries(t_Message distribute ${LIBS})
 
+# ScpHelper
+add_executable(t_ScpHelper ScpHelperTest.cpp)
+target_link_libraries(t_ScpHelper ${LIBS})
+
 # shortcut for building all tests
 add_custom_target(distribute_test DEPENDS 
     t_DataTransfer2 
     t_DataReceiver2 
     t_Message
+    t_ScpHelper
 )
