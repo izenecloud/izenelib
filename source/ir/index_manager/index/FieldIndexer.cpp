@@ -149,21 +149,21 @@ void FieldIndexer::writeHitBuffer_(int iHits)
 
     uint32_t output_buf_size = iHits * (sizeof(TermId)+sizeof(uint8_t));
     ///buffer size
-    fwrite(&output_buf_size, sizeof(uint32_t), 1, f_);
+    IASSERT(fwrite(&output_buf_size, sizeof(uint32_t), 1, f_) == 1);
     ///number of hits
-    fwrite(&iHits, sizeof(uint32_t), 1, f_);
+    IASSERT(fwrite(&iHits, sizeof(uint32_t), 1, f_) == 1);
 
     uint64_t nextStart = 0;
     uint64_t nextStartPos = ftell(f_);
     ///next start
-    fwrite(&nextStart, sizeof(uint64_t), 1, f_);
+    IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f_) == 1);
     FieldIndexIO ioStream(f_, "w");
     ioStream.writeRecord(&hits_[0], iHits * sizeof(TermId));
     nextStart = ftell(f_);
 
     ///update next start
     fseek(f_, nextStartPos, SEEK_SET);
-    fwrite(&nextStart, sizeof(uint64_t), 1, f_);
+    IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f_) == 1);
     fseek(f_, nextStart, SEEK_SET);
 
     ++run_num_;
@@ -234,7 +234,7 @@ void FieldIndexer::reset()
     {
         f_ = fopen(sorterFullPath_.c_str(),"w");
         uint64_t count = 0;
-        fwrite(&count, sizeof(uint64_t), 1, f_);
+        IASSERT(fwrite(&count, sizeof(uint64_t), 1, f_) == 1);
     }
 }
 
@@ -287,7 +287,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             writeHitBuffer_(iHits);
         }
         fseek(f_, 0, SEEK_SET);
-        fwrite(&recordCount_, sizeof(uint64_t), 1, f_);
+        IASSERT(fwrite(&recordCount_, sizeof(uint64_t), 1, f_) == 1);
         fclose(f_);
         f_ = NULL;
         hits_.reset();

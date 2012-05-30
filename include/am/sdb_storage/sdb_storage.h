@@ -67,9 +67,11 @@ struct SsHeader {
     bool toFile(FILE* f)
     {
         if ( 0 != fseek(f, 0, SEEK_SET) )
-        return false;
+            return false;
 
-        fwrite(this, sizeof(SsHeader), 1, f);
+        if ( 1 != fwrite(this, sizeof(SsHeader), 1, f) )
+            return false;
+
         return true;
 
     }
@@ -77,10 +79,10 @@ struct SsHeader {
     bool fromFile(FILE* f)
     {
         if ( 0 != fseek(f, 0, SEEK_SET) )
-        return false;
+            return false;
 
         if ( 1 != fread(this, sizeof(SsHeader), 1, f) )
-        return false;
+            return false;
 
         return true;
     }

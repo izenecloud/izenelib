@@ -54,10 +54,13 @@ struct ShFileHeader
     {
         if (!f)
             return false;
+
         if ( 0 != fseek(f, 0, SEEK_SET) )
             return false;
 
-        fwrite(this, sizeof(ShFileHeader), 1, f);
+        if ( 1 != fwrite(this, sizeof(ShFileHeader), 1, f) )
+            return false;
+
         return true;
 
     }

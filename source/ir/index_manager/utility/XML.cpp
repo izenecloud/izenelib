@@ -611,7 +611,7 @@ XMLElement* XMLElement::fromFile(const string& sPath, bool bHeader /* = false */
                 return NULL;
             }
             buf = new uint8_t[len + 1];
-            fread(buf,sizeof(char),len,hFile);
+            IASSERT(fread(buf,sizeof(char),len,hFile) == len);
             buf[len] = '\0';
             XMLElement* pXML = fromBytes(buf,len,bHeader);
             delete[] buf;
@@ -648,7 +648,7 @@ void XMLElement::toFile(const string& sPath, bool bHeader)
             char* multi = new char[nMulti + 1];
             Utilities::wcstoutf8(multi,nMulti,wide,nWide);
             multi[nMulti] = 0;
-            fwrite(multi,sizeof(char),nMulti,hFile);
+            IASSERT(fwrite(multi,sizeof(char),nMulti,hFile) == nMulti);
             delete[] wide;
             delete[] multi;
 
@@ -784,5 +784,3 @@ bool XMLAttribute::equals(XMLAttribute* pXML)
 
     return true;
 }
-
-

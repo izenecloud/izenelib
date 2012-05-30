@@ -89,7 +89,10 @@ struct CbFileHeader
     {
         if ( 0 != fseek(f, 0, SEEK_SET) )
             return false;
-        fwrite(this, sizeof(CbFileHeader), 1, f);
+
+        if ( 1 != fwrite(this, sizeof(CbFileHeader), 1, f) )
+            return false;
+
         return true;
     }
 
@@ -97,6 +100,7 @@ struct CbFileHeader
     {
         if ( 0 != fseek(f, 0, SEEK_SET) )
             return false;
+
         if ( 1 != fread(this, sizeof(CbFileHeader), 1, f) )
             return false;
 
@@ -117,4 +121,3 @@ const size_t SDB_FILE_HEAD_SIZE = 1024;
 NS_IZENELIB_AM_END
 
 #endif
-

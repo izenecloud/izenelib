@@ -51,7 +51,7 @@ public:
 
     void _readBytes(char* data, size_t len)
     {
-        fread(data,1,len,fd_);
+        IASSERT(fread(data, len, 1, fd_) == 1);
     }
     size_t _tell()
     {
