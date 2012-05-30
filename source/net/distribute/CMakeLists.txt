@@ -1,24 +1,36 @@
-MACRO_CHECK_SHOULD_BUILD(
+macro_check_should_build(
   distribute
   Boost_FOUND
   Glog_FOUND
+)
+
+if(distribute_SHOULD_BUILD)
+
+  find_package(Boost ${Boost_FIND_VERSION}
+    REQUIRED COMPONENTS
+    filesystem
+    thread
   )
 
-IF(distribute_SHOULD_BUILD)
-
-  INCLUDE_DIRECTORIES(
+  include_directories(
     ${Boost_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
-    )
+  )
 
-  FILE(GLOB
-    distribute_SRC
-    "*.cpp"
-    )
-  ADD_DEFINITIONS("-fPIC -Wno-sign-compare")
-  MACRO_ADD_LIBRARY(distribute SRCS ${distribute_SRC})
-  
-  TARGET_LINK_LIBRARIES(distribute
-      izene_util
-    )
-ENDIF(distribute_SHOULD_BUILD)
+  set(distribute_SRC
+    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    DataReceiver.cpp
+    DataTransfer.cpp
+    Msg.cpp
+    SocketIO.cpp
+    DataTransfer2.cpp
+    DataReceiver2.cpp
+    Connection.cpp
+  )
+
+  add_definitions("-fPIC")
+
+  macro_add_library(distribute SRCS ${distribute_SRC})
+  target_link_libraries(distribute msgpack ${Boost_LIBRARIES})
+
+endif(distribute_SHOULD_BUILD)
