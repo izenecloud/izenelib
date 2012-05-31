@@ -18,11 +18,6 @@ if(distribute_SHOULD_BUILD)
   )
 
   set(distribute_SRC
-    ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
-    DataReceiver.cpp
-    DataTransfer.cpp
-    Msg.cpp
-    SocketIO.cpp
     DataTransfer2.cpp
     DataReceiver2.cpp
     Connection.cpp
