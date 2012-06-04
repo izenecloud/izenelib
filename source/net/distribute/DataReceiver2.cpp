@@ -17,35 +17,42 @@ NS_IZENELIB_DISTRIBUTE_BEGIN
 
 
 DataReceiver2::DataReceiver2(const std::string& dir,
-            const unsigned& port, const size_t& size) 
+            const unsigned& port, const size_t& size, bool handleSignals) 
         : endpoint(ba::ip::tcp::v4(), port), acceptor(service, endpoint),
-            signals(service), basedir(dir), bufferSize(size) {
+            signals(service), basedir(dir), bufferSize(size), running(false) {
     LOG(INFO) << "DataReceiver2 on port: " << port;
     LOG(INFO) << " - base directory: " << dir;
-    
-    // registering signals
-    signals.add(SIGINT);
-    signals.add(SIGTERM);
+
+    if (handleSignals) {
+        DLOG(INFO) << "installing signal handler";
+        // registering signals
+        signals.add(SIGINT);
+        signals.add(SIGTERM);
 #ifdef SIGQUIT
-    signals.add(SIGQUIT);
+        signals.add(SIGQUIT);
 #endif
-    signals.async_wait(boost::bind(&DataReceiver2::handleStop, this));
-  
+        signals.async_wait(boost::bind(&DataReceiver2::handleStop, this));
+    }
     DLOG(INFO) << "instantiated";
 }
 
 
 DataReceiver2::~DataReceiver2() {
+    if (running) {
+        stop();
+    }
     DLOG(INFO) << "destroyed";
 }
 
 
 void
 DataReceiver2::start() {
+    LOG(INFO) << "starting loop thread ...";
+    boost::thread(boost::bind(&ba::io_service::run, &service));
     LOG(INFO) << "starting data-receiving service ...";
     startAccept();
-    LOG(INFO) << "starting loop thread ...";
-    runThread = boost::thread(boost::bind(&DataReceiver2::run, this));
+    running = true;
+    LOG(INFO) << "started.";
 }
 
 
@@ -54,15 +61,10 @@ DataReceiver2::stop() {
     LOG(INFO) << "stopping data-receiving service ...";
     acceptor.close();
     service.stop();
-    LOG(INFO) << "stopping loop thread ...";
-    runThread.join();
+    running = false;
+    LOG(INFO) << "stopped.";
 }
 
-
-void
-DataReceiver2::run() {
-    service.run();
-}
 
 void
 DataReceiver2::startAccept() {

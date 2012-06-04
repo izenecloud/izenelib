@@ -31,10 +31,13 @@ public:
      *          Default: \c DEFAULT_PORT
      * @param bufferSize The buffer size. 
      *          Default: \c DEFAULT_BUFFER_SIZE
+     * @param handleSignals Install signals handlers.
+     *          Default: \c false
      */
     DataReceiver2(const std::string& basedir,
             const unsigned& port = DEFAULT_PORT,
-            const size_t& bufferSize = DEFAULT_BUFFER_SIZE);
+            const size_t& bufferSize = DEFAULT_BUFFER_SIZE,
+            bool handleSignals = false);
     
     /// Destructor.
     ~DataReceiver2();
@@ -47,9 +50,6 @@ public:
 
 private:
     
-    /// Run the I/O loop.
-    void run();
-
     /// Start the service.
     void startAccept();
     
@@ -67,10 +67,11 @@ private:
     ba::ip::tcp::acceptor acceptor;
     
     ba::signal_set signals;
-    boost::thread runThread;
     
     const std::string basedir;
     const size_t bufferSize;
+
+    bool running;
 };
 
 NS_IZENELIB_DISTRIBUTE_END
