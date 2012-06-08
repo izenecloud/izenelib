@@ -21,7 +21,7 @@
 #include <boost/thread/locks.hpp> 
 #include <boost/format.hpp>
 
-#include <am/graph_index/dyn_array.hpp>
+#include <am/dyn_array.hpp>
 #include <am/tokyo_cabinet/tc_fixdb.h>
 #include <cache/IzeneCache.h>
 #include <util/izene_serialization.h>

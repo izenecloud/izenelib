@@ -17,7 +17,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/bind.hpp>
-#include <am/graph_index/dyn_array.hpp>
+#include <am/dyn_array.hpp>
 #include <math.h>
 #include <sys/time.h>
 #include <queue>
