@@ -100,6 +100,86 @@ inline count_t MultiTermDocs::freq()
     return current_->termDocs_->freq();
 }
 
+inline bool MultiTermDocs::next()
+{
+    if (pTermDocsQueue_ == NULL)
+    {
+        initQueue();
+        if (current_)
+            return true;
+        return false;
+    }
+
+    while (pTermDocsQueue_->size() > 0)
+    {
+        if (current_->termDocs_->next())
+            return true;
+        else
+        {
+            pTermDocsQueue_->pop();
+            if (pTermDocsQueue_->size() > 0)
+            {
+                current_ = pTermDocsQueue_->top();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+inline docid_t MultiTermDocs::skipTo(docid_t docId)
+{
+    if(pTermDocsQueue_ == NULL)
+    {
+        initQueue();
+    }
+
+    TermDocFreqs* pTop = NULL;	
+    docid_t nFoundId = -1;
+    while (pTermDocsQueue_->size() > 0)
+    {
+        current_ = pTermDocsQueue_->top();
+        pTop = current_->termDocs_;
+		
+        nFoundId = pTop->skipTo(docId);
+        if((nFoundId != (docid_t)-1)&&(nFoundId >= docId))
+        {
+            return nFoundId;
+        }
+        else 
+            pTermDocsQueue_->pop();
+    }	
+    return -1;
+}
+
+inline freq_t MultiTermDocs::docFreq()
+{
+    BarrelTermDocsEntry* pEntry;
+    freq_t df = 0;
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
+    {
+        pEntry = (*iter);
+        df += pEntry->termDocs_->docFreq();
+        iter++;
+    }
+    return df;
+}
+
+inline int64_t MultiTermDocs::getCTF()
+{
+    BarrelTermDocsEntry* pEntry;
+    int64_t ctf = 0;
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
+    {
+        pEntry = (*iter);
+        ctf += pEntry->termDocs_->getCTF();
+        iter++;
+    }
+    return ctf;
+}
+
 }
 
 NS_IZENELIB_IR_END
