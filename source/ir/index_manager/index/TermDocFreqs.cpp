@@ -58,42 +58,6 @@ void TermDocFreqs::reset(
     ownPosting_ = ownPosting;
 }
 
-freq_t TermDocFreqs::docFreq()
-{
-    return termInfo_.docFreq_;
-}
-
-int64_t TermDocFreqs::getCTF()
-{
-    return termInfo_.ctf_;
-}
-
-int32_t TermDocFreqs::getMaxTF(){
-    return termInfo_.maxTF_;
-}
-
-docid_t TermDocFreqs::doc()
-{
-    return pPostingBuffer_[nCurrentPosting_];
-}
-
-count_t TermDocFreqs::freq()
-{
-    return pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
-}
-
-bool TermDocFreqs::next()
-{
-    nCurrentPosting_ ++;
-    if (nCurrentPosting_ >= nCurDecodedCount_)
-    {
-        if (!decode())
-            return false;
-        return true;
-    }
-    return true;
-}
-
 docid_t TermDocFreqs::skipTo(docid_t target)
 {
     int32_t start,end;
@@ -183,25 +147,7 @@ void TermDocFreqs::close()
         pPosting_ = NULL;
     }
 }
-bool TermDocFreqs::decode()
-{
-    count_t df = termInfo_.docFreq();
-    if ((count_t)nTotalDecodedCount_ == df)
-    {
-        return false;
-    }
 
-    if (!pPostingBuffer_)
-        createBuffer();
-
-    nCurrentPosting_ = 0;
-    nCurDecodedCount_ = pPosting_->DecodeNext(pPostingBuffer_,nBufferSize_, nMaxDocCount_);
-    if (nCurDecodedCount_ <= 0)
-        return false;
-    nTotalDecodedCount_ += nCurDecodedCount_;
-
-    return true;
-}
 void TermDocFreqs::createBuffer()
 {
     if (pPostingBuffer_ == NULL)

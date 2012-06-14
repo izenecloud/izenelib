@@ -14,16 +14,6 @@ MultiTermPositions::~MultiTermPositions()
     close();
 }
 
-docid_t MultiTermPositions::doc()
-{
-    return current_->termPositions_->doc();
-}
-
-count_t MultiTermPositions::freq()
-{
-    return current_->termPositions_->freq();
-}
-
 bool MultiTermPositions::next()
 {
     if (pTermPositionQueue_ == NULL)

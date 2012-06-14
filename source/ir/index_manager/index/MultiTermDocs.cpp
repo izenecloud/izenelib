@@ -14,16 +14,6 @@ MultiTermDocs::~MultiTermDocs()
     close();
 }
 
-docid_t MultiTermDocs::doc()
-{
-    return current_->termDocs_->doc();
-}
-
-count_t MultiTermDocs::freq()
-{
-    return current_->termDocs_->freq();
-}
-
 bool MultiTermDocs::next()
 {
     if (pTermDocsQueue_ == NULL)

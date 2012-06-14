@@ -90,6 +90,15 @@ protected:
     TermDocsQueue* pTermDocsQueue_;
 };
 
+inline docid_t MultiTermDocs::doc()
+{
+    return current_->termDocs_->doc();
+}
+
+inline count_t MultiTermDocs::freq()
+{
+    return current_->termDocs_->freq();
+}
 
 }
 

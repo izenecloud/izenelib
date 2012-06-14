@@ -90,6 +90,62 @@ protected:
     bool ownPosting_;
 };
 
+inline freq_t TermDocFreqs::docFreq()
+{
+    return termInfo_.docFreq_;
+}
+
+inline int64_t TermDocFreqs::getCTF()
+{
+    return termInfo_.ctf_;
+}
+
+inline int32_t TermDocFreqs::getMaxTF(){
+    return termInfo_.maxTF_;
+}
+
+inline docid_t TermDocFreqs::doc()
+{
+    return pPostingBuffer_[nCurrentPosting_];
+}
+
+inline count_t TermDocFreqs::freq()
+{
+    return pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
+}
+
+inline bool TermDocFreqs::next()
+{
+    nCurrentPosting_ ++;
+    if (nCurrentPosting_ >= nCurDecodedCount_)
+    {
+        if (!decode())
+            return false;
+        return true;
+    }
+    return true;
+}
+
+inline bool TermDocFreqs::decode()
+{
+    count_t df = termInfo_.docFreq();
+    if ((count_t)nTotalDecodedCount_ == df)
+    {
+        return false;
+    }
+
+    if (!pPostingBuffer_)
+        createBuffer();
+
+    nCurrentPosting_ = 0;
+    nCurDecodedCount_ = pPosting_->DecodeNext(pPostingBuffer_,nBufferSize_, nMaxDocCount_);
+    if (nCurDecodedCount_ <= 0)
+        return false;
+    nTotalDecodedCount_ += nCurDecodedCount_;
+
+    return true;
+}
+
 }
 
 NS_IZENELIB_IR_END

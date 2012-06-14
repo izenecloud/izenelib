@@ -68,16 +68,6 @@ void TermPositions::reset(
     fixed_pos_buffer_ = false;
 }
 
-docid_t TermPositions::doc()
-{
-    return TermDocFreqs::doc();
-}
-
-count_t TermPositions::freq()
-{
-    return TermDocFreqs::freq();
-}
-
 bool TermPositions::next()
 {
     skipPositions(nPPostingCountWithinDoc_ - nTotalDecodedPCountWithinDoc_);

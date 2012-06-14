@@ -91,6 +91,16 @@ private:
     TermPositionQueue* pTermPositionQueue_;
 };
 
+inline docid_t MultiTermPositions::doc()
+{
+    return current_->termPositions_->doc();
+}
+
+inline count_t MultiTermPositions::freq()
+{
+    return current_->termPositions_->freq();
+}
+
 }
 
 NS_IZENELIB_IR_END

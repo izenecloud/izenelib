@@ -129,6 +129,16 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 ///inline functions
+inline docid_t TermPositions::doc()
+{
+    return TermDocFreqs::doc();
+}
+
+inline count_t TermPositions::freq()
+{
+    return TermDocFreqs::freq();
+}
+
 inline void TermPositions::skipPositions(int32_t nSkips)
 {
     if (nSkips <= 0)
