@@ -2,7 +2,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <numaif.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +9,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 
+#include "numaif.h"
 #include "libNUMA.h"
 
 
