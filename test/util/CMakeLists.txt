@@ -31,6 +31,7 @@ ADD_EXECUTABLE(t_util
   t_timsort.cpp
   t_fileno.cpp
   t_bloomfilter.cpp
+  t_cpuinfo.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
@@ -42,6 +43,7 @@ TARGET_LINK_LIBRARIES(t_util
   procmeminfo
   izene_log
   bz2
+  NUMA
   )
 
 FILE(GLOB_RECURSE t_ustring_SRC "ustring/*.cpp")
