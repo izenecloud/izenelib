@@ -1,0 +1,246 @@
+.\" Written by Ulrich Drepper.
+.\" With heavy loaning from the CPU_SET man page by Michael Kerrisk.
+.TH MEMNODE_SET_S 3 2012-04-09 "Linux" "libNUMA"
+.SH NAME
+MEMNODE_ZERO_S, MEMNODE_SET_S, MEMNODE_CLR_S, MEMNODE_ISSET_S, MEMNODE_COUNT_S,
+MEMNODE_AND_S, MEMNODE_OR_S, MEMNODE_XOR_S, MEMNODE_EQUAL_S, MEMNODE_ALLOC,
+MEMNODE_FREE, MEMNODE_ALLOC_SIZE
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+.sp
+.BI "void MEMNODE_ZERO_S(size_t " setsize ", memnode_set_t *" set );
+.BI "int  MEMNODE_SET_S(int " node ", size_t " setsize ", memnode_set_t *" set );
+.BI "void MEMNODE_CLR_S(int " node ", size_t " setsize ", memnode_set_t *" set );
+.BI "int  MEMNODE_ISSET_S(int " node ", size_t " setsize ", memnode_set_t *" set );
+.sp
+.BI "int  MEMNODE_COUNT_S(size_t " setsize ", memnode_set_t *" set );
+.sp
+.BI "void MEMNODE_AND_S(size_t " setsize ", memnode_set_t *" destset ,
+.BI "                   memnode_set_t *" srcset1 ", memnode_set_t *" srcset2 );
+.BI "void MEMNODE_OR_S(size_t " setsize ", memnode_set_t *" destset ,
+.BI "                  memnode_set_t *" srcset1 ", memnode_set_t *" srcset2 );
+.BI "void MEMNODE_XOR_S(size_t " setsize ", memnode_set_t *" destset ,
+.BI "                   memnode_set_t *" srcset1 ", memnode_set_t *" srcset2 );
+.sp
+.BI "int  MEMNODE_EQUAL_S(size_t " setsize ", memnode_set_t *" set1 \
+", memnode_set_t *" set2 );
+.sp
+.BI "memnode_set_t *MEMNODE_ALLOC(int " num_nodes );
+.BI "void MEMNODE_FREE(memnode_set_t *" set );
+.BI "size_t MEMNODE_ALLOC_SIZE(int " num_nodes );
+.fi
+.SH DESCRIPTION
+The
+.I memnode_set_t
+data structure represents a set of memory nodes.  Memory node sets can be
+used to determine the best CPUs to execute code.
+
+The
+.I memnode_set_t
+data type is implemented as a bitset.
+However, the data structure treated as considered opaque:
+all manipulation of memory node sets should be done via the macros
+described in this page.  Objects of type
+.I memnode_set_t
+should be allocated with
+.BR MEMNODE_ALLOC ().
+The type should not be used directly to allocate bitsets because otherwise
+the size of the bitset is otherwise limited.  The required number of
+memory nodes can be determined with
+.BR NUMA_memnode_system_count ().
+
+The following macros are provided to operate on the memory node
+.IR set :
+.TP 18
+.BR MEMNODE_ZERO_S ()
+Clears
+.IR set ,
+so that it contains no memory nodes.
+.TP
+.BR MEMNODE_SET_S ()
+Add memory node
+.I node
+to
+.IR set .
+.TP
+.BR MEMNODE_CLR_S ()
+Remove memory node
+.I node
+from
+.IR set .
+.TP
+.BR MEMNODE_ISSET_S ()
+Test to see if memory node
+.I node
+is a member of
+.IR set .
+.TP
+.BR MEMNODE_COUNT_S ()
+Return the number of memory nodes in
+.IR set .
+.PP
+Where a
+.I node
+argument is specified, it should not prodice side effects,
+since the above macros may evaluate the argument more than once.
+.PP
+The first available memory node in the system corresponds to a
+.I node
+value of 0, the next memory node corresponds to a
+.I node
+value of 1, and so on.
+
+.SS Logical operations on memory nodes
+The following macros perform logical operations on memory node sets:
+.TP 18
+.BR MEMNODE_AND_S ()
+Store the intersection of the sets
+.I srcset1
+and
+.I srcset2
+in
+.I destset
+(which may be one of the source sets).
+.TP
+.BR MEMNODE_OR_S ()
+Store the union of the sets
+.I srcset1
+and
+.I srcset2
+in
+.I destset
+(which may be one of the source sets).
+.TP
+.BR MEMNODE_XOR_S ()
+Store the XOR of the sets
+.I srcset1
+and
+.I srcset2
+in
+.I destset
+(which may be one of the source sets).
+The XOR means the set of CPUs that are in either
+.I srcset1
+or
+.IR srcset2 ,
+but not both.
+.TP
+.BR MEMNODE_EQUAL_S ()
+Test whether two memory node set contain exactly the same memory nodes.
+.SS Dynamically sized memory node sets
+The following macros are used to allocate and deallocate CPU sets:
+.TP 21
+.BR MEMNODE_ALLOC ()
+Allocate a memory node set large enough to hold memory nodes
+in the range 0 to
+.IR num_nodes-1 .
+.TP
+.BR MEMNODE_ALLOC_SIZE ()
+Return the size in bytes of the memory node set that would be needed to
+hold memory nodes in the range 0 to
+.IR num_nodes-1 .
+This macro provides the value that can be used for the
+.I setsize
+argument in the
+.BR MEMNODE_*_S ()
+macros described in this page.
+.TP
+.BR MEMNODE_FREE ()
+Free a memory node set previously allocated by
+.BR MEMNODE_ALLOC ().
+.SH "RETURN VALUE"
+.BR MEMNODE_ISSET_S ()
+return nonzero if
+.I node
+is in
+.IR set ;
+otherwise, it returns 0.
+
+.BR MEMNODE_COUNT_S ()
+return the number of memory nodes in
+.IR set .
+
+.BR MEMNODE_EQUAL_S ()
+return nonzero if the two memory node sets are equal; otherwise it returns 0.
+
+.BR MEMNODE_SET_S ()
+return zero if no bit is has been set in
+.IR set ;
+otherwise, it returns a nonzero value.
+
+.BR MEMNODE_ALLOC ()
+returns a pointer on success, or NULL on failure.
+(Errors are as for
+.BR malloc (3).)
+
+.BR MEMNODE_ALLOC_SIZE ()
+returns the number of bytes required to store a
+memory node set of the specified cardinality.
+
+The other functions do not return a value.
+.SH "CONFORMING TO"
+These interfaces are Linux-specific.
+.SH NOTES
+To duplicate a memory node set, use
+.BR memcpy (3).
+
+Since memory node sets are bitsets allocated in units of long words,
+the actual number of memory nodes in a dynamically
+allocated memory node set will be rounded up to the next multiple of
+.IR "sizeof(unsigned long)" .
+An application should consider the contents of these extra bits
+to be undefined.
+
+The data types for arguments and return values shown
+in the SYNOPSIS are hints what about is expected in each case.
+However, since these interfaces are implemented as macros,
+the compiler won't necessarily catch all type errors
+if you violate the suggestions.
+.SH EXAMPLE
+The following program demonstrates the use of some of the macros
+used for dynamically allocated CPU sets.
+
+.nf
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <assert.h>
+#include <libNUMA.h>
+
+int
+main(int argc, char *argv[])
+{
+    memnode_set_t *memnodesetp;
+    size_t size;
+    int num_memnodes, memnode;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <num\-memnodes>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    num_memnodes = atoi(argv[1]);
+
+    memnodesetp = MEMNODE_ALLOC(num_memnodes);
+    if (memnodesetp == NULL) {
+        perror("MEMNODE_ALLOC");
+        exit(EXIT_FAILURE);
+    }
+
+    size = MEMNODE_ALLOC_SIZE(num_memnodes);
+
+    MEMNODE_ZERO_S(size, memnodesetp);
+    for (memnode = 0; memnode < num_memnodes; memnode += 2)
+        MEMNODE_SET_S(memnode, size, memnodesetp);
+
+    printf("MEMNODE_COUNT() of set:    %d\\n", MEMNODE_COUNT_S(size, memnodesetp));
+
+    MEMNODE_FREE(memnodesetp);
+    return EXIT_SUCCESS;
+}
+.fi
+.SH "SEE ALSO"
+.BR sched_setaffinity (2),
+.BR pthread_attr_setaffinity_np (3),
+.BR pthread_setaffinity_np (3),

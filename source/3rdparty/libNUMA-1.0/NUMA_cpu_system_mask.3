@@ -1,0 +1,28 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_CPU_SYSTEM_MASK 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_cpu_system_mask \- return information about online CPUs
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_cpu_system_mask (size_t " destsize ", cpu_set_t *" dest );
+.fi
+.SH DESCRIPTION
+.BR NUMA_cpu_system_mask ()
+sets the bits corresponding to all online CPU in
+.IR dest
+and returns the current number of online CPUs in the system.
+.SH RETURN VALUE
+On success
+.BR NUMA_cpu_system_mask ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR CPU_COUNT_S (3)
+.BR NUMA_cpu_system_count (3)
+.BR NUMA_cpu_self_mask (3)

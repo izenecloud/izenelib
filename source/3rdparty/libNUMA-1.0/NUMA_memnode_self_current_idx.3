@@ -1,0 +1,26 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_MEMNODE_SELF_CURRENT_IDX 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+numa_memnode_self_current_idx \- return index of current memory node
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int numa_memnode_self_current_idx(void);"
+.fi
+.SH DESCRIPTION
+.BR numa_memnode_self_current_idx ()
+returns the index of the memory node of the CPU currently used by the
+calling thread.
+.SH RETURN VALUE
+On success
+.BR numa_memnode_self_current_idx ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR NUMA_cpu_self_current_idx (3)
+.BR NUMA_memnode_self_current_mask (3)

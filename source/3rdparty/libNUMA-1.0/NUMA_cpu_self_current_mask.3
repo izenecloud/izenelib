@@ -1,0 +1,26 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_CPU_SELF_CURRENT_MASK 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+numa_cpu_self_current_mask \- return mask of current CPU
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_cpu_self_current_mask (size_t " destsize ", cpu_set_t *" dest );
+.fi
+.SH DESCRIPTION
+.BR numa_cpu_self_current_mask ()
+returns the mask with the bit for the CPU currently used by the calling thread
+set.
+.SH RETURN VALUE
+On success
+.BR numa_cpu_self_current_mask ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR sched_getcpu (2)
+.BR NUMA_cpu_self_current_idx (3)

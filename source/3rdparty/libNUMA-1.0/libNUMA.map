@@ -1,0 +1,23 @@
+libNUMA_1.0 {
+  global:
+    NUMA_cpu_level_mask;
+    NUMA_cpu_self_count;
+    NUMA_cpu_self_current_idx;
+    NUMA_cpu_self_current_mask;
+    NUMA_cpu_self_mask;
+    NUMA_cpu_system_count;
+    NUMA_cpu_system_mask;
+    NUMA_cpu_to_memnode;
+    NUMA_mem_get_node_idx;
+    NUMA_mem_get_node_mask;
+    NUMA_memnode_count;
+    NUMA_memnode_self_current_idx;
+    NUMA_memnode_self_current_mask;
+    NUMA_memnode_self_mask;
+    NUMA_memnode_system_count;
+    NUMA_memnode_system_mask;
+    NUMA_memnode_to_cpu;
+
+  local:
+    *;
+};

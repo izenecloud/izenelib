@@ -1,0 +1,27 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_MEM_GET_NODE_IDX 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+numa_mem_get_node_idx \- return index of memory node for address
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int numa_mem_get_node_idx(void *" addr);
+.fi
+.SH DESCRIPTION
+.BR numa_mem_get_node_idx ()
+returns the index of the memory node used for the memory pointed to by
+.IR addr .
+.SH RETURN VALUE
+On success
+.BR numa_mem_get_node_idx ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR NUMA_mem_get_node_mask (3)
+.BR NUMA_cpu_self_current_idx (3)
+.BR NUMA_memnode_self_current_mask (3)

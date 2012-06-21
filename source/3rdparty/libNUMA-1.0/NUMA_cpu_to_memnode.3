@@ -1,0 +1,33 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_CPU_TO_MEMNODE 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_cpu_to_memnode \- return mask for memory nodes matching given CPUs
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_cpu_to_memnode(size_t " cpusetsize ", const cpu_set_t *" cpuset ,
+.BI "                        size_t " memnodesize ", memnode_set_t *" memnodeset);
+.fi
+.SH DESCRIPTION
+.BR NUMA_cpu_to_memnode ()
+sets the bits for all memory nodes which are local to any of the CPUs
+indicated by bits set in
+.IR cpuset .
+On success the bits for the memory nodes are set in
+.IR memnodeset .
+.SH RETURN VALUE
+On success
+.BR NUMA_cpu_to_memnode ()
+returns the number of bits for memory nodes set in
+.IR memnodeset .
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR CPU_COUNT_S (3)
+.BR NUMA_cpu_self_mask (3)
+.BR NUMA_memnode_self_mask (3)
+.BR NUMA_memnode_to_cpu (3)

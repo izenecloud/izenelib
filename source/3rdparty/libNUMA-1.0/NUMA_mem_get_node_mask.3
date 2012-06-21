@@ -1,0 +1,32 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_MEM_GET_NODE_MASK 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+numa_mem_get_node_mask \- return bitmask of memory node for addresses in range
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_mem_get_node_mask(void *" addr ", size_t " size ,
+.BI "                           size_t " destsize ", memnode_set_t *" dest )
+.fi
+.SH DESCRIPTION
+.BR numa_mem_get_node_mask ()
+stores in
+.IR dest
+the bitmask of the memory node used for the memory in the range
+.IR [addr ,
+.IR addr+SIZE) .
+.SH RETURN VALUE
+On success
+.BR numa_mem_get_node_mask ()
+returns the number of bits set in
+.IR dest .
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR NUMA_mem_get_node_idx (3)
+.BR NUMA_cpu_self_current_idx (3)
+.BR NUMA_memnode_self_current_mask (3)

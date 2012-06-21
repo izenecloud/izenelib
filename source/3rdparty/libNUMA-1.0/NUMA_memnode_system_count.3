@@ -1,0 +1,25 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_MEMNODE_SYSTEM_COUNT 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_memnode_system_count \- return current number of online memory nodes
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_memnode_system_count(void);"
+.fi
+.SH DESCRIPTION
+.BR NUMA_memnode_system_count ()
+returns the current number of online memory nodes in the system.
+.SH RETURN VALUE
+On success
+.BR NUMA_memnode_system_count ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR NUMA_cpu_system_count (3)
+.BR NUMA_memnode_system_mask (3)

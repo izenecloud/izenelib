@@ -1,0 +1,44 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_CPU_LEVEL_MASK 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_cpu_level_mask \- return mask of CPUs at given distance
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "ssize_t NUMA_cpu_level_mask (size_t " destsize ", cpu_set_t *" dest ", size_t " srcsize ", const cpu_set_t *" src ", unsigned int " level );
+.fi
+.SH DESCRIPTION
+.BR NUMA_cpu_level_mask ()
+sets the bits corresponding to all CPU the are at or below distance
+.IR level
+from the CPUs with bits set in
+.IR src
+and set the bits for all the CPUs in
+.IR dest .
+
+Level 1 corresponds to all thread siblings of the input CPUs.  Level 2
+corresponds to all core siblings.  Higher levels are measured by the access
+cost of the memory.  For non-NUMA machines there is only one additional
+level.  For NUMA machines there can be many different levels, depending
+on the number of memory controllers in the system and the access times.
+.SH RETURN VALUE
+On success
+.BR NUMA_cpu_level_mask ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH BUGS
+The information for levels 3 and higher depends on measures of access times
+for the different sockets.  This information is often provided by the kernel
+and it is plainly very often wrong.  Access times which differ in practice
+are shown as equal.  The
+.BR NUMA_cpu_level_mask ()
+interface tries its best to provide the correct information.
+.SH SEE ALSO
+.BR CPU_COUNT_S (3)
+.BR NUMA_cpu_system_mask (3)
+.BR NUMA_cpu_self_mask (3)

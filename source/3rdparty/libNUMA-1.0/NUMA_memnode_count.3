@@ -1,0 +1,29 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_MEMNODE_COUNT 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_memnode_count \- return number of memory nodes in given set
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_memnode_count(size_t " setsize ", const memnode_set_t *" set );
+.fi
+.SH DESCRIPTION
+.BR NUMA_memnode_count ()
+returns the number of memory nodes with corresponding bits set in
+.IR set .
+This function identical in semantic to the
+.BR MEMNODE_COUNT_S ()
+macro.
+.SH RETURN VALUE
+On success
+.BR NUMA_memnode_count ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR NUMA_cpu_system_count (3)
+.BR MEMNODE_COUNT_S (3)

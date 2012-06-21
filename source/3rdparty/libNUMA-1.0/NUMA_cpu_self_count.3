@@ -1,0 +1,25 @@
+.\" Written by Ulrich Drepper.
+.TH NUMA_CPU_SELF_COUNT 3 2012-4-9 "Linux" "libNUMA"
+.SH NAME
+NUMA_cpu_self_count \- return current number of CPUs for threads
+.SH SYNOPSIS
+.nf
+.B #include <libNUMA.h>
+
+.BI "int NUMA_cpu_self_count(void);"
+.fi
+.SH DESCRIPTION
+.BR NUMA_cpu_self_count ()
+returns the current number of CPUs the calling thread is allowed to run on.
+.SH RETURN VALUE
+On success
+.BR NUMA_cpu_self_count ()
+returns a nonnegative number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH CONFORMING TO
+These interfaces are Linux-specific.
+.SH SEE ALSO
+.BR CPU_COUNT_S (3)
+.BR NUMA_cpu_system_count (3)
