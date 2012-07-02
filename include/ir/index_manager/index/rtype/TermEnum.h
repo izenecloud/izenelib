@@ -34,7 +34,7 @@ class BTTermEnum : public TermEnum<K, V>
 public:
     typedef K KeyType;
     typedef V ValueType;
-    typedef stx::btree_map<KeyType, ValueType> AMType;
+    typedef std::map<KeyType, ValueType> AMType;
     typedef typename AMType::iterator iterator;
     
     
