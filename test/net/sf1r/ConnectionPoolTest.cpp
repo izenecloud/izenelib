@@ -25,12 +25,13 @@ namespace {
 ba::io_service service;
 string host = "localhost";
 string port = "18181";
+size_t timeout = 60;
 }
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", 3), NetworkError);
-    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", 3), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", timeout, 3), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", timeout, 3), NetworkError);
 }
 
 
@@ -53,7 +54,7 @@ getMessage(const uint32_t& seq) {
 BOOST_AUTO_TEST_CASE(sanity) {
     const size_t SIZE = 2;
     
-    ConnectionPool pool(service, host, port, SIZE, false);
+    ConnectionPool pool(service, host, port, timeout, SIZE, false);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
@@ -148,7 +149,7 @@ BOOST_AUTO_TEST_CASE(resize) {
     size_t SIZE = 1;
     const size_t MAX_SIZE = 3;
     
-    ConnectionPool pool(service, host, port, SIZE, true, MAX_SIZE);
+    ConnectionPool pool(service, host, port, timeout, SIZE, true, MAX_SIZE);
     BOOST_CHECK(pool.invariant());
     BOOST_CHECK_EQUAL(SIZE, pool.getSize());
     BOOST_CHECK_EQUAL(SIZE, pool.getAvailableSize());
@@ -261,7 +262,7 @@ BOOST_AUTO_TEST_CASE(concurrency) {
     const size_t NUM_THREADS = 5;
     size_t SIZE = 1;
     
-    ConnectionPool pool(service, host, port, SIZE, true, NUM_THREADS);
+    ConnectionPool pool(service, host, port, timeout, SIZE, true, NUM_THREADS);
     BOOST_CHECK(pool.invariant());
     
     Worker w(pool);

@@ -22,6 +22,7 @@ namespace {
 ba::io_service service;
 string host = "localhost";
 string port = "18181";
+size_t timeout = 60;
 }
 
 
@@ -32,9 +33,9 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(RawClient(service, "somewhere", ""), NetworkError);
-    BOOST_CHECK_THROW(RawClient(service, "somewhere", "port"), NetworkError);
-    BOOST_CHECK_THROW(RawClient(service, "localhost", "12345"), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "somewhere", "", timeout), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "somewhere", "port", timeout), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service, "localhost", "12345", timeout), NetworkError);
 }
 
 
@@ -45,14 +46,14 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 
 BOOST_AUTO_TEST_CASE(connection_test) {
-    RawClient client(service, host, port);
+    RawClient client(service, host, port, timeout);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
     BOOST_CHECK_EQUAL("", client.getPath());
     
-    RawClient zclient(service, host, port, "zkpath");
+    RawClient zclient(service, host, port, timeout, "zkpath");
     BOOST_CHECK(zclient.isConnected());
     BOOST_CHECK(zclient.idle());
     BOOST_CHECK(zclient.valid());
@@ -66,7 +67,7 @@ BOOST_AUTO_TEST_CASE(connection_test) {
 BOOST_AUTO_TEST_CASE(connection_error_test) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, host, port, "/path");
+    RawClient client(service, host, port, timeout, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
@@ -89,7 +90,7 @@ BOOST_AUTO_TEST_CASE(send_receive_test) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, host, port, "/path");
+    RawClient client(service, host, port, timeout, "/path");
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
