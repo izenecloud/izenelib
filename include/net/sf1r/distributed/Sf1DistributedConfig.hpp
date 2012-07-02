@@ -17,7 +17,7 @@ NS_IZENELIB_SF1R_BEGIN
 
 
 /// Default ZooKeeper session timeout.
-#define SF1_CONFIG_TIMEOUT      2000
+#define SF1_CONFIG_ZK_TIMEOUT      2000
 
 
 class Sf1DistributedDriver;
@@ -33,9 +33,9 @@ struct Sf1DistributedConfig : public Sf1Config {
     /**
      * Default constructor.
      */
-    Sf1DistributedConfig() : Sf1Config(), timeout(SF1_CONFIG_TIMEOUT) {}
+    Sf1DistributedConfig() : Sf1Config(), zkTimeout(SF1_CONFIG_ZK_TIMEOUT) {}
     
-    uint32_t timeout;             ///< ZooKeeper session timeout.
+    uint32_t zkTimeout;             ///< ZooKeeper session timeout.
     
     /**
      * Add a broadcast routing policy.

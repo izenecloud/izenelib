@@ -18,6 +18,8 @@ NS_IZENELIB_SF1R_BEGIN
 #define SF1_CONFIG_RESIZE        false
 /// Default maximum pool size.
 #define SF1_CONFIG_MAX_SIZE      1
+/// Default timeout for socket operations.
+#define SF1_CONFIG_TIMEOUT       60
 
 /**
  * Container for the driver configuration parameters:
@@ -31,11 +33,15 @@ struct Sf1Config {
      * Default constructor.
      */
     Sf1Config() : initialSize(SF1_CONFIG_INITIAL_SIZE), 
-        resize(SF1_CONFIG_RESIZE), maxSize(SF1_CONFIG_MAX_SIZE) {}
+        resize(SF1_CONFIG_RESIZE), 
+        maxSize(SF1_CONFIG_MAX_SIZE),
+        timeout(SF1_CONFIG_TIMEOUT)
+    {}
     
     size_t initialSize;           ///< Initial pool size.
     bool resize;                  ///< Automatic pool resize flag.
     size_t maxSize;               ///< Maximum pool size.
+    size_t timeout;               ///< Socket timeout.
 };
 
 

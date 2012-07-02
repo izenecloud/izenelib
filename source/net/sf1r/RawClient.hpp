@@ -61,12 +61,13 @@ public:
      * @param service A reference to the I/O service.
      * @param host The target address or hostname.
      * @param port The target service port.
+     * @param timeout The socket timeout.
      * @param id An ID for this instance (optional).
      * @throw NetworkError if cannot connect.
      */
     RawClient(ba::io_service& service, 
               const std::string& host, const std::string& port,
-              const std::string& id = "");
+              const size_t timeout, const std::string& id = "");
     
     /// Destructor.
     ~RawClient();

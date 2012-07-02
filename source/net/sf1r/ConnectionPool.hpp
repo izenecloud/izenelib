@@ -39,6 +39,7 @@ public:
      * @param service A reference to the I/O service.
      * @param host The target address or hostname.
      * @param port The target service port.
+     * @param timeout The socket timeout.
      * @param size The initial pool size. (non-zero)
      * @param resize Enable automatic size increment if all the clients
      *          are busy. (defaults to false)
@@ -48,8 +49,9 @@ public:
      *          (defaults to UNDEFINED_PATH)
      * @throw NetworkError if network-related errors occur.
      */
-    ConnectionPool(ba::io_service& service, const std::string& host,
-                   const std::string& port, const size_t& size, 
+    ConnectionPool(ba::io_service& service, 
+                   const std::string& host, const std::string& port, 
+                   const size_t timeout, const size_t& size, 
                    const bool resize = false, const size_t& maxSize = 0,
                    const std::string& path = UNDEFINED_PATH);
     
@@ -137,6 +139,8 @@ private:
     const std::string host;
     /// The target service port.
     const std::string port;
+    /// The socket timeout.
+    const size_t timeout;
     
     /// The actual size.
     size_t size;

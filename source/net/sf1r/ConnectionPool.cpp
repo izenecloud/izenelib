@@ -25,19 +25,21 @@ ConnectionPool::UNDEFINED_PATH = "";
        ((ConnectionPool::UNDEFINED_PATH == (path)) ? "" : " (" + (path) + ")")
 
 
-ConnectionPool::ConnectionPool(ba::io_service& serv, const std::string& h,
-        const std::string& p, const size_t& sz, const bool rz, 
+ConnectionPool::ConnectionPool(ba::io_service& serv, 
+        const std::string& h, const std::string& p, 
+        const size_t to, const size_t& sz, const bool rz, 
         const size_t& ms, const string& zkpath) 
-            : service(serv), host(h), port(p), 
+            : service(serv), host(h), port(p), timeout(to),
               size(sz), resize(rz), maxSize(resize ? ms : size), path(zkpath) {
     DLOG(INFO) << "Initializing pool ..." << GET_PATH(path) ;
+    DLOG(INFO) << "  timeout    : " << timeout;
     DLOG(INFO) << "  size       : " << size;
     DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
     DLOG(INFO) << "  maxSize    : " << maxSize;
     
     try {
         for (unsigned i = 0; i < size; ++i) {
-            available.push_back(new RawClient(service, host, port, path));
+            available.push_back(new RawClient(service, host, port, timeout, path));
         }
     } catch (NetworkError e) {
         LOG(ERROR) << e.what();
@@ -98,7 +100,7 @@ ConnectionPool::acquire() {
     
     LOG(INFO) << "Growing pool ..." << GET_PATH(path);
     try {
-        reserved.push_back(new RawClient(service, host, port, path));
+        reserved.push_back(new RawClient(service, host, port, timeout, path));
         ++size;
         LOG(INFO) << "Growed pool size to: " << size << "/" << maxSize << GET_PATH(path) ;
     } catch (NetworkError& e) {
