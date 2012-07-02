@@ -47,6 +47,12 @@ public:
             flag.push_back(iorr);
             
         }
+
+        void swap(ValueType& from)
+        {
+            std::swap(item, from.item);
+            std::swap(flag, from.flag);
+        }
         
         friend std::ostream& operator<<(std::ostream& output, const ValueType& v) {
             for(std::size_t i=0;i<v.item.size();i++)
@@ -149,6 +155,8 @@ public:
     void clear()
     {
         data_.clear();
+        AMType data;
+        data_.swap(data);
         capacity_ = 0;
     }
     
