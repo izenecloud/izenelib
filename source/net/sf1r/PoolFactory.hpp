@@ -58,6 +58,7 @@ public:
         size_t pos = address.find(':');
         return new ConnectionPool(service, 
                 address.substr(0, pos), address.substr(pos + 1),
+                config.timeout,
                 config.initialSize, config.resize, config.maxSize);
     }
     
@@ -72,6 +73,7 @@ public:
         
         return new ConnectionPool(service, node.getHost(), 
                 boost::lexical_cast<std::string>(node.getPort()),
+                config.timeout,
                 config.initialSize, config.resize, config.maxSize,
                 node.getPath());
     }

@@ -9,7 +9,7 @@
 #include "RawClient.hpp"
 #include <boost/array.hpp>
 #include <glog/logging.h>
-
+#include <sys/time.h>
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -42,9 +42,17 @@ RawClient::idSequence = 0;
 
 RawClient::RawClient(ba::io_service& service, 
                      const std::string& host, const std::string& port,
-                     const string& zkpath) 
+                     const size_t timeout, const string& zkpath) 
         : socket(service), status(Idle), path(zkpath), id(++idSequence) {
     try {
+        DLOG(INFO) << "configuring socket ...";
+        // TODO: windows?
+        struct timeval tv;
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
+        setsockopt(socket.native(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof (tv));
+        setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof (tv));
+        
         DLOG(INFO) << "connecting to [" << host << ":" << port << "] (" << id << ") ...";
         
         ba::ip::tcp::resolver resolver(service);
