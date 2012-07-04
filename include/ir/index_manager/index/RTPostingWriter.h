@@ -20,7 +20,6 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
 class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
