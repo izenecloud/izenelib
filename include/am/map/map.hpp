@@ -6,17 +6,10 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-
 #include <types.h>
 #include <am/am.h>
 #include <am/concept/DataType.h>
 
-#include <am/util/DbObj.h>
-#include <am/util/Wrapper.h>
-#include <am/util/SdbUtil.h>
-#include <am/util/Serialization.h>
-
-#include <util/RefCount.h>
 #include <util/hashFunction.h>
 #include <boost/static_assert.hpp>
 
@@ -34,7 +27,6 @@ using namespace std;
 
 using namespace izenelib::am::util;
 
-
 class simple_hash
 {
 public:
@@ -49,14 +41,9 @@ public:
 
     }
 
-}
-;
-
+};
 
 NS_IZENELIB_AM_BEGIN
-
-
-
 /**
    @class Map
  *@brief This is an implementation of open addressing and linear probing hash table for integer key.
