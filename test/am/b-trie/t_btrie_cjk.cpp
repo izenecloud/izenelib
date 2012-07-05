@@ -1,13 +1,3 @@
-/// @file   t_btrie_en.cpp
-/// @brief  A test unit for checking BTrie_En
-/// @author Wei Cao
-/// @date   2000-08-04
-///
-///
-/// @details
-///
-
-
 #include <string>
 #include <time.h>
 #include <math.h>
@@ -54,29 +44,29 @@ BOOST_AUTO_TEST_CASE(BTrie_CH_simple)
     remove("test_btrie_ch.has");
 
     {
-      BTrie_CJK trie("./test_btrie_ch");
+        BTrie_CJK trie("./test_btrie_ch");
 
-      int id = 1;
-      for (int i=0; i<testNumbers; i++,id++)
-        trie.insert(UString(testWords[i], UString::UTF_8),id);
-      trie.flush();
+        int id = 1;
+        for (int i=0; i<testNumbers; i++,id++)
+            trie.insert(UString(testWords[i], UString::UTF_8),id);
+        trie.flush();
     }
 
     {
-      BTrie_CJK trie("./test_btrie_ch");
+        BTrie_CJK trie("./test_btrie_ch");
 
-      /** test BTrie_CH::find() */
-      TEST_TRIE_FIND(UString("你好",UString::UTF_8), 1);
-      TEST_TRIE_FIND(UString("文件",UString::UTF_8), 10);
-      TEST_TRIE_FIND(UString("一个",UString::UTF_8), 5);
-      TEST_TRIE_FIND(UString("你阿好",UString::UTF_8), -1);
+        /** test BTrie_CH::find() */
+        TEST_TRIE_FIND(UString("你好",UString::UTF_8), 1);
+        TEST_TRIE_FIND(UString("文件",UString::UTF_8), 10);
+        TEST_TRIE_FIND(UString("一个",UString::UTF_8), 5);
+        TEST_TRIE_FIND(UString("你阿好",UString::UTF_8), -1);
 
-      /** test BTrie_CH::findRegExp() */
-      TEST_TRIE_FINDREGEXP(UString("*文件",UString::UTF_8), 2);
-      TEST_TRIE_FINDREGEXP(UString("文*件",UString::UTF_8), 1);
-      TEST_TRIE_FINDREGEXP(UString("文件*",UString::UTF_8), 1);
-      TEST_TRIE_FINDREGEXP(UString("trie*",UString::UTF_8), 1);
-      }
+        /** test BTrie_CH::findRegExp() */
+        TEST_TRIE_FINDREGEXP(UString("*文件",UString::UTF_8), 2);
+        TEST_TRIE_FINDREGEXP(UString("文*件",UString::UTF_8), 1);
+        TEST_TRIE_FINDREGEXP(UString("文件*",UString::UTF_8), 1);
+        TEST_TRIE_FINDREGEXP(UString("trie*",UString::UTF_8), 1);
+    }
 
     remove("test_btrie_ch.buk");
     remove("test_btrie_ch.nod");
