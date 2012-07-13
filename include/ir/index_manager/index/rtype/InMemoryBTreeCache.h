@@ -47,6 +47,12 @@ public:
             flag.push_back(iorr);
             
         }
+
+        void swap(ValueType& from)
+        {
+            std::swap(item, from.item);
+            std::swap(flag, from.flag);
+        }
         
         friend std::ostream& operator<<(std::ostream& output, const ValueType& v) {
             for(std::size_t i=0;i<v.item.size();i++)
@@ -57,7 +63,7 @@ public:
         }
     };
     
-    typedef stx::btree_map<KeyType, ValueType> AMType;
+    typedef std::map<KeyType, ValueType> AMType;
 //     typedef AMType::iterator iterator;
     
     InMemoryBTreeCache()
@@ -88,7 +94,7 @@ public:
         {
             it = data_.insert(std::make_pair(key, ValueType())).first;
         }
-        it.data().add(value_item, 1);
+        it->second.add(value_item, 1);
 
         //expand the capacity
         ++capacity_;
@@ -108,7 +114,7 @@ public:
         {
             it = data_.insert(std::make_pair(key, ValueType())).first;
         }
-        it.data().add(value_item, 0);
+        it->second.add(value_item, 0);
         //expand the capacity
         ++capacity_;
     }
@@ -138,8 +144,8 @@ public:
         typename AMType::iterator it = data_.begin();
         while(it!=data_.end())
         {
-//             KeyType key = it.key();
-//             ValueType value = it.data();
+//             KeyType key = it->first;
+//             ValueType value = it->second;
             func(*it);
             ++it;
         }
@@ -149,6 +155,8 @@ public:
     void clear()
     {
         data_.clear();
+        AMType data;
+        data_.swap(data);
         capacity_ = 0;
     }
     
@@ -161,7 +169,7 @@ public:
         {
             return false;
         }
-        value = it.data();
+        value = it->second;
         return true;
     }
 

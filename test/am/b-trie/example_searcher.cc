@@ -34,61 +34,64 @@ typedef string string_type;
 
 UString init (const string& str, UString*)
 {
-  UString t(str.c_str(), ENCODE_TYPE);
-  return t;
+    UString t(str.c_str(), ENCODE_TYPE);
+    return t;
 }
 
 string init (const string& str, string*)
 {
-  return str;
+    return str;
 }
 
 int main(int argc, char** argv)
 {
-  clock_t start, finish;
+    clock_t start, finish;
 
-  // Initialize Google's logging library.
-  google::InitGoogleLogging("b_trie");
+    // Initialize Google's logging library.
+    google::InitGoogleLogging("b_trie");
 
-  //------------------------------------------------------------------------------
-  {
-    BTrie_En trie1("./test");
+    //------------------------------------------------------------------------------
+    {
+        BTrie_En trie1("./test");
 
 //    while(true)
-    {
-      cout << "enter query: ";
-      string query;
-      cin >> query;
+        {
+            cout << "enter query: ";
+            string query;
+            cin >> query;
 
-      int count = 0;
-      start = clock();
-      {
-        vector<item_pair<string_type> > ip;
-        string_type pattern = init(query, (string_type*)0);
-        trie1.findRegExp(pattern, ip);
-        std::cout << ip.size() << " results" << endl;
+            int count = 0;
+            start = clock();
+            {
+                vector<item_pair<string_type> > ip;
+                string_type pattern = init(query, (string_type*)0);
+                trie1.findRegExp(pattern, ip);
+                std::cout << ip.size() << " results" << endl;
 //        for (vector<item_pair<string_type> >::iterator i = ip.begin(); i!= ip.end(); i++)
 //          cout<<i->str_<<endl;
-      }
-      finish = clock();
-      if(start == finish) {
-        start = clock();
-        for(int i=0; i<1000; i++)
-        {
-          vector<item_pair<string_type> > ip;
-          string_type pattern = init(query, (string_type*)0);
-          trie1.findRegExp(pattern, ip);
-        }
-        finish = clock();
-        cout << "search " << query << " cost " <<
-          (double)(finish-start) / (CLOCKS_PER_SEC) << " ms" << endl;
-      } else {
-        cout << "search " << query << " cost "
-          << (double)(finish-start) / CLOCKS_PER_SEC << " second" << endl;
-      }
+            }
+            finish = clock();
+            if(start == finish)
+            {
+                start = clock();
+                for(int i=0; i<1000; i++)
+                {
+                    vector<item_pair<string_type> > ip;
+                    string_type pattern = init(query, (string_type*)0);
+                    trie1.findRegExp(pattern, ip);
+                }
+                finish = clock();
+                cout << "search " << query << " cost " <<
+                     (double)(finish-start) / (CLOCKS_PER_SEC) << " ms" << endl;
+            }
+            else
+            {
+                cout << "search " << query << " cost "
+                     << (double)(finish-start) / CLOCKS_PER_SEC << " second" << endl;
+            }
 
+        }
     }
-  }
 
 
 }
