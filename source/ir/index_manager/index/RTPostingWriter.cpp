@@ -56,7 +56,8 @@ bool RTPostingWriter::isEmpty()
 void RTPostingWriter::getSnapShot(TermInfo& snapshot)
 {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
-    snapshot.set(nDF_,nCTF_, nMaxTermFreq_, nLastDocID_,0,-1,-1,0,-1,0);
+    snapshot.set(nDF_, nCTF_, nMaxTermFreq_,
+        nLastDocID_, 0, -1, -1, 0, -1, 0);
     snapshot.currTF_ = nCurTermFreq_;
 }
 
