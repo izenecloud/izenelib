@@ -538,6 +538,24 @@ public:
         }
     }
 
+    /**
+     * @brief Apply function @p func(key, value) to each key/value pair.
+     */
+    template <class Func>
+    void forEach(Func& func)
+    {
+        ScopedReadLockType lock(lock_);
+
+        DataType<KeyType, ValueType> dat;
+        SDBCursor locn = container_.get_first_locn();
+
+        while (container_.get(locn, dat))
+        {
+            func(dat.key, dat.value);
+            container_.seq(locn, dat, ESD_FORWARD);
+        }
+    }
+
     ContainerType& getContainer()
     {
         return container_;
