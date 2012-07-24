@@ -71,6 +71,8 @@ public:
 
     int64_t	getCTF();
 
+    int32_t getMaxTF();
+
     void close();
 
     void add(BarrelInfo* pBarrelInfo,TermDocFreqs* pTermDocs);
@@ -180,6 +182,19 @@ inline int64_t MultiTermDocs::getCTF()
     return ctf;
 }
 
+inline int32_t MultiTermDocs::getMaxTF()
+{
+    BarrelTermDocsEntry* pEntry;
+    int32_t maxtf = 0;
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
+    {
+        pEntry = (*iter);
+        maxtf += pEntry->termDocs_->getMaxTF();
+        iter++;
+    }
+    return maxtf;
+}
 }
 
 NS_IZENELIB_IR_END

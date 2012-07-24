@@ -73,6 +73,8 @@ public:
 
     int64_t getCTF();
 
+    int32_t getMaxTF();
+
     void  close();
 
     loc_t nextPosition();
@@ -184,6 +186,20 @@ inline int64_t MultiTermPositions::getCTF()
         iter++;
     }
     return ctf;
+}
+
+inline int32_t MultiTermPositions::getMaxTF()
+{
+    BarrelTermPositionsEntry* pEntry;
+    int32_t maxtf = 0;
+    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
+    while (iter != termPositionsList_.end())
+    {
+        pEntry = (*iter);
+        maxtf += pEntry->termPositions_->getMaxTF();
+        iter++;
+    }
+    return maxtf;
 }
 
 inline void MultiTermPositions::close()
