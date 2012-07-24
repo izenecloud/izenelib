@@ -190,7 +190,8 @@ inline int32_t MultiTermDocs::getMaxTF()
     while (iter != barrelTermDocs_.end())
     {
         pEntry = (*iter);
-        maxtf += pEntry->termDocs_->getMaxTF();
+        int32_t maxtf_in_barrel = pEntry->termDocs_->getMaxTF();
+        if(maxtf_in_barrel > maxtf) maxtf = maxtf_in_barrel;
         iter++;
     }
     return maxtf;

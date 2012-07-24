@@ -196,7 +196,8 @@ inline int32_t MultiTermPositions::getMaxTF()
     while (iter != termPositionsList_.end())
     {
         pEntry = (*iter);
-        maxtf += pEntry->termPositions_->getMaxTF();
+        int32_t maxtf_in_barrel = pEntry->termPositions_->getMaxTF();
+        if(maxtf_in_barrel > maxtf) maxtf = maxtf_in_barrel;
         iter++;
     }
     return maxtf;
