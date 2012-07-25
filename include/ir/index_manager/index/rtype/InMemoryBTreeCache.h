@@ -90,7 +90,7 @@ public:
             std::cout << "cache full" << std::endl;
             return;
         }
-        data_[key].add(value_item, 1);
+        data_[key].add(value_item, 0);
         ++capacity_;
     }
 
