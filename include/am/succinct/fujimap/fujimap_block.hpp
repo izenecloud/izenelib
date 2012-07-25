@@ -54,7 +54,7 @@ public:
               const uint64_t seed, const uint64_t fpLen,
               const EncodeType et); ///< build an associative map
     ValueType getVal(const KeyEdge<ValueType>& ke) const; ///< return a value corresponding to the given KeyEdge
-    void save(std::ofstream& ofs); ///< save the status in ofs
+    void save(std::ofstream& ofs) const; ///< save the status in ofs
     void load(std::ifstream& ifs); ///< load the status from ifs
 
     uint64_t getSeed() const;
@@ -410,7 +410,7 @@ size_t FujimapBlock<ValueType>::getWorkingSize() const
 }
 
 template <class ValueType>
-void FujimapBlock<ValueType>::save(std::ofstream& ofs)
+void FujimapBlock<ValueType>::save(std::ofstream& ofs) const
 {
     ofs.write((const char*)(&keyNum_),     sizeof(keyNum_));
     ofs.write((const char*)(&minCodeVal_), sizeof(minCodeVal_));

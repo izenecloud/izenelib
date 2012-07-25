@@ -30,3 +30,5 @@ help
 /pkg
 /include/izenelib-version.h
 /nbproject
+*.diff
+*.patch

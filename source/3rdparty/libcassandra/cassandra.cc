@@ -40,8 +40,7 @@ private:
 };
 
 #define THRIFT_FUNC( func ) \
-    do \
-    { \
+    ({ \
         try \
         { \
             ScopedClient client; \
@@ -56,11 +55,10 @@ private:
             } \
             else throw tex; \
         } \
-    } while (0)
+    })
 
 #define THRIFT_RETURN_FUNC( func, result ) \
-    do \
-    { \
+    ({ \
         try \
         { \
             ScopedClient client; \
@@ -75,7 +73,7 @@ private:
             } \
             else throw tex; \
         } \
-    } while (0)
+    })
 
 Cassandra::Cassandra()
     : cluster_name_()

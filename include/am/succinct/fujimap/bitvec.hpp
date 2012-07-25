@@ -55,7 +55,7 @@ public:
     void setBits(size_t pos, size_t len, const ValueType& bits);
     void set64Bits(size_t pos, size_t len, const uint64_t& bits);
 
-    void write(std::ofstream& ofs);
+    void write(std::ofstream& ofs) const;
     void read(std::ifstream& ifs);
 
 private:
@@ -74,7 +74,7 @@ BitVec<ValueType>::BitVec(size_t size)
 }
 
 template <class ValueType>
-void BitVec<ValueType>::write(std::ofstream& ofs)
+void BitVec<ValueType>::write(std::ofstream& ofs) const
 {
     uint64_t bvSize = static_cast<uint64_t>(bv_.size());
     ofs.write((const char*)(&bvSize), sizeof(bvSize));

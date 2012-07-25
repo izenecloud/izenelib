@@ -462,6 +462,14 @@ typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<uint128_t, uint32_t>,
                    EmptyIDStorage<uint128_t, uint32_t> > IDManager;
+
+typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
+                   izenelib::util::ReadWriteLock,
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   OldUniqueIDGenerator<uint128_t, uint32_t>,
+                   EmptyIDStorage<uint128_t, uint32_t> > OldIDManager;
 #else
 typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    izenelib::util::ReadWriteLock,
