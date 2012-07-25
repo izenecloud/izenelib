@@ -1,5 +1,3 @@
-
-
 #include <string>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -31,11 +29,11 @@ void test_beansdb(int N)
 
     unsigned flag = 0;
     int rlen = 0;
-	
+
     for (i = 0; i < N; ++i)
     {
         unsigned intdata = i;//(N * drand48() / 4) * 271828183u;
-        sprintf(key, "%x", intdata);    
+        sprintf(key, "%x", intdata);
         //hs_append(store, key, (char*)&i, sizeof(int));
         char *body = hs_get(store, key, &rlen, &flag);
         int v = i;
@@ -55,7 +53,7 @@ void test_beansdb(int N)
     for (i = 0; i < N; ++i)
     {
         unsigned intdata = i;//(N * drand48() / 4) * 271828183u;
-        sprintf(key, "%x", intdata);    
+        sprintf(key, "%x", intdata);
         char *body = hs_get(store, key, &rlen, &flag);
         if(body != NULL)
         {
@@ -64,7 +62,7 @@ void test_beansdb(int N)
             free(body);
         }
         //hs_set(store, key, (char*)&i, sizeof(int), 0, 1);
-    }	
+    }
     hs_close(store);
 }
 
@@ -93,28 +91,28 @@ int main()
 {
     //test_beansdb(100);
     init_data();
-    izenelib::am::beansdb::Hash<Int2String, int> table("beansdb");
+    izenelib::am::beansdb::Hash<izenelib::util::Int2String, int> table("beansdb");
     int size = 100;
     int i;
     for (i = 1; i < size; ++i) {
-        Int2String key(i);
+        izenelib::util::Int2String key(i);
         //table.insert(key,int_data[i]);
         table.insert(key,i*100);
     }
 
     for (i = 1; i < size; ++i) {
-        Int2String key(i);
+        izenelib::util::Int2String key(i);
         //table.insert(key,int_data[i]);
         table.update(key,i*200);
     }
     cout<<"insert finished"<<endl;
     for (i = 1; i < size; ++i) {
-       Int2String key(i);
-       int value;
-	table.get(key, value);
-	//if(value != int_data[i])
-           //cout<<"i "<<i<<" value "<<value<<" data "<<int_data[i]<<endl;
-        cout<<"i "<<i<<" value "<<value<<endl;           
+        izenelib::util::Int2String key(i);
+        int value;
+        table.get(key, value);
+        //if(value != int_data[i])
+        //cout<<"i "<<i<<" value "<<value<<" data "<<int_data[i]<<endl;
+        cout<<"i "<<i<<" value "<<value<<endl;
     }
     table.flush();
     destroy_data();

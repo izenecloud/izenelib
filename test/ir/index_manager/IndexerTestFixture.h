@@ -45,7 +45,7 @@ struct IndexerTestConfig
      * for chunk type, it is fixed to CHUNK_SIZE (128) docs,
      * for block type, it is fixed to BLOCK_SIZE (8192) bytes.
      */
-    int skipInterval_; ///< 
+    int skipInterval_; ///<
 
     /**
      * max skip level.
@@ -119,12 +119,12 @@ protected:
 
     unsigned int newDocNum_; ///< the max number of documents created in createDocument()
     boost::mt19937 randEngine_;
-    typedef boost::variate_generator<mt19937, uniform_int<> > IntRandGeneratorT;
+    typedef boost::variate_generator<boost::mt19937, boost::uniform_int<> > IntRandGeneratorT;
     IntRandGeneratorT docLenRand_; ///< decide how many terms are created in each doc of @c prepareDocument()
     IntRandGeneratorT termIDRand_; ///< decide the term ids in each doc of @c prepareDocument()
     IntRandGeneratorT docNumRand_; ///< decide how many docs are updated in @c updateDocument() and how many docs are removed in @c removeDocument()
 
-    typedef boost::variate_generator<mt19937, bernoulli_distribution<> > BoolRandGeneratorT;
+    typedef boost::variate_generator<boost::mt19937, boost::bernoulli_distribution<> > BoolRandGeneratorT;
     BoolRandGeneratorT isCheckRand_; ///< decide whether to execute check statements for large data size, true for execute, false for not to execute
 
     /**

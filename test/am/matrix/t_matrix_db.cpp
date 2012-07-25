@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(update_elem)
     size_t rowNum = 100;
     boost::mt19937 engine ;
     boost::uniform_int<> distribution(1, 10000) ;
-    boost::variate_generator<mt19937, uniform_int<> > random(engine, distribution);
+    boost::variate_generator<boost::mt19937, boost::uniform_int<> > random(engine, distribution);
 
     uint32_t v = 0;
     for(size_t i = 0; i < rowNum; ++i)
@@ -72,6 +72,3 @@ BOOST_AUTO_TEST_CASE(dump)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-

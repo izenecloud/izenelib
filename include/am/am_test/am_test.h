@@ -8,11 +8,6 @@
 #include <am/am.h>
 #include <util/ClockTimer.h>
 
-using namespace std;
-using namespace __gnu_cxx;
-using namespace boost;
-//using namespace izenelib::util;
-using namespace izenelib::am;
 
 #ifdef INNER_TRACE
 #undef INNER_TRACE
@@ -27,17 +22,20 @@ namespace izenelib {
 namespace am_test {
 
 // pseudo random number generator
-inline int myrand(void) {
+inline int myrand(void)
+{
 	static int cnt = 0;
 	return (lrand48() + cnt++) & 0x7FFFFFFF;
 }
 
 template<typename Type> inline
-Type generateData(const int a, int num=1000000, bool rand=false) {
+Type generateData(const int a, int num=1000000, bool rand=false)
+{
 	return Type();
 }
 
-template<> inline string generateData<string>(const int a, int num, bool rand) {
+template<> inline string generateData<string>(const int a, int num, bool rand)
+{
 	if (num < 1000000)
 		num = 1000000;
 	char p[10];
@@ -50,7 +48,8 @@ template<> inline string generateData<string>(const int a, int num, bool rand) {
 	return string(p);
 }
 
-template<> inline int generateData<int>(const int a, int num, bool rand) {
+template<> inline int generateData<int>(const int a, int num, bool rand)
+{
 	if (num < 1000000)
 		num = 1000000;
 	if (rand)
@@ -59,7 +58,8 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 		return a;
 }
 
-template<> inline float generateData<float>(const int a, int num, bool rand) {
+template<> inline float generateData<float>(const int a, int num, bool rand)
+{
 	if (num < 1000000)
 		num = 1000000;
 	if (rand)
@@ -69,21 +69,25 @@ template<> inline float generateData<float>(const int a, int num, bool rand) {
 }
 
 template<> inline vector<int> generateData<vector<int> >(const int a, int num,
-		bool rand) {
+		bool rand)
+{
 	vector<int> vret;
 	int max;
-	if (rand) {
+	if (rand)
+    {
 		max = myrand()%( 100 );
 	} else {
 		max = num %100;
 	}
-	for (int i=0; i<max; i++) {
+	for (int i=0; i<max; i++)
+    {
 		vret.push_back(i);
 	}
 	return vret;
 }
 
-void displayMemInfo(std::ostream& os = std::cout) {
+void displayMemInfo(std::ostream& os = std::cout)
+{
 	unsigned long vm = 0, rss = 0;
 	ProcMemInfo::getProcMemInfo(vm, rss);
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -95,46 +99,57 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 	int loop_;
 	bool trace_;
 	AMOBJ<KeyType, ValueType, AM, open>* am_;
-	izenelib::util::ClockTimer timer;	
+	izenelib::util::ClockTimer timer;
 public:
 	AmTest() :
-		rand_(true), num_(1000000), loop_(1), trace_(false) {
+		rand_(true), num_(1000000), loop_(1), trace_(false)
+    {
 		if ( !open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 	}
-	~AmTest() {
-		if ( !open) {
-			if (am_) {
+	~AmTest()
+    {
+		if ( !open)
+        {
+			if (am_)
+            {
 				delete am_;
 				am_ = 0;
 			}
 		}
 	}
 
-	void setNum(int num) {
+	void setNum(int num)
+    {
 		num_ = num;
 	}
-	void setLoop(int num) {
+	void setLoop(int num)
+    {
 		loop_ = num;
 	}
-	void setRandom(bool rand) {
+	void setRandom(bool rand)
+    {
 		rand_ = rand;
 	}
-	void setTrace(bool trace) {
+	void setTrace(bool trace)
+    {
 		trace_ = trace;
 	}
 
-	void run_insert(bool mem=true) {
+	void run_insert(bool mem=true)
+    {
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
-		for (int i =0; i<num_; i++) {
+		for (int i =0; i<num_; i++)
+        {
 			sum++;
 #if INNER_TRACE
-			if (trace_) {
+			if (trace_)
+            {
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 			am_->display();
@@ -145,12 +160,14 @@ public:
 				hit++;
 
 			//            cout<<"idx="<<i<<","<<key<<","<<value<<endl;
-			if (i % 1000000 == 0) {
+			if (i % 1000000 == 0)
+            {
 				cout<<"idx="<<i<<endl;
 				displayMemInfo();
 			}
 		}
-		if (mem) {
+		if (mem)
+        {
 			printf("insert elapsed 0 ( by clock(), cpu ) : %lf seconds\n",
 					double(clock()- t1)/CLOCKS_PER_SEC);
 			printf("insert elapsed 1 ( actually ): %lf seconds\n",
@@ -164,20 +181,24 @@ public:
 	}
 
 	//when KeyType is YString, for ylib
-	void run_insert_ylib(bool mem=true) {
+	void run_insert_ylib(bool mem=true)
+    {
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
-		for (int i =0; i<num_; i++) {
-			if (trace_) {
+		for (int i =0; i<num_; i++)
+        {
+			if (trace_)
+            {
 #if INNER_TRACE
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 #endif
 			}
 			am_->insert(generateData<KeyType>(i, num_, rand_) );
 		}
-		if (mem) {
+		if (mem)
+        {
 			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
 		}
@@ -186,34 +207,40 @@ public:
 
 	}
 
-	void run_find(bool mem=true) {
+	void run_find(bool mem=true)
+    {
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
-		for (int i =0; i<num_; i++) {
+		for (int i =0; i<num_; i++)
+        {
 			sum++;
 #if INNER_TRACE
-			if (trace_) {
+			if (trace_)
+            {
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif
 
 			ValueType pv;
 			bool ret = am_->get(generateData<KeyType>(i, num_, rand_), pv);
-			if (ret) {
+			if (ret)
+            {
 				hit++;
 			} else {
 				//cout<<"Unfound idx="<<i<<endl;
 			}
-			if (i % 1000000 == 0) {
+			if (i % 1000000 == 0)
+            {
 				cout<<"idx="<<i<<endl;
 				displayMemInfo();
 			}
 		}
-		if (mem) {
+		if (mem)
+        {
 			printf("find elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			printf("find elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("find success ratio: %d /%d\n", hit, sum);
@@ -224,25 +251,29 @@ public:
 
 	}
 
-	void run_del(bool mem=true) {
+	void run_del(bool mem=true)
+    {
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
-		for (int i =0; i<num_; i++) {
+		for (int i =0; i<num_; i++)
+        {
 			sum++;
 
 #if INNER_TRACE
-			if (trace_) {
+			if (trace_)
+            {
 				cout<<"del key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif
 			if (am_->del(generateData<KeyType>(i, num_, rand_) ))
 				hit++;
 		}
-		if (mem) {
+		if (mem)
+        {
 			printf("del elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			printf("del elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("del success ratio: %d /%d\n", hit, sum);
@@ -253,9 +284,10 @@ public:
 
 	}
 
-	void run_seq(bool mem=true) {
+	void run_seq(bool mem=true)
+    {
 		typedef typename AM::SDBCursor SDBCursor;
-		
+
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
@@ -264,11 +296,13 @@ public:
 		SDBCursor locn = am_->get_first_locn();
 		KeyType key;
 		ValueType val;
-		while (am_->get(locn, key, val) ) {
+		while (am_->get(locn, key, val) )
+        {
 			am_->seq(locn);
 			sum++;
 		}
-		if (mem) {
+		if (mem)
+        {
 			printf("seq elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			printf("seq elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("seq num : %d\n", sum);
@@ -277,7 +311,8 @@ public:
 		if (open)
 			delete am_;
 	}
-	void display(std::ostream& os = std::cout) {
+	void display(std::ostream& os = std::cout)
+    {
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		am_->display(os);
@@ -285,7 +320,8 @@ public:
 			delete am_;
 	}
 
-	int num_items() {
+	int num_items()
+    {
 		if (open)
 			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int num = am_->num_items();
@@ -296,7 +332,8 @@ public:
 
 };
 
-template<typename T> void run_am(T& cm) {
+template<typename T> void run_am(T& cm)
+{
 	cm.run_insert();
 	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_find();
@@ -308,27 +345,31 @@ template<typename T> void run_am(T& cm) {
 }
 
 
-template<typename T> void run_crud(T& cm) {
+template<typename T> void run_crud(T& cm)
+{
 	cm.run_insert();
 	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_find();
-	cout<<"num: "<<cm.num_items()<<endl;	
+	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_del();
 	cout<<"num: "<<cm.num_items()<<endl;
 }
 
-template<typename T> void run_am_nod(T& cm) {
+template<typename T> void run_am_nod(T& cm)
+{
 	cm.run_insert();
 	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_find();
 	cout<<"num: "<<cm.num_items()<<endl;
 }
 
-template<typename T> void run_loop(unsigned int loop) {
+template<typename T> void run_loop(unsigned int loop)
+{
 	clock_t t1 = clock();
 	izenelib::util::ClockTimer timer;
 	vector< boost::shared_ptr<T> > am_group;
-	for (unsigned int i=0; i<loop; i++) {
+	for (unsigned int i=0; i<loop; i++)
+    {
 		boost::shared_ptr<T> am;
 		am.reset(new T);
 		am->setNum(100);
@@ -336,7 +377,8 @@ template<typename T> void run_loop(unsigned int loop) {
 		am_group.push_back(am);
 	}
 	typename vector< boost::shared_ptr<T> >::iterator it = am_group.begin();
-	for (; it != am_group.end(); it++) {
+	for (; it != am_group.end(); it++)
+    {
 		(*it)->run_insert(false);
 	}
 	printf("insert elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);

@@ -17,8 +17,6 @@
 
 namespace febird {
 
-using namespace boost;
-
 template<class DataIO>
 struct variant_save_visitor : boost::static_visitor<> {
     variant_save_visitor(DataIO& ar) :
@@ -34,7 +32,7 @@ private:
 };
 
 template<class DataIO, BOOST_VARIANT_ENUM_PARAMS(/* typename */ class T)>
-void DataIO_saveObject(DataIO& dio, const boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)>& v) 
+void DataIO_saveObject(DataIO& dio, const boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)>& v)
 {
     int which = v.which();
     dio & which;
@@ -111,4 +109,3 @@ void DataIO_loadObject(DataIO & dio, boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)
 }
 
 #endif
-

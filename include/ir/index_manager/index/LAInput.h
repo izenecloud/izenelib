@@ -64,10 +64,10 @@ public:
     }
 */
     template<typename IDManagerType>
-    inline void add( IDManagerType* idm, const UString::CharT* termStr, const size_t termLen, const unsigned int offset )
+    inline void add( IDManagerType* idm, const izenelib::util::UString::CharT* termStr, const size_t termLen, const unsigned int offset )
     {
         push_back(globalTemporary_);
-        idm->getTermIdByTermString(UString(termStr, termLen), back().termid_);
+        idm->getTermIdByTermString(izenelib::util::UString(termStr, termLen), back().termid_);
         back().wordOffset_ = offset;
     }
 

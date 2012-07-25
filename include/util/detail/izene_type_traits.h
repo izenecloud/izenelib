@@ -10,8 +10,6 @@
 #include <boost/type_traits.hpp>
 #include <boost/tuple/tuple.hpp>
 
-using namespace boost;
-
 NS_IZENELIB_UTIL_BEGIN
 
 template <typename T>
@@ -19,7 +17,7 @@ struct IsFixedType
 {
     enum
     {
-        yes = is_arithmetic<T>::value || is_empty<T>::value,
+        yes = boost::is_arithmetic<T>::value || boost::is_empty<T>::value,
         no = !yes
     };
 };
@@ -206,7 +204,7 @@ namespace util \
 { \
     template <>struct IsFebirdSerial< __VA_ARGS__ > \
     { \
-        enum { yes = 1, no = !yes}; \
+        enum { yes = 1, no = !yes }; \
     }; \
 } \
 }
@@ -218,7 +216,7 @@ namespace util \
 { \
     template <>struct IsMemcpySerial< __VA_ARGS__ > \
     { \
-        enum { yes = 1, no = !yes}; \
+        enum { yes = 1, no = !yes }; \
     }; \
 } \
 }

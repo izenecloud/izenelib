@@ -34,13 +34,13 @@ public:
   template<typename NameString>
   static int32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return (int32_t)HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return (int32_t)izenelib::util::HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
   static int32_t hash(const NameString& key)
   {
-    return (int32_t)HashFunction<NameString>::generateHash32(key);
+    return (int32_t)izenelib::util::HashFunction<NameString>::generateHash32(key);
   }
 };
 
@@ -53,13 +53,13 @@ public:
   template<typename NameString>
   static uint32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return izenelib::util::HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
   static uint32_t hash(const NameString& key)
   {
-    return HashFunction<NameString>::generateHash32(key);
+    return izenelib::util::HashFunction<NameString>::generateHash32(key);
   }
 };
 
@@ -72,13 +72,13 @@ public:
   template<typename NameString>
   static int64_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return (int64_t)HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return (int64_t)izenelib::util::HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
   static int64_t hash(const NameString& key)
   {
-    return (int64_t)HashFunction<NameString>::generateHash64(key);
+    return (int64_t)izenelib::util::HashFunction<NameString>::generateHash64(key);
   }
 };
 
@@ -91,14 +91,14 @@ public:
   template<typename NameString>
   static uint64_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return izenelib::util::HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
 
   template<typename NameString>
   static uint64_t hash(const NameString& key)
   {
-    return HashFunction<NameString>::generateHash64(key);
+    return izenelib::util::HashFunction<NameString>::generateHash64(key);
   }
 };
 

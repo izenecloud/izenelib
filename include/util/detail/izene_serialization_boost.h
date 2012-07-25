@@ -28,7 +28,7 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
-const int archive_flags = archive::no_header | archive::no_codecvt;
+const int archive_flags = boost::archive::no_header | boost::archive::no_codecvt;
 
 template<typename T>
 class izene_serialization_boost

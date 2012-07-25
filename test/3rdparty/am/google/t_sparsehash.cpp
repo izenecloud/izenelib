@@ -8,7 +8,7 @@
 #include <sys/time.h>
 
 #include <cstdlib>   // for rand()
-#include <cctype>    // for isalnum()   
+#include <cctype>    // for isalnum()
 #include <algorithm> // for back_inserter
 
 #include <boost/timer.hpp>
@@ -79,49 +79,49 @@ BOOST_AUTO_TEST_CASE(index)
     int size = 10000;
 
     sparse_hash_map<int, int> table;
-    for (int i = 0; i < size; ++i) 
+    for (int i = 0; i < size; ++i)
     {
         table[i] = int_data[i];
     }
 
-    for (int i = 0; i < size; ++i) 
+    for (int i = 0; i < size; ++i)
     {
         BOOST_CHECK_EQUAL(table[i] , int_data[i]);
     }
     FILE* pf = fopen ( HOME_STR, "wb" );
-    table.write_metadata ( pf ); 
-    table.write_nopointer_data ( pf ); 
-    fclose ( pf ); 
+    table.write_metadata ( pf );
+    table.write_nopointer_data ( pf );
+    fclose ( pf );
 
 
     {
-    sparse_hash_map<int, int> readMap;
-    FILE* f =fopen ( HOME_STR, "rb" ); 
-    readMap.read_metadata ( f ); 
-    readMap.read_nopointer_data ( f ); 
-    fclose ( f ); 
+        sparse_hash_map<int, int> readMap;
+        FILE* f =fopen ( HOME_STR, "rb" );
+        readMap.read_metadata ( f );
+        readMap.read_nopointer_data ( f );
+        fclose ( f );
 
-    for (int i = 0; i < size; ++i) 
-    {
-        BOOST_CHECK_EQUAL(readMap[i] , int_data[i]);
+        for (int i = 0; i < size; ++i)
+        {
+            BOOST_CHECK_EQUAL(readMap[i] , int_data[i]);
+        }
+
     }
 
-    }
-
     {
-    izene_serialization_febird<sparse_hash_map<int, int> > isb(table);
-    char* ptr;
-    size_t sz;
-    isb.write_image(ptr, sz);
-    sparse_hash_map<int, int> readMap;
+        izenelib::util::izene_serialization_febird<sparse_hash_map<int, int> > isb(table);
+        char* ptr;
+        size_t sz;
+        isb.write_image(ptr, sz);
+        sparse_hash_map<int, int> readMap;
 
-    izene_deserialization_febird<sparse_hash_map<int, int> > idb(ptr, sz);
-    idb.read_image(readMap);
+        izenelib::util::izene_deserialization_febird<sparse_hash_map<int, int> > idb(ptr, sz);
+        idb.read_image(readMap);
 
-    for (int i = 0; i < size; ++i) 
-    {
-        BOOST_CHECK_EQUAL(readMap[i] , int_data[i]);
-    }
+        for (int i = 0; i < size; ++i)
+        {
+            BOOST_CHECK_EQUAL(readMap[i] , int_data[i]);
+        }
 
     }
 #if 0
@@ -136,12 +136,12 @@ BOOST_AUTO_TEST_CASE(index)
     typedef sparse_hash_map<int,int,SPARSEHASH_HASH<int>,STL_NAMESPACE::equal_to<int>,SparseAlloc > SparseHashType;
 
     SparseHashType hashmap(0, SparseHashType::hasher(), SparseHashType::key_equal(), alloc);
-    for (int i = 0; i < size; ++i) 
+    for (int i = 0; i < size; ++i)
     {
         hashmap[i] = int_data[i];
     }
 
-    for (int i = 0; i < size; ++i) 
+    for (int i = 0; i < size; ++i)
     {
         BOOST_CHECK_EQUAL(hashmap[i] , int_data[i]);
     }
@@ -152,4 +152,3 @@ BOOST_AUTO_TEST_CASE(index)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

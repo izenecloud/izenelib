@@ -42,9 +42,9 @@ template<class Function> void runToSuccess(Function func) {
 namespace t_TermDocFreqs
 {
 TermDocFreqsTestFixture::TermDocFreqsTestFixture()
-    :isSkipToRand_(randEngine_, bernoulli_distribution<>())
-    ,docLenRand2_(docLenRand_)
-    ,termIDRand2_(termIDRand_)
+    : isSkipToRand_(randEngine_, boost::bernoulli_distribution<>())
+    , docLenRand2_(docLenRand_)
+    , termIDRand2_(termIDRand_)
 {
 }
 
@@ -143,7 +143,7 @@ void TermDocFreqsTestFixture::checkUpdateDocs(const std::list<docid_t>& updateDo
 
     runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkUpdateDocsImpl,
                              this,
-                             cref(updateDocList)));
+                             boost::cref(updateDocList)));
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocs()";
 }
@@ -534,7 +534,7 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
                 BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
 
             boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
-            if(!pTermPositions) throw std::runtime_error("index dirty");			
+            if(!pTermPositions) throw std::runtime_error("index dirty");
             //BOOST_REQUIRE_TS(pTermPositions.get());
 
             moveToDoc(pTermPositions.get(), docID, isDocRemoved, isSkipToRand());

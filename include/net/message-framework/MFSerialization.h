@@ -24,21 +24,21 @@ template<typename TYPE> inline void mf_deserialize(TYPE& dat,
 	MFBufferPtr ptr = sm->getBuffer(idx);
 	dat = boost::any_cast<TYPE>(*ptr);
 
-#ifdef SF1_DEBUG 
+#ifdef SF1_DEBUG
 	cout<<"mf_deserialize "<<typeid(TYPE).name()<<endl;
 	cout<<"!!!!--- hash code ----: "<<izenelib::util::izene_hashing(dat)<<endl;
 	sm->display();
-#endif	
-	
+#endif
+
 
 }
 
 template<typename TYPE> inline void mf_serialize(const TYPE& dat,
 		ServiceMessagePtr& sm, int idx=0) {
-	
+
 	MFBufferPtr ptr(new boost::any(dat));
 	sm->setBuffer(idx, ptr);
-	
+
 #ifdef SF1_DEBUG
 	cout<<"mf_serialize "<<typeid(TYPE).name()<<endl;
 	cout<<"!!!!==>> hash code: "<<izenelib::util::izene_hashing(dat)<<endl;
@@ -57,7 +57,7 @@ template<typename TYPE> inline void mf_deserialize(TYPE& dat,
 	izene_deserialization<TYPE> izd((char*)ptr->getData(), ptr->getSize() );
 	izd.read_image(dat);
 
-#ifdef SF1_DEBUG 
+#ifdef SF1_DEBUG
 	cout<<"mf_deserialize "<<typeid(TYPE).name()<<endl;
 	cout<<"!!!!--- hash code ----: "<<izenelib::util::izene_hashing(dat)<<endl;
 	sm->display();
@@ -83,16 +83,16 @@ template<typename TYPE> inline void mf_serialize(const TYPE& dat,
 	mf_deserialize(dat1, sm, idx);
 	cout<<"!!!!<<== hash code: "<<izenelib::util::izene_hashing(dat1)<<endl;
 	//assert( izenelib::util::izene_hashing(dat) == izenelib::util::izene_hashing(dat1) );
-	//assert(sizeof(dat1) == sizeof(dat));	
+	//assert(sizeof(dat1) == sizeof(dat));
 #endif
 }
 
 #endif
 
 
-#ifndef USE_MF_LIGHT 
+#ifndef USE_MF_LIGHT
 
-const int archive_flags = archive::no_header | archive::no_codecvt;
+const int archive_flags = boost::archive::no_header | boost::archive::no_codecvt;
 
 template<typename DataType> inline void from_buffer(DataType&sm,
 		const boost::shared_ptr<izenelib::util::izene_streambuf>& pbuf) {
@@ -100,7 +100,7 @@ template<typename DataType> inline void from_buffer(DataType&sm,
 		boost::archive::binary_iarchive archive(*pbuf, archive_flags);
 		archive >> sm;
 	}
-#ifdef SF1_DEBUG 
+#ifdef SF1_DEBUG
 	cout<<"!!! from_buffer "<<typeid(DataType).name()<<endl;
 	cout<<"!!!  buffsize="<<pbuf->size()<<endl;
 	cout<<"!!!! <<== hash code: "<<izenelib::util::izene_hashing(sm )<<endl;
@@ -115,11 +115,11 @@ template<typename DataType> inline void to_buffer(const DataType&sm,
 		// read data of DataType
 		archive << sm;
 	}
-#ifdef SF1_DEBUG 
+#ifdef SF1_DEBUG
 	cout<<"!!! to_buffer "<<typeid(DataType).name()<<endl;
 	cout<<"!!!  buffsize="<<pbuf->size()<<endl;
-	
-	cout<<"!!!!==>> hash code: "<<izenelib::util::izene_hashing(sm )<<endl;	
+
+	cout<<"!!!!==>> hash code: "<<izenelib::util::izene_hashing(sm )<<endl;
 #endif
 
 }
@@ -128,7 +128,7 @@ template<typename DataType> inline void to_buffer(const DataType&sm,
 
 template<> inline void from_buffer<ServiceMessage>(ServiceMessage &sm,
 		const boost::shared_ptr<izenelib::util::izene_streambuf>& pbuf) {
-#ifdef SF1_DEBUG 
+#ifdef SF1_DEBUG
 	cout<<"DBG from Buffer: hash Value:  "<<izenelib::util::sdb_hash_fun(
 			(void*)pbuf->data(), pbuf->size() )<<endl;
 #endif
@@ -151,8 +151,8 @@ template<> inline void from_buffer<ServiceMessage>(ServiceMessage &sm,
 		MFBufferPtr ptr(new MFBuffer);
 		ptr->data = new char[sz];
 		ptr->size = sz;
-		pbuf->sgetn((char*)ptr->data, sz);	
-		sm.setBuffer(i, ptr);	
+		pbuf->sgetn((char*)ptr->data, sz);
+		sm.setBuffer(i, ptr);
 	}
 }
 
@@ -168,8 +168,8 @@ template<> inline void to_buffer<ServiceMessage>(const ServiceMessage& sm,
 		pbuf->sputn((char*)&sz, sizeof(size_t));
 		pbuf->sputn((char*)sm.getBuffer(i)->getData(), sz);
 	}
-	
-#ifdef SF1_DEBUG 
+
+#ifdef SF1_DEBUG
 	cout<<"DBG from Buffer: hash Value: "<<izenelib::util::sdb_hash_fun(
 			(void*)pbuf->data(), pbuf->size() )<<endl;
 #endif
@@ -181,4 +181,3 @@ template<> inline void to_buffer<ServiceMessage>(const ServiceMessage& sm,
 }
 
 #endif
-

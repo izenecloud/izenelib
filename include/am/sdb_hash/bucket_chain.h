@@ -12,7 +12,6 @@
 #include "sdb_hash_types.h"
 //#include "sdb_hash_header.h"
 
-using namespace std;
 /**
  *  \brief bucket_chain, represents a bucket of our array hash.
  *
@@ -22,7 +21,7 @@ using namespace std;
  *
  */
 
-template<typename LockType =NullLock> class bucket_chain_
+template<typename LockType = izenelib::util::NullLock> class bucket_chain_
 {
     size_t bucketSize_;
 public:
@@ -100,7 +99,7 @@ public:
             return false;
         }
 
-        ScopedWriteLock<LockType> lock(fileLock_);
+        izenelib::util::ScopedWriteLock<LockType> lock(fileLock_);
 
         //cout<<"write fpos="<<fpos<<endl;
         if ( 0 != fseek(f, fpos, SEEK_SET) )
@@ -153,7 +152,7 @@ public:
             return false;
         }
 
-        ScopedWriteLock<LockType> lock(fileLock_);
+        izenelib::util::ScopedWriteLock<LockType> lock(fileLock_);
 
         if (isLoaded)
         {
