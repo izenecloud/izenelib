@@ -37,7 +37,7 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 
 IndexWriter::~IndexWriter()
 {
-    if(!optimizeJobDesc_.empty())
+    if (!optimizeJobDesc_.empty())
         Scheduler::removeJob(optimizeJobDesc_);
     if (pIndexMergeManager_)
         delete pIndexMergeManager_;
@@ -52,7 +52,7 @@ void IndexWriter::tryResumeExistingBarrels()
     BarrelInfo* pBarrelInfo = NULL;
     boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
     pBarrelsInfo_->startIterator();
-    while(pBarrelsInfo_->hasNext())
+    while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
         assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
@@ -64,10 +64,10 @@ void IndexWriter::close()
 {
     ///The difference between close and flush is close don't need t reopen indexreader
     DVLOG(2) << "=> IndexWriter::close()...";
-    if(pCurBarrelInfo_ == NULL)
+    if (pCurBarrelInfo_ == NULL)
     {
         // write file "barrels" to update the doc count of each barrel
-        if(pBarrelsInfo_->getBarrelCount() > 0)
+        if (pBarrelsInfo_->getBarrelCount() > 0)
             pBarrelsInfo_->write(pIndexer_->getDirectory());
         DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
@@ -84,10 +84,10 @@ void IndexWriter::close()
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";
-    if(pCurBarrelInfo_ == NULL)
+    if (!pCurBarrelInfo_)
     {
         // write file "barrels" to update the doc count of each barrel
-        if(pBarrelsInfo_->getBarrelCount() > 0)
+        if (pBarrelsInfo_->getBarrelCount() > 0)
             pBarrelsInfo_->write(pIndexer_->getDirectory());
         DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
@@ -95,7 +95,7 @@ void IndexWriter::flush()
     assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
 
     pIndexBarrelWriter_->flush();
-    if(! pIndexer_->isRealTime())
+    if (!pIndexer_->isRealTime())
         pCurBarrelInfo_->setSearchable(true);
     pIndexer_->setDirty();
     pIndexer_->getIndexReader();
@@ -109,9 +109,9 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
-void IndexWriter::flushDocLen() 
+void IndexWriter::flushDocLen()
 {
-    if(pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen(); 
+    if (pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen();
 }
 
 void IndexWriter::createBarrelInfo()
@@ -132,16 +132,16 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 {
     boost::lock_guard<boost::mutex> lock(indexMutex_);
 
-    if(!pCurBarrelInfo_) createBarrelInfo();
+    if (!pCurBarrelInfo_) createBarrelInfo();
 
-    if(pIndexer_->isRealTime())
+    if (pIndexer_->isRealTime())
     {
         ///If indexreader has not contained the in-memory barrel reader,
         ///The dirty flag should be set, so that the new query could open the in-memory barrel
         ///for real time query
-        if(!pIndexer_->pIndexReader_->hasMemBarrelReader())
+        if (!pIndexer_->pIndexReader_->hasMemBarrelReader())
             pIndexer_->setDirty();
-        if(pIndexBarrelWriter_->cacheFull())
+        if (pIndexBarrelWriter_->cacheFull())
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
             flush();
@@ -152,7 +152,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if(pCurBarrelInfo_->getBaseDocID() == BAD_DOCID)
+    if (pCurBarrelInfo_->getBaseDocID() == BAD_DOCID)
         pCurBarrelInfo_->addBaseDocID(uniqueID.colId,uniqueID.docId);
 
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
@@ -165,7 +165,7 @@ void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
     pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
-    if(! pIndexBarrelWriter_->getDocFilter())
+    if (!pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
 
@@ -174,7 +174,7 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-//    if(doc.getId() > pBarrelsInfo_->maxDocId())
+//    if (doc.getId() > pBarrelsInfo_->maxDocId())
 //        return;
     indexDocument(doc);
     removeDocument(uniqueID.colId,doc.getOldId());
@@ -185,43 +185,41 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >& 
+    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >&
         propertyValueList = doc.getPropertyList();
     std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldDocMap;
     oldDoc.to_map(oldDocMap);
-    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator iter
-                = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
+    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::const_iterator iter
+            = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (iter->first.isIndex() && iter->first.isFilter())
         {
-            map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator it;
-            if( (it = oldDocMap.find(iter->first)) != oldDocMap.end() )
+            map<IndexerPropertyConfig, IndexerDocumentPropertyType>::const_iterator it;
+            if ( (it = oldDocMap.find(iter->first)) != oldDocMap.end() )
             {
-                if(it->first.isMultiValue())
+                if (it->second == iter->second)
+                    continue;
+                if (it->first.isMultiValue())
                 {
-                    MultiValuePropertyType oldProp;
-                    oldProp = boost::get<MultiValuePropertyType>(it->second);
-                    for(MultiValuePropertyType::iterator multiIt = oldProp.begin(); multiIt != oldProp.end(); ++multiIt)
-                       pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), *multiIt, uniqueID.docId);
+                    MultiValuePropertyType oldProp = boost::get<MultiValuePropertyType>(it->second);
+                    for (MultiValuePropertyType::iterator multiIt = oldProp.begin(); multiIt != oldProp.end(); ++multiIt)
+                        pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), *multiIt, uniqueID.docId);
                 }
                 else
                 {
-                    PropertyType oldProp;
-                    oldProp = boost::get<PropertyType>(it->second);
+                    PropertyType oldProp = boost::get<PropertyType>(it->second);
                     pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), oldProp, uniqueID.docId);
                 }
             }
-            if(iter->first.isMultiValue())
+            if (iter->first.isMultiValue())
             {
-                MultiValuePropertyType prop;
-                prop = boost::get<MultiValuePropertyType>(iter->second);
-                for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
+                MultiValuePropertyType prop = boost::get<MultiValuePropertyType>(iter->second);
+                for (MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
                     pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *multiIt, uniqueID.docId);
             }
             else
             {
-                PropertyType prop;
-                prop = boost::get<PropertyType>(iter->second);
+                PropertyType prop = boost::get<PropertyType>(iter->second);
                 pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
             }
         }
@@ -249,7 +247,7 @@ void IndexWriter::lazyOptimizeIndex()
     int day = date.day();
     int hour = du.hours();
     int minute = du.minutes();
-    if(scheduleExpression_.matches(minute, hour, day, month, dow))
+    if (scheduleExpression_.matches(minute, hour, day, month, dow))
     {
         boost::lock_guard<boost::mutex> lock(indexMutex_);
         flush();
@@ -272,7 +270,7 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
 
 void IndexWriter::setIndexMode(bool realtime)
 {
-    if(!pIndexBarrelWriter_)
+    if (!pIndexBarrelWriter_)
     {
         pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
         pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());

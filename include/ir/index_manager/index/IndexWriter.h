@@ -27,8 +27,8 @@ class IndexMerger;
 class IndexMergeManager;
 /**
 * @brief IndexWriter is the manager class which process the index construction and index merging
-* IndexWriter does not support concurrent index construction, because it will lead to many unnecessary 
-* complexity. So we can not index two documents at one time, also, we can not index one document 
+* IndexWriter does not support concurrent index construction, because it will lead to many unnecessary
+* complexity. So we can not index two documents at one time, also, we can not index one document
 * and update another document at one time,either.
 */
 class IndexWriter
@@ -54,12 +54,12 @@ public:
     void flush();
     /// flush doclen writer
     void flushDocLen();
-    /// set schedule 
+    /// set schedule
     void scheduleOptimizeTask(std::string expression, string uuid);
 
     IndexMergeManager* getMergeManager() { return pIndexMergeManager_; }
 
-    ///set current indexing mode 
+    ///set current indexing mode
     void setIndexMode(bool realtime);
 
     void tryResumeExistingBarrels();

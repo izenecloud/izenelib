@@ -20,10 +20,10 @@ using namespace izenelib::util;
 using namespace izenelib::ir::indexmanager;
 
 CollectionIndexer::CollectionIndexer(collectionid_t id, Indexer* pIndexer)
-        :colID_(id)
-        ,pIndexer_(pIndexer)
-        ,pDocLengthWriter_(NULL)
-        ,docLengthWidth_(0)
+    : colID_(id)
+    , pIndexer_(pIndexer)
+    , pDocLengthWriter_(NULL)
+    , docLengthWidth_(0)
 {
     pFieldsInfo_ = new FieldsInfo();
 }
@@ -66,15 +66,15 @@ void CollectionIndexer::setFieldIndexers()
 
 void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool realtime)
 {
-    if(!realtime)
+    if (!realtime)
     {
         size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
         assert(!fieldIndexerMap_.empty());
         size_t indexedProperties = fieldIndexerMap_.size();
-        memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ? 
-                                  10*1024*1024:(memCacheSize/indexedProperties) ;
+        memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ?
+            10*1024*1024 : (memCacheSize/indexedProperties) ;
         map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
-        for(; fit != fieldIndexerMap_.end(); ++fit)
+        for (; fit != fieldIndexerMap_.end(); ++fit)
         {
             fit->second->setIndexMode(pMemCache,memCacheSize,realtime);
         }
@@ -82,7 +82,7 @@ void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool
     else
     {
         map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
-        for(; fit != fieldIndexerMap_.end(); ++fit)
+        for (; fit != fieldIndexerMap_.end(); ++fit)
         {
             fit->second->setIndexMode(pMemCache,0,realtime);
         }
@@ -94,21 +94,21 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >& 
+    std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >&
         propertyValueList = doc.getPropertyList();
 
     doclen_t docLength[docLengthWidth_];
     memset(docLength, 0, docLengthWidth_*sizeof(doclen_t));
 
-    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator iter 
-                            = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
+    for (std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator iter
+            = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (!iter->first.isIndex())
             continue;
 
         if (iter->first.isFilter())
         {
-            if(iter->first.isMultiValue())
+            if (iter->first.isMultiValue())
             {
                 MultiValuePropertyType prop;
                 if (iter->first.isAnalyzed())
@@ -116,7 +116,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
                 else
                     prop = boost::get<MultiValuePropertyType>(iter->second);
 
-                for(MultiValuePropertyType::iterator it = prop.begin(); it != prop.end(); ++it)
+                for (MultiValuePropertyType::iterator it = prop.begin(); it != prop.end(); ++it)
                     pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *it, uniqueID.docId);
             }
             else
@@ -140,7 +140,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
 
             boost::shared_ptr<LAInput> laInput;
             if (iter->first.isFilter())
-                if(iter->first.isMultiValue())
+                if (iter->first.isMultiValue())
                     laInput = boost::get<MultiValueIndexPropertyType >(iter->second).first;
                 else
                     laInput = boost::get<IndexPropertyType >(iter->second).first;
@@ -172,18 +172,22 @@ void CollectionIndexer::write(OutputDescriptor* desc)
     FieldIndexer* pFieldIndexer;
 
     bool emptyBarrel = true;
-    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
-                    fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter =
+            fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {
         pFieldIndexer = iter->second.get();
-        if(pFieldIndexer && !pFieldIndexer->isEmpty())
+        if (pFieldIndexer && !pFieldIndexer->isEmpty())
         {
             emptyBarrel = false;
         }
     }
-    if(emptyBarrel)  throw EmptyBarrelException("CollectionIndexer::write empty barrels");
-    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
-                    fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
+    if (emptyBarrel) //throw EmptyBarrelException("CollectionIndexer::write empty barrels");
+    {
+        LOG(WARNING) << "CollectionIndexer::write empty barrels";
+        return;
+    }
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter =
+            fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {
         pFieldIndexer = iter->second.get();
         if (pFieldIndexer == NULL)
@@ -210,8 +214,8 @@ void CollectionIndexer::write(OutputDescriptor* desc)
 
 void CollectionIndexer::reset()
 {
-    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
-                fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter =
+            fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {
         iter->second->reset();
     }
@@ -223,4 +227,3 @@ FieldIndexer* CollectionIndexer::getFieldIndexer(const char* field)
     FieldIndexer* fieldIndexer = fieldIndexerMap_[fieldstr].get();
     return fieldIndexer;
 }
-

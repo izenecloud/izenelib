@@ -28,7 +28,7 @@ IndexReader::IndexReader(Indexer* pIndex)
     ///up the DocLengthReader
     if(pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
         pDocLengthReader_ = new DocLengthReader(
-                                pIndexer_->getCollectionsMeta().begin()->second.getDocumentSchema(), 
+                                pIndexer_->getCollectionsMeta().begin()->second.getDocumentSchema(),
                                 pIndexer_->getDirectory());
 }
 
@@ -155,7 +155,7 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
     if (pBarrelReader_ == NULL)
         return NULL;
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
-	
+
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -228,7 +228,7 @@ freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
         return 0;
 
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
-	
+
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -273,4 +273,3 @@ size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string&
 
     return pBarrelReader_->getDistinctNumTerms(colID, property);
 }
-

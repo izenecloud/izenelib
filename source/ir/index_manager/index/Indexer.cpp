@@ -40,15 +40,15 @@ Indexer::~Indexer()
     pConfigurationManager_ = NULL;
 }
 
-const std::map<std::string, IndexerCollectionMeta>& 
+const std::map<std::string, IndexerCollectionMeta>&
 Indexer::getCollectionsMeta()
 {
     return pConfigurationManager_->getCollectionMetaNameMap();
 }
 
 void Indexer::setIndexManagerConfig(
-    const IndexManagerConfig& config,
-    const std::map<std::string, uint32_t>& collectionIdMapping
+        const IndexManagerConfig& config,
+        const std::map<std::string, uint32_t>& collectionIdMapping
 )
 {
     close();
@@ -82,16 +82,16 @@ void Indexer::setIndexManagerConfig(
 
     collectionid_t colID;
     std::map<std::string, PropertyType> type_map;//used for Btreeindexer
-    
+
     for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionList.begin(); iter != collectionList.end(); ++iter)
     {
         colID = iter->second.getColId();
- 
+
         std::map<std::string, fieldid_t> propertyMap;
- 
+
         std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> documentSchema = (iter->second).getDocumentSchema();
- 
-        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = 
+
+        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it =
                 documentSchema.begin(); it != documentSchema.end(); it++ )
         {
             if (it->getPropertyId() != BAD_PROPERTY_ID)
@@ -107,7 +107,7 @@ void Indexer::setIndexManagerConfig(
         }
         property_name_id_map_.insert(make_pair(colID, propertyMap));
     }
- 
+
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
     skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
@@ -312,11 +312,13 @@ void Indexer::flush(bool force)
     if(pBTreeIndexer_) pBTreeIndexer_->flush();
     if(force)
     {
-        try{
-            pIndexWriter_->flush();
-        }catch(EmptyBarrelException& e)
+        try
         {
-            LOG(WARNING) << "Empty barrels "<<e.what() ;
+            pIndexWriter_->flush();
+        }
+        catch (const EmptyBarrelException& e)
+        {
+            LOG(WARNING) << "Empty barrels " << e.what() ;
         }
         setDirty();
     }
@@ -325,7 +327,6 @@ void Indexer::flush(bool force)
         pIndexWriter_->flushDocLen();
     }
     pIndexReader_->flush();
-
 }
 
 void Indexer::optimizeIndex()
@@ -678,4 +679,3 @@ void Indexer::waitForMergeFinish()
     IndexMergeManager* pMergeManager = pIndexWriter_->getMergeManager();
     pMergeManager->waitForMergeFinish();
 }
-

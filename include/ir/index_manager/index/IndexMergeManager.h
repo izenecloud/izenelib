@@ -11,17 +11,11 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <string>
-#include <vector>
-#include <map>
-
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 
 #include <util/concurrent_queue.h>
 
-
-using namespace std;
 
 NS_IZENELIB_IR_BEGIN
 
@@ -137,7 +131,7 @@ private:
     bool isPauseMerge_; ///< whether merge should be paused
 
     boost::condition_variable pauseMergeCond_; ///< condition variable to pause merge
-    
+
     boost::mutex pauseMergeMutex_; ///< mutex used for @p isPauseMerge_ and @p pauseMergeCond_
 
     /**
@@ -159,4 +153,3 @@ private:
 NS_IZENELIB_IR_END
 
 #endif
-

@@ -21,40 +21,40 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 ///PropertyType is the data supported to set up BTree index
-typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
-  
+typedef boost::variant<int32_t, float, int64_t, double, String> PropertyType;
+
 class IndexerPropertyConfig
 {
 public:
     IndexerPropertyConfig()
-            :propertyId_(0),
-            index_(false),
-            analyzed_(false),
-            filter_(false),
-            multiValue_(false),
-            storeDocLen_(false)
-    { }
+        : propertyId_(0)
+        , index_(false)
+        , analyzed_(false)
+        , filter_(false)
+        , multiValue_(false)
+        , storeDocLen_(false)
+    {}
 
     IndexerPropertyConfig(const IndexerPropertyConfig& other)
-            :propertyId_(other.propertyId_),
-             propertyName_(other.propertyName_),
-             index_(other.index_),
-             analyzed_(other.analyzed_),
-             filter_(other.filter_),
-             type_(other.type_),
-             multiValue_(other.multiValue_),
-             storeDocLen_(other.storeDocLen_)
+        : propertyId_(other.propertyId_)
+        , propertyName_(other.propertyName_)
+        , index_(other.index_)
+        , analyzed_(other.analyzed_)
+        , filter_(other.filter_)
+        , type_(other.type_)
+        , multiValue_(other.multiValue_)
+        , storeDocLen_(other.storeDocLen_)
     {}
 
     IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool filter = false)
-		:propertyId_(propertyid)
-		,propertyName_(propertyname)
-		,index_(index)
-		,analyzed_(analyzed)
-		,filter_(filter)
-		,multiValue_(false)
-		,storeDocLen_(false)
-    { }
+        : propertyId_(propertyid)
+        , propertyName_(propertyname)
+        , index_(index)
+        , analyzed_(analyzed)
+        , filter_(filter)
+        , multiValue_(false)
+        , storeDocLen_(false)
+    {}
 
 public:
     void setPropertyId( uint32_t id )
@@ -106,12 +106,12 @@ public:
     {
         return filter_;
     }
-    
+
     void setType(const PropertyType& type)
     {
         type_ = type;
     }
-    
+
     bool getType(PropertyType& type) const
     {
         if(type_.empty()) return false;
@@ -223,7 +223,7 @@ struct IndexerPropertyConfigComp
 {
     bool operator()(const IndexerPropertyConfig & lhs, const IndexerPropertyConfig & rhs) const
     {
-        return ( lhs.getName() < rhs.getName() );
+        return lhs.getName() < rhs.getName();
     }
 };
 

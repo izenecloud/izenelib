@@ -79,7 +79,7 @@ void IndexBarrelWriter::reset()
         (*p).second->reset();
 
     pCollectionsInfo_->reset();
-    if(pMemCache_) 
+    if(pMemCache_)
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
         int ref_count_for_mem_cache = (1+numFieldIndexers_);
@@ -161,4 +161,3 @@ void IndexBarrelWriter::setIndexMode(bool realtime)
         isLastIndexModeRealTime_ = true;
     }
 }
-

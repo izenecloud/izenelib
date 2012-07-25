@@ -19,7 +19,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-#include <boost/serialization/vector.hpp> 
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -33,16 +33,16 @@ namespace indexmanager{
 
 
 ///MultiValuePropertyType is splitted by ","
-typedef std::list<PropertyType > MultiValuePropertyType;
+typedef std::list<PropertyType> MultiValuePropertyType;
 
 ///A property that both inverted index and BTree index will be built
-typedef std::pair<boost::shared_ptr<LAInput>, PropertyType >  IndexPropertyType;
+typedef std::pair<boost::shared_ptr<LAInput>, PropertyType>  IndexPropertyType;
 
 ///A multivalueproperty that both inverted index and BTree index will be built
-typedef std::pair<boost::shared_ptr<LAInput>, MultiValuePropertyType >  MultiValueIndexPropertyType;
+typedef std::pair<boost::shared_ptr<LAInput>, MultiValuePropertyType>  MultiValueIndexPropertyType;
 
 ///A ptoperty type that support inverted index, BTree index, and both index (inverted and BTree)
-typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, MultiValuePropertyType, IndexPropertyType, MultiValueIndexPropertyType > IndexerDocumentPropertyType;
+typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, MultiValuePropertyType, IndexPropertyType, MultiValueIndexPropertyType> IndexerDocumentPropertyType;
 
 struct DocId
 {
@@ -66,22 +66,42 @@ public:
 
 class IndexerDocument
 {
+    typedef std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> > indexer_property_list;
+
 public:
-    IndexerDocument():id_(0),docId_(0),colId_(0){}
+    IndexerDocument()
+        : id_(0), docId_(0), colId_(0)
+    {
+    }
 
-    IndexerDocument(unsigned int docId, unsigned int colId):id_(0),docId_(docId),colId_(colId){}
+    IndexerDocument(unsigned int docId, unsigned int colId)
+        : id_(0), docId_(docId), colId_(colId)
+    {
+    }
 
-    IndexerDocument(const IndexerDocument& rhs):id_(rhs.id_),docId_(rhs.docId_),colId_(rhs.colId_),propertyList_(rhs.propertyList_){}
+    IndexerDocument(const IndexerDocument& rhs)
+        : id_(rhs.id_), docId_(rhs.docId_), colId_(rhs.colId_), propertyList_(rhs.propertyList_)
+    {
+    }
 
     ~IndexerDocument(){}
+
 public:
     void setOldId(docid_t id) {id_ = id;}
 
     docid_t getOldId() {return id_;}
 
-    void setDocId(unsigned int docId, unsigned int colId){docId_ = docId;colId_ = colId;}
+    void setDocId(unsigned int docId, unsigned int colId)
+    {
+        docId_ = docId;
+        colId_ = colId;
+    }
 
-    void getDocId(DocId& docId){ docId.docId = docId_; docId.colId = colId_;}
+    void getDocId(DocId& docId)
+    {
+        docId.docId = docId_;
+        docId.colId = colId_;
+    }
 
     ///insert data to IndexerDocument
     template<typename T>
@@ -109,9 +129,8 @@ public:
 
     void to_map(std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>& docMap)
     {
-        std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::iterator
-            it = propertyList_.begin();
-        for(; it!= propertyList_.end(); ++it)
+        for (indexer_property_list::iterator it = propertyList_.begin();
+                it != propertyList_.end(); ++it)
         {
             docMap[it->first] = it->second;
         }
@@ -123,7 +142,7 @@ public:
         swap(id_, rhs.id_);
         swap(docId_, rhs.docId_);
         swap(colId_, rhs.colId_);
-        swap(propertyList_, rhs.propertyList_);
+        propertyList_.swap(rhs.propertyList_);
     }
 
     IndexerDocument& operator=(const IndexerDocument& other)
@@ -145,25 +164,28 @@ public:
 
     bool empty() { return propertyList_.empty();}
 
-    void clear() 
+    void clear()
     {
         id_ = 0;
         docId_ = 0;
         colId_ = 0;
         propertyList_.clear();
     }
-private:
-	friend class boost::serialization::access;
-	docid_t id_;
-	
-	docid_t docId_;
-	
-	docid_t colId_;
-	
-	std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> > propertyList_;
 
-	std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >::reverse_iterator termIterator_;
-};	
+private:
+    docid_t id_;
+
+    docid_t docId_;
+
+    docid_t colId_;
+
+    indexer_property_list propertyList_;
+
+    indexer_property_list::reverse_iterator termIterator_;
+
+    friend class boost::serialization::access;
+};
+
 }
 
 NS_IZENELIB_IR_END

@@ -95,7 +95,7 @@ public:
 public:
     ///API for query
     size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);
-	
+
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
 
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
@@ -158,7 +158,7 @@ public:
     bool isDirty() { return dirty_; }
 
     IndexWriter* getIndexWriter(){return pIndexWriter_;}
-    
+
     IndexReader* getIndexReader();
 
     BTreeIndexerManager* getBTreeIndexer() { return pBTreeIndexer_; }
@@ -220,7 +220,7 @@ protected:
 
     friend class IndexReader;
 
-    friend class IndexBarrelWriter;	
+    friend class IndexBarrelWriter;
 
     friend class IndexBarrelReader;
 

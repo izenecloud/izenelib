@@ -21,7 +21,7 @@ std::size_t BTreeIndexer<String>::convertAllValue(std::size_t maxDoc, uint32_t* 
         {
             docid = kvp.second[i];
             if (docid >= maxDoc) break;
-            data[docid] = kvp.first.empty() ? 0:1;
+            data[docid] = kvp.first.empty() ? 0 : 1;
             ++result;
         }
     }
@@ -124,7 +124,7 @@ std::size_t BTreeIndexerManager::count(const std::string& property_name)
         izenelib::util::boost_variant_visit(boost::bind(mcount_visitor(), this, property_name, _1, boost::ref(count)), it->second);
     }
     return count;
-    
+
 }
 
 bool BTreeIndexerManager::seek(const std::string& property_name, const PropertyType& key)
@@ -178,7 +178,6 @@ void BTreeIndexerManager::getValueLess(const std::string& property_name, const P
     if(!checkType_(property_name, key)) return;
     izenelib::util::boost_variant_visit(boost::bind(mless_visitor(), this, property_name, _1, boost::ref(docs)), key);
     doFilter_(docs);
-    
 }
 
 void BTreeIndexerManager::getValueLessEqual(const std::string& property_name, const PropertyType& key, BitVector& docs)
