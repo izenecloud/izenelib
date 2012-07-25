@@ -18,7 +18,7 @@ class Util
 {
 public:
     /// @brief get local host ip
-    static bool getLoalHostIp(std::string& localHostIp)
+    static bool getLocalHostIp(std::string& localHostIp)
     {
         struct ifaddrs *ifaddr, *ifa;
         int family, s;
