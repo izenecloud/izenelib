@@ -7,8 +7,8 @@
 #ifndef Cassandra_H
 #define Cassandra_H
 
-#include "cassandra_types.h"
 #include <TProcessor.h>
+#include "cassandra_types.h"
 
 namespace org { namespace apache { namespace cassandra {
 
@@ -23,6 +23,7 @@ class CassandraIf {
   virtual void multiget_slice(std::map<std::string, std::vector<ColumnOrSuperColumn> > & _return, const std::vector<std::string> & keys, const ColumnParent& column_parent, const SlicePredicate& predicate, const ConsistencyLevel::type consistency_level) = 0;
   virtual void multiget_count(std::map<std::string, int32_t> & _return, const std::vector<std::string> & keys, const ColumnParent& column_parent, const SlicePredicate& predicate, const ConsistencyLevel::type consistency_level) = 0;
   virtual void get_range_slices(std::vector<KeySlice> & _return, const ColumnParent& column_parent, const SlicePredicate& predicate, const KeyRange& range, const ConsistencyLevel::type consistency_level) = 0;
+  virtual void get_paged_slice(std::vector<KeySlice> & _return, const std::string& column_family, const KeyRange& range, const std::string& start_column, const ConsistencyLevel::type consistency_level) = 0;
   virtual void get_indexed_slices(std::vector<KeySlice> & _return, const ColumnParent& column_parent, const IndexClause& index_clause, const SlicePredicate& column_predicate, const ConsistencyLevel::type consistency_level) = 0;
   virtual void insert(const std::string& key, const ColumnParent& column_parent, const Column& column, const ConsistencyLevel::type consistency_level) = 0;
   virtual void add(const std::string& key, const ColumnParent& column_parent, const CounterColumn& column, const ConsistencyLevel::type consistency_level) = 0;
@@ -35,6 +36,7 @@ class CassandraIf {
   virtual void describe_cluster_name(std::string& _return) = 0;
   virtual void describe_version(std::string& _return) = 0;
   virtual void describe_ring(std::vector<TokenRange> & _return, const std::string& keyspace) = 0;
+  virtual void describe_token_map(std::map<std::string, std::string> & _return) = 0;
   virtual void describe_partitioner(std::string& _return) = 0;
   virtual void describe_snitch(std::string& _return) = 0;
   virtual void describe_keyspace(KsDef& _return, const std::string& keyspace) = 0;
@@ -46,31 +48,34 @@ class CassandraIf {
   virtual void system_update_keyspace(std::string& _return, const KsDef& ks_def) = 0;
   virtual void system_update_column_family(std::string& _return, const CfDef& cf_def) = 0;
   virtual void execute_cql_query(CqlResult& _return, const std::string& query, const Compression::type compression) = 0;
+  virtual void prepare_cql_query(CqlPreparedResult& _return, const std::string& query, const Compression::type compression) = 0;
+  virtual void execute_prepared_cql_query(CqlResult& _return, const int32_t itemId, const std::vector<std::string> & values) = 0;
+  virtual void set_cql_version(const std::string& version) = 0;
 };
 
-//class CassandraIfFactory {
-// public:
-//  typedef CassandraIf Handler;
-//
-//  virtual ~CassandraIfFactory() {}
-//
-//  virtual CassandraIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
-//  virtual void releaseHandler(CassandraIf* /* handler */) = 0;
-//};
+class CassandraIfFactory {
+ public:
+  typedef CassandraIf Handler;
 
-//class CassandraIfSingletonFactory : virtual public CassandraIfFactory {
-// public:
-//  CassandraIfSingletonFactory(const boost::shared_ptr<CassandraIf>& iface) : iface_(iface) {}
-//  virtual ~CassandraIfSingletonFactory() {}
-//
-//  virtual CassandraIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
-//    return iface_.get();
-//  }
-//  virtual void releaseHandler(CassandraIf* /* handler */) {}
-//
-// protected:
-//  boost::shared_ptr<CassandraIf> iface_;
-//};
+  virtual ~CassandraIfFactory() {}
+
+  virtual CassandraIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) = 0;
+  virtual void releaseHandler(CassandraIf* /* handler */) = 0;
+};
+
+class CassandraIfSingletonFactory : virtual public CassandraIfFactory {
+ public:
+  CassandraIfSingletonFactory(const boost::shared_ptr<CassandraIf>& iface) : iface_(iface) {}
+  virtual ~CassandraIfSingletonFactory() {}
+
+  virtual CassandraIf* getHandler(const ::apache::thrift::TConnectionInfo&) {
+    return iface_.get();
+  }
+  virtual void releaseHandler(CassandraIf* /* handler */) {}
+
+ protected:
+  boost::shared_ptr<CassandraIf> iface_;
+};
 
 class CassandraNull : virtual public CassandraIf {
  public:
@@ -98,6 +103,9 @@ class CassandraNull : virtual public CassandraIf {
     return;
   }
   void get_range_slices(std::vector<KeySlice> & /* _return */, const ColumnParent& /* column_parent */, const SlicePredicate& /* predicate */, const KeyRange& /* range */, const ConsistencyLevel::type /* consistency_level */) {
+    return;
+  }
+  void get_paged_slice(std::vector<KeySlice> & /* _return */, const std::string& /* column_family */, const KeyRange& /* range */, const std::string& /* start_column */, const ConsistencyLevel::type /* consistency_level */) {
     return;
   }
   void get_indexed_slices(std::vector<KeySlice> & /* _return */, const ColumnParent& /* column_parent */, const IndexClause& /* index_clause */, const SlicePredicate& /* column_predicate */, const ConsistencyLevel::type /* consistency_level */) {
@@ -136,6 +144,9 @@ class CassandraNull : virtual public CassandraIf {
   void describe_ring(std::vector<TokenRange> & /* _return */, const std::string& /* keyspace */) {
     return;
   }
+  void describe_token_map(std::map<std::string, std::string> & /* _return */) {
+    return;
+  }
   void describe_partitioner(std::string& /* _return */) {
     return;
   }
@@ -167,6 +178,15 @@ class CassandraNull : virtual public CassandraIf {
     return;
   }
   void execute_cql_query(CqlResult& /* _return */, const std::string& /* query */, const Compression::type /* compression */) {
+    return;
+  }
+  void prepare_cql_query(CqlPreparedResult& /* _return */, const std::string& /* query */, const Compression::type /* compression */) {
+    return;
+  }
+  void execute_prepared_cql_query(CqlResult& /* _return */, const int32_t /* itemId */, const std::vector<std::string> & /* values */) {
+    return;
+  }
+  void set_cql_version(const std::string& /* version */) {
     return;
   }
 };
@@ -1336,6 +1356,164 @@ class Cassandra_get_range_slices_presult {
 };
 
 
+class Cassandra_get_paged_slice_args {
+ public:
+
+  Cassandra_get_paged_slice_args() : column_family(""), start_column(""), consistency_level((ConsistencyLevel::type)1) {
+    consistency_level = (ConsistencyLevel::type)1;
+
+  }
+
+  virtual ~Cassandra_get_paged_slice_args() throw() {}
+
+  std::string column_family;
+  KeyRange range;
+  std::string start_column;
+  ConsistencyLevel::type consistency_level;
+
+  void __set_column_family(const std::string& val) {
+    column_family = val;
+  }
+
+  void __set_range(const KeyRange& val) {
+    range = val;
+  }
+
+  void __set_start_column(const std::string& val) {
+    start_column = val;
+  }
+
+  void __set_consistency_level(const ConsistencyLevel::type val) {
+    consistency_level = val;
+  }
+
+  bool operator == (const Cassandra_get_paged_slice_args & rhs) const
+  {
+    if (!(column_family == rhs.column_family))
+      return false;
+    if (!(range == rhs.range))
+      return false;
+    if (!(start_column == rhs.start_column))
+      return false;
+    if (!(consistency_level == rhs.consistency_level))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_get_paged_slice_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_get_paged_slice_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Cassandra_get_paged_slice_pargs {
+ public:
+
+
+  virtual ~Cassandra_get_paged_slice_pargs() throw() {}
+
+  const std::string* column_family;
+  const KeyRange* range;
+  const std::string* start_column;
+  const ConsistencyLevel::type* consistency_level;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_get_paged_slice_result__isset {
+  _Cassandra_get_paged_slice_result__isset() : success(false), ire(false), ue(false), te(false) {}
+  bool success;
+  bool ire;
+  bool ue;
+  bool te;
+} _Cassandra_get_paged_slice_result__isset;
+
+class Cassandra_get_paged_slice_result {
+ public:
+
+  Cassandra_get_paged_slice_result() {
+  }
+
+  virtual ~Cassandra_get_paged_slice_result() throw() {}
+
+  std::vector<KeySlice>  success;
+  InvalidRequestException ire;
+  UnavailableException ue;
+  TimedOutException te;
+
+  _Cassandra_get_paged_slice_result__isset __isset;
+
+  void __set_success(const std::vector<KeySlice> & val) {
+    success = val;
+  }
+
+  void __set_ire(const InvalidRequestException& val) {
+    ire = val;
+  }
+
+  void __set_ue(const UnavailableException& val) {
+    ue = val;
+  }
+
+  void __set_te(const TimedOutException& val) {
+    te = val;
+  }
+
+  bool operator == (const Cassandra_get_paged_slice_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(ire == rhs.ire))
+      return false;
+    if (!(ue == rhs.ue))
+      return false;
+    if (!(te == rhs.te))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_get_paged_slice_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_get_paged_slice_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_get_paged_slice_presult__isset {
+  _Cassandra_get_paged_slice_presult__isset() : success(false), ire(false), ue(false), te(false) {}
+  bool success;
+  bool ire;
+  bool ue;
+  bool te;
+} _Cassandra_get_paged_slice_presult__isset;
+
+class Cassandra_get_paged_slice_presult {
+ public:
+
+
+  virtual ~Cassandra_get_paged_slice_presult() throw() {}
+
+  std::vector<KeySlice> * success;
+  InvalidRequestException ire;
+  UnavailableException ue;
+  TimedOutException te;
+
+  _Cassandra_get_paged_slice_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
 class Cassandra_get_indexed_slices_args {
  public:
 
@@ -2261,9 +2439,10 @@ class Cassandra_truncate_pargs {
 };
 
 typedef struct _Cassandra_truncate_result__isset {
-  _Cassandra_truncate_result__isset() : ire(false), ue(false) {}
+  _Cassandra_truncate_result__isset() : ire(false), ue(false), te(false) {}
   bool ire;
   bool ue;
+  bool te;
 } _Cassandra_truncate_result__isset;
 
 class Cassandra_truncate_result {
@@ -2276,6 +2455,7 @@ class Cassandra_truncate_result {
 
   InvalidRequestException ire;
   UnavailableException ue;
+  TimedOutException te;
 
   _Cassandra_truncate_result__isset __isset;
 
@@ -2287,11 +2467,17 @@ class Cassandra_truncate_result {
     ue = val;
   }
 
+  void __set_te(const TimedOutException& val) {
+    te = val;
+  }
+
   bool operator == (const Cassandra_truncate_result & rhs) const
   {
     if (!(ire == rhs.ire))
       return false;
     if (!(ue == rhs.ue))
+      return false;
+    if (!(te == rhs.te))
       return false;
     return true;
   }
@@ -2307,9 +2493,10 @@ class Cassandra_truncate_result {
 };
 
 typedef struct _Cassandra_truncate_presult__isset {
-  _Cassandra_truncate_presult__isset() : ire(false), ue(false) {}
+  _Cassandra_truncate_presult__isset() : ire(false), ue(false), te(false) {}
   bool ire;
   bool ue;
+  bool te;
 } _Cassandra_truncate_presult__isset;
 
 class Cassandra_truncate_presult {
@@ -2320,6 +2507,7 @@ class Cassandra_truncate_presult {
 
   InvalidRequestException ire;
   UnavailableException ue;
+  TimedOutException te;
 
   _Cassandra_truncate_presult__isset __isset;
 
@@ -2830,6 +3018,110 @@ class Cassandra_describe_ring_presult {
   InvalidRequestException ire;
 
   _Cassandra_describe_ring_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class Cassandra_describe_token_map_args {
+ public:
+
+  Cassandra_describe_token_map_args() {
+  }
+
+  virtual ~Cassandra_describe_token_map_args() throw() {}
+
+
+  bool operator == (const Cassandra_describe_token_map_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Cassandra_describe_token_map_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_describe_token_map_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Cassandra_describe_token_map_pargs {
+ public:
+
+
+  virtual ~Cassandra_describe_token_map_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_describe_token_map_result__isset {
+  _Cassandra_describe_token_map_result__isset() : success(false), ire(false) {}
+  bool success;
+  bool ire;
+} _Cassandra_describe_token_map_result__isset;
+
+class Cassandra_describe_token_map_result {
+ public:
+
+  Cassandra_describe_token_map_result() {
+  }
+
+  virtual ~Cassandra_describe_token_map_result() throw() {}
+
+  std::map<std::string, std::string>  success;
+  InvalidRequestException ire;
+
+  _Cassandra_describe_token_map_result__isset __isset;
+
+  void __set_success(const std::map<std::string, std::string> & val) {
+    success = val;
+  }
+
+  void __set_ire(const InvalidRequestException& val) {
+    ire = val;
+  }
+
+  bool operator == (const Cassandra_describe_token_map_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(ire == rhs.ire))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_describe_token_map_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_describe_token_map_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_describe_token_map_presult__isset {
+  _Cassandra_describe_token_map_presult__isset() : success(false), ire(false) {}
+  bool success;
+  bool ire;
+} _Cassandra_describe_token_map_presult__isset;
+
+class Cassandra_describe_token_map_presult {
+ public:
+
+
+  virtual ~Cassandra_describe_token_map_presult() throw() {}
+
+  std::map<std::string, std::string> * success;
+  InvalidRequestException ire;
+
+  _Cassandra_describe_token_map_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -4163,6 +4455,378 @@ class Cassandra_execute_cql_query_presult {
 
 };
 
+
+class Cassandra_prepare_cql_query_args {
+ public:
+
+  Cassandra_prepare_cql_query_args() : query(""), compression((Compression::type)0) {
+  }
+
+  virtual ~Cassandra_prepare_cql_query_args() throw() {}
+
+  std::string query;
+  Compression::type compression;
+
+  void __set_query(const std::string& val) {
+    query = val;
+  }
+
+  void __set_compression(const Compression::type val) {
+    compression = val;
+  }
+
+  bool operator == (const Cassandra_prepare_cql_query_args & rhs) const
+  {
+    if (!(query == rhs.query))
+      return false;
+    if (!(compression == rhs.compression))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_prepare_cql_query_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_prepare_cql_query_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Cassandra_prepare_cql_query_pargs {
+ public:
+
+
+  virtual ~Cassandra_prepare_cql_query_pargs() throw() {}
+
+  const std::string* query;
+  const Compression::type* compression;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_prepare_cql_query_result__isset {
+  _Cassandra_prepare_cql_query_result__isset() : success(false), ire(false) {}
+  bool success;
+  bool ire;
+} _Cassandra_prepare_cql_query_result__isset;
+
+class Cassandra_prepare_cql_query_result {
+ public:
+
+  Cassandra_prepare_cql_query_result() {
+  }
+
+  virtual ~Cassandra_prepare_cql_query_result() throw() {}
+
+  CqlPreparedResult success;
+  InvalidRequestException ire;
+
+  _Cassandra_prepare_cql_query_result__isset __isset;
+
+  void __set_success(const CqlPreparedResult& val) {
+    success = val;
+  }
+
+  void __set_ire(const InvalidRequestException& val) {
+    ire = val;
+  }
+
+  bool operator == (const Cassandra_prepare_cql_query_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(ire == rhs.ire))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_prepare_cql_query_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_prepare_cql_query_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_prepare_cql_query_presult__isset {
+  _Cassandra_prepare_cql_query_presult__isset() : success(false), ire(false) {}
+  bool success;
+  bool ire;
+} _Cassandra_prepare_cql_query_presult__isset;
+
+class Cassandra_prepare_cql_query_presult {
+ public:
+
+
+  virtual ~Cassandra_prepare_cql_query_presult() throw() {}
+
+  CqlPreparedResult* success;
+  InvalidRequestException ire;
+
+  _Cassandra_prepare_cql_query_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class Cassandra_execute_prepared_cql_query_args {
+ public:
+
+  Cassandra_execute_prepared_cql_query_args() : itemId(0) {
+  }
+
+  virtual ~Cassandra_execute_prepared_cql_query_args() throw() {}
+
+  int32_t itemId;
+  std::vector<std::string>  values;
+
+  void __set_itemId(const int32_t val) {
+    itemId = val;
+  }
+
+  void __set_values(const std::vector<std::string> & val) {
+    values = val;
+  }
+
+  bool operator == (const Cassandra_execute_prepared_cql_query_args & rhs) const
+  {
+    if (!(itemId == rhs.itemId))
+      return false;
+    if (!(values == rhs.values))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_execute_prepared_cql_query_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_execute_prepared_cql_query_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Cassandra_execute_prepared_cql_query_pargs {
+ public:
+
+
+  virtual ~Cassandra_execute_prepared_cql_query_pargs() throw() {}
+
+  const int32_t* itemId;
+  const std::vector<std::string> * values;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_execute_prepared_cql_query_result__isset {
+  _Cassandra_execute_prepared_cql_query_result__isset() : success(false), ire(false), ue(false), te(false), sde(false) {}
+  bool success;
+  bool ire;
+  bool ue;
+  bool te;
+  bool sde;
+} _Cassandra_execute_prepared_cql_query_result__isset;
+
+class Cassandra_execute_prepared_cql_query_result {
+ public:
+
+  Cassandra_execute_prepared_cql_query_result() {
+  }
+
+  virtual ~Cassandra_execute_prepared_cql_query_result() throw() {}
+
+  CqlResult success;
+  InvalidRequestException ire;
+  UnavailableException ue;
+  TimedOutException te;
+  SchemaDisagreementException sde;
+
+  _Cassandra_execute_prepared_cql_query_result__isset __isset;
+
+  void __set_success(const CqlResult& val) {
+    success = val;
+  }
+
+  void __set_ire(const InvalidRequestException& val) {
+    ire = val;
+  }
+
+  void __set_ue(const UnavailableException& val) {
+    ue = val;
+  }
+
+  void __set_te(const TimedOutException& val) {
+    te = val;
+  }
+
+  void __set_sde(const SchemaDisagreementException& val) {
+    sde = val;
+  }
+
+  bool operator == (const Cassandra_execute_prepared_cql_query_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(ire == rhs.ire))
+      return false;
+    if (!(ue == rhs.ue))
+      return false;
+    if (!(te == rhs.te))
+      return false;
+    if (!(sde == rhs.sde))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_execute_prepared_cql_query_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_execute_prepared_cql_query_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_execute_prepared_cql_query_presult__isset {
+  _Cassandra_execute_prepared_cql_query_presult__isset() : success(false), ire(false), ue(false), te(false), sde(false) {}
+  bool success;
+  bool ire;
+  bool ue;
+  bool te;
+  bool sde;
+} _Cassandra_execute_prepared_cql_query_presult__isset;
+
+class Cassandra_execute_prepared_cql_query_presult {
+ public:
+
+
+  virtual ~Cassandra_execute_prepared_cql_query_presult() throw() {}
+
+  CqlResult* success;
+  InvalidRequestException ire;
+  UnavailableException ue;
+  TimedOutException te;
+  SchemaDisagreementException sde;
+
+  _Cassandra_execute_prepared_cql_query_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class Cassandra_set_cql_version_args {
+ public:
+
+  Cassandra_set_cql_version_args() : version("") {
+  }
+
+  virtual ~Cassandra_set_cql_version_args() throw() {}
+
+  std::string version;
+
+  void __set_version(const std::string& val) {
+    version = val;
+  }
+
+  bool operator == (const Cassandra_set_cql_version_args & rhs) const
+  {
+    if (!(version == rhs.version))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_set_cql_version_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_set_cql_version_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Cassandra_set_cql_version_pargs {
+ public:
+
+
+  virtual ~Cassandra_set_cql_version_pargs() throw() {}
+
+  const std::string* version;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_set_cql_version_result__isset {
+  _Cassandra_set_cql_version_result__isset() : ire(false) {}
+  bool ire;
+} _Cassandra_set_cql_version_result__isset;
+
+class Cassandra_set_cql_version_result {
+ public:
+
+  Cassandra_set_cql_version_result() {
+  }
+
+  virtual ~Cassandra_set_cql_version_result() throw() {}
+
+  InvalidRequestException ire;
+
+  _Cassandra_set_cql_version_result__isset __isset;
+
+  void __set_ire(const InvalidRequestException& val) {
+    ire = val;
+  }
+
+  bool operator == (const Cassandra_set_cql_version_result & rhs) const
+  {
+    if (!(ire == rhs.ire))
+      return false;
+    return true;
+  }
+  bool operator != (const Cassandra_set_cql_version_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Cassandra_set_cql_version_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Cassandra_set_cql_version_presult__isset {
+  _Cassandra_set_cql_version_presult__isset() : ire(false) {}
+  bool ire;
+} _Cassandra_set_cql_version_presult__isset;
+
+class Cassandra_set_cql_version_presult {
+ public:
+
+
+  virtual ~Cassandra_set_cql_version_presult() throw() {}
+
+  InvalidRequestException ire;
+
+  _Cassandra_set_cql_version_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class CassandraClient : virtual public CassandraIf {
  public:
   CassandraClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -4207,6 +4871,9 @@ class CassandraClient : virtual public CassandraIf {
   void get_range_slices(std::vector<KeySlice> & _return, const ColumnParent& column_parent, const SlicePredicate& predicate, const KeyRange& range, const ConsistencyLevel::type consistency_level);
   void send_get_range_slices(const ColumnParent& column_parent, const SlicePredicate& predicate, const KeyRange& range, const ConsistencyLevel::type consistency_level);
   void recv_get_range_slices(std::vector<KeySlice> & _return);
+  void get_paged_slice(std::vector<KeySlice> & _return, const std::string& column_family, const KeyRange& range, const std::string& start_column, const ConsistencyLevel::type consistency_level);
+  void send_get_paged_slice(const std::string& column_family, const KeyRange& range, const std::string& start_column, const ConsistencyLevel::type consistency_level);
+  void recv_get_paged_slice(std::vector<KeySlice> & _return);
   void get_indexed_slices(std::vector<KeySlice> & _return, const ColumnParent& column_parent, const IndexClause& index_clause, const SlicePredicate& column_predicate, const ConsistencyLevel::type consistency_level);
   void send_get_indexed_slices(const ColumnParent& column_parent, const IndexClause& index_clause, const SlicePredicate& column_predicate, const ConsistencyLevel::type consistency_level);
   void recv_get_indexed_slices(std::vector<KeySlice> & _return);
@@ -4243,6 +4910,9 @@ class CassandraClient : virtual public CassandraIf {
   void describe_ring(std::vector<TokenRange> & _return, const std::string& keyspace);
   void send_describe_ring(const std::string& keyspace);
   void recv_describe_ring(std::vector<TokenRange> & _return);
+  void describe_token_map(std::map<std::string, std::string> & _return);
+  void send_describe_token_map();
+  void recv_describe_token_map(std::map<std::string, std::string> & _return);
   void describe_partitioner(std::string& _return);
   void send_describe_partitioner();
   void recv_describe_partitioner(std::string& _return);
@@ -4276,6 +4946,15 @@ class CassandraClient : virtual public CassandraIf {
   void execute_cql_query(CqlResult& _return, const std::string& query, const Compression::type compression);
   void send_execute_cql_query(const std::string& query, const Compression::type compression);
   void recv_execute_cql_query(CqlResult& _return);
+  void prepare_cql_query(CqlPreparedResult& _return, const std::string& query, const Compression::type compression);
+  void send_prepare_cql_query(const std::string& query, const Compression::type compression);
+  void recv_prepare_cql_query(CqlPreparedResult& _return);
+  void execute_prepared_cql_query(CqlResult& _return, const int32_t itemId, const std::vector<std::string> & values);
+  void send_execute_prepared_cql_query(const int32_t itemId, const std::vector<std::string> & values);
+  void recv_execute_prepared_cql_query(CqlResult& _return);
+  void set_cql_version(const std::string& version);
+  void send_set_cql_version(const std::string& version);
+  void recv_set_cql_version();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -4297,6 +4976,7 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
   void process_multiget_slice(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_multiget_count(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_range_slices(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_paged_slice(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_indexed_slices(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_insert(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -4309,6 +4989,7 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
   void process_describe_cluster_name(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_describe_version(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_describe_ring(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_describe_token_map(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_describe_partitioner(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_describe_snitch(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_describe_keyspace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -4320,6 +5001,9 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
   void process_system_update_keyspace(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_system_update_column_family(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_execute_cql_query(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_prepare_cql_query(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_execute_prepared_cql_query(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_set_cql_version(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   CassandraProcessor(boost::shared_ptr<CassandraIf> iface) :
     iface_(iface) {
@@ -4331,6 +5015,7 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
     processMap_["multiget_slice"] = &CassandraProcessor::process_multiget_slice;
     processMap_["multiget_count"] = &CassandraProcessor::process_multiget_count;
     processMap_["get_range_slices"] = &CassandraProcessor::process_get_range_slices;
+    processMap_["get_paged_slice"] = &CassandraProcessor::process_get_paged_slice;
     processMap_["get_indexed_slices"] = &CassandraProcessor::process_get_indexed_slices;
     processMap_["insert"] = &CassandraProcessor::process_insert;
     processMap_["add"] = &CassandraProcessor::process_add;
@@ -4343,6 +5028,7 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
     processMap_["describe_cluster_name"] = &CassandraProcessor::process_describe_cluster_name;
     processMap_["describe_version"] = &CassandraProcessor::process_describe_version;
     processMap_["describe_ring"] = &CassandraProcessor::process_describe_ring;
+    processMap_["describe_token_map"] = &CassandraProcessor::process_describe_token_map;
     processMap_["describe_partitioner"] = &CassandraProcessor::process_describe_partitioner;
     processMap_["describe_snitch"] = &CassandraProcessor::process_describe_snitch;
     processMap_["describe_keyspace"] = &CassandraProcessor::process_describe_keyspace;
@@ -4354,22 +5040,25 @@ class CassandraProcessor : public ::apache::thrift::TProcessor {
     processMap_["system_update_keyspace"] = &CassandraProcessor::process_system_update_keyspace;
     processMap_["system_update_column_family"] = &CassandraProcessor::process_system_update_column_family;
     processMap_["execute_cql_query"] = &CassandraProcessor::process_execute_cql_query;
+    processMap_["prepare_cql_query"] = &CassandraProcessor::process_prepare_cql_query;
+    processMap_["execute_prepared_cql_query"] = &CassandraProcessor::process_execute_prepared_cql_query;
+    processMap_["set_cql_version"] = &CassandraProcessor::process_set_cql_version;
   }
 
   virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot, void* callContext);
   virtual ~CassandraProcessor() {}
 };
 
-//class CassandraProcessorFactory : public ::apache::thrift::TProcessorFactory {
-// public:
-//  CassandraProcessorFactory(const ::boost::shared_ptr< CassandraIfFactory >& handlerFactory) :
-//      handlerFactory_(handlerFactory) {}
-//
-//  ::boost::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
-//
-// protected:
-//  ::boost::shared_ptr< CassandraIfFactory > handlerFactory_;
-//};
+class CassandraProcessorFactory : public ::apache::thrift::TProcessorFactory {
+ public:
+  CassandraProcessorFactory(const ::boost::shared_ptr< CassandraIfFactory >& handlerFactory) :
+      handlerFactory_(handlerFactory) {}
+
+  ::boost::shared_ptr< ::apache::thrift::TProcessor > getProcessor(const ::apache::thrift::TConnectionInfo& connInfo);
+
+ protected:
+  ::boost::shared_ptr< CassandraIfFactory > handlerFactory_;
+};
 
 class CassandraMultiface : virtual public CassandraIf {
  public:
@@ -4464,6 +5153,18 @@ class CassandraMultiface : virtual public CassandraIf {
         return;
       } else {
         ifaces_[i]->get_range_slices(_return, column_parent, predicate, range, consistency_level);
+      }
+    }
+  }
+
+  void get_paged_slice(std::vector<KeySlice> & _return, const std::string& column_family, const KeyRange& range, const std::string& start_column, const ConsistencyLevel::type consistency_level) {
+    size_t sz = ifaces_.size();
+    for (size_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->get_paged_slice(_return, column_family, range, start_column, consistency_level);
+        return;
+      } else {
+        ifaces_[i]->get_paged_slice(_return, column_family, range, start_column, consistency_level);
       }
     }
   }
@@ -4578,6 +5279,18 @@ class CassandraMultiface : virtual public CassandraIf {
         return;
       } else {
         ifaces_[i]->describe_ring(_return, keyspace);
+      }
+    }
+  }
+
+  void describe_token_map(std::map<std::string, std::string> & _return) {
+    size_t sz = ifaces_.size();
+    for (size_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->describe_token_map(_return);
+        return;
+      } else {
+        ifaces_[i]->describe_token_map(_return);
       }
     }
   }
@@ -4711,6 +5424,37 @@ class CassandraMultiface : virtual public CassandraIf {
       } else {
         ifaces_[i]->execute_cql_query(_return, query, compression);
       }
+    }
+  }
+
+  void prepare_cql_query(CqlPreparedResult& _return, const std::string& query, const Compression::type compression) {
+    size_t sz = ifaces_.size();
+    for (size_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->prepare_cql_query(_return, query, compression);
+        return;
+      } else {
+        ifaces_[i]->prepare_cql_query(_return, query, compression);
+      }
+    }
+  }
+
+  void execute_prepared_cql_query(CqlResult& _return, const int32_t itemId, const std::vector<std::string> & values) {
+    size_t sz = ifaces_.size();
+    for (size_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->execute_prepared_cql_query(_return, itemId, values);
+        return;
+      } else {
+        ifaces_[i]->execute_prepared_cql_query(_return, itemId, values);
+      }
+    }
+  }
+
+  void set_cql_version(const std::string& version) {
+    size_t sz = ifaces_.size();
+    for (size_t i = 0; i < sz; ++i) {
+      ifaces_[i]->set_cql_version(version);
     }
   }
 

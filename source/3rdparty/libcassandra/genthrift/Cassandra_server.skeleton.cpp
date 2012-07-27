@@ -62,6 +62,11 @@ class CassandraHandler : virtual public CassandraIf {
     printf("get_range_slices\n");
   }
 
+  void get_paged_slice(std::vector<KeySlice> & _return, const std::string& column_family, const KeyRange& range, const std::string& start_column, const ConsistencyLevel::type consistency_level) {
+    // Your implementation goes here
+    printf("get_paged_slice\n");
+  }
+
   void get_indexed_slices(std::vector<KeySlice> & _return, const ColumnParent& column_parent, const IndexClause& index_clause, const SlicePredicate& column_predicate, const ConsistencyLevel::type consistency_level) {
     // Your implementation goes here
     printf("get_indexed_slices\n");
@@ -122,6 +127,11 @@ class CassandraHandler : virtual public CassandraIf {
     printf("describe_ring\n");
   }
 
+  void describe_token_map(std::map<std::string, std::string> & _return) {
+    // Your implementation goes here
+    printf("describe_token_map\n");
+  }
+
   void describe_partitioner(std::string& _return) {
     // Your implementation goes here
     printf("describe_partitioner\n");
@@ -175,6 +185,21 @@ class CassandraHandler : virtual public CassandraIf {
   void execute_cql_query(CqlResult& _return, const std::string& query, const Compression::type compression) {
     // Your implementation goes here
     printf("execute_cql_query\n");
+  }
+
+  void prepare_cql_query(CqlPreparedResult& _return, const std::string& query, const Compression::type compression) {
+    // Your implementation goes here
+    printf("prepare_cql_query\n");
+  }
+
+  void execute_prepared_cql_query(CqlResult& _return, const int32_t itemId, const std::vector<std::string> & values) {
+    // Your implementation goes here
+    printf("execute_prepared_cql_query\n");
+  }
+
+  void set_cql_version(const std::string& version) {
+    // Your implementation goes here
+    printf("set_cql_version\n");
   }
 
 };

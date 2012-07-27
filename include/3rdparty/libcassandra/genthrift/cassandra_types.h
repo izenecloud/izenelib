@@ -7,8 +7,6 @@
 #ifndef cassandra_TYPES_H
 #define cassandra_TYPES_H
 
-#define HAVE_CONFIG_H 1
-
 #include <Thrift.h>
 #include <TApplicationException.h>
 #include <protocol/TProtocol.h>
@@ -889,18 +887,19 @@ class IndexClause {
 };
 
 typedef struct _KeyRange__isset {
-  _KeyRange__isset() : start_key(false), end_key(false), start_token(false), end_token(false) {}
+  _KeyRange__isset() : start_key(false), end_key(false), start_token(false), end_token(false), row_filter(false) {}
   bool start_key;
   bool end_key;
   bool start_token;
   bool end_token;
+  bool row_filter;
 } _KeyRange__isset;
 
 class KeyRange {
  public:
 
-  static const char* ascii_fingerprint; // = "8F248C09AF1EC3656ABD8565EA1F59C1";
-  static const uint8_t binary_fingerprint[16]; // = {0x8F,0x24,0x8C,0x09,0xAF,0x1E,0xC3,0x65,0x6A,0xBD,0x85,0x65,0xEA,0x1F,0x59,0xC1};
+  static const char* ascii_fingerprint; // = "A6EC82FA0980B91C7C8EB013C61CA1B0";
+  static const uint8_t binary_fingerprint[16]; // = {0xA6,0xEC,0x82,0xFA,0x09,0x80,0xB9,0x1C,0x7C,0x8E,0xB0,0x13,0xC6,0x1C,0xA1,0xB0};
 
   KeyRange() : start_key(""), end_key(""), start_token(""), end_token(""), count(100) {
   }
@@ -911,6 +910,7 @@ class KeyRange {
   std::string end_key;
   std::string start_token;
   std::string end_token;
+  std::vector<IndexExpression>  row_filter;
   int32_t count;
 
   _KeyRange__isset __isset;
@@ -935,6 +935,11 @@ class KeyRange {
     __isset.end_token = true;
   }
 
+  void __set_row_filter(const std::vector<IndexExpression> & val) {
+    row_filter = val;
+    __isset.row_filter = true;
+  }
+
   void __set_count(const int32_t val) {
     count = val;
   }
@@ -956,6 +961,10 @@ class KeyRange {
     if (__isset.end_token != rhs.__isset.end_token)
       return false;
     else if (__isset.end_token && !(end_token == rhs.end_token))
+      return false;
+    if (__isset.row_filter != rhs.__isset.row_filter)
+      return false;
+    else if (__isset.row_filter && !(row_filter == rhs.row_filter))
       return false;
     if (!(count == rhs.count))
       return false;
@@ -1429,13 +1438,11 @@ class ColumnDef {
 };
 
 typedef struct _CfDef__isset {
-  _CfDef__isset() : column_type(false), comparator_type(false), subcomparator_type(false), comment(false), row_cache_size(false), key_cache_size(false), read_repair_chance(false), column_metadata(false), gc_grace_seconds(false), default_validation_class(false), id(false), min_compaction_threshold(false), max_compaction_threshold(false), row_cache_save_period_in_seconds(false), key_cache_save_period_in_seconds(false), replicate_on_write(false), merge_shards_chance(false), key_validation_class(false), row_cache_provider(false), key_alias(false), compaction_strategy(false), compaction_strategy_options(false), row_cache_keys_to_save(false), compression_options(false), bloom_filter_fp_chance(false) {}
+  _CfDef__isset() : column_type(false), comparator_type(false), subcomparator_type(false), comment(false), read_repair_chance(false), column_metadata(false), gc_grace_seconds(false), default_validation_class(false), id(false), min_compaction_threshold(false), max_compaction_threshold(false), replicate_on_write(false), key_validation_class(false), key_alias(false), compaction_strategy(false), compaction_strategy_options(false), compression_options(false), bloom_filter_fp_chance(false), caching(false), dclocal_read_repair_chance(false), row_cache_size(false), key_cache_size(false), row_cache_save_period_in_seconds(false), key_cache_save_period_in_seconds(false), memtable_flush_after_mins(false), memtable_throughput_in_mb(false), memtable_operations_in_millions(false), merge_shards_chance(false), row_cache_provider(false), row_cache_keys_to_save(false) {}
   bool column_type;
   bool comparator_type;
   bool subcomparator_type;
   bool comment;
-  bool row_cache_size;
-  bool key_cache_size;
   bool read_repair_chance;
   bool column_metadata;
   bool gc_grace_seconds;
@@ -1443,27 +1450,34 @@ typedef struct _CfDef__isset {
   bool id;
   bool min_compaction_threshold;
   bool max_compaction_threshold;
-  bool row_cache_save_period_in_seconds;
-  bool key_cache_save_period_in_seconds;
   bool replicate_on_write;
-  bool merge_shards_chance;
   bool key_validation_class;
-  bool row_cache_provider;
   bool key_alias;
   bool compaction_strategy;
   bool compaction_strategy_options;
-  bool row_cache_keys_to_save;
   bool compression_options;
   bool bloom_filter_fp_chance;
+  bool caching;
+  bool dclocal_read_repair_chance;
+  bool row_cache_size;
+  bool key_cache_size;
+  bool row_cache_save_period_in_seconds;
+  bool key_cache_save_period_in_seconds;
+  bool memtable_flush_after_mins;
+  bool memtable_throughput_in_mb;
+  bool memtable_operations_in_millions;
+  bool merge_shards_chance;
+  bool row_cache_provider;
+  bool row_cache_keys_to_save;
 } _CfDef__isset;
 
 class CfDef {
  public:
 
-  static const char* ascii_fingerprint; // = "2F00CFE80890894792537A90F712E938";
-  static const uint8_t binary_fingerprint[16]; // = {0x2F,0x00,0xCF,0xE8,0x08,0x90,0x89,0x47,0x92,0x53,0x7A,0x90,0xF7,0x12,0xE9,0x38};
+  static const char* ascii_fingerprint; // = "231A260521B5DD99EFBCCBDD8768CA7D";
+  static const uint8_t binary_fingerprint[16]; // = {0x23,0x1A,0x26,0x05,0x21,0xB5,0xDD,0x99,0xEF,0xBC,0xCB,0xDD,0x87,0x68,0xCA,0x7D};
 
-  CfDef() : keyspace(""), name(""), column_type("Standard"), comparator_type("BytesType"), subcomparator_type(""), comment(""), row_cache_size(0), key_cache_size(200000), read_repair_chance(1), gc_grace_seconds(0), default_validation_class(""), id(0), min_compaction_threshold(0), max_compaction_threshold(0), row_cache_save_period_in_seconds(0), key_cache_save_period_in_seconds(0), replicate_on_write(0), merge_shards_chance(0), key_validation_class(""), row_cache_provider(""), key_alias(""), compaction_strategy(""), row_cache_keys_to_save(0), bloom_filter_fp_chance(0) {
+  CfDef() : keyspace(""), name(""), column_type("Standard"), comparator_type("BytesType"), subcomparator_type(""), comment(""), read_repair_chance(0), gc_grace_seconds(0), default_validation_class(""), id(0), min_compaction_threshold(0), max_compaction_threshold(0), replicate_on_write(0), key_validation_class(""), key_alias(""), compaction_strategy(""), bloom_filter_fp_chance(0), caching("keys_only"), dclocal_read_repair_chance(0), row_cache_size(0), key_cache_size(0), row_cache_save_period_in_seconds(0), key_cache_save_period_in_seconds(0), memtable_flush_after_mins(0), memtable_throughput_in_mb(0), memtable_operations_in_millions(0), merge_shards_chance(0), row_cache_provider(""), row_cache_keys_to_save(0) {
   }
 
   virtual ~CfDef() throw() {}
@@ -1474,8 +1488,6 @@ class CfDef {
   std::string comparator_type;
   std::string subcomparator_type;
   std::string comment;
-  double row_cache_size;
-  double key_cache_size;
   double read_repair_chance;
   std::vector<ColumnDef>  column_metadata;
   int32_t gc_grace_seconds;
@@ -1483,18 +1495,25 @@ class CfDef {
   int32_t id;
   int32_t min_compaction_threshold;
   int32_t max_compaction_threshold;
-  int32_t row_cache_save_period_in_seconds;
-  int32_t key_cache_save_period_in_seconds;
   bool replicate_on_write;
-  double merge_shards_chance;
   std::string key_validation_class;
-  std::string row_cache_provider;
   std::string key_alias;
   std::string compaction_strategy;
   std::map<std::string, std::string>  compaction_strategy_options;
-  int32_t row_cache_keys_to_save;
   std::map<std::string, std::string>  compression_options;
   double bloom_filter_fp_chance;
+  std::string caching;
+  double dclocal_read_repair_chance;
+  double row_cache_size;
+  double key_cache_size;
+  int32_t row_cache_save_period_in_seconds;
+  int32_t key_cache_save_period_in_seconds;
+  int32_t memtable_flush_after_mins;
+  int32_t memtable_throughput_in_mb;
+  double memtable_operations_in_millions;
+  double merge_shards_chance;
+  std::string row_cache_provider;
+  int32_t row_cache_keys_to_save;
 
   _CfDef__isset __isset;
 
@@ -1524,16 +1543,6 @@ class CfDef {
   void __set_comment(const std::string& val) {
     comment = val;
     __isset.comment = true;
-  }
-
-  void __set_row_cache_size(const double val) {
-    row_cache_size = val;
-    __isset.row_cache_size = true;
-  }
-
-  void __set_key_cache_size(const double val) {
-    key_cache_size = val;
-    __isset.key_cache_size = true;
   }
 
   void __set_read_repair_chance(const double val) {
@@ -1571,34 +1580,14 @@ class CfDef {
     __isset.max_compaction_threshold = true;
   }
 
-  void __set_row_cache_save_period_in_seconds(const int32_t val) {
-    row_cache_save_period_in_seconds = val;
-    __isset.row_cache_save_period_in_seconds = true;
-  }
-
-  void __set_key_cache_save_period_in_seconds(const int32_t val) {
-    key_cache_save_period_in_seconds = val;
-    __isset.key_cache_save_period_in_seconds = true;
-  }
-
   void __set_replicate_on_write(const bool val) {
     replicate_on_write = val;
     __isset.replicate_on_write = true;
   }
 
-  void __set_merge_shards_chance(const double val) {
-    merge_shards_chance = val;
-    __isset.merge_shards_chance = true;
-  }
-
   void __set_key_validation_class(const std::string& val) {
     key_validation_class = val;
     __isset.key_validation_class = true;
-  }
-
-  void __set_row_cache_provider(const std::string& val) {
-    row_cache_provider = val;
-    __isset.row_cache_provider = true;
   }
 
   void __set_key_alias(const std::string& val) {
@@ -1616,11 +1605,6 @@ class CfDef {
     __isset.compaction_strategy_options = true;
   }
 
-  void __set_row_cache_keys_to_save(const int32_t val) {
-    row_cache_keys_to_save = val;
-    __isset.row_cache_keys_to_save = true;
-  }
-
   void __set_compression_options(const std::map<std::string, std::string> & val) {
     compression_options = val;
     __isset.compression_options = true;
@@ -1629,6 +1613,66 @@ class CfDef {
   void __set_bloom_filter_fp_chance(const double val) {
     bloom_filter_fp_chance = val;
     __isset.bloom_filter_fp_chance = true;
+  }
+
+  void __set_caching(const std::string& val) {
+    caching = val;
+    __isset.caching = true;
+  }
+
+  void __set_dclocal_read_repair_chance(const double val) {
+    dclocal_read_repair_chance = val;
+    __isset.dclocal_read_repair_chance = true;
+  }
+
+  void __set_row_cache_size(const double val) {
+    row_cache_size = val;
+    __isset.row_cache_size = true;
+  }
+
+  void __set_key_cache_size(const double val) {
+    key_cache_size = val;
+    __isset.key_cache_size = true;
+  }
+
+  void __set_row_cache_save_period_in_seconds(const int32_t val) {
+    row_cache_save_period_in_seconds = val;
+    __isset.row_cache_save_period_in_seconds = true;
+  }
+
+  void __set_key_cache_save_period_in_seconds(const int32_t val) {
+    key_cache_save_period_in_seconds = val;
+    __isset.key_cache_save_period_in_seconds = true;
+  }
+
+  void __set_memtable_flush_after_mins(const int32_t val) {
+    memtable_flush_after_mins = val;
+    __isset.memtable_flush_after_mins = true;
+  }
+
+  void __set_memtable_throughput_in_mb(const int32_t val) {
+    memtable_throughput_in_mb = val;
+    __isset.memtable_throughput_in_mb = true;
+  }
+
+  void __set_memtable_operations_in_millions(const double val) {
+    memtable_operations_in_millions = val;
+    __isset.memtable_operations_in_millions = true;
+  }
+
+  void __set_merge_shards_chance(const double val) {
+    merge_shards_chance = val;
+    __isset.merge_shards_chance = true;
+  }
+
+  void __set_row_cache_provider(const std::string& val) {
+    row_cache_provider = val;
+    __isset.row_cache_provider = true;
+  }
+
+  void __set_row_cache_keys_to_save(const int32_t val) {
+    row_cache_keys_to_save = val;
+    __isset.row_cache_keys_to_save = true;
   }
 
   bool operator == (const CfDef & rhs) const
@@ -1652,14 +1696,6 @@ class CfDef {
     if (__isset.comment != rhs.__isset.comment)
       return false;
     else if (__isset.comment && !(comment == rhs.comment))
-      return false;
-    if (__isset.row_cache_size != rhs.__isset.row_cache_size)
-      return false;
-    else if (__isset.row_cache_size && !(row_cache_size == rhs.row_cache_size))
-      return false;
-    if (__isset.key_cache_size != rhs.__isset.key_cache_size)
-      return false;
-    else if (__isset.key_cache_size && !(key_cache_size == rhs.key_cache_size))
       return false;
     if (__isset.read_repair_chance != rhs.__isset.read_repair_chance)
       return false;
@@ -1689,29 +1725,13 @@ class CfDef {
       return false;
     else if (__isset.max_compaction_threshold && !(max_compaction_threshold == rhs.max_compaction_threshold))
       return false;
-    if (__isset.row_cache_save_period_in_seconds != rhs.__isset.row_cache_save_period_in_seconds)
-      return false;
-    else if (__isset.row_cache_save_period_in_seconds && !(row_cache_save_period_in_seconds == rhs.row_cache_save_period_in_seconds))
-      return false;
-    if (__isset.key_cache_save_period_in_seconds != rhs.__isset.key_cache_save_period_in_seconds)
-      return false;
-    else if (__isset.key_cache_save_period_in_seconds && !(key_cache_save_period_in_seconds == rhs.key_cache_save_period_in_seconds))
-      return false;
     if (__isset.replicate_on_write != rhs.__isset.replicate_on_write)
       return false;
     else if (__isset.replicate_on_write && !(replicate_on_write == rhs.replicate_on_write))
       return false;
-    if (__isset.merge_shards_chance != rhs.__isset.merge_shards_chance)
-      return false;
-    else if (__isset.merge_shards_chance && !(merge_shards_chance == rhs.merge_shards_chance))
-      return false;
     if (__isset.key_validation_class != rhs.__isset.key_validation_class)
       return false;
     else if (__isset.key_validation_class && !(key_validation_class == rhs.key_validation_class))
-      return false;
-    if (__isset.row_cache_provider != rhs.__isset.row_cache_provider)
-      return false;
-    else if (__isset.row_cache_provider && !(row_cache_provider == rhs.row_cache_provider))
       return false;
     if (__isset.key_alias != rhs.__isset.key_alias)
       return false;
@@ -1725,10 +1745,6 @@ class CfDef {
       return false;
     else if (__isset.compaction_strategy_options && !(compaction_strategy_options == rhs.compaction_strategy_options))
       return false;
-    if (__isset.row_cache_keys_to_save != rhs.__isset.row_cache_keys_to_save)
-      return false;
-    else if (__isset.row_cache_keys_to_save && !(row_cache_keys_to_save == rhs.row_cache_keys_to_save))
-      return false;
     if (__isset.compression_options != rhs.__isset.compression_options)
       return false;
     else if (__isset.compression_options && !(compression_options == rhs.compression_options))
@@ -1736,6 +1752,54 @@ class CfDef {
     if (__isset.bloom_filter_fp_chance != rhs.__isset.bloom_filter_fp_chance)
       return false;
     else if (__isset.bloom_filter_fp_chance && !(bloom_filter_fp_chance == rhs.bloom_filter_fp_chance))
+      return false;
+    if (__isset.caching != rhs.__isset.caching)
+      return false;
+    else if (__isset.caching && !(caching == rhs.caching))
+      return false;
+    if (__isset.dclocal_read_repair_chance != rhs.__isset.dclocal_read_repair_chance)
+      return false;
+    else if (__isset.dclocal_read_repair_chance && !(dclocal_read_repair_chance == rhs.dclocal_read_repair_chance))
+      return false;
+    if (__isset.row_cache_size != rhs.__isset.row_cache_size)
+      return false;
+    else if (__isset.row_cache_size && !(row_cache_size == rhs.row_cache_size))
+      return false;
+    if (__isset.key_cache_size != rhs.__isset.key_cache_size)
+      return false;
+    else if (__isset.key_cache_size && !(key_cache_size == rhs.key_cache_size))
+      return false;
+    if (__isset.row_cache_save_period_in_seconds != rhs.__isset.row_cache_save_period_in_seconds)
+      return false;
+    else if (__isset.row_cache_save_period_in_seconds && !(row_cache_save_period_in_seconds == rhs.row_cache_save_period_in_seconds))
+      return false;
+    if (__isset.key_cache_save_period_in_seconds != rhs.__isset.key_cache_save_period_in_seconds)
+      return false;
+    else if (__isset.key_cache_save_period_in_seconds && !(key_cache_save_period_in_seconds == rhs.key_cache_save_period_in_seconds))
+      return false;
+    if (__isset.memtable_flush_after_mins != rhs.__isset.memtable_flush_after_mins)
+      return false;
+    else if (__isset.memtable_flush_after_mins && !(memtable_flush_after_mins == rhs.memtable_flush_after_mins))
+      return false;
+    if (__isset.memtable_throughput_in_mb != rhs.__isset.memtable_throughput_in_mb)
+      return false;
+    else if (__isset.memtable_throughput_in_mb && !(memtable_throughput_in_mb == rhs.memtable_throughput_in_mb))
+      return false;
+    if (__isset.memtable_operations_in_millions != rhs.__isset.memtable_operations_in_millions)
+      return false;
+    else if (__isset.memtable_operations_in_millions && !(memtable_operations_in_millions == rhs.memtable_operations_in_millions))
+      return false;
+    if (__isset.merge_shards_chance != rhs.__isset.merge_shards_chance)
+      return false;
+    else if (__isset.merge_shards_chance && !(merge_shards_chance == rhs.merge_shards_chance))
+      return false;
+    if (__isset.row_cache_provider != rhs.__isset.row_cache_provider)
+      return false;
+    else if (__isset.row_cache_provider && !(row_cache_provider == rhs.row_cache_provider))
+      return false;
+    if (__isset.row_cache_keys_to_save != rhs.__isset.row_cache_keys_to_save)
+      return false;
+    else if (__isset.row_cache_keys_to_save && !(row_cache_keys_to_save == rhs.row_cache_keys_to_save))
       return false;
     return true;
   }
@@ -1760,8 +1824,8 @@ typedef struct _KsDef__isset {
 class KsDef {
  public:
 
-  static const char* ascii_fingerprint; // = "139DFA4077BAA3E03009C9FAA5F44CA9";
-  static const uint8_t binary_fingerprint[16]; // = {0x13,0x9D,0xFA,0x40,0x77,0xBA,0xA3,0xE0,0x30,0x09,0xC9,0xFA,0xA5,0xF4,0x4C,0xA9};
+  static const char* ascii_fingerprint; // = "0767851B6476EB3777A21E59E912E11A";
+  static const uint8_t binary_fingerprint[16]; // = {0x07,0x67,0x85,0x1B,0x64,0x76,0xEB,0x37,0x77,0xA2,0x1E,0x59,0xE9,0x12,0xE1,0x1A};
 
   KsDef() : name(""), strategy_class(""), replication_factor(0), durable_writes(true) {
   }
@@ -2002,6 +2066,75 @@ class CqlResult {
   }
 
   bool operator < (const CqlResult & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _CqlPreparedResult__isset {
+  _CqlPreparedResult__isset() : variable_types(false), variable_names(false) {}
+  bool variable_types;
+  bool variable_names;
+} _CqlPreparedResult__isset;
+
+class CqlPreparedResult {
+ public:
+
+  static const char* ascii_fingerprint; // = "7E1663EC688DFDC28722BF36F9F64E6F";
+  static const uint8_t binary_fingerprint[16]; // = {0x7E,0x16,0x63,0xEC,0x68,0x8D,0xFD,0xC2,0x87,0x22,0xBF,0x36,0xF9,0xF6,0x4E,0x6F};
+
+  CqlPreparedResult() : itemId(0), count(0) {
+  }
+
+  virtual ~CqlPreparedResult() throw() {}
+
+  int32_t itemId;
+  int32_t count;
+  std::vector<std::string>  variable_types;
+  std::vector<std::string>  variable_names;
+
+  _CqlPreparedResult__isset __isset;
+
+  void __set_itemId(const int32_t val) {
+    itemId = val;
+  }
+
+  void __set_count(const int32_t val) {
+    count = val;
+  }
+
+  void __set_variable_types(const std::vector<std::string> & val) {
+    variable_types = val;
+    __isset.variable_types = true;
+  }
+
+  void __set_variable_names(const std::vector<std::string> & val) {
+    variable_names = val;
+    __isset.variable_names = true;
+  }
+
+  bool operator == (const CqlPreparedResult & rhs) const
+  {
+    if (!(itemId == rhs.itemId))
+      return false;
+    if (!(count == rhs.count))
+      return false;
+    if (__isset.variable_types != rhs.__isset.variable_types)
+      return false;
+    else if (__isset.variable_types && !(variable_types == rhs.variable_types))
+      return false;
+    if (__isset.variable_names != rhs.__isset.variable_names)
+      return false;
+    else if (__isset.variable_names && !(variable_names == rhs.variable_names))
+      return false;
+    return true;
+  }
+  bool operator != (const CqlPreparedResult &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const CqlPreparedResult & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;

@@ -11,7 +11,7 @@ namespace org { namespace apache { namespace cassandra {
 const cassandraConstants g_cassandra_constants;
 
 cassandraConstants::cassandraConstants() {
-  THRIFT_PROTOCOL_VERSION = "19.20.0";
+  THRIFT_PROTOCOL_VERSION = "19.32.0";
 
 }
 
