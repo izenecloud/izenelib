@@ -30,8 +30,9 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     luxio/Db.cpp
     leveldb/Db.cpp
 
+    graphchi/t_basic_smoketest.cpp
     )
-
+  ADD_DEFINITIONS("-fopenmp -Wunused-variable")
   ADD_EXECUTABLE(t_am ${t_am_SRC})
   TARGET_LINK_LIBRARIES(t_am
    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
@@ -52,6 +53,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    leveldb
    snappy
    jemalloc
+   gomp
     )
 
   SET(t_succinct_SRC
