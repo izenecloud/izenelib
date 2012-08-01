@@ -81,6 +81,14 @@ struct StatPersistedV1 {
 int serialize_StatPersistedV1(struct oarchive *out, const char *tag, struct StatPersistedV1 *v);
 int deserialize_StatPersistedV1(struct iarchive *in, const char *tag, struct StatPersistedV1*v);
 void deallocate_StatPersistedV1(struct StatPersistedV1*);
+struct op_result_t {
+    int32_t rc;
+    int32_t op;
+    struct buffer response;
+};
+int serialize_op_result_t(struct oarchive *out, const char *tag, struct op_result_t *v);
+int deserialize_op_result_t(struct iarchive *in, const char *tag, struct op_result_t*v);
+void deallocate_op_result_t(struct op_result_t*);
 struct ConnectRequest {
     int32_t protocolVersion;
     int64_t lastZxidSeen;
@@ -125,14 +133,6 @@ struct RequestHeader {
 int serialize_RequestHeader(struct oarchive *out, const char *tag, struct RequestHeader *v);
 int deserialize_RequestHeader(struct iarchive *in, const char *tag, struct RequestHeader*v);
 void deallocate_RequestHeader(struct RequestHeader*);
-struct MultiHeader {
-    int32_t type;
-    int32_t done;
-    int32_t err;
-};
-int serialize_MultiHeader(struct oarchive *out, const char *tag, struct MultiHeader *v);
-int deserialize_MultiHeader(struct iarchive *in, const char *tag, struct MultiHeader*v);
-void deallocate_MultiHeader(struct MultiHeader*);
 struct AuthPacket {
     int32_t type;
     char * scheme;
@@ -170,24 +170,6 @@ struct SetDataResponse {
 int serialize_SetDataResponse(struct oarchive *out, const char *tag, struct SetDataResponse *v);
 int deserialize_SetDataResponse(struct iarchive *in, const char *tag, struct SetDataResponse*v);
 void deallocate_SetDataResponse(struct SetDataResponse*);
-struct GetSASLRequest {
-    struct buffer token;
-};
-int serialize_GetSASLRequest(struct oarchive *out, const char *tag, struct GetSASLRequest *v);
-int deserialize_GetSASLRequest(struct iarchive *in, const char *tag, struct GetSASLRequest*v);
-void deallocate_GetSASLRequest(struct GetSASLRequest*);
-struct SetSASLRequest {
-    struct buffer token;
-};
-int serialize_SetSASLRequest(struct oarchive *out, const char *tag, struct SetSASLRequest *v);
-int deserialize_SetSASLRequest(struct iarchive *in, const char *tag, struct SetSASLRequest*v);
-void deallocate_SetSASLRequest(struct SetSASLRequest*);
-struct SetSASLResponse {
-    struct buffer token;
-};
-int serialize_SetSASLResponse(struct oarchive *out, const char *tag, struct SetSASLResponse *v);
-int deserialize_SetSASLResponse(struct iarchive *in, const char *tag, struct SetSASLResponse*v);
-void deallocate_SetSASLResponse(struct SetSASLResponse*);
 struct ACL_vector {
     int32_t count;
     struct ACL *data;
@@ -227,13 +209,6 @@ struct GetChildren2Request {
 int serialize_GetChildren2Request(struct oarchive *out, const char *tag, struct GetChildren2Request *v);
 int deserialize_GetChildren2Request(struct iarchive *in, const char *tag, struct GetChildren2Request*v);
 void deallocate_GetChildren2Request(struct GetChildren2Request*);
-struct CheckVersionRequest {
-    char * path;
-    int32_t version;
-};
-int serialize_CheckVersionRequest(struct oarchive *out, const char *tag, struct CheckVersionRequest *v);
-int deserialize_CheckVersionRequest(struct iarchive *in, const char *tag, struct CheckVersionRequest*v);
-void deallocate_CheckVersionRequest(struct CheckVersionRequest*);
 struct GetMaxChildrenRequest {
     char * path;
 };
@@ -293,12 +268,6 @@ struct WatcherEvent {
 int serialize_WatcherEvent(struct oarchive *out, const char *tag, struct WatcherEvent *v);
 int deserialize_WatcherEvent(struct iarchive *in, const char *tag, struct WatcherEvent*v);
 void deallocate_WatcherEvent(struct WatcherEvent*);
-struct ErrorResponse {
-    int32_t err;
-};
-int serialize_ErrorResponse(struct oarchive *out, const char *tag, struct ErrorResponse *v);
-int deserialize_ErrorResponse(struct iarchive *in, const char *tag, struct ErrorResponse*v);
-void deallocate_ErrorResponse(struct ErrorResponse*);
 struct CreateResponse {
     char * path;
 };
@@ -345,13 +314,6 @@ struct GetACLResponse {
 int serialize_GetACLResponse(struct oarchive *out, const char *tag, struct GetACLResponse *v);
 int deserialize_GetACLResponse(struct iarchive *in, const char *tag, struct GetACLResponse*v);
 void deallocate_GetACLResponse(struct GetACLResponse*);
-struct LearnerInfo {
-    int64_t serverid;
-    int32_t protocolVersion;
-};
-int serialize_LearnerInfo(struct oarchive *out, const char *tag, struct LearnerInfo *v);
-int deserialize_LearnerInfo(struct iarchive *in, const char *tag, struct LearnerInfo*v);
-void deallocate_LearnerInfo(struct LearnerInfo*);
 struct Id_vector {
     int32_t count;
     struct Id *data;
@@ -388,21 +350,11 @@ struct TxnHeader {
 int serialize_TxnHeader(struct oarchive *out, const char *tag, struct TxnHeader *v);
 int deserialize_TxnHeader(struct iarchive *in, const char *tag, struct TxnHeader*v);
 void deallocate_TxnHeader(struct TxnHeader*);
-struct CreateTxnV0 {
-    char * path;
-    struct buffer data;
-    struct ACL_vector acl;
-    int32_t ephemeral;
-};
-int serialize_CreateTxnV0(struct oarchive *out, const char *tag, struct CreateTxnV0 *v);
-int deserialize_CreateTxnV0(struct iarchive *in, const char *tag, struct CreateTxnV0*v);
-void deallocate_CreateTxnV0(struct CreateTxnV0*);
 struct CreateTxn {
     char * path;
     struct buffer data;
     struct ACL_vector acl;
     int32_t ephemeral;
-    int32_t parentCVersion;
 };
 int serialize_CreateTxn(struct oarchive *out, const char *tag, struct CreateTxn *v);
 int deserialize_CreateTxn(struct iarchive *in, const char *tag, struct CreateTxn*v);
@@ -421,13 +373,6 @@ struct SetDataTxn {
 int serialize_SetDataTxn(struct oarchive *out, const char *tag, struct SetDataTxn *v);
 int deserialize_SetDataTxn(struct iarchive *in, const char *tag, struct SetDataTxn*v);
 void deallocate_SetDataTxn(struct SetDataTxn*);
-struct CheckVersionTxn {
-    char * path;
-    int32_t version;
-};
-int serialize_CheckVersionTxn(struct oarchive *out, const char *tag, struct CheckVersionTxn *v);
-int deserialize_CheckVersionTxn(struct iarchive *in, const char *tag, struct CheckVersionTxn*v);
-void deallocate_CheckVersionTxn(struct CheckVersionTxn*);
 struct SetACLTxn {
     char * path;
     struct ACL_vector acl;
@@ -455,28 +400,6 @@ struct ErrorTxn {
 int serialize_ErrorTxn(struct oarchive *out, const char *tag, struct ErrorTxn *v);
 int deserialize_ErrorTxn(struct iarchive *in, const char *tag, struct ErrorTxn*v);
 void deallocate_ErrorTxn(struct ErrorTxn*);
-struct Txn {
-    int32_t type;
-    struct buffer data;
-};
-int serialize_Txn(struct oarchive *out, const char *tag, struct Txn *v);
-int deserialize_Txn(struct iarchive *in, const char *tag, struct Txn*v);
-void deallocate_Txn(struct Txn*);
-struct Txn_vector {
-    int32_t count;
-    struct Txn *data;
-
-};
-int serialize_Txn_vector(struct oarchive *out, const char *tag, struct Txn_vector *v);
-int deserialize_Txn_vector(struct iarchive *in, const char *tag, struct Txn_vector *v);
-int allocate_Txn_vector(struct Txn_vector *v, int32_t len);
-int deallocate_Txn_vector(struct Txn_vector *v);
-struct MultiTxn {
-    struct Txn_vector txns;
-};
-int serialize_MultiTxn(struct oarchive *out, const char *tag, struct MultiTxn *v);
-int deserialize_MultiTxn(struct iarchive *in, const char *tag, struct MultiTxn*v);
-void deallocate_MultiTxn(struct MultiTxn*);
 
 #ifdef __cplusplus
 }
