@@ -7,14 +7,15 @@
 /**
  * @brief an enumerator which offers encoding type of the string.
  */
-enum EncodingType {
-  UNKNOWN = 0,
-  UTF_8, // unicode
-  EUC_KR, CP949, // korean
-  EUC_JP, SJIS, // japanese
-  GB2312, BIG5, // chinese
-  ISO8859_15, // latin
-  TOTAL_ENCODING_TYPE_NO // end of charset
+enum EncodingType
+{
+    UNKNOWN = 0,
+    UTF_8, // unicode
+    EUC_KR, CP949, // korean
+    EUC_JP, SJIS, // japanese
+    GB2312, BIG5, // chinese
+    ISO8859_15, // latin
+    TOTAL_ENCODING_TYPE_NO // end of charset
 };
 
 /// a string which offers encoding type of the string.
@@ -51,7 +52,7 @@ static const UCS2Char UCS2_CHAR_LOWER2UPPER_PAGE04[272]; ///< UCS2 alphabet conv
 static const UCS2Char UCS2_CHAR_LOWER2UPPER_PAGE1e[500]; ///< UCS2 alphabet converting table from lower to upper which covers UCS2 characters from 0x1e00 to 0x1ff3.
 
 static const ConvertFunction
-			ConvertFunctionList[vector_string::TOTAL_ENCODING_TYPE_NO];
+ConvertFunctionList[vector_string::TOTAL_ENCODING_TYPE_NO];
 /**
  * @brief a static converting function which convert encoding type string into encoding type enumerator.
  *
@@ -78,21 +79,21 @@ public:
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 inline vector_string(const std::string& initString, EncodingType encodingType)
-  :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false), systemEncodingType_(UNKNOWN) // Log : 2009.07.23
+    :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false), systemEncodingType_(UNKNOWN) // Log : 2009.07.23
 {
-  assign(initString, encodingType);
+    assign(initString, encodingType);
 } // end - UString()
 
-	/**
-	 * @brief a constructor which initializes string with encoded string class.
-	 *
-	 * @param initString    a const char array to initialize UString.
-	 * @param encodingType  an enumerated type which indicates encoding type.
-	 */
+/**
+ * @brief a constructor which initializes string with encoded string class.
+ *
+ * @param initString    a const char array to initialize UString.
+ * @param encodingType  an enumerated type which indicates encoding type.
+ */
 inline vector_string(const char* initString, EncodingType encodingType)
-  :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false),systemEncodingType_(UNKNOWN) // Log : 2009.07.23
+    :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false),systemEncodingType_(UNKNOWN) // Log : 2009.07.23
 {
-  assign(initString, encodingType);
+    assign(initString, encodingType);
 } // end - UString()
 
 
@@ -109,8 +110,9 @@ public:
  * @return true     This character is a graphical character.
  * @return false    This character is not a graphical character.
  */
-inline bool isGraphChar(size_t index) const {
-  return isThisGraphChar(str_[index]);
+inline bool isGraphChar(size_t index) const
+{
+    return isThisGraphChar(str_[index]);
 } // end - isGraphChar()
 
 /**
@@ -122,11 +124,12 @@ inline bool isGraphChar(size_t index) const {
  * @return true     This character is a graphical character.
  * @return false    This character is not a graphical character.
  */
-static inline  bool isThisGraphChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_GRAPH_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline  bool isThisGraphChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_GRAPH_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisGraphChar()
 
 /**
@@ -137,9 +140,10 @@ static inline  bool isThisGraphChar(UCS2Char ucs2Char) {
  * @return true     This character is a spatial character.
  * @return false    This character is not a spatial character.
  */
-inline bool isSpaceChar(int index) const {
-  assert((size_t)index<length_);
-  return isThisSpaceChar(str_[index]);
+inline bool isSpaceChar(int index) const
+{
+    assert((size_t)index<length_);
+    return isThisSpaceChar(str_[index]);
 } // end - isSpaceChar()
 
 
@@ -151,11 +155,12 @@ inline bool isSpaceChar(int index) const {
  * @return true     This character is a spatial character.
  * @return false    This character is not a spatial character.
  */
-static inline bool isThisSpaceChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_SPACE_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisSpaceChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_SPACE_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisSpaceChar()
 
 /**
@@ -165,9 +170,10 @@ static inline bool isThisSpaceChar(UCS2Char ucs2Char) {
  * @return true     This character is a control character.
  * @return false    This character is not a control character.
  */
-inline bool isControlChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisControlChar(str_[index]);
+inline bool isControlChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisControlChar(str_[index]);
 } // end - isControlChar()
 
 /**
@@ -178,11 +184,12 @@ inline bool isControlChar(size_t index) const {
  * @return true     This character is a control character.
  * @return false    This character is not a control character.
  */
-static inline bool isThisControlChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_CNTRL_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisControlChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_CNTRL_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisControlChar()
 
 
@@ -193,9 +200,10 @@ static inline bool isThisControlChar(UCS2Char ucs2Char) {
  * @return true     This character is a punctuation mark.
  * @return false    This character is not a punctuation mark.
  */
-inline bool isPunctuationChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisPunctuationChar(str_[index]);
+inline bool isPunctuationChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisPunctuationChar(str_[index]);
 } // end - isPunctuationChar()
 
 
@@ -207,30 +215,33 @@ inline bool isPunctuationChar(size_t index) const {
  * @return true     This character is a punctuation character.
  * @return false    This character is not a punctuation character.
  */
-static inline bool isThisPunctuationChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_PUNCT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisPunctuationChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_PUNCT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisPunctuationChar()
 
 /**
  * @brief an interface to determine given character is korean character.
  */
-bool isKoreanChar(int index) const {
-  assert((size_t)index<length_);
-  return isThisKoreanChar(str_[index]);
+bool isKoreanChar(int index) const
+{
+    assert((size_t)index<length_);
+    return isThisKoreanChar(str_[index]);
 } // end - isKoreanChar()
 
-static bool isThisKoreanChar(UCS2Char ucs2Char) {
-  if ( ucs2Char < 0x1100 )
-    return false;
-  if ( ucs2Char > 0xD7AF )
-    return false;
-  if ( 0x11ff < ucs2Char && ucs2Char < 0xAC00 )
-    return false;
+static bool isThisKoreanChar(UCS2Char ucs2Char)
+{
+    if ( ucs2Char < 0x1100 )
+        return false;
+    if ( ucs2Char > 0xD7AF )
+        return false;
+    if ( 0x11ff < ucs2Char && ucs2Char < 0xAC00 )
+        return false;
 
-  return true;
+    return true;
 } // end - isThisKoreanChar()
 
 /**
@@ -240,7 +251,8 @@ static bool isThisKoreanChar(UCS2Char ucs2Char) {
  * @return true     if given character is modern compatibility java.
  * @return false    else.
  */
-bool isModernCJamo(int index) const { // CJamo = Compatibility Jamo
+bool isModernCJamo(int index) const   // CJamo = Compatibility Jamo
+{
     assert((size_t)index<length_);
     return isThisModernCJamo(str_[index]);
 } // end - isModernCJamo()
@@ -252,7 +264,8 @@ bool isModernCJamo(int index) const { // CJamo = Compatibility Jamo
  * @return true     if given character is modern compatibility java.
  * @return false    else.
  */
-static bool isThisModernCJamo(UCS2Char ucs2Char) {
+static bool isThisModernCJamo(UCS2Char ucs2Char)
+{
     if ( ucs2Char < 0x3131 )
         return false;
     if ( ucs2Char > 0x3163 )
@@ -264,7 +277,8 @@ static bool isThisModernCJamo(UCS2Char ucs2Char) {
  * @brief an interface to determine given character is korean jamo.
  * @author Dohyun Yun
  */
-bool isJamo(int index) const {
+bool isJamo(int index) const
+{
     assert((size_t)index<length_);
     return isThisJamo(str_[index]);
 } // end - isJamo()
@@ -273,7 +287,8 @@ bool isJamo(int index) const {
  * @brief a static interface to determine given character is korean jamo.
  * @author Dohyun Yun
  */
-static bool isThisJamo(UCS2Char ucs2Char) {
+static bool isThisJamo(UCS2Char ucs2Char)
+{
     if ( ucs2Char < 0x1100 || ucs2Char > 0x11FF )
         return false;
     return true;
@@ -283,7 +298,8 @@ static bool isThisJamo(UCS2Char ucs2Char) {
  * @brief an interface to determine given character is choseung of korean jamo.
  * @author Dohyun Yun
  */
-bool isChoseong(int index) const {
+bool isChoseong(int index) const
+{
     assert((size_t)index<length_);
     return isThisChoseong(str_[index]);
 } // end - isChoseong()
@@ -292,7 +308,8 @@ bool isChoseong(int index) const {
  * @brief a static interface to determine given character is choseung of korean jamo.
  * @author Dohyun Yun
  */
-static bool isThisChoseong(UCS2Char ucs2Char) {
+static bool isThisChoseong(UCS2Char ucs2Char)
+{
     if ( ucs2Char < 0x1100  || ucs2Char > 0x115F )
         return false;
     return true;
@@ -302,7 +319,8 @@ static bool isThisChoseong(UCS2Char ucs2Char) {
  * @brief an interface to determine given character is jungseung of korean jamo.
  * @author Dohyun Yun
  */
-bool isJungseong(int index) const {
+bool isJungseong(int index) const
+{
     assert((size_t)index<length_);
     return isThisJungseong(str_[index]);
 } // end - isJungseong()
@@ -311,7 +329,8 @@ bool isJungseong(int index) const {
  * @brief a static interface to determine given character is jungseung of korean jamo.
  * @author Dohyun Yun
  */
-static bool isThisJungseong(UCS2Char ucs2Char) {
+static bool isThisJungseong(UCS2Char ucs2Char)
+{
     if ( ucs2Char < 0x1161  || ucs2Char > 0x11A7 )
         return false;
     return true;
@@ -321,7 +340,8 @@ static bool isThisJungseong(UCS2Char ucs2Char) {
  * @brief an interface to determine given character is jongseung of korean jamo.
  * @author Dohyun Yun
  */
-bool isJongseong(int index) const {
+bool isJongseong(int index) const
+{
     assert((size_t)index<length_);
     return isThisJongseong(str_[index]);
 } // end - isJongseong()
@@ -330,7 +350,8 @@ bool isJongseong(int index) const {
  * @brief a static interface to determine given character is jongseung of korean jamo.
  * @author Dohyun Yun
  */
-static bool isThisJongseong(UCS2Char ucs2Char) {
+static bool isThisJongseong(UCS2Char ucs2Char)
+{
     if ( ucs2Char < 0x11A8  || ucs2Char > 0x11FF )
         return false;
     return true;
@@ -340,243 +361,274 @@ static bool isThisJongseong(UCS2Char ucs2Char) {
 /**
  * @brief an interface to determine given character is Chinese character.
  */
-bool isChineseChar(int index) const {
-  assert((size_t)index<length_);
-  return isThisChineseChar(str_[index]);
+bool isChineseChar(int index) const
+{
+    assert((size_t)index<length_);
+    return isThisChineseChar(str_[index]);
 } // end - isKoreanChar()
 
 //@author wang qian
-bool  isAllChineseChar() const{
-  int index=0;
-  while((size_t)index<length_)
-  { 
-    
-    if(!isThisChineseChar(str_[index]))
-    {return false;}
-    index++;
-  }
-   return true;
+bool isAllChineseChar() const
+{
+    int index=0;
+    while((size_t)index<length_)
+    {
+
+        if(!isThisChineseChar(str_[index]))
+        {
+            return false;
+        }
+        index++;
+    }
+    return true;
 }
 
-bool  includeChineseChar() const{
-  int index=0;
-  while((size_t)index<length_)
-  { 
-    
-    if(isThisChineseChar(str_[index]))
-    {return true;}
-    index++;
-  }
-  return false;
+bool includeChineseChar() const
+{
+    int index=0;
+    while((size_t)index<length_)
+    {
+
+        if(isThisChineseChar(str_[index]))
+        {
+            return true;
+        }
+        index++;
+    }
+    return false;
 }
 //....
-static bool isThisChineseChar(UCS2Char ucs2Char) {
-  if ((ucs2Char>=0x2E80 && ucs2Char<=0x2EF3)
-      || (ucs2Char>=0x2F00 && ucs2Char<=0x2FD5)
-      || (ucs2Char>=0x3400 && ucs2Char<=0x4DB5)
-      || (ucs2Char>=0x4E00 && ucs2Char<=0x9FC3)
-      || (ucs2Char>=0xF900 && ucs2Char<=0xFAD9))
-    return true;
+static bool isThisChineseChar(UCS2Char ucs2Char)
+{
+    if ((ucs2Char>=0x2E80 && ucs2Char<=0x2EF3)
+            || (ucs2Char>=0x2F00 && ucs2Char<=0x2FD5)
+            || (ucs2Char>=0x3400 && ucs2Char<=0x4DB5)
+            || (ucs2Char>=0x4E00 && ucs2Char<=0x9FC3)
+            || (ucs2Char>=0xF900 && ucs2Char<=0xFAD9))
+        return true;
 
-  return false;
+    return false;
 } // end - isThisChineseChar()
 
-bool  includeChar(UCS2Char ucs2Char) const{//有bug
-  int index=0;
-  while((size_t)index<length_)
-  { 
-    
-    if(isThisChineseChar(str_[index]))
-    {  if(str_[index]==ucs2Char)
-       {
-       return true;
-       }
-    }
-    index++;
-  }
-  return false;
-}
-
-bool  match(const SelfT &compareUString) const{
-  int index=0;
-  while((size_t)index<length())
-  { 
-    if(isChineseChar(index))
+bool includeChar(UCS2Char ucs2Char) const
+{
+    //有bug
+    int index=0;
+    while((size_t)index<length_)
     {
-    if(!compareUString.includeChar(str_[index]))
-    {return false;}
-    
+        if(isThisChineseChar(str_[index]))
+        {
+            if(str_[index]==ucs2Char)
+                return true;
+        }
+        index++;
     }
-    index++;
-  }
-  return true;
+    return false;
 }
 
-bool  MatchDegree(const SelfT &compareUString) const{
-  int index=0;
-    int rightNum=0,wrongNum=0;
-  while((size_t)index<length())
-  { 
-    if(isChineseChar(index))
+bool match(const SelfT &compareUString) const
+{
+    int index=0;
+    while((size_t)index<length())
     {
-    if(!compareUString.includeChar(str_[index]))
-    {wrongNum++;}
-    else
-    {rightNum++;}
+        if(isChineseChar(index))
+        {
+            if(!compareUString.includeChar(str_[index]))
+                return false;
+        }
+        index++;
     }
-    index++;
-  }
-  if(rightNum>=2*wrongNum)
-  {return true;}
-  else
-  {return false;}
-}
-
-
-bool  filter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const{//TODO
-  //int index=0;
-  if(filterList.empty()){return false;}
-  else{
- typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
- // int k=0;
-          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
-           for (iter=filterList.begin(); iter!=filterList.end(); )
-          {        
-                   if( !match((*iter).first))
-                   {iter=filterList.erase(iter);
-                   // k=j-1;
-                    
-                   }
-                   else
-                   iter++;
-          }
-                //    if( !match((*(filterList.end())).first))
-               //     {filterList.erase(iter);
-               //    }
-  //free(iter);
     return true;
-      }
-  
+}
+
+bool MatchDegree(const SelfT &compareUString) const
+{
+    int index=0;
+    int rightNum=0,wrongNum=0;
+    while((size_t)index<length())
+    {
+        if(isChineseChar(index))
+        {
+            if(!compareUString.includeChar(str_[index]))
+            {
+                wrongNum++;
+            }
+            else
+            {
+                rightNum++;
+            }
+        }
+        index++;
+    }
+    if(rightNum>=2*wrongNum)
+        return true;
+    else
+        return false;
+}
+
+
+bool filter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
+{
+    //TODO
+    //int index=0;
+    if(filterList.empty()) return false;
+    else
+    {
+        typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
+        // int k=0;
+        //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+        for (iter=filterList.begin(); iter!=filterList.end(); )
+        {
+            if( !match((*iter).first))
+            {
+                iter=filterList.erase(iter);
+                // k=j-1;
+
+            }
+            else
+                iter++;
+        }
+        //    if( !match((*(filterList.end())).first))
+        //     {filterList.erase(iter);
+        //    }
+        //free(iter);
+        return true;
+    }
 }
 
 typedef boost::tuple <SelfT,uint32_t,uint32_t> Tuple;
 
-struct myclasscmp {
-  bool operator() (const Tuple Tuple1,const Tuple Tuple2) 
-        { return Tuple1.get<2>() < Tuple2.get<2>();
-        }
+struct myclasscmp
+{
+    bool operator() (const Tuple Tuple1,const Tuple Tuple2)
+    {
+        return Tuple1.get<2>() < Tuple2.get<2>();
+    }
 
 } myobjectcmp;
 
-struct myclassequal {
-  bool  operator()(const Tuple Tuple1,const Tuple Tuple2) 
-   { return Tuple1.get<0>() == Tuple2.get<0>();
-  }
+struct myclassequal
+{
+    bool  operator()(const Tuple Tuple1,const Tuple Tuple2)
+    {
+        return Tuple1.get<0>() == Tuple2.get<0>();
+    }
 
 
 } myobjectequal;
 
 
 
-void  KeepOrderDuplicateFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
-{  
-     
-      std::vector<Tuple> list;
-      //list.resize(filterList);
-      for (uint32_t j = 0; j < filterList.size(); j++)
-      {
+void KeepOrderDuplicateFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
+{
+
+    std::vector<Tuple> list;
+    //list.resize(filterList);
+    for (uint32_t j = 0; j < filterList.size(); j++)
+    {
         Tuple tempTuple(filterList[j].first,filterList[j].second,j);
         list.push_back(tempTuple);
-      }
-                           
-      sort(list.begin(), list.end()) ;  
-      typename std::vector<Tuple>::iterator pos;
-      pos = std::unique(list.begin(), list.end(), myobjectequal);  
-      list.erase(pos, list.end());
-      filterList.clear();
-      sort(list.begin(), list.end(),myobjectcmp) ;
+    }
 
-      for (uint32_t j = 0; j < list.size(); j++)
-      {
+    sort(list.begin(), list.end()) ;
+    typename std::vector<Tuple>::iterator pos;
+    pos = std::unique(list.begin(), list.end(), myobjectequal);
+    list.erase(pos, list.end());
+    filterList.clear();
+    sort(list.begin(), list.end(),myobjectcmp) ;
+
+    for (uint32_t j = 0; j < list.size(); j++)
+    {
         std::pair<SelfT,uint32_t> tempPair(list[j].get<0>(),list[j].get<1>());
         filterList.push_back(tempPair);
-      }
-     
+    }
+
+}
+
+bool FuzzyFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const //TODO
+{
+// int index=0;
+    if(filterList.empty())
+    {
+        return false;
+    }
+    else
+    {
+        typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
+// int k=0;
+        //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+        for (iter=filterList.begin(); iter!=filterList.end(); )
+        {
+            if( !MatchDegree((*iter).first))
+            {
+                iter=filterList.erase(iter);
+                // k=j-1;
+
+            }
+            else
+                iter++;
+        }
+        //    if( !match((*(filterList.end())).first))
+        //     {filterList.erase(iter);
+        //    }
+        //free(iter);
+        return true;
+    }
+
 }
 
 
 
+bool filter(std::vector<SelfT>& filterList) const //TODO
+{
+    int index=0;
+    if(filterList.empty())
+    {
+        return false;
+    }
+    else
+    {
+        typename std::vector<SelfT>::iterator iter=filterList.begin();
+        int k=0;
+        //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+        for (iter=filterList.begin(); iter!=filterList.end(); )
+        {
+            if( !match((*iter)))
+            {
+                iter=filterList.erase(iter);
+                // k=j-1;
 
-bool  FuzzyFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const{//TODO
- // int index=0;
-  if(filterList.empty()){return false;}
-  else{
- typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
- // int k=0;
-          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
-           for (iter=filterList.begin(); iter!=filterList.end(); )
-          {        
-                   if( !MatchDegree((*iter).first))
-                   {iter=filterList.erase(iter);
-                   // k=j-1;
-                    
-                   }
-                   else
-                   iter++;
-          }
-                //    if( !match((*(filterList.end())).first))
-               //     {filterList.erase(iter);
-               //    }
-  //free(iter);
-    return true;
-      }
-  
-}
+            }
+            else
+                iter++;
+        }
+        //    if( !match((*(filterList.end())).first))
+        //     {filterList.erase(iter);
+        //    }
+        //free(iter);
+        return true;
+    }
 
-
-
-bool  filter(std::vector<SelfT>& filterList) const{//TODO
-  int index=0;
-  if(filterList.empty()){return false;}
-  else{
- typename std::vector<SelfT>::iterator iter=filterList.begin();
-  int k=0;
-          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
-           for (iter=filterList.begin(); iter!=filterList.end(); )
-          {        
-                   if( !match((*iter)))
-                   {iter=filterList.erase(iter);
-                   // k=j-1;
-                    
-                   }
-                   else
-                   iter++;
-          }
-                //    if( !match((*(filterList.end())).first))
-               //     {filterList.erase(iter);
-               //    }
-  //free(iter);
-    return true;
-      }
-  
 }
 //........
 /**
  * @brief an interface to determine given character is Chinese character.
  */
-bool isJapaneseChar(int index) const {
-  assert((size_t)index<length_);
-  return isThisJapaneseChar(str_[index]);
+bool isJapaneseChar(int index) const
+{
+    assert((size_t)index<length_);
+    return isThisJapaneseChar(str_[index]);
 } // end - isKoreanChar()
 
-static bool isThisJapaneseChar(UCS2Char ucs2Char) {
-  if ((ucs2Char>=0x3041 && ucs2Char<=0x309F)
-      || (ucs2Char>=0x30A1 && ucs2Char<=0x30FF)
-      || (ucs2Char>=0x31F0 && ucs2Char<=0x31FF)
-      || (ucs2Char>=0xFF66 && ucs2Char<=0xFF9F))
-    return true;
+static bool isThisJapaneseChar(UCS2Char ucs2Char)
+{
+    if ((ucs2Char>=0x3041 && ucs2Char<=0x309F)
+            || (ucs2Char>=0x30A1 && ucs2Char<=0x30FF)
+            || (ucs2Char>=0x31F0 && ucs2Char<=0x31FF)
+            || (ucs2Char>=0xFF66 && ucs2Char<=0xFF9F))
+        return true;
 
-  return false;
+    return false;
 } // end - isThisJapaneseChar()
 
 /**
@@ -586,8 +638,9 @@ static bool isThisJapaneseChar(UCS2Char ucs2Char) {
  * @return true     This character is a numeric character.
  * @return false    This character is not a numeric character.
  */
-inline bool isNumericChar(size_t index) const {
-  assert((size_t)index<length_);
+inline bool isNumericChar(size_t index) const
+{
+    assert((size_t)index<length_);
     return isThisNumericChar(str_[index]);
 } // end - isNumericChar()
 
@@ -599,7 +652,8 @@ inline bool isNumericChar(size_t index) const {
  * @return true     This character is a numeric character.
  * @return false    This character is not a numeric character.
  */
-static inline bool isThisNumericChar(UCS2Char ucs2Char) {
+static inline bool isThisNumericChar(UCS2Char ucs2Char)
+{
     static const UCS2Char zero('0'), nine('9');
     if ( zero <= ucs2Char && ucs2Char <= nine )
         return true;
@@ -613,8 +667,9 @@ static inline bool isThisNumericChar(UCS2Char ucs2Char) {
  * @return true     This character is a alphabet character.
  * @return false    This character is not a alphabet character.
  */
-inline bool isAlphaChar(size_t index) const {
-  assert((size_t)index<length_);
+inline bool isAlphaChar(size_t index) const
+{
+    assert((size_t)index<length_);
     return isThisAlphaChar(str_[index]);
 } // end - isAlphaChar()
 
@@ -626,7 +681,8 @@ inline bool isAlphaChar(size_t index) const {
  * @return true     This character is a alphabet character.
  * @return false    This character is not a alphabet character.
  */
-static inline bool isThisAlphaChar(UCS2Char ucs2Char) {
+static inline bool isThisAlphaChar(UCS2Char ucs2Char)
+{
     static const UCS2Char a('a'), z('z'), A('A'), Z('Z');
     if ( ( a <= ucs2Char && ucs2Char <= z ) || ( A <= ucs2Char && ucs2Char <= Z ) )
         return true;
@@ -640,9 +696,10 @@ static inline bool isThisAlphaChar(UCS2Char ucs2Char) {
  * @return true     This character is a language character.
  * @return false    This character is not a language character.
  */
-inline bool isLanguageChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisLanguageChar(str_[index]);
+inline bool isLanguageChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisLanguageChar(str_[index]);
 } // end - isLanguageChar()
 
 
@@ -654,11 +711,12 @@ inline bool isLanguageChar(size_t index) const {
  * @return true     This character is a language character.
  * @return false    This character is not a language character.
  */
-static inline bool isThisLanguageChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_LANG_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisLanguageChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_LANG_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisLanguageChar()
 
 
@@ -669,9 +727,10 @@ static inline bool isThisLanguageChar(UCS2Char ucs2Char) {
  * @return true     This character is a upper alphabet character.
  * @return false    This character is not a upper alphabet character.
  */
-inline bool isUpperChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisUpperChar(str_[index]);
+inline bool isUpperChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisUpperChar(str_[index]);
 } // end - isUpperChar()
 
 
@@ -683,11 +742,12 @@ inline bool isUpperChar(size_t index) const {
  * @return true     This character is a upper alphabet character.
  * @return false    This character is not a upper alphabet character.
  */
-static inline bool isThisUpperChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_UPPER_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisUpperChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_UPPER_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisUpperChar()
 
 
@@ -698,9 +758,10 @@ static inline bool isThisUpperChar(UCS2Char ucs2Char) {
  * @return true     This character is a lower alphabet character.
  * @return false    This character is not a lower alphabet character.
  */
-inline bool isLowerChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisLowerChar(str_[index]);
+inline bool isLowerChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisLowerChar(str_[index]);
 } // end - isLowerChar()
 
 
@@ -712,11 +773,12 @@ inline bool isLowerChar(size_t index) const {
  * @return true     This character is a lower alphabet character.
  * @return false    This character is not a lower alphabet character.
  */
-static inline bool isThisLowerChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_LOWER_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisLowerChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_LOWER_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisLowerChar()
 
 
@@ -727,9 +789,10 @@ static inline bool isThisLowerChar(UCS2Char ucs2Char) {
  * @return true     This character is a digit character.
  * @return false    This character is not a digit character.
  */
-inline bool isDigitChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisDigitChar(str_[index]);
+inline bool isDigitChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisDigitChar(str_[index]);
 } // end - isDigitChar()
 
 
@@ -741,11 +804,12 @@ inline bool isDigitChar(size_t index) const {
  * @return true     This character is a digit character.
  * @return false    This character is not a digit character.
  */
-static inline bool isThisDigitChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_DIGIT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisDigitChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_DIGIT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisDigitChar()
 
 
@@ -756,9 +820,10 @@ static inline bool isThisDigitChar(UCS2Char ucs2Char) {
  * @return true     This character is a alphabet or digit character.
  * @return false    This character is not a alphabet or digit character.
  */
-inline bool isAlnumChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisAlnumChar(str_[index]);
+inline bool isAlnumChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisAlnumChar(str_[index]);
 } // end - isAlnumChar()
 
 
@@ -770,11 +835,12 @@ inline bool isAlnumChar(size_t index) const {
  * @return true     This character is a alphabet or digit character.
  * @return false    This character is not a alphabet or digit character.
  */
-static inline bool isThisAlnumChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_ALNUM_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisAlnumChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_ALNUM_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisAlnumChar()
 
 /**
@@ -784,9 +850,10 @@ static inline bool isThisAlnumChar(UCS2Char ucs2Char) {
  * @return true     This character is a hexa-decimal character.
  * @return false    This character is not a hexa-decimal character.
  */
-inline bool isXdigitChar(size_t index) const {
-  assert((size_t)index<length_);
-  return isThisXdigitChar(str_[index]);
+inline bool isXdigitChar(size_t index) const
+{
+    assert((size_t)index<length_);
+    return isThisXdigitChar(str_[index]);
 } // end - isXdigitChar()
 
 /**
@@ -797,11 +864,12 @@ inline bool isXdigitChar(size_t index) const {
  * @return true     This character is a hexa-decimal character.
  * @return false    This character is not a hexa-decimal character.
  */
-static inline bool isThisXdigitChar(UCS2Char ucs2Char) {
-  //ucs2Char = ucs2Char>>8;
-  if (UCS2_CHAR_XDIGIT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
-    return true;
-  return false;
+static inline bool isThisXdigitChar(UCS2Char ucs2Char)
+{
+    //ucs2Char = ucs2Char>>8;
+    if (UCS2_CHAR_XDIGIT_TABLE[ int(ucs2Char/8) ] & (1 << (7 - (ucs2Char % 8))))
+        return true;
+    return false;
 } // end - isThisXdigitChar()
 
 /**
@@ -814,22 +882,23 @@ static inline bool isThisXdigitChar(UCS2Char ucs2Char) {
  * @return UCS2_ALPHA   Alphabet character.
  * @return UCS2_KOREAN  Korean character.
  */
-inline UCS2CharType charType(size_t index) const {
-  assert((size_t)index<length_);
-  UCS2Char thisChar = str_[index];//>>8;
+inline UCS2CharType charType(size_t index) const
+{
+    assert((size_t)index<length_);
+    UCS2Char thisChar = str_[index];//>>8;
 
-  if (thisChar == 0)
-    return UCS2_NULL;
-  else if (thisChar >= (UCS2Char)0x0030 && thisChar <= (UCS2Char)0x0039) // DIGIT
-    return UCS2_DIGIT;
-  else if (thisChar >= (UCS2Char)0x0041 && thisChar <= (UCS2Char)0x005A) // ALPHA-UPPER
-    return UCS2_ALPHA;
-  else if (thisChar >= (UCS2Char)0x0061 && thisChar <= (UCS2Char)0x007A) // ALPHA-LOWER
-    return UCS2_ALPHA;
-  else if (thisChar >= (UCS2Char)0xAC00 && thisChar <= (UCS2Char)0xD7A3) // KOREAN
-    return UCS2_KOREAN;
+    if (thisChar == 0)
+        return UCS2_NULL;
+    else if (thisChar >= (UCS2Char)0x0030 && thisChar <= (UCS2Char)0x0039) // DIGIT
+        return UCS2_DIGIT;
+    else if (thisChar >= (UCS2Char)0x0041 && thisChar <= (UCS2Char)0x005A) // ALPHA-UPPER
+        return UCS2_ALPHA;
+    else if (thisChar >= (UCS2Char)0x0061 && thisChar <= (UCS2Char)0x007A) // ALPHA-LOWER
+        return UCS2_ALPHA;
+    else if (thisChar >= (UCS2Char)0xAC00 && thisChar <= (UCS2Char)0xD7A3) // KOREAN
+        return UCS2_KOREAN;
 
-  return UCS2_UNDEF; // OTHERS
+    return UCS2_UNDEF; // OTHERS
 } // end - charType()
 
 /**
@@ -838,104 +907,108 @@ inline UCS2CharType charType(size_t index) const {
  * @param index     an index of UString data.
  * @return          the result value of converting.
  */
-UCS2Char toUpperChar(size_t index) {
+UCS2Char toUpperChar(size_t index)
+{
 
-  assert((size_t)index<length_);
-  UCS2Char thisChar = str_[index];//>>8;
+    assert((size_t)index<length_);
+    UCS2Char thisChar = str_[index];//>>8;
 
-  if (thisChar >= 0x0061 && thisChar <= 0x007a)
-    thisChar -= 32;
+    if (thisChar >= 0x0061 && thisChar <= 0x007a)
+        thisChar -= 32;
 
-  else if (thisChar == 0x00b5)
-    thisChar = 0x039c;
+    else if (thisChar == 0x00b5)
+        thisChar = 0x039c;
 
-  else if (thisChar >= 0x00e0 && thisChar <= 0x00ff) {
-    if (thisChar == 0x00ff)
-      thisChar = 0x0178;
-    else if (thisChar != 0x00f7)
-      thisChar -= 32;
-  }
+    else if (thisChar >= 0x00e0 && thisChar <= 0x00ff)
+    {
+        if (thisChar == 0x00ff)
+            thisChar = 0x0178;
+        else if (thisChar != 0x00f7)
+            thisChar -= 32;
+    }
 
-  else if (thisChar >= 0x0561 && thisChar <= 0x0586)
-    thisChar -= 48;
+    else if (thisChar >= 0x0561 && thisChar <= 0x0586)
+        thisChar -= 48;
 
-  else if (thisChar >= 0x2170 && thisChar <= 0x217f)
-    thisChar -= 16;
+    else if (thisChar >= 0x2170 && thisChar <= 0x217f)
+        thisChar -= 16;
 
-  else if (thisChar >= 0x24d0 && thisChar <= 0x24e9)
-    thisChar -= 26;
+    else if (thisChar >= 0x24d0 && thisChar <= 0x24e9)
+        thisChar -= 26;
 
-  else if (thisChar >= 0xff41 && thisChar <= 0xff5a)
-    thisChar -= 32;
+    else if (thisChar >= 0xff41 && thisChar <= 0xff5a)
+        thisChar -= 32;
 
-  else if (thisChar >= 0x0100 && thisChar <= 0x01ff)
-    thisChar = UCS2_CHAR_LOWER2UPPER_PAGE01[thisChar-0x0100];
+    else if (thisChar >= 0x0100 && thisChar <= 0x01ff)
+        thisChar = UCS2_CHAR_LOWER2UPPER_PAGE01[thisChar-0x0100];
 
-  else if (thisChar >= 0x0200 && thisChar <= 0x0292)
-    thisChar = UCS2_CHAR_LOWER2UPPER_PAGE02[thisChar-0x0200];
+    else if (thisChar >= 0x0200 && thisChar <= 0x0292)
+        thisChar = UCS2_CHAR_LOWER2UPPER_PAGE02[thisChar-0x0200];
 
-  else if (thisChar >= 0x0300 && thisChar <= 0x03fb)
-    thisChar = UCS2_CHAR_LOWER2UPPER_PAGE03[thisChar-0x0300];
+    else if (thisChar >= 0x0300 && thisChar <= 0x03fb)
+        thisChar = UCS2_CHAR_LOWER2UPPER_PAGE03[thisChar-0x0300];
 
-  else if (thisChar >= 0x0400 && thisChar <= 0x050f)
-    thisChar = UCS2_CHAR_LOWER2UPPER_PAGE04[thisChar-0x0400];
+    else if (thisChar >= 0x0400 && thisChar <= 0x050f)
+        thisChar = UCS2_CHAR_LOWER2UPPER_PAGE04[thisChar-0x0400];
 
-  else if (thisChar >= 0x1e00 && thisChar <= 0x1ff3)
-    thisChar = UCS2_CHAR_LOWER2UPPER_PAGE1e[thisChar-0x1e00];
+    else if (thisChar >= 0x1e00 && thisChar <= 0x1ff3)
+        thisChar = UCS2_CHAR_LOWER2UPPER_PAGE1e[thisChar-0x1e00];
 
-  //thisChar =  thisChar<<8;
+    //thisChar =  thisChar<<8;
 
-  str_[index] = thisChar;
+    str_[index] = thisChar;
 
-  return thisChar;
+    return thisChar;
 } // end - toUpperChar
 
 /**
  * @brief an interface function which changes upper alphabet string into upper one.
  */
-void toUpperString(void) {
-  for (unsigned int i = 0; i < length(); i++)
-    toUpperChar(i);
+void toUpperString(void)
+{
+    for (unsigned int i = 0; i < length(); i++)
+        toUpperChar(i);
 } // end - toLowerString()
 
 static inline UCS2Char toLowerChar( UCS2Char thisChar)
 {
-  if (thisChar >= 0x0041 && thisChar <= 0x005a)
-    thisChar += 32;
+    if (thisChar >= 0x0041 && thisChar <= 0x005a)
+        thisChar += 32;
 
-  else if (thisChar >= 0x00c0 && thisChar <= 0x00de) {
-    if (thisChar != 0x00d7)
-      thisChar +=32;
-  }
+    else if (thisChar >= 0x00c0 && thisChar <= 0x00de)
+    {
+        if (thisChar != 0x00d7)
+            thisChar +=32;
+    }
 
-  else if (thisChar >= 0x0531 && thisChar <= 0x0556)
-    thisChar += 48;
+    else if (thisChar >= 0x0531 && thisChar <= 0x0556)
+        thisChar += 48;
 
-  else if (thisChar >= 0x2160 && thisChar <= 0x216f)
-    thisChar += 16;
+    else if (thisChar >= 0x2160 && thisChar <= 0x216f)
+        thisChar += 16;
 
-  else if (thisChar >= 0x24b6 && thisChar <= 0x24cf)
-    thisChar += 26;
+    else if (thisChar >= 0x24b6 && thisChar <= 0x24cf)
+        thisChar += 26;
 
-  else if (thisChar >= 0xff21 && thisChar <= 0xff3a)
-    thisChar += 32;
+    else if (thisChar >= 0xff21 && thisChar <= 0xff3a)
+        thisChar += 32;
 
-  else if (thisChar >= 0x0100 && thisChar <= 0x0232)
-    thisChar = UCS2_CHAR_UPPER2LOWER_PAGE01[thisChar-0x0100];
+    else if (thisChar >= 0x0100 && thisChar <= 0x0232)
+        thisChar = UCS2_CHAR_UPPER2LOWER_PAGE01[thisChar-0x0100];
 
-  else if (thisChar>= 0x0300 && thisChar<= 0x03fa)
-    thisChar = UCS2_CHAR_UPPER2LOWER_PAGE03[thisChar-0x0300];
+    else if (thisChar>= 0x0300 && thisChar<= 0x03fa)
+        thisChar = UCS2_CHAR_UPPER2LOWER_PAGE03[thisChar-0x0300];
 
-  else if (thisChar>= 0x0400 && thisChar<= 0x050e)
-    thisChar = UCS2_CHAR_UPPER2LOWER_PAGE04[thisChar-0x0400];
+    else if (thisChar>= 0x0400 && thisChar<= 0x050e)
+        thisChar = UCS2_CHAR_UPPER2LOWER_PAGE04[thisChar-0x0400];
 
-  else if (thisChar >= 0x1e00 && thisChar <= 0x1ffc)
-    thisChar = UCS2_CHAR_UPPER2LOWER_PAGE1e[thisChar-0x1e00];
+    else if (thisChar >= 0x1e00 && thisChar <= 0x1ffc)
+        thisChar = UCS2_CHAR_UPPER2LOWER_PAGE1e[thisChar-0x1e00];
 
-  else if (thisChar >= 0x2100 && thisChar<= 0x212b)
-    thisChar= UCS2_CHAR_UPPER2LOWER_PAGE21[thisChar-0x2100];
+    else if (thisChar >= 0x2100 && thisChar<= 0x212b)
+        thisChar= UCS2_CHAR_UPPER2LOWER_PAGE21[thisChar-0x2100];
 
-  return thisChar;
+    return thisChar;
 }
 
 /**
@@ -944,11 +1017,12 @@ static inline UCS2Char toLowerChar( UCS2Char thisChar)
  * @param index     an index of UString data.
  * @return          the result value of converting.
  */
-UCS2Char toLowerChar(size_t index) {
+UCS2Char toLowerChar(size_t index)
+{
 
-  assert((size_t)index<length_);
-  str_[index] = vector_string::toLowerChar(str_[index]);
-  return str_[index];
+    assert((size_t)index<length_);
+    str_[index] = vector_string::toLowerChar(str_[index]);
+    return str_[index];
 
 } // end - toLowerChar()
 
@@ -957,10 +1031,11 @@ UCS2Char toLowerChar(size_t index) {
  * @return true if output string is different with input string.
  */
 static bool toLowerString(const CharT* const inputString, const size_t inputStringLength,
-    CharT* const outputBuffer, const size_t outputBufferLimit)
+                          CharT* const outputBuffer, const size_t outputBufferLimit)
 {
     bool ret = false;
-    for(size_t i = 0; i < inputStringLength && i < outputBufferLimit; i++ ){
+    for(size_t i = 0; i < inputStringLength && i < outputBufferLimit; i++ )
+    {
         outputBuffer[i] = toLowerChar( inputString[i] );
         if(outputBuffer[i] != inputString[i]) ret = true;
     }
@@ -971,9 +1046,10 @@ static bool toLowerString(const CharT* const inputString, const size_t inputStri
 /**
  * @brief an interface function which changes upper alphabet string into lower one.
  */
-void toLowerString(void) {
-  for (unsigned int i = 0; i < length(); i++)
-    toLowerChar(i);
+void toLowerString(void)
+{
+    for (unsigned int i = 0; i < length(); i++)
+        toLowerChar(i);
 } // end - toLowerString()
 
 
@@ -985,12 +1061,12 @@ void toLowerString(void) {
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 inline size_t find(const std::string& patternString,
-                  unsigned int startOffset, EncodingType encodingType) const
+                   unsigned int startOffset, EncodingType encodingType) const
 {
 
-  SelfT patternUString(patternString, encodingType);
+    SelfT patternUString(patternString, encodingType);
 
-  return find(patternUString, startOffset);
+    return find(patternUString, startOffset);
 } // end - find()
 
 /* /\** */
@@ -1018,31 +1094,31 @@ inline size_t find(const std::string& patternString,
  * @return              Reference of assigned UString.
  */
 inline SelfT& assign(const std::string& initString,
-                 EncodingType encodingType)
+                     EncodingType encodingType)
 {
-  //algo::read_from_encode(EncodingTypeString[encodingType],initString.c_str(),initString.length(), *this);
-  if (initString.length() == 0)
-  {
-    clear();
+    //algo::read_from_encode(EncodingTypeString[encodingType],initString.c_str(),initString.length(), *this);
+    if (initString.length() == 0)
+    {
+        clear();
+        return *this;
+    }
+
+    derefer();
+
+    max_size_ = initString.length()+1;
+    length_ = 0;
+    is_attached_ = false;
+
+    p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
+    str_ = (CharT*)(p_+sizeof (ReferT));
+
+    setUString(initString, encodingType);
+
+    is_attached_ = false;
+
+    clear_reference();
+
     return *this;
-  }
-
-  derefer();
-
-  max_size_ = initString.length()+1;
-  length_ = 0;
-  is_attached_ = false;
-
-  p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
-  str_ = (CharT*)(p_+sizeof (ReferT));
-
-  setUString(initString, encodingType);
-
-  is_attached_ = false;
-
-  clear_reference();
-
-  return *this;
 } // end - assign()
 
 /**
@@ -1057,27 +1133,27 @@ inline SelfT& assign(const std::string& initString,
 
 inline SelfT& assign(const char* initString, size_t len, EncodingType encodingType)
 {
-  if (len == 0)
-  {
-    clear();
+    if (len == 0)
+    {
+        clear();
+        return *this;
+    }
+
+    derefer();
+
+    max_size_ = len +1;
+    length_ = 0;
+    is_attached_ = false;
+
+    p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
+    str_ = (CharT*)(p_+sizeof (ReferT));
+
+    setUString(initString, len, encodingType);
+
+    clear_reference();
+
+    //algo::read_from_encode(EncodingTypeString[encodingType],initString, len, *this);
     return *this;
-  }
-
-  derefer();
-
-  max_size_ = len +1;
-  length_ = 0;
-  is_attached_ = false;
-
-  p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
-  str_ = (CharT*)(p_+sizeof (ReferT));
-
-  setUString(initString, len, encodingType);
-
-  clear_reference();
-
-  //algo::read_from_encode(EncodingTypeString[encodingType],initString, len, *this);
-  return *this;
 } // end - assign()
 
 /**
@@ -1091,104 +1167,109 @@ inline SelfT& assign(const char* initString, size_t len, EncodingType encodingTy
 
 inline SelfT& assign(const char* initString, EncodingType encodingType)
 {
-  size_t len = 0;//getLen((CharT*)initString);
-  while (initString[len]!='\0')
-    len++;
-  return assign(initString, len, encodingType);
+    size_t len = 0;//getLen((CharT*)initString);
+    while (initString[len]!='\0')
+        len++;
+    return assign(initString, len, encodingType);
 } // end - assign()
 
 
 
 static size_t convertString( EncodingType encodingType,
-                     const CharT* const inputString,
-                     const size_t inputStringLength,
-                     char* const outputBuffer,
-                     const size_t outputBufferLimit )
+                             const CharT* const inputString,
+                             const size_t inputStringLength,
+                             char* const outputBuffer,
+                             const size_t outputBufferLimit )
 {
-  if (inputStringLength == 0)
-    return 0;
+    if (inputStringLength == 0)
+        return 0;
 
-  // Terminate converting if encoding type is not right value.
-  if (encodingType == SelfT::UNKNOWN || encodingType
-      == SelfT::TOTAL_ENCODING_TYPE_NO) {
-    return 0;
-  } // end - if
+    // Terminate converting if encoding type is not right value.
+    if (encodingType == SelfT::UNKNOWN || encodingType
+            == SelfT::TOTAL_ENCODING_TYPE_NO)
+    {
+        return 0;
+    } // end - if
 
 //  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
 
-  size_t inputStringIndex = 0;
-  size_t inputStringLeftLength = inputStringLength;
-  size_t outputStringIndex = 0;
+    size_t inputStringIndex = 0;
+    size_t inputStringLeftLength = inputStringLength;
+    size_t outputStringIndex = 0;
 
-  size_t outputBufferSize = outputBufferLimit;
+    size_t outputBufferSize = outputBufferLimit;
 
-  unsigned int inputUCSCharacter;
+    unsigned int inputUCSCharacter;
 
-  int returnValue;
+    int returnValue;
 
-  // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
+    // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
 
-  while (outputBufferSize != 0 && inputStringLeftLength != 0) {
-    // Convert ucs2 -> ucs4
-    assert(inputStringIndex< inputStringLength);
-    returnValue = ucs2_mbtowc(&inputUCSCharacter,
-                              &inputString[inputStringIndex], inputStringLeftLength);
+    while (outputBufferSize != 0 && inputStringLeftLength != 0)
+    {
+        // Convert ucs2 -> ucs4
+        assert(inputStringIndex< inputStringLength);
+        returnValue = ucs2_mbtowc(&inputUCSCharacter,
+                                  &inputString[inputStringIndex], inputStringLeftLength);
 
-    // If there is no matched character in converting table, insert space character to the output.
-    if (returnValue < 0) {
-      outputBuffer[outputStringIndex] = 0x20;
-      outputStringIndex++;
-      outputBufferSize--;
-    } // end - if
+        // If there is no matched character in converting table, insert space character to the output.
+        if (returnValue < 0)
+        {
+            outputBuffer[outputStringIndex] = 0x20;
+            outputStringIndex++;
+            outputBufferSize--;
+        } // end - if
 
-    // If there is matched character in converting table, insert right converting character to the output.
-    else {
-      // Using converting functions offered by iconv library. It will return byte size of converting character.
-      returnValue
-        = ConvertFunctionList[encodingType].convertFromUCS(
-                                                           (unsigned char*)&outputBuffer[outputStringIndex],
-                                                           inputUCSCharacter, outputBufferSize);
-
-      // If there is no matched character in converting table, insert space character to the output.
-      switch (returnValue) {
-      case RET_ILUNI:
-        outputBuffer[outputStringIndex] = 0x20; // space character
-        outputStringIndex++;
-        outputBufferSize--;
-        break;
-
-      case RET_TOOSMALL: // If input string is shorter than output, stop converting.
-        inputStringLeftLength = 0;
-        break;
-
-      default:
-        outputStringIndex += returnValue;
-        if (outputBufferSize > (size_t)returnValue)
-          outputBufferSize -= returnValue;
+        // If there is matched character in converting table, insert right converting character to the output.
         else
-          outputBufferSize = 0;
-      } // end - switch()
+        {
+            // Using converting functions offered by iconv library. It will return byte size of converting character.
+            returnValue
+            = ConvertFunctionList[encodingType].convertFromUCS(
+                  (unsigned char*)&outputBuffer[outputStringIndex],
+                  inputUCSCharacter, outputBufferSize);
 
-    } // end - else
+            // If there is no matched character in converting table, insert space character to the output.
+            switch (returnValue)
+            {
+            case RET_ILUNI:
+                outputBuffer[outputStringIndex] = 0x20; // space character
+                outputStringIndex++;
+                outputBufferSize--;
+                break;
 
-    inputStringIndex++;
-    inputStringLeftLength--;
+            case RET_TOOSMALL: // If input string is shorter than output, stop converting.
+                inputStringLeftLength = 0;
+                break;
 
-  } // end - while()
+            default:
+                outputStringIndex += returnValue;
+                if (outputBufferSize > (size_t)returnValue)
+                    outputBufferSize -= returnValue;
+                else
+                    outputBufferSize = 0;
+            } // end - switch()
 
-  // If there's a space to insert NULL charactor, insert NULL.
-  assert(outputBufferSize > 0);
-  assert(outputStringIndex < outputBufferLimit);
-  outputBuffer[outputStringIndex] = '\0';
+        } // end - else
 
-  return outputStringIndex;
+        inputStringIndex++;
+        inputStringLeftLength--;
+
+    } // end - while()
+
+    // If there's a space to insert NULL charactor, insert NULL.
+    assert(outputBufferSize > 0);
+    assert(outputStringIndex < outputBufferLimit);
+    outputBuffer[outputStringIndex] = '\0';
+
+    return outputStringIndex;
 }
 
 size_t convertString( EncodingType encodingType,
-                     char* const outputBuffer,
-                     const size_t outputBufferLimit) const
+                      char* const outputBuffer,
+                      const size_t outputBufferLimit) const
 {
-  return convertString(encodingType, str_, length(), outputBuffer, outputBufferLimit);
+    return convertString(encodingType, str_, length(), outputBuffer, outputBufferLimit);
 }
 
 /**
@@ -1199,38 +1280,40 @@ size_t convertString( EncodingType encodingType,
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 void convertString(std::string& outputString,
-                   EncodingType encodingType) const {
-  outputString.clear();
-  if (length() == 0)
-    return;
+                   EncodingType encodingType) const
+{
+    outputString.clear();
+    if (length() == 0)
+        return;
 
-  // Terminate converting if encoding type is not right value.
-  if (encodingType == SelfT::UNKNOWN || encodingType
-      == SelfT::TOTAL_ENCODING_TYPE_NO) {
-    outputString = "";
-    return;
-  } // end - if
+    // Terminate converting if encoding type is not right value.
+    if (encodingType == SelfT::UNKNOWN || encodingType
+            == SelfT::TOTAL_ENCODING_TYPE_NO)
+    {
+        outputString = "";
+        return;
+    } // end - if
 
-  size_t outputBufferSize = 3 * length() + 1; // UTF-8 consumes a maximum of 3 bytes.
+    size_t outputBufferSize = 3 * length() + 1; // UTF-8 consumes a maximum of 3 bytes.
 
 
-  //char* outputStringBuffer = new char[outputBufferSize + 1];
-  //std::cout<<"malloc "<<outputBufferSize<<std::endl;
-  char* outputStringBuffer = (char*)HLmemory::hlmalloc(outputBufferSize+1);
-  //std::cout<<"malloced...";
+    //char* outputStringBuffer = new char[outputBufferSize + 1];
+    //std::cout<<"malloc "<<outputBufferSize<<std::endl;
+    char* outputStringBuffer = (char*)HLmemory::hlmalloc(outputBufferSize+1);
+    //std::cout<<"malloced...";
 
-  size_t length = convertString(encodingType, outputStringBuffer, outputBufferSize+1);
+    size_t length = convertString(encodingType, outputStringBuffer, outputBufferSize+1);
 
-  outputString.assign(( char*)outputStringBuffer, length);
+    outputString.assign(( char*)outputStringBuffer, length);
 
-  HLmemory::hlfree(outputStringBuffer);
+    HLmemory::hlfree(outputStringBuffer);
 
-/*   char* buf = NULL; */
-/*   size_t len = 0; */
-/*   algo::write_to_encode(EncodingTypeString[encodingType], &buf, len, *this); */
-/*   outputString.reserve(len); */
-/*   outputString.assign(buf, len); */
-/*   algo::release(buf); */
+    /*   char* buf = NULL; */
+    /*   size_t len = 0; */
+    /*   algo::write_to_encode(EncodingTypeString[encodingType], &buf, len, *this); */
+    /*   outputString.reserve(len); */
+    /*   outputString.assign(buf, len); */
+    /*   algo::release(buf); */
 } // end - convertString
 
 
@@ -1246,80 +1329,85 @@ void convertString(std::string& outputString,
  * @param outputBufferLimit the maximum length of outputBuffer, counted in CharT.
  */
 static size_t toUcs2( EncodingType encodingType,
-                    const char* const inputString, const size_t inputStringLength,
-                    CharT* const outputBuffer, const size_t outputBufferLimit)
+                      const char* const inputString, const size_t inputStringLength,
+                      CharT* const outputBuffer, const size_t outputBufferLimit)
 {
-  // Terminate converting if encoding type is not right value.
-  if (encodingType == SelfT::UNKNOWN || encodingType
-      == SelfT::TOTAL_ENCODING_TYPE_NO) {
-    return 0;
-  } // end - if
-
-  size_t inputStringIndex = 0;
-  size_t inputStringLeftLength = inputStringLength; // Assign the length
-
-  size_t outputStringIndex = 0;
-  size_t outputBufferSize = outputBufferLimit;//*sizeof(CharT);
-
-  unsigned int outputUCSCharacter;
-
-  int returnValue;
-
-  // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
-  while (outputBufferSize != 0 && inputStringLeftLength != 0) {
-
-    // Using converting functions offered by iconv library. It will return byte size of converting character.
-    assert(inputStringIndex < inputStringLength);
-    returnValue
-      = ConvertFunctionList[encodingType].convertToUCS(
-                                                       &outputUCSCharacter,
-                                                       (unsigned char*)&inputString[inputStringIndex],
-                                                       inputStringLeftLength);
-
-    // If there is no matched character in converting table, insert space character to the output.
-    if (returnValue < 0) {
-      switch (returnValue) {
-      case RET_ILSEQ:
-        outputBuffer[outputStringIndex] = (UCS2Char)0x20; // insert space character to the UCS4 String
-        inputStringLeftLength--;
-        inputStringIndex++;
-        break;
-
-      default: // Illigal return value. Stop converting.
-        inputStringLeftLength = 0;
-        break;
-      } // end - switch
-
+    // Terminate converting if encoding type is not right value.
+    if (encodingType == SelfT::UNKNOWN || encodingType
+            == SelfT::TOTAL_ENCODING_TYPE_NO)
+    {
+        return 0;
     } // end - if
 
-    // If there is matched character in converting table, insert right converting character to the output.
-    else {
-      // Move to the next position in the input string.
-      inputStringIndex += returnValue;
-      if (inputStringLeftLength > (size_t)returnValue)
-        inputStringLeftLength -= returnValue;
-      else
-        inputStringLeftLength = 0;
+    size_t inputStringIndex = 0;
+    size_t inputStringLeftLength = inputStringLength; // Assign the length
 
-      // Convert ucs4 to ucs2
-      returnValue = ucs2_wctomb(&outputBuffer[outputStringIndex],
-								outputUCSCharacter, outputBufferLimit);
+    size_t outputStringIndex = 0;
+    size_t outputBufferSize = outputBufferLimit;//*sizeof(CharT);
 
-      if (returnValue < 0)
-        outputBuffer[outputStringIndex] = (UCS2Char)0x20;
+    unsigned int outputUCSCharacter;
 
-      outputStringIndex++;
-      outputBufferSize--;
-    } // end - else
+    int returnValue;
 
-  } // end - while
+    // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
+    while (outputBufferSize != 0 && inputStringLeftLength != 0)
+    {
 
-  // If there is no characters which needs to be convert, insert NULL into the output.
-  assert(outputBufferSize > 0);
-  assert(outputStringIndex < outputBufferLimit);
-  outputBuffer[outputStringIndex] = '\0';
+        // Using converting functions offered by iconv library. It will return byte size of converting character.
+        assert(inputStringIndex < inputStringLength);
+        returnValue
+        = ConvertFunctionList[encodingType].convertToUCS(
+              &outputUCSCharacter,
+              (unsigned char*)&inputString[inputStringIndex],
+              inputStringLeftLength);
 
-  return outputStringIndex;
+        // If there is no matched character in converting table, insert space character to the output.
+        if (returnValue < 0)
+        {
+            switch (returnValue)
+            {
+            case RET_ILSEQ:
+                outputBuffer[outputStringIndex] = (UCS2Char)0x20; // insert space character to the UCS4 String
+                inputStringLeftLength--;
+                inputStringIndex++;
+                break;
+
+            default: // Illigal return value. Stop converting.
+                inputStringLeftLength = 0;
+                break;
+            } // end - switch
+
+        } // end - if
+
+        // If there is matched character in converting table, insert right converting character to the output.
+        else
+        {
+            // Move to the next position in the input string.
+            inputStringIndex += returnValue;
+            if (inputStringLeftLength > (size_t)returnValue)
+                inputStringLeftLength -= returnValue;
+            else
+                inputStringLeftLength = 0;
+
+            // Convert ucs4 to ucs2
+            returnValue = ucs2_wctomb(&outputBuffer[outputStringIndex],
+                                      outputUCSCharacter, outputBufferLimit);
+
+            if (returnValue < 0)
+                outputBuffer[outputStringIndex] = (UCS2Char)0x20;
+
+            outputStringIndex++;
+            outputBufferSize--;
+        } // end - else
+
+    } // end - while
+
+    // If there is no characters which needs to be convert, insert NULL into the output.
+    assert(outputBufferSize > 0);
+    assert(outputStringIndex < outputBufferLimit);
+    outputBuffer[outputStringIndex] = '\0';
+
+    return outputStringIndex;
 }
 
 /**
@@ -1333,8 +1421,8 @@ static size_t toUcs2( EncodingType encodingType,
 //_UString& subString(_UString<AllocatorManager_T2>& outputUString, size_t pos) const
 inline SelfT substr(SelfT& outputUString, size_t pos) const
 {
-  outputUString = substr(pos);
-  return outputUString;
+    outputUString = substr(pos);
+    return outputUString;
 } // end - substr()
 
 /**
@@ -1348,8 +1436,8 @@ inline SelfT substr(SelfT& outputUString, size_t pos) const
 //_UString& subString(_UString<AllocatorManager_T2>& outputUString, size_t pos, size_t nChar) const
 SelfT substr(SelfT& outputUString, size_t pos, size_t nChar) const
 {
-  outputUString = substr(pos, nChar);
-  return outputUString;
+    outputUString = substr(pos, nChar);
+    return outputUString;
 } // end - substr()
 
 
@@ -1362,10 +1450,11 @@ SelfT substr(SelfT& outputUString, size_t pos, size_t nChar) const
  * @param ...           a parameter list which is the value of format string.
  */
 void format(EncodingType encodingType, const char* formatString,
-            ...) {
-  va_list argumentList; // argumentList contains ...
-  va_start(argumentList, formatString);
-  formatProcess(encodingType, 1024, formatString, argumentList);
+            ...)
+{
+    va_list argumentList; // argumentList contains ...
+    va_start(argumentList, formatString);
+    formatProcess(encodingType, 1024, formatString, argumentList);
 } // end - format()
 
 
@@ -1379,11 +1468,12 @@ void format(EncodingType encodingType, const char* formatString,
  * @param ...           a parameter list which is the value of format string.
  */
 inline void format(EncodingType encodingType, int maxBufferSize,
-            const char* formatString, ...) {
-  va_list argumentList; // argumentList contains ...
-  va_start(argumentList, formatString);
-  formatProcess(encodingType, maxBufferSize, formatString,
-                argumentList);
+                   const char* formatString, ...)
+{
+    va_list argumentList; // argumentList contains ...
+    va_start(argumentList, formatString);
+    formatProcess(encodingType, maxBufferSize, formatString,
+                  argumentList);
 } // end - format()
 
 
@@ -1399,18 +1489,19 @@ private:
  * @param argumentList  a parameter list which is the value of format string.
  */
 void formatProcess(EncodingType encodingType, int maxBufferSize,
-                   const char* formatString, va_list argumentList) {
-  //char* buffer = new char[maxBufferSize + 1]; // buffer contains result of the format. + 1 is a flexible number according to the OS.
-  char* buffer = (char*)HLmemory::hlmalloc( (maxBufferSize + 1)* sizeof(char));
+                   const char* formatString, va_list argumentList)
+{
+    //char* buffer = new char[maxBufferSize + 1]; // buffer contains result of the format. + 1 is a flexible number according to the OS.
+    char* buffer = (char*)HLmemory::hlmalloc( (maxBufferSize + 1)* sizeof(char));
 
-  vsnprintf(buffer, maxBufferSize, formatString, argumentList);
+    vsnprintf(buffer, maxBufferSize, formatString, argumentList);
 
-  std::string bufferContainer; // bufferContainer is used for encoding UString.
-  bufferContainer = buffer;
+    std::string bufferContainer; // bufferContainer is used for encoding UString.
+    bufferContainer = buffer;
 
-  assign(buffer, encodingType);
-  //delete[] buffer;
-  HLmemory::hlfree(buffer);
+    assign(buffer, encodingType);
+    //delete[] buffer;
+    HLmemory::hlfree(buffer);
 } // end - formatProcess()
 
 
@@ -1424,15 +1515,16 @@ void formatProcess(EncodingType encodingType, int maxBufferSize,
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 void setUString(const std::string& inputString,
-                EncodingType encodingType) {
+                EncodingType encodingType)
+{
 
-  length_ = toUcs2(encodingType, inputString.c_str(), inputString.size(), str_, max_size_);
+    length_ = toUcs2(encodingType, inputString.c_str(), inputString.size(), str_, max_size_);
 
-  /* 2008.07.31
-   * no need to use dataString_ because Sunday support ustring directly.
-   */
-  // Set dataString_
-  //convertString(dataString_, encodingType);
+    /* 2008.07.31
+     * no need to use dataString_ because Sunday support ustring directly.
+     */
+    // Set dataString_
+    //convertString(dataString_, encodingType);
 
 } // end - setUString()
 
@@ -1446,9 +1538,10 @@ void setUString(const std::string& inputString,
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 void setUString(const char* inputString, size_t len,
-                EncodingType encodingType) {
+                EncodingType encodingType)
+{
 
-  length_ = toUcs2(encodingType, inputString, len, str_, max_size_);
+    length_ = toUcs2(encodingType, inputString, len, str_, max_size_);
 } // end - setUString()
 
 
@@ -1463,11 +1556,11 @@ public:
 void displayStringValue(EncodingType encodingType,
                         std::ostream& outputStream = std::cout) const
 {
-  //algo::display(*this, EncodingTypeString[encodingType], outputStream);
+    //algo::display(*this, EncodingTypeString[encodingType], outputStream);
 
-  std::string output;
-  convertString(output, encodingType);
-  outputStream << output;
+    std::string output;
+    convertString(output, encodingType);
+    outputStream << output;
 } // end - displayStringValue()
 
 
@@ -1478,9 +1571,9 @@ void displayStringValue(EncodingType encodingType,
  * @param outputStream  an output stream where the string message is shown. default value is cerr
  */
 inline void displayStringInfo(EncodingType encodingType,
-                       std::ostream& outputStream = std::cout) const
+                              std::ostream& outputStream = std::cout) const
 {
-  displayStringValue(encodingType, outputStream);
+    displayStringValue(encodingType, outputStream);
 } // end - displayStringInfo()
 
 /**
@@ -1499,8 +1592,9 @@ void displayHexaValue(std::ostream& outputStream = std::cout) const
  *
  * @return  the byte size of buffer. It is the total size of data area of UString.
  */
-inline size_t bufferSize() const {
-  return max_size_;
+inline size_t bufferSize() const
+{
+    return max_size_;
 } // end - bufferSize()
 
 public:
@@ -1508,23 +1602,25 @@ public:
 /// An comparison operator of UString
 inline bool operator == (const SelfT& compareString) const
 {
-  return compare(compareString)==0;
+    return compare(compareString)==0;
 } // end - operator==
 
 /// An comparison operator of UString
-inline bool operator != (const SelfT& compareString) const {
-  return compare(compareString)!=0;
+inline bool operator != (const SelfT& compareString) const
+{
+    return compare(compareString)!=0;
 } // end - operator !=
 
 /// An comparison operator of UString
 inline bool operator < (const SelfT& compareString) const
 {
-  return compare(compareString)<0;
+    return compare(compareString)<0;
 } // end - operator<
 
 /// This function returns current buffer size.
-inline unsigned int getBufferSize() {
-  return max_size_*sizeof(CharT);
+inline unsigned int getBufferSize()
+{
+    return max_size_*sizeof(CharT);
 }
 
 /// @brief This function sets buffer which is allocated from outside.
@@ -1536,82 +1632,83 @@ inline unsigned int getBufferSize() {
 /// @param buffer       UString data buffer which is filled from outside.
 //
 inline void setBuffer(size_t length, size_t bufferSize,
-               void* buffer)
+                      void* buffer)
 {
-  //std::cout<<length<<std::endl;
-  assign(length, (CharT*)buffer);
-  //std::cout<<"llllllllllll\n";
+    //std::cout<<length<<std::endl;
+    assign(length, (CharT*)buffer);
+    //std::cout<<"llllllllllll\n";
 } // end - setBuffer
 
 static typename SelfT::EncodingType convertEncodingTypeFromStringToEnum(const char* encodingTypeString)
 {
 
-  // Index variables are used for string matching.
-  int stringIndex;
-  int encodingTypeIndex;
-  char givenCharacter, encodingTypeCharacter;
-  bool isEncodingTypeFound = false;
+    // Index variables are used for string matching.
+    int stringIndex;
+    int encodingTypeIndex;
+    char givenCharacter, encodingTypeCharacter;
+    bool isEncodingTypeFound = false;
 
-  stringIndex = encodingTypeIndex = 0;
+    stringIndex = encodingTypeIndex = 0;
 
-  while(1)
-  {
-	givenCharacter = encodingTypeString[stringIndex];
+    while(1)
+    {
+        givenCharacter = encodingTypeString[stringIndex];
 
-	// to change upper charactor 2008-11-17
-	if ( givenCharacter> 96 && givenCharacter < 123 )
-      givenCharacter -= 32;
+        // to change upper charactor 2008-11-17
+        if ( givenCharacter> 96 && givenCharacter < 123 )
+            givenCharacter -= 32;
 
-	encodingTypeCharacter = SelfT::EncodingTypeString[encodingTypeIndex][stringIndex];
+        encodingTypeCharacter = SelfT::EncodingTypeString[encodingTypeIndex][stringIndex];
 
-	if (givenCharacter == 0)
-	{
-      // If given string is fully matched to the certain EncodingTypeString, set true.
-      if (encodingTypeCharacter == 0)
-		isEncodingTypeFound = true;
-      break;
-	} // end - if
+        if (givenCharacter == 0)
+        {
+            // If given string is fully matched to the certain EncodingTypeString, set true.
+            if (encodingTypeCharacter == 0)
+                isEncodingTypeFound = true;
+            break;
+        } // end - if
 
-	if ( givenCharacter == encodingTypeCharacter ) {
-      stringIndex++;
-      continue;
-	} // end - if
+        if ( givenCharacter == encodingTypeCharacter )
+        {
+            stringIndex++;
+            continue;
+        } // end - if
 
-	// Given string is not matched to this encodingTypeString. Compare it to another encodingTypeString.
-	stringIndex = 0;
-	encodingTypeIndex++;
+        // Given string is not matched to this encodingTypeString. Compare it to another encodingTypeString.
+        stringIndex = 0;
+        encodingTypeIndex++;
 
-	// Stop compare processing. It is the end of encodingTypeString list.
-	if (encodingTypeIndex == 10) // total number of encodingTypeStrings
-      break;
-  } // end - while()
+        // Stop compare processing. It is the end of encodingTypeString list.
+        if (encodingTypeIndex == 10) // total number of encodingTypeStrings
+            break;
+    } // end - while()
 
-  // If given string is fully matched, return its type value
-  if (isEncodingTypeFound)
-    return EncodingType(encodingTypeIndex);
+    // If given string is fully matched, return its type value
+    if (isEncodingTypeFound)
+        return EncodingType(encodingTypeIndex);
 
-  // If it isn't matched, return 0.
-  return UNKNOWN;
+    // If it isn't matched, return 0.
+    return UNKNOWN;
 
 } // end - convertEncodingTypeFromStr
 
 
 friend std::istream& operator >> ( std::istream& in , SelfT& ustringObj) // Log : 2009.07.23
 {
-  assert (ustringObj.systemEncodingType_ != SelfT::UNKNOWN );
-  std::string inputString;
-  in >> inputString;
-  ustringObj.assign( inputString , ustringObj.systemEncodingType_ );
+    assert (ustringObj.systemEncodingType_ != SelfT::UNKNOWN );
+    std::string inputString;
+    in >> inputString;
+    ustringObj.assign( inputString , ustringObj.systemEncodingType_ );
 
-  return in;
+    return in;
 }
 
 public:
 inline void setSystemEncodingType(EncodingType currentEncodingType)
 {
-  systemEncodingType_ = currentEncodingType;
+    systemEncodingType_ = currentEncodingType;
 } // Log : 2009.07.23
 EncodingType getSystemEncodingType(void) const
 {
-  return systemEncodingType_;
+    return systemEncodingType_;
 } // Log : 2009.07.23
