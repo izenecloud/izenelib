@@ -471,6 +471,13 @@ typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    OldUniqueIDGenerator<uint128_t, uint32_t>,
                    EmptyIDStorage<uint128_t, uint32_t> > IDManager;
 #endif
+typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
+                   izenelib::util::NullLock,
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint64_t>,
+                   HashIDGenerator<izenelib::util::UString, uint64_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint64_t>,
+                   UniqueIDGenerator<izenelib::util::UString, uint64_t>,
+                   HDBIDStorage<izenelib::util::UString, uint64_t> > AutoFillIDManager;
 
 } // end - namespace idmanager
 
