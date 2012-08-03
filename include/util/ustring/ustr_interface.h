@@ -345,6 +345,31 @@ bool isChineseChar(int index) const {
   return isThisChineseChar(str_[index]);
 } // end - isKoreanChar()
 
+//@author wang qian
+bool  isAllChineseChar() const{
+  int index=0;
+  while((size_t)index<length_)
+  { 
+    
+    if(!isThisChineseChar(str_[index]))
+    {return false;}
+    index++;
+  }
+   return true;
+}
+
+bool  includeChineseChar() const{
+  int index=0;
+  while((size_t)index<length_)
+  { 
+    
+    if(isThisChineseChar(str_[index]))
+    {return true;}
+    index++;
+  }
+  return false;
+}
+//....
 static bool isThisChineseChar(UCS2Char ucs2Char) {
   if ((ucs2Char>=0x2E80 && ucs2Char<=0x2EF3)
       || (ucs2Char>=0x2F00 && ucs2Char<=0x2FD5)
@@ -356,6 +381,186 @@ static bool isThisChineseChar(UCS2Char ucs2Char) {
   return false;
 } // end - isThisChineseChar()
 
+bool  includeChar(UCS2Char ucs2Char) const{//有bug
+  int index=0;
+  while((size_t)index<length_)
+  { 
+    
+    if(isThisChineseChar(str_[index]))
+    {  if(str_[index]==ucs2Char)
+       {
+       return true;
+       }
+    }
+    index++;
+  }
+  return false;
+}
+
+bool  match(const SelfT &compareUString) const{
+  int index=0;
+  while((size_t)index<length())
+  { 
+    if(isChineseChar(index))
+    {
+    if(!compareUString.includeChar(str_[index]))
+    {return false;}
+    
+    }
+    index++;
+  }
+  return true;
+}
+
+bool  MatchDegree(const SelfT &compareUString) const{
+  int index=0;
+    int rightNum=0,wrongNum=0;
+  while((size_t)index<length())
+  { 
+    if(isChineseChar(index))
+    {
+    if(!compareUString.includeChar(str_[index]))
+    {wrongNum++;}
+    else
+    {rightNum++;}
+    }
+    index++;
+  }
+  if(rightNum>=2*wrongNum)
+  {return true;}
+  else
+  {return false;}
+}
+
+
+bool  filter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const{//TODO
+  //int index=0;
+  if(filterList.empty()){return false;}
+  else{
+ typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
+ // int k=0;
+          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+           for (iter=filterList.begin(); iter!=filterList.end(); )
+          {        
+                   if( !match((*iter).first))
+                   {iter=filterList.erase(iter);
+                   // k=j-1;
+                    
+                   }
+                   else
+                   iter++;
+          }
+                //    if( !match((*(filterList.end())).first))
+               //     {filterList.erase(iter);
+               //    }
+  //free(iter);
+    return true;
+      }
+  
+}
+
+typedef boost::tuple <SelfT,uint32_t,uint32_t> Tuple;
+
+struct myclasscmp {
+  bool operator() (const Tuple Tuple1,const Tuple Tuple2) 
+        { return Tuple1.get<2>() < Tuple2.get<2>();
+        }
+
+} myobjectcmp;
+
+struct myclassequal {
+  bool  operator()(const Tuple Tuple1,const Tuple Tuple2) 
+   { return Tuple1.get<0>() == Tuple2.get<0>();
+  }
+
+
+} myobjectequal;
+
+
+
+void  KeepOrderDuplicateFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
+{  
+     
+      std::vector<Tuple> list;
+      //list.resize(filterList);
+      for (uint32_t j = 0; j < filterList.size(); j++)
+      {
+        Tuple tempTuple(filterList[j].first,filterList[j].second,j);
+        list.push_back(tempTuple);
+      }
+                           
+      sort(list.begin(), list.end()) ;  
+      typename std::vector<Tuple>::iterator pos;
+      pos = std::unique(list.begin(), list.end(), myobjectequal);  
+      list.erase(pos, list.end());
+      filterList.clear();
+      sort(list.begin(), list.end(),myobjectcmp) ;
+
+      for (uint32_t j = 0; j < list.size(); j++)
+      {
+        std::pair<SelfT,uint32_t> tempPair(list[j].get<0>(),list[j].get<1>());
+        filterList.push_back(tempPair);
+      }
+     
+}
+
+
+
+
+bool  FuzzyFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const{//TODO
+ // int index=0;
+  if(filterList.empty()){return false;}
+  else{
+ typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
+ // int k=0;
+          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+           for (iter=filterList.begin(); iter!=filterList.end(); )
+          {        
+                   if( !MatchDegree((*iter).first))
+                   {iter=filterList.erase(iter);
+                   // k=j-1;
+                    
+                   }
+                   else
+                   iter++;
+          }
+                //    if( !match((*(filterList.end())).first))
+               //     {filterList.erase(iter);
+               //    }
+  //free(iter);
+    return true;
+      }
+  
+}
+
+
+
+bool  filter(std::vector<SelfT>& filterList) const{//TODO
+  int index=0;
+  if(filterList.empty()){return false;}
+  else{
+ typename std::vector<SelfT>::iterator iter=filterList.begin();
+  int k=0;
+          //for (uint32_t j = 0; j < filterList.size(); j++,k++)
+           for (iter=filterList.begin(); iter!=filterList.end(); )
+          {        
+                   if( !match((*iter)))
+                   {iter=filterList.erase(iter);
+                   // k=j-1;
+                    
+                   }
+                   else
+                   iter++;
+          }
+                //    if( !match((*(filterList.end())).first))
+               //     {filterList.erase(iter);
+               //    }
+  //free(iter);
+    return true;
+      }
+  
+}
+//........
 /**
  * @brief an interface to determine given character is Chinese character.
  */
