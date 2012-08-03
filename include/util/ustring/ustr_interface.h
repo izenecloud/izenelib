@@ -498,26 +498,22 @@ bool filter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
 
 typedef boost::tuple <SelfT,uint32_t,uint32_t> Tuple;
 
-struct myclasscmp
+struct Myclasscmp
 {
-    bool operator() (const Tuple Tuple1,const Tuple Tuple2)
+    static bool Compare (const Tuple& Tuple1,const Tuple& Tuple2)
     {
-        return Tuple1.get<2>() < Tuple2.get<2>();
+        return Tuple1.template get<2>() < Tuple2.template get<2>();
     }
 
-} myobjectcmp;
+};
 
-struct myclassequal
+struct Myclassequal
 {
-    bool  operator()(const Tuple Tuple1,const Tuple Tuple2)
+    static bool Compare (const Tuple& Tuple1,const Tuple& Tuple2)
     {
-        return Tuple1.get<0>() == Tuple2.get<0>();
+        return Tuple1.template get<0>() == Tuple2.template get<0>();
     }
-
-
-} myobjectequal;
-
-
+};
 
 void KeepOrderDuplicateFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const
 {
@@ -532,14 +528,14 @@ void KeepOrderDuplicateFilter(std::vector<std::pair<SelfT,uint32_t> >& filterLis
 
     sort(list.begin(), list.end()) ;
     typename std::vector<Tuple>::iterator pos;
-    pos = std::unique(list.begin(), list.end(), myobjectequal);
+    pos = std::unique(list.begin(), list.end(), Myclassequal::Compare);
     list.erase(pos, list.end());
     filterList.clear();
-    sort(list.begin(), list.end(),myobjectcmp) ;
+    std::sort(list.begin(), list.end(),Myclasscmp::Compare) ;
 
     for (uint32_t j = 0; j < list.size(); j++)
     {
-        std::pair<SelfT,uint32_t> tempPair(list[j].get<0>(),list[j].get<1>());
+        std::pair<SelfT,uint32_t> tempPair(list[j].template get<0>(),list[j].template get<1>());
         filterList.push_back(tempPair);
     }
 
