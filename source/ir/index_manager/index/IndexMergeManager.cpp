@@ -44,7 +44,8 @@ IndexMergeManager::~IndexMergeManager()
         joinMergeThread();
     }
 
-    delete pAddMerger_;
+    if(pAddMerger_)
+        delete pAddMerger_;
 }
 
 void IndexMergeManager::run()
