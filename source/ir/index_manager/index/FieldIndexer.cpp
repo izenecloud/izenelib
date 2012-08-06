@@ -130,6 +130,7 @@ void FieldIndexer::setHitBuffer_(size_t size)
 {
     iHitsMax_ = size;
     iHitsMax_ = iHitsMax_/sizeof(TermId) ;
+    hits_.reset();
     hits_.assign(iHitsMax_);
     pHits_ = hits_;
     pHitsMax_ = hits_ + iHitsMax_;
