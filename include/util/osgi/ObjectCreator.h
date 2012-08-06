@@ -15,6 +15,8 @@
 #include "util/Logger.h"
 #include "util/LoggerFactory.h"
 
+#include <boost/thread.hpp>
+
 namespace izenelib{namespace osgi{
 
 using namespace izenelib::osgi::logging;
@@ -61,6 +63,8 @@ private:
      * creating instances of a certain type.
      */
     static std::map< std::string,BaseFactory<BaseT>* >* instanceMap;
+
+    static boost::mutex mutex;
 
     /**
      * The flag indicates whether the <code>ObjectCreator</code> instance only tries to
@@ -197,6 +201,11 @@ std::map<std::string,BaseFactory<BaseT>* >* ObjectCreator<BaseT,CreationPolicy>:
 template<
 typename BaseT,
 template <class> class CreationPolicy>
+boost::mutex ObjectCreator<BaseT,CreationPolicy>::mutex;
+
+template<
+typename BaseT,
+template <class> class CreationPolicy>
 ObjectCreator<BaseT,CreationPolicy>::ObjectCreator() : localSearch( true ), path( "" ), dllName( "" )
 {
     getLogger().log( Logger::LOG_DEBUG, "[ObjectCreator#ctor] Called" );
@@ -248,7 +257,10 @@ typename BaseT,
 template <class> class CreationPolicy>
 void ObjectCreator<BaseT,CreationPolicy>::addFactory( const std::string &key, BaseFactory<BaseT>* intantiator )
 {
+    boost::unique_lock<boost::mutex> lock(mutex);
     getLogger().log( Logger::LOG_DEBUG, "[ObjectCreator#addFactory] Called, key: '%1'", key );
+    typename std::map< std::string,BaseFactory<BaseT>* >::iterator fit = (*getInstanceMap()).find(key);
+    if(fit != getInstanceMap()->end()) delete fit->second;
     (*getInstanceMap())[key] = intantiator;
     getLogger().log( Logger::LOG_DEBUG, "[ObjectCreator#addFactory] Factory for key '%1' added.", key );
 }
