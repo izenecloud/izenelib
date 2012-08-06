@@ -66,10 +66,9 @@ public:
         status = ::leveldb::DB::Open(options, file_, &db_);
 
         if (status.ok())
-        {
             isOpened_ = true;
+        if(!db_)
             pendingDeletions_.push_back(db_);
-        }
 
         return isOpened_;
     }
