@@ -67,7 +67,7 @@ public:
 
         if (status.ok())
             isOpened_ = true;
-        if(!db_)
+        if(db_)
             pendingDeletions_.push_back(db_);
 
         return isOpened_;
