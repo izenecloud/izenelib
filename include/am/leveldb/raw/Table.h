@@ -38,13 +38,13 @@ public:
     typedef ::leveldb::DB*  raw_type_ptr;
 
     explicit Table(const std::string& file = "")
-        : db_(NULL),comp_(), isOpened_(false), file_(file)
+        : db_(NULL),comp_(), file_(file)
     {
     }
 
     ~Table()
     {
-        close(true);
+        close();
     }
 
     bool open(const std::string& file)
@@ -66,54 +66,46 @@ public:
         status = ::leveldb::DB::Open(options, file_, &db_);
 
         if (status.ok())
-            isOpened_ = true;
-        if(db_)
-            pendingDeletions_.push_back(db_);
+            return true;
 
-        return isOpened_;
+        return false;
     }
     std::string getFileName() const
     {
         return file_;
     }
-    void close(bool safeDelete=false)
+    void close()
     {
-        if (db_ && isOpened_)
+        if (db_)
         {
             flush();
+            delete db_;
             db_ = NULL;
-            isOpened_ = false;
-        }
-        if(safeDelete)
-        {
-            std::list< raw_type_ptr >::iterator delIter = pendingDeletions_.begin();
-            for(;delIter != pendingDeletions_.end();++delIter)
-                delete *delIter;
         }
     }
 
     bool isOpened() const
     {
-        return isOpened_;
+        return checkHandle_(db_);
     }
     /**
      * @deprecated
      */
     bool is_open() const
     {
-        return isOpened_;
+        return checkHandle_(db_);
     }
 
     bool flush()
     {
-        return checkHandle_(db_) && isOpened();
+        return checkHandle_(db_);
     }
 
     size_type size() const
     {
         //Not supported now, use iterator
         size_type size = 0;
-        if (checkHandle_(db_) && isOpened())
+        if (checkHandle_(db_))
         {
             ::leveldb::ReadOptions options;
             options.fill_cache = false;
@@ -138,6 +130,12 @@ public:
         return size() == 0;
     }
 
+    /*
+     * @attention:
+     * clear method will destroy the leveldb instance,
+     * be sure all DB iterators have been destroyed
+     * before calling this method
+     */
     bool clear()
     {
         if (isOpened())
@@ -161,7 +159,7 @@ public:
      */
     bool insert(const Buffer& key, const Buffer& value)
     {
-        return checkHandle_(db_) && isOpened() && (db_->Put(
+        return checkHandle_(db_) && (db_->Put(
             ::leveldb::WriteOptions(),
             ::leveldb::Slice(key.data(),key.size()),
             ::leveldb::Slice(value.data(),value.size())).ok()
@@ -211,7 +209,7 @@ public:
     }
     bool get(const Buffer& key, Buffer& value) const
     {
-        if (checkHandle_(db_) && isOpened())
+        if (checkHandle_(db_) )
         {
             ::leveldb::Status s = db_->Get(::leveldb::ReadOptions(), ::leveldb::Slice(key.data(),key.size()), &(value.strbuffer()));
             if (s.ok())
@@ -226,7 +224,7 @@ public:
 
     bool del(const Buffer& key)
     {
-        return checkHandle_(db_) && isOpened() &&
+        return checkHandle_(db_) &&
             db_->Delete(
                     ::leveldb::WriteOptions(),
                     ::leveldb::Slice(key.data(),key.size())).ok();
@@ -319,11 +317,9 @@ private:
     }
 
     ::leveldb::DB* db_;
-    std::list< raw_type_ptr > pendingDeletions_;
 
     Comp comp_;
 
-    bool isOpened_;
     std::string file_;
 };
 
