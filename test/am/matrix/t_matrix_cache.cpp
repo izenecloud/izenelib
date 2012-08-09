@@ -66,6 +66,25 @@ private:
     const RowType& gold_;
 };
 
+template<typename KeyType, typename RowType>
+class CheckResetRowFunc
+{
+public:
+    CheckResetRowFunc(KeyType goldKey, const RowType& goldRow)
+        : goldKey_(goldKey), goldRow_(goldRow)
+    {}
+
+    void operator() (KeyType key, const RowType& row)
+    {
+        BOOST_CHECK_EQUAL(key, goldKey_);
+        checkRow(row, goldRow_);
+    }
+
+private:
+    const KeyType goldKey_;
+    const RowType& goldRow_;
+};
+
 template<typename MatrixType>
 void checkMatrix()
 {
@@ -175,13 +194,13 @@ void checkMatrix()
 
     {
         BOOST_TEST_MESSAGE("check reset_dirty_flag...");
-        KeyType key;
-        SharedRowType row = matrix.reset_dirty_flag(key);
-        BOOST_CHECK_EQUAL(key, 3); // as updated
-        BOOST_CHECK_EQUAL((*row)[30], MATRIX_VALUE);
+        RowType goldRow3;
+        goldRow3[30] = MATRIX_VALUE;
 
-        row = matrix.reset_dirty_flag(key);
-        BOOST_CHECK(row == false); // as no dirty flag
+        CheckResetRowFunc<KeyType, RowType> resetFunc(3, goldRow3);
+
+        BOOST_CHECK(matrix.reset_dirty_flag(resetFunc)); // as updated
+        BOOST_CHECK(matrix.reset_dirty_flag(resetFunc) == false); // as no dirty flag
     }
 
     BOOST_TEST_MESSAGE(matrix);

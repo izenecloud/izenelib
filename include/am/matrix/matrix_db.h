@@ -39,6 +39,20 @@ class MatrixDB
     StorageType _db_storage;
     Policy _policy;
 
+    struct UpdateStorageFunc
+    {
+        StorageType& _db_storage;
+
+        UpdateStorageFunc(StorageType& db) : _db_storage(db) {}
+
+        void operator()(KeyType x, const RowType& row) const
+        {
+            _db_storage.update(x, row);
+        }
+    };
+
+    const UpdateStorageFunc _update_storage_func;
+
 public:
     typedef RowType row_type;
     typedef IteratorType iterator; // first is KeyType, second is RowType
@@ -46,6 +60,7 @@ public:
     MatrixDB(size_t size, const std::string& path)
         : _max_cache_elem(size / CacheType::ELEM_SIZE)
         , _db_storage(path)
+        , _update_storage_func(_db_storage)
     {
         _db_storage.open();
     }
@@ -216,12 +231,7 @@ private:
 
     void _dump()
     {
-        KeyType key;
-        boost::shared_ptr<RowType> row;
-        while (row = _cache.reset_dirty_flag(key))
-        {
-            _db_storage.update(key, *row);
-        }
+        while (_cache.reset_dirty_flag(_update_storage_func)) ;
     }
 };
 
