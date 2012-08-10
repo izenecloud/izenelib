@@ -144,7 +144,7 @@ public:
      * @param func the function @c func(const RowType&) would be called with the row as argument
      */
     template <class Func>
-    void read_row_with_func(KeyType x, Func& func)
+    void read_row_with_func(KeyType x, Func func)
     {
         if (! _cache.read_with_func(x, func))
         {
@@ -165,7 +165,7 @@ public:
      * @param func the function @c func(RowType&) would be called with the row as argument
      */
     template <class Func>
-    void update_row_with_func(KeyType x, Func& func)
+    void update_row_with_func(KeyType x, Func func)
     {
         _evict();
         if (! _cache.update_with_func(x, func))

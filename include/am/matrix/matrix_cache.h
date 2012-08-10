@@ -139,7 +139,7 @@ public:
      * @return true for success, false for @p key is not found
      */
     template <typename Func>
-    bool read_with_func(const key_type& key, Func& func) const
+    bool read_with_func(const key_type& key, Func func) const
     {
         ScopedReadLock lock(lock_);
 
@@ -158,7 +158,7 @@ public:
      * @return true for success, false for @p key is not found
      */
     template <typename Func>
-    bool update_with_func(const key_type& key, Func& func)
+    bool update_with_func(const key_type& key, Func func)
     {
         ScopedWriteLock lock(lock_);
 
@@ -215,7 +215,7 @@ public:
      *         false for no flag is dirty.
      */
     template <typename Func>
-    bool reset_dirty_flag(Func& func)
+    bool reset_dirty_flag(Func func)
     {
         ScopedWriteLock lock(lock_);
 
