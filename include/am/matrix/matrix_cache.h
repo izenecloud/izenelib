@@ -139,7 +139,7 @@ public:
      * @return true for success, false for @p key is not found
      */
     template <typename Func>
-    bool read_with_func(const key_type& key, Func& func) const
+    bool read_with_func(const key_type& key, Func func) const
     {
         ScopedReadLock lock(lock_);
 
@@ -158,7 +158,7 @@ public:
      * @return true for success, false for @p key is not found
      */
     template <typename Func>
-    bool update_with_func(const key_type& key, Func& func)
+    bool update_with_func(const key_type& key, Func func)
     {
         ScopedWriteLock lock(lock_);
 
@@ -209,28 +209,30 @@ public:
 
     /**
      * find a row whose flag is dirty, and reset its flag to not dirty.
-     * @param[out] key the row whose flag is reset
-     * @return the row instance whose flag is reset,
-     *         if no flag is dirty, the return value would hold @c NULL.
+     * @param func the function @c func(key, const RowType&) would be called
+     *             with the key and row whose flag is reset
+     * @return true for one row's dirty flag is reset,
+     *         false for no flag is dirty.
      */
-    boost::shared_ptr<RowType> reset_dirty_flag(key_type& key)
+    template <typename Func>
+    bool reset_dirty_flag(Func func)
     {
         ScopedWriteLock lock(lock_);
 
-        boost::shared_ptr<RowType> row;
-        typename DirtyFlags::iterator it = dirtyFlags_.begin();
-        if (it != dirtyFlags_.end())
+        typename DirtyFlags::iterator flagIt = dirtyFlags_.begin();
+        if (flagIt == dirtyFlags_.end())
+            return false;
+
+        const key_type key = *flagIt;
+        const_iterator rowIt = container_.find(key);
+        if (rowIt != container_.end())
         {
-            key = *it;
-            const_iterator rowIt = container_.find(key);
-            if (rowIt != container_.end())
-            {
-                row = rowIt->second;
-            }
-            dirtyFlags_.erase(it);
+            const RowType& crow(*rowIt->second);
+            func(key, crow);
         }
 
-        return row;
+        dirtyFlags_.erase(flagIt);
+        return true;
     }
 
     void clear()
