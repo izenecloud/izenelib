@@ -23,6 +23,10 @@
 #include <cassert>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -503,4 +507,7 @@ void RBTree::checkNode(RBNode *n)
     }
 }
 
-} // namespace
+}
+}
+
+NS_IZENELIB_AM_END

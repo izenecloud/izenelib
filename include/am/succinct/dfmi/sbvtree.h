@@ -77,6 +77,11 @@
 #define RANK 0
 #define POSITIONS 1
 
+
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -296,6 +301,9 @@ protected:
     void deleteLeaf(SBVNode *leaf);
 };
 
-} // namespace
+}
+}
+
+NS_IZENELIB_AM_END
 
 #endif

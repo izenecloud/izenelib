@@ -24,6 +24,10 @@
 #include "utils.h"
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -410,5 +414,8 @@ bool LCP<CharT>::updateNextLCPValues(size_t pos, size_t previous_pos, int varian
 }
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

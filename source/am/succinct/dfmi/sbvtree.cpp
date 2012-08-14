@@ -22,6 +22,10 @@
 #include <cstdlib>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -1164,4 +1168,7 @@ void callUpdateCountersOnPathToRoot(RBNode *n, RBTree *T)
     ((SBVTree *)T)->updateCountersOnPathToRoot((SBVNode *)n);
 }
 
-} // namespace
+}
+}
+
+NS_IZENELIB_AM_END

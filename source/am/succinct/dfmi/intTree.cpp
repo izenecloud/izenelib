@@ -20,6 +20,10 @@
 #include <am/succinct/dfmi/intTree.h>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -42,3 +46,6 @@ void IntTree::decreaseElement(size_t i, size_t dec)
 }
 
 }
+}
+
+NS_IZENELIB_AM_END

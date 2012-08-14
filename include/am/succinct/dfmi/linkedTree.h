@@ -26,6 +26,10 @@
 #include "customTree.h"
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -33,5 +37,8 @@ class LinkedNode: public CustomNode<void *> {};
 class LinkedTree: public CustomTree<void *> {};
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

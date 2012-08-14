@@ -23,9 +23,13 @@
 #ifndef DFMI_LPERMUTATION_H
 #define DFMI_LPERMUTATION_H
 
-#include "types.h"
+#include <types.h>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -90,5 +94,8 @@ public:
 };
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

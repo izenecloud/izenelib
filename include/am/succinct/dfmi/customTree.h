@@ -26,6 +26,10 @@
 #include <cstdlib>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -363,5 +367,8 @@ public:
 };
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

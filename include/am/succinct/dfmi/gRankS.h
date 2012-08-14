@@ -37,6 +37,10 @@
 #include <cstring>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -542,5 +546,8 @@ struct greater<dfmi::WaveletNode<CharT> *>
 };
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

@@ -23,9 +23,13 @@
 #ifndef DFMI_RB_TREE_H
 #define DFMI_RB_TREE_H
 
-#include "types.h"
+#include <types.h>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -133,6 +137,9 @@ public:
     RBNode *nil;
 };
 
-} // namespace
+}
+}
+
+NS_IZENELIB_AM_END
 
 #endif

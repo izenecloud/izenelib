@@ -35,6 +35,11 @@
 
 #include <iostream>
 
+
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -353,5 +358,8 @@ void DSASampling<CharT>::deleteSample(uint64_t pos)
 }
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 #endif

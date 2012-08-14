@@ -24,6 +24,10 @@
 #include <am/succinct/dfmi/linkedTree.h>
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -105,3 +109,6 @@ int LPermutation::update(uint64_t i, uint64_t j)
 }
 
 }
+}
+
+NS_IZENELIB_AM_END

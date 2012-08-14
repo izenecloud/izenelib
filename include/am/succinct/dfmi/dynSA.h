@@ -60,6 +60,10 @@
 #endif
 
 
+NS_IZENELIB_AM_BEGIN
+
+namespace succinct
+{
 namespace dfmi
 {
 
@@ -962,6 +966,9 @@ CharT *DynSA<CharT>::retrieveTextFactor(size_t pos, uint64_t length)
     return chars;
 }
 
-} //namespace
+}
+}
+
+NS_IZENELIB_AM_END
 
 #endif
