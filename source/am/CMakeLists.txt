@@ -35,4 +35,3 @@ MACRO_CHECK_SHOULD_BUILD(filemapper)
 IF(filemapper_SHOULD_BUILD)
   MACRO_ADD_LIBRARY(filemapper SRCS filemapper/persist.cpp)
 ENDIF(filemapper_SHOULD_BUILD)
-
