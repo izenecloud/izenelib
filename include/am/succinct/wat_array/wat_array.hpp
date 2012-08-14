@@ -20,12 +20,13 @@
 #ifndef WATARRAY_WATARRAY_HPP_
 #define WATARRAY_WATARRAY_HPP_
 
+#include "bit_array.hpp"
+
 #include <vector>
 #include <queue>
 #include <stdint.h>
 #include <iostream>
 #include <cassert>
-#include "bit_array.hpp"
 
 
 namespace wat_array
@@ -52,7 +53,6 @@ struct ListResult
     }
 };
 
-
 class WatArray
 {
 public:
@@ -72,7 +72,7 @@ public:
      */
     void Init(const std::vector<uint64_t>& array);
 
-    void Init(const BitArray& ba, uint64_t width, uint64_t length);
+    void Insert(uint64_t c, uint64_t pos);
 
     /**
      * Clear and release the resouces
@@ -259,7 +259,9 @@ private:
         QueryOnNode(uint64_t beg_node, uint64_t end_node, uint64_t beg_pos, uint64_t end_pos,
                     uint64_t depth, uint64_t prefix_char) :
             beg_node(beg_node), end_node(end_node), beg_pos(beg_pos), end_pos(end_pos),
-            depth(depth), prefix_char(prefix_char) {}
+            depth(depth), prefix_char(prefix_char)
+        {
+        }
         uint64_t beg_node;
         uint64_t end_node;
         uint64_t beg_pos;
@@ -286,7 +288,7 @@ private:
     template <class Comparator>
     void ListRange(uint64_t min_c,   uint64_t max_c,
                    uint64_t beg_pos, uint64_t end_pos,
-                   uint64_t num, std::vector<ListResult>& res) const
+                   uint64_t num,     std::vector<ListResult>& res) const
     {
         res.clear();
         if (end_pos > length_ || beg_pos >= end_pos) return;
@@ -326,9 +328,6 @@ private:
     uint64_t length_;
 };
 
-
-
 }
-
 
 #endif // WASEQ_WASEQ_HPP_

@@ -17,9 +17,10 @@
  *      software without specific prior written permission.
  */
 
+#include <am/succinct/wat_array/wat_array.hpp>
+
 #include <queue>
 #include <algorithm>
-#include <am/succinct/wat_array/wat_array.hpp>
 
 using namespace std;
 
@@ -54,6 +55,12 @@ void WatArray::Init(const vector<uint64_t>& array)
     SetOccs(array);
 }
 
+void WatArray::Insert(uint64_t c, uint64_t pos)
+{
+    alphabet_num_ = max(alphabet_num_, c + 1);
+    length_       = max(length_, pos);
+}
+
 uint64_t WatArray::Lookup(uint64_t pos) const
 {
     if (pos >= length_) return NOTFOUND;
@@ -74,7 +81,7 @@ uint64_t WatArray::Lookup(uint64_t pos) const
         }
         else
         {
-            pos = ba.Rank(0, st+ pos) - ba.Rank(0, st);
+            pos = ba.Rank(0, st + pos) - ba.Rank(0, st);
             en = boundary;
         }
 
@@ -152,7 +159,6 @@ void WatArray::RankAll(uint64_t c, uint64_t pos,
     rank = pos - beg_node;
 }
 
-
 uint64_t WatArray::Select(uint64_t c, uint64_t rank) const
 {
     if (c >= alphabet_num_)
@@ -166,7 +172,7 @@ uint64_t WatArray::Select(uint64_t c, uint64_t rank) const
 
     for (size_t i = 0; i < bit_arrays_.size(); ++i)
     {
-        uint64_t lower_c = c & ~((1LLU << (i+1)) - 1);
+        uint64_t lower_c = c & ~((1LLU << (i + 1)) - 1);
         uint64_t beg_node = occs_.Select(1, lower_c  + 1) - lower_c;
         const BitArray& ba = bit_arrays_[alphabet_bit_num_ - i - 1];
         uint64_t bit = GetLSB(c, i);
@@ -240,13 +246,16 @@ void WatArray::QuantileRange(uint64_t begin_pos, uint64_t end_pos, uint64_t k, u
     }
 
     uint64_t rank = begin_pos - beg_node;
-    pos = Select(val, rank+1);
+    pos = Select(val, rank + 1);
 }
 
 class WatArray::ListModeComparator
 {
 public:
-    ListModeComparator() {}
+    ListModeComparator()
+    {
+    }
+
     bool operator() (const QueryOnNode& lhs,
                      const QueryOnNode& rhs) const
     {
@@ -268,7 +277,10 @@ public:
 class WatArray::ListMinComparator
 {
 public:
-    ListMinComparator() {}
+    ListMinComparator()
+    {
+    }
+
     bool operator() (const QueryOnNode& lhs,
                      const QueryOnNode& rhs) const
     {
@@ -281,7 +293,10 @@ public:
 class WatArray::ListMaxComparator
 {
 public:
-    ListMaxComparator() {}
+    ListMaxComparator()
+    {
+    }
+
     bool operator() (const QueryOnNode& lhs,
                      const QueryOnNode& rhs) const
     {
@@ -290,9 +305,6 @@ public:
         else return lhs.beg_node < rhs.beg_node;
     }
 };
-
-
-
 
 void WatArray::ListModeRange(uint64_t min_c, uint64_t max_c, uint64_t beg_pos, uint64_t end_pos,
                              uint64_t num, vector<ListResult>& res) const
@@ -315,7 +327,7 @@ void WatArray::ListMaxRange(uint64_t min_c, uint64_t max_c, uint64_t beg_pos, ui
 bool WatArray::CheckPrefix(uint64_t prefix, uint64_t depth, uint64_t min_c, uint64_t max_c) const
 {
     if (PrefixCode(min_c,   depth, alphabet_bit_num_) <= prefix &&
-            PrefixCode(max_c-1, depth, alphabet_bit_num_) >= prefix) return true;
+            PrefixCode(max_c - 1, depth, alphabet_bit_num_) >= prefix) return true;
     else return false;
 }
 
@@ -335,26 +347,26 @@ void WatArray::ExpandNode(uint64_t min_c, uint64_t max_c,
     if (end_zero - beg_zero > 0)  // child for zero
     {
         uint64_t next_prefix = qon.prefix_char << 1;
-        if (CheckPrefix(next_prefix, qon.depth+1, min_c, max_c))
+        if (CheckPrefix(next_prefix, qon.depth + 1, min_c, max_c))
         {
             next.push_back(QueryOnNode(qon.beg_node,
                                        boundary,
                                        qon.beg_node + beg_zero - beg_node_zero,
                                        qon.beg_node + end_zero - beg_node_zero,
-                                       qon.depth+1,
+                                       qon.depth + 1,
                                        next_prefix));
         }
     }
     if (end_one - beg_one > 0)  // child for one
     {
         uint64_t next_prefix = (qon.prefix_char << 1) + 1;
-        if (CheckPrefix(next_prefix, qon.depth+1, min_c, max_c))
+        if (CheckPrefix(next_prefix, qon.depth + 1, min_c, max_c))
         {
             next.push_back(QueryOnNode(boundary,
                                        qon.end_node,
                                        boundary + beg_one - beg_node_one,
                                        boundary + end_one - beg_node_one,
-                                       qon.depth+1,
+                                       qon.depth + 1,
                                        next_prefix));
         }
     }
@@ -363,13 +375,13 @@ void WatArray::ExpandNode(uint64_t min_c, uint64_t max_c,
 uint64_t WatArray::Freq(uint64_t c) const
 {
     if (c >= alphabet_num_) return NOTFOUND;
-    return occs_.Select(1, c+2) - occs_.Select(1, c+1) - 1;
+    return occs_.Select(1, c + 2) - occs_.Select(1, c + 1) - 1;
 }
 
 uint64_t WatArray::FreqSum(uint64_t min_c, uint64_t max_c) const
 {
     if (max_c > alphabet_num_ || min_c > max_c ) return NOTFOUND;
-    return occs_.Select(1, max_c+1) - occs_.Select(1, min_c+1) - (max_c - min_c);
+    return occs_.Select(1, max_c + 1) - occs_.Select(1, min_c + 1) - (max_c - min_c);
 }
 
 uint64_t WatArray::alphabet_num() const
@@ -389,7 +401,7 @@ uint64_t WatArray::GetAlphabetNum(const std::vector<uint64_t>& array) const
     {
         if (array[i] >= alphabet_num)
         {
-            alphabet_num = array[i]+1;
+            alphabet_num = array[i] + 1;
         }
     }
     return alphabet_num;
@@ -398,7 +410,7 @@ uint64_t WatArray::GetAlphabetNum(const std::vector<uint64_t>& array) const
 uint64_t WatArray::Log2(uint64_t x) const
 {
     if (x == 0) return 0;
-    x--;
+    --x;
     uint64_t bit_num = 0;
     while (x >> bit_num)
     {
@@ -452,7 +464,7 @@ void WatArray::SetOccs(const vector<uint64_t>& array)
     vector<uint64_t> counts(alphabet_num_);
     for (size_t i = 0; i < array.size(); ++i)
     {
-        counts[array[i]]++;
+        ++counts[array[i]];
     }
 
     occs_.Init(array.size() + alphabet_num_ + 1);

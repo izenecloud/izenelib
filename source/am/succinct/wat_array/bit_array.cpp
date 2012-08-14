@@ -17,8 +17,9 @@
  *      software without specific prior written permission.
  */
 
-#include <cassert>
 #include <am/succinct/wat_array/bit_array.hpp>
+
+#include <cassert>
 
 namespace wat_array
 {
@@ -48,7 +49,7 @@ uint64_t BitArray::one_num() const
 
 void BitArray::Init(uint64_t length)
 {
-    length_    = length;
+    length_  = length;
     one_num_ = 0;
     uint64_t block_num = (length + BLOCK_BITNUM - 1) / BLOCK_BITNUM;
     bit_blocks_.resize(block_num);
@@ -71,7 +72,7 @@ void BitArray::Build()
     {
         if ((i % TABLE_INTERVAL) == 0)
         {
-            rank_tables_[i/TABLE_INTERVAL] = one_num_;
+            rank_tables_[i / TABLE_INTERVAL] = one_num_;
         }
         one_num_ += PopCount(bit_blocks_[i]);
     }
@@ -103,7 +104,7 @@ uint64_t BitArray::Select(uint64_t bit, uint64_t rank) const
     }
 
     uint64_t block_pos = SelectOutBlock(bit, rank);
-    uint64_t block = (bit) ? bit_blocks_[block_pos] : ~bit_blocks_[block_pos];
+    uint64_t block = bit ? bit_blocks_[block_pos] : ~bit_blocks_[block_pos];
     return block_pos * BLOCK_BITNUM + SelectInBlock(block, rank);
 }
 
@@ -118,7 +119,7 @@ uint64_t BitArray::SelectOutBlock(uint64_t bit, uint64_t& rank) const
         uint64_t length = BLOCK_BITNUM * TABLE_INTERVAL * mid;
         if (GetBitNum(rank_tables_[mid], length, bit) < rank)
         {
-            left = mid+1;
+            left = mid + 1;
         }
         else
         {
@@ -126,16 +127,14 @@ uint64_t BitArray::SelectOutBlock(uint64_t bit, uint64_t& rank) const
         }
     }
 
-    uint64_t table_ind   = (left != 0) ? left - 1: 0;
-    uint64_t block_pos   = table_ind * TABLE_INTERVAL;
-    rank -= GetBitNum(rank_tables_[table_ind],
-                      block_pos * BLOCK_BITNUM,
-                      bit);
+    uint64_t table_ind = (left != 0) ? left - 1: 0;
+    uint64_t block_pos = table_ind * TABLE_INTERVAL;
+    rank -= GetBitNum(rank_tables_[table_ind], block_pos * BLOCK_BITNUM, bit);
 
     // sequential search over blocks
-    for ( ; block_pos < bit_blocks_.size(); ++block_pos)
+    for (; block_pos < bit_blocks_.size(); ++block_pos)
     {
-        uint64_t rank_next= GetBitNum(PopCount(bit_blocks_[block_pos]), BLOCK_BITNUM, bit);
+        uint64_t rank_next = GetBitNum(PopCount(bit_blocks_[block_pos]), BLOCK_BITNUM, bit);
         if (rank <= rank_next)
         {
             break;
@@ -147,7 +146,7 @@ uint64_t BitArray::SelectOutBlock(uint64_t bit, uint64_t& rank) const
 
 uint64_t BitArray::SelectInBlock(uint64_t x, uint64_t rank)
 {
-    uint64_t x1 = x - ((x & 0xAAAAAAAAAAAAAAAALLU) >> 1);
+    uint64_t x1 = x - ((x >> 1) & 0x5555555555555555LLU);
     uint64_t x2 = (x1 & 0x3333333333333333LLU) + ((x1 >> 2) & 0x3333333333333333LLU);
     uint64_t x3 = (x2 + (x2 >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
 
@@ -188,7 +187,6 @@ uint64_t BitArray::Lookup(uint64_t pos) const
     return (bit_blocks_[pos / BLOCK_BITNUM] >> (pos % BLOCK_BITNUM)) & 1LLU;
 }
 
-
 uint64_t BitArray::RankOne(uint64_t pos) const
 {
     uint64_t block_ind = pos / BLOCK_BITNUM;
@@ -204,19 +202,12 @@ uint64_t BitArray::RankOne(uint64_t pos) const
     return rank;
 }
 
-
-
 uint64_t BitArray::PopCount(uint64_t x)
 {
-    x = (x & 0x5555555555555555ULL) +
-        ((x >> 1) & 0x5555555555555555ULL);
-    x = (x & 0x3333333333333333ULL) +
-        ((x >> 2) & 0x3333333333333333ULL);
-    x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0fULL;
-    x = x + (x >>  8);
-    x = x + (x >> 16);
-    x = x + (x >> 32);
-    return x & 0x7FLLU;
+    x -= (x >> 1) & 0x5555555555555555ULL;
+    x = (x & 0x3333333333333333ULL) + ((x >> 2) & 0x3333333333333333ULL);
+    x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+    return (x * 0x0101010101010101ULL) >> 56;
 }
 
 uint64_t BitArray::PopCountMask(uint64_t x, uint64_t offset)
@@ -258,6 +249,5 @@ void BitArray::Load(std::istream& is)
     is.read((char*)(&bit_blocks_[0]), sizeof(bit_blocks_[0]) * bit_blocks_.size());
     Build();
 }
-
 
 }
