@@ -16,6 +16,8 @@ QueryNormalize::~QueryNormalize()
 
 bool QueryNormalize::query_Normalize(string &str)
 {
+    if(count_ == 0)
+	return false;
     stanrd_raw(str);
     if(str.length() < 3)
         return false;
@@ -76,14 +78,20 @@ bool QueryNormalize::load(string nameFile)
     const char* path = filePath_.c_str();
     in.open(path, ios::in);
     string strline;
-    while(!in.eof())
+    if(in.good())
     {
-        getline(in, strline);
-        if(strline[0] != '#')
+	while(!in.eof())
         {
-            if(!build(strline));
-               // cout<<"wrong at:"<<strline<<endl;
+            getline(in, strline);
+            if(strline[0] != '#')
+            {
+                 if(!build(strline));
+            }
         }
+    }
+    else
+    {
+        return false;
     }
     in.close();
     buildkeystring();
