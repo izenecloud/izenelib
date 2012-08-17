@@ -134,10 +134,11 @@ private:
 
     inline static uint64_t pop_count(uint64_t x)
     {
-        x = x - ((x & 0xAAAAAAAAAAAAAAAALLU) >> 1);
-        x = (x & 0x3333333333333333LLU) + ((x >> 2) & 0x3333333333333333LLU);
-        x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
-        return x * 0x0101010101010101LLU >> 56;
+//      x = x - ((x & 0xAAAAAAAAAAAAAAAALLU) >> 1);
+//      x = (x & 0x3333333333333333LLU) + ((x >> 2) & 0x3333333333333333LLU);
+//      x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
+//      return x * 0x0101010101010101LLU >> 56;
+        return __builtin_popcountl(x);
     }
 
     std::vector<uint64_t> bits_;    /// bit array
