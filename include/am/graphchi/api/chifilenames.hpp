@@ -96,19 +96,6 @@ namespace graphchi {
         return ss.str();
     }
     
-    /**
-      * Configuration file name
-      */
-    static std::string filename_config();
-    static std::string filename_config() {
-        char * chi_root = getenv("GRAPHCHI_ROOT");
-        if (chi_root != NULL) {
-            return std::string(chi_root) + "/conf/graphchi.cnf";
-        } else {
-            return "conf/graphchi.cnf";
-        }
-    }
-    
     static bool shard_file_exists(std::string sname);
     static bool shard_file_exists(std::string sname) {
         int tryf = open(sname.c_str(), O_RDONLY);

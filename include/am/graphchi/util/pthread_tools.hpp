@@ -14,12 +14,10 @@
 #include <cassert>
 #include <list>
 #include <iostream> 
+#include <types.h>
 
 #undef _POSIX_SPIN_LOCKS
 #define _POSIX_SPIN_LOCKS -1
-
-
-
 
 /**
  * \file pthread_tools.hpp A collection of utilities for threading
@@ -40,23 +38,23 @@ namespace graphchi {
         mutable pthread_mutex_t m_mut;
     public:
         mutex() {
-            pthread_mutex_init(&m_mut, NULL);
-            //assert(!error);
+            int error = pthread_mutex_init(&m_mut, NULL);
+            IASSERT(!error);
         }
         inline void lock() const {
-            pthread_mutex_lock( &m_mut  );
-            //assert(!error);
+            int error = pthread_mutex_lock( &m_mut  );
+            IASSERT(!error);
         }
         inline void unlock() const {
-            pthread_mutex_unlock( &m_mut );
-            //assert(!error);
+            int error = pthread_mutex_unlock( &m_mut );
+            IASSERT(!error);;
         }
         inline bool try_lock() const {
             return pthread_mutex_trylock( &m_mut ) == 0;
         }
         ~mutex(){
-            pthread_mutex_destroy( &m_mut );
-            //assert(!error);
+            int error = pthread_mutex_destroy( &m_mut );
+            IASSERT(!error);
         }
         friend class conditional;
     }; // End of Mutex
@@ -79,24 +77,24 @@ namespace graphchi {
         mutable pthread_spinlock_t m_spin;
     public:
         spinlock () {
-            pthread_spin_init(&m_spin, PTHREAD_PROCESS_PRIVATE);
-            //assert(!error);
+            int error = pthread_spin_init(&m_spin, PTHREAD_PROCESS_PRIVATE);
+            IASSERT(!error);
         }
         
         inline void lock() const { 
-            pthread_spin_lock( &m_spin  );
-            //assert(!error);
+            int error = pthread_spin_lock( &m_spin  );
+            IASSERT(!error);
         }
         inline void unlock() const {
-            pthread_spin_unlock( &m_spin );
-            //assert(!error);
+            int error = pthread_spin_unlock( &m_spin );
+            IASSERT(!error);
         }
         inline bool try_lock() const {
             return pthread_spin_trylock( &m_spin ) == 0;
         }
         ~spinlock(){
-            pthread_spin_destroy( &m_spin );
-            //assert(!error);
+            int error = pthread_spin_destroy( &m_spin );
+            IASSERT(!error);
         }
         friend class conditional;
     }; // End of spinlock
@@ -117,12 +115,12 @@ namespace graphchi {
         mutable pthread_cond_t  m_cond;
     public:
         conditional() {
-            pthread_cond_init(&m_cond, NULL);
-            //assert(!error);
+            int error = pthread_cond_init(&m_cond, NULL);
+            IASSERT(!error);
         }
         inline void wait(const mutex& mut) const {
-            pthread_cond_wait(&m_cond, &mut.m_mut);
-            //assert(!error);
+            int error = pthread_cond_wait(&m_cond, &mut.m_mut);
+            IASSERT(!error);
         }
         inline int timedwait(const mutex& mut, int sec) const {
             struct timespec timeout;
@@ -134,16 +132,16 @@ namespace graphchi {
             return pthread_cond_timedwait(&m_cond, &mut.m_mut, &timeout);
         }
         inline void signal() const {
-            pthread_cond_signal(&m_cond);
-            //assert(!error);
+            int error = pthread_cond_signal(&m_cond);
+            IASSERT(!error);
         }
         inline void broadcast() const {
-            pthread_cond_broadcast(&m_cond);
-            //assert(!error);
+            int error = pthread_cond_broadcast(&m_cond);
+            IASSERT(!error);
         }
         ~conditional() {
-            pthread_cond_destroy(&m_cond);
-            //assert(!error);
+            int error = pthread_cond_destroy(&m_cond);
+            IASSERT(!error);
         }
     }; // End conditional
     
@@ -156,20 +154,20 @@ namespace graphchi {
         mutable sem_t  m_sem;
     public:
         semaphore() {
-            sem_init(&m_sem, 0,0);
-            //assert(!error);
+            int error = sem_init(&m_sem, 0,0);
+            IASSERT(!error);
         }
         inline void post() const {
-            sem_post(&m_sem);
-            //assert(!error);
+            int error = sem_post(&m_sem);
+            IASSERT(!error);
         }
         inline void wait() const {
-            sem_wait(&m_sem);
-            //assert(!error);
+            int error = sem_wait(&m_sem);
+            IASSERT(!error);
         }
         ~semaphore() {
-            sem_destroy(&m_sem);
-            //assert(!error);
+            int error = sem_destroy(&m_sem);
+            IASSERT(!error);
         }
     }; // End semaphore
     
@@ -255,24 +253,24 @@ namespace graphchi {
         mutable pthread_rwlock_t m_rwlock;
     public:
         rwlock() {
-            pthread_rwlock_init(&m_rwlock, NULL);
-            //assert(!error);
+            int error = pthread_rwlock_init(&m_rwlock, NULL);
+            IASSERT(!error);
         }
         ~rwlock() {
-            pthread_rwlock_destroy(&m_rwlock);
-            //assert(!error);
+            int error = pthread_rwlock_destroy(&m_rwlock);
+            IASSERT(!error);
         }
         inline void readlock() const {
-            pthread_rwlock_rdlock(&m_rwlock);
-            //assert(!error);
+            int error = pthread_rwlock_rdlock(&m_rwlock);
+            IASSERT(!error);
         }
         inline void writelock() const {
-            pthread_rwlock_wrlock(&m_rwlock);
-            //assert(!error);
+            int error = pthread_rwlock_wrlock(&m_rwlock);
+            IASSERT(!error);
         }
         inline void unlock() const {
-            pthread_rwlock_unlock(&m_rwlock);
-            //assert(!error);
+            int error = pthread_rwlock_unlock(&m_rwlock);
+            IASSERT(!error);
         }
         inline void rdunlock() const {
             unlock();
