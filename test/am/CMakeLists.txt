@@ -31,6 +31,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     leveldb/Db.cpp
 
     graphchi/t_basic_smoketest.cpp
+    graphchi/t_pagerank.cpp
     )
   ADD_DEFINITIONS("-fopenmp -Wunused-variable")
   ADD_EXECUTABLE(t_am ${t_am_SRC})

@@ -133,7 +133,7 @@ struct BulksyncSmokeTestProgram : public functional_kernel<int, int> {
 
 
 
-BOOST_AUTO_TEST_SUITE( graphchi_suite )
+BOOST_AUTO_TEST_SUITE( graphchi_smoke_suite )
 
 BOOST_AUTO_TEST_CASE(graphchi_simple)
 {
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(graphchi_dynamic_engine)
 
 BOOST_AUTO_TEST_CASE(graphchi_bulksync)
 {
-    metrics m("test-functional");
+    metrics m("smoketest-functional");
     
     /* Basic arguments for application */
     bfs::path db_dir(DIR_PREFIX);

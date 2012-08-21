@@ -53,10 +53,11 @@ struct graphchiconfig
 {
     graphchiconfig()
     {
+        conf["execthreads"]= "2";
         conf["loadthreads"] = "2";
         conf["niothreads"] = "2";
-        conf["membudget_mb"] = "3000";
         conf["membudget_mb"] = "800";
+        conf["preload.max_megabytes"] = "300";
         conf["io.blocksize"] = "1048576";
         conf["filetype"] = "edgelist";  ///"adjlist" for adjacencylist format
         conf["metrics.reporter"] = "console,file,html";
