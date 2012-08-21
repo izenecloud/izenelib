@@ -73,7 +73,7 @@ public:
 
 private:
     std::deque<T> queue_;
-    const std::size_t capacity_;
+    std::size_t capacity_;
 
     boost::mutex mutex_;
     boost::condition_variable read_cond_;
