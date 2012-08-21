@@ -53,11 +53,12 @@ struct graphchiconfig
 {
     graphchiconfig()
     {
-        conf["execthreads"]= "2";
+        //conf["execthreads"]= "2";
         conf["loadthreads"] = "2";
         conf["niothreads"] = "2";
         conf["membudget_mb"] = "800";
         conf["preload.max_megabytes"] = "300";
+        conf["max_edgebuffer_mb"] = "1000";
         conf["io.blocksize"] = "1048576";
         conf["filetype"] = "edgelist";  ///"adjlist" for adjacencylist format
         conf["metrics.reporter"] = "console,file,html";
@@ -70,7 +71,6 @@ struct graphchiconfig
     std::map<std::string, std::string> conf;
 };
 
-// Config file
 static std::string VARIABLE_IS_NOT_USED get_config_option_string(const char *option_name)
 {
     if (graphchiconfig::get()->conf.find(option_name) != graphchiconfig::get()->conf.end())
@@ -130,11 +130,6 @@ static double VARIABLE_IS_NOT_USED get_config_option_double(const char *option_n
     {
         return default_value;
     }
-}
-
-static void graphchi_init(const std::string& app, const char ** argv)
-{
-
 }
 
 static std::string VARIABLE_IS_NOT_USED get_option_string(const char *option_name,

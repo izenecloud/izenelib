@@ -166,7 +166,7 @@ namespace graphchi {
     
     std::string name, ident;
     std::map<std::string, metrics_entry> entries;
-      mutex mlock;
+    mutex mlock;
         
   public: 
     inline metrics(std::string _name = "", std::string _id = "") : name(_name), ident (_id) {
@@ -178,11 +178,11 @@ namespace graphchi {
     }
       
       
-      inline std::string iterkey(std::string key, int iter) {
-          char s[256];
-          sprintf(s, "%s.%d", key.c_str(), iter);
-          return std::string(s);
-      }
+    inline std::string iterkey(std::string key, int iter) {
+        char s[256];
+        sprintf(s, "%s.%d", key.c_str(), iter);
+        return std::string(s);
+    }
       
     /**
      * Add to an existing value or create new.
@@ -217,9 +217,9 @@ namespace graphchi {
     }
         
       
-      inline void set(std::string key, int value) {
-          set(key, (double)value, INTEGER);
-      }  
+    inline void set(std::string key, int value) {
+        set(key, (double)value, INTEGER);
+    }  
       
     inline void set(std::string key, double value, metrictype type = REAL) {
       if (entries.count(key) == 0) {
@@ -246,7 +246,7 @@ namespace graphchi {
     }
 
     inline void set_vector_entry_integer(std::string key, size_t idx, size_t value) {
-      set_vector_entry(key, idx, (double)(value));
+        set_vector_entry(key, idx, (double)(value));
     }
     
     inline void set_vector_entry(std::string key, size_t idx, double value) {
