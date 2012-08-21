@@ -1,10 +1,16 @@
 #include <string>
+#include <fstream>
 
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <am/graphchi/graphchi_basic_includes.hpp>
 
 using namespace graphchi;
+namespace bfs = boost::filesystem;
+
+#define DIR_PREFIX "./tmp/am_graphchi_"
 
 /**
  * Type definitions. Remember to create suitable graph shards using the
@@ -90,22 +96,28 @@ BOOST_AUTO_TEST_SUITE( graphchi_suite )
 
 BOOST_AUTO_TEST_CASE(graphchi_simple)
 {
-#if 0
-    /* GraphChi initialization will read the command line 
-     arguments and the configuration file. */
-    const char* argv[2] = {"file","graphsmoke"};
-    graphchi_init(2, argv);
-    /* Metrics object for keeping track of performance counters
-     and other information. Currently required. */
     metrics m("smoketest");
     
     /* Basic arguments for application */
-    std::string filename = get_option_string("file");  // Base filename
-    int niters           = get_option_int("niters", 4); // Number of iterations
-    bool scheduler       = false;                       // Whether to use selective scheduling
+    bfs::path db_dir(DIR_PREFIX);
+    boost::filesystem::remove_all(db_dir);
+    bfs::create_directories(db_dir);
+    std::string filename = db_dir.string() + "/graphchismoke";
+    ///generate fake inputs
+    std::ofstream of(filename.c_str());
+    const unsigned int size = 8;
+    const unsigned int src[size] = {1,2,3,4,5,6,7,8};
+    const unsigned int dest[size] = {4,2,3,1,3,2,8,1};	
+    const float weight[size] = {0.1,0.2,0.3,0.1,0.5,0.6,0.8,1};
+    for(unsigned int i = 0; i < size; ++i)
+        of<<src[i]<<" "<<dest[i]<<" "<<weight[i]<<std::endl;
+    of.close();
+    
+    int niters = get_option_int("niters", 4); // Number of iterations
+    bool scheduler = false;                       // Whether to use selective scheduling
     
     /* Detect the number of shards or preprocess an input to creae them */
-    int nshards          = convert_if_notexists<EdgeDataType>(filename, 
+    int nshards = convert_if_notexists<EdgeDataType>(filename, 
                                                               get_option_string("nshards", "auto"));
         
     /* Run */
@@ -122,7 +134,6 @@ BOOST_AUTO_TEST_CASE(graphchi_simple)
     metrics_report(m);
     
     logstream(LOG_INFO) << "Smoketest passed successfully! Your system is working!" << std::endl;
-#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()

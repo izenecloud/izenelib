@@ -459,8 +459,8 @@ namespace graphchi {
                     logstream(LOG_ERROR) << "Could not open " << fname << " error: " << strerror(errno) << std::endl;
                 }
                 assert(f >= 0);
-                int trerr = ftruncate(f, 0);
-                assert(trerr == 0);
+                ftruncate(f, 0);
+                //assert(trerr == 0);
                 
                 /* Create edge data file */
                 int ef = open(edfname.c_str(), O_WRONLY | O_CREAT, S_IROTH | S_IWOTH | S_IWUSR | S_IRUSR);
@@ -582,8 +582,8 @@ namespace graphchi {
                 logstream(LOG_ERROR) << "Could not create: " << degreeOutF << std::endl;
             }
             assert(degreeOutF >= 0);
-            int trerr = ftruncate(degreeOutF, ginfo.nvertices * sizeof(int) * 2);
-            assert(trerr == 0);
+            ftruncate(degreeOutF, ginfo.nvertices * sizeof(int) * 2);
+            //assert(trerr == 0);
             
             for(int window=0; window<nshards; window++) {
                 metrics_entry mwi = m.start_time();

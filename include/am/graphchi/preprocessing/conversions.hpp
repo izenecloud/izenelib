@@ -248,7 +248,7 @@ namespace graphchi {
         sharder<EdgeDataType> sharderobj(basefilename + suffix);
         
         if (!sharderobj.preprocessed_file_exists()) {
-            std::string file_type_str = get_option_string_interactive("filetype", "edgelist, adjlist");
+            std::string file_type_str = get_option_string("filetype", "edgelist");
             if (file_type_str != "adjlist" && file_type_str != "edgelist") {
                 logstream(LOG_ERROR) << "You need to specify filetype: 'edgelist' or 'adjlist'." << std::endl;
                 assert(false);
