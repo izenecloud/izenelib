@@ -6,6 +6,8 @@
 #include <boost/filesystem/path.hpp>
 
 #include <am/graphchi/graphchi_basic_includes.hpp>
+#include <am/graphchi/engine/dynamic_graphs/graphchi_dynamicgraph_engine.hpp>
+#include <am/graphchi/api/functional/functional_api.hpp>
 
 using namespace graphchi;
 namespace bfs = boost::filesystem;
@@ -25,8 +27,6 @@ typedef vid_t EdgeDataType;
  * set correctly. This assumes that the vertices are executed in round-robin order.
  */
 struct SmokeTestProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
-    
-    
     /**
      *  Vertex update function.
      */
@@ -92,6 +92,47 @@ public:
     }
 };
 
+
+struct BulksyncSmokeTestProgram : public functional_kernel<int, int> {
+    
+    /* Initial value - on first iteration */
+    int initial_value(graphchi_context &info, vertex_info& myvertex) {
+        return 0;
+    }
+    
+    /* Called before first "gather" */
+    int reset() {
+        return 0;
+    }
+    
+    // Note: Unweighted version, edge value should also be passed
+    // "Gather"
+    int op_neighborval(graphchi_context &info, vertex_info& myvertex, vid_t nbid, int nbval) {
+        assert(nbval == (int) info.iteration - 1);
+        return nbval;
+    }
+    
+    // "Sum"
+    int plus(int curval, int toadd) {
+        assert(curval == 0 || toadd == curval);
+        return toadd;
+    }
+    
+    // "Apply"
+    int compute_vertexvalue(graphchi_context &ginfo, vertex_info& myvertex, int nbvalsum) {
+        return ginfo.iteration;
+    }
+    
+    // "Scatter
+    int value_to_neighbor(graphchi_context &info, vertex_info& myvertex, vid_t nbid, int myval) {
+        assert(myval == (int) info.iteration);
+        return myval;
+    }
+    
+}; 
+
+
+
 BOOST_AUTO_TEST_SUITE( graphchi_suite )
 
 BOOST_AUTO_TEST_CASE(graphchi_simple)
@@ -102,7 +143,7 @@ BOOST_AUTO_TEST_CASE(graphchi_simple)
     bfs::path db_dir(DIR_PREFIX);
     boost::filesystem::remove_all(db_dir);
     bfs::create_directories(db_dir);
-    std::string filename = db_dir.string() + "/graphchismoke";
+    std::string filename = db_dir.string() + "/graphchi_smoke";
     ///generate fake inputs
     std::ofstream of(filename.c_str());
     const unsigned int size = 8;
@@ -135,6 +176,78 @@ BOOST_AUTO_TEST_CASE(graphchi_simple)
     
     logstream(LOG_INFO) << "Smoketest passed successfully! Your system is working!" << std::endl;
 }
+
+
+BOOST_AUTO_TEST_CASE(graphchi_dynamic_engine)
+{
+    metrics m("smoketest-dynamic-engine");
+    
+    /* Basic arguments for application */
+    bfs::path db_dir(DIR_PREFIX);
+    boost::filesystem::remove_all(db_dir);
+    bfs::create_directories(db_dir);
+    std::string filename = db_dir.string() + "/graphchi_dynamic_smoke";
+    ///generate fake inputs
+    std::ofstream of(filename.c_str());
+    const unsigned int size = 8;
+    const unsigned int src[size] = {1,2,3,4,5,6,7,8};
+    const unsigned int dest[size] = {4,2,3,1,3,2,8,1};	
+    const float weight[size] = {0.1,0.2,0.3,0.1,0.5,0.6,0.8,1};
+    for(unsigned int i = 0; i < size; ++i)
+        of<<src[i]<<" "<<dest[i]<<" "<<weight[i]<<std::endl;
+    of.close();
+    
+    int niters = get_option_int("niters", 4); // Number of iterations
+    bool scheduler = false;                       // Whether to use selective scheduling
+    
+    /* Detect the number of shards or preprocess an input to creae them */
+    int nshards = convert_if_notexists<EdgeDataType>(filename, 
+                                                              get_option_string("nshards", "auto"));
+        
+    /* Run */
+    SmokeTestProgram program;
+    graphchi_dynamicgraph_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m); 
+    engine.run(program, niters);
+        
+    /* Check also the vertex data is ok */
+    VertexDataChecker vchecker(niters);
+    foreach_vertices(filename, 0, engine.num_vertices(), vchecker);
+    assert(vchecker.total == engine.num_vertices() * niters);
+    
+    /* Report execution metrics */
+    metrics_report(m);
+    
+    logstream(LOG_INFO) << "Dynamic Engine Smoketest passed successfully! Your system is working!" << std::endl;
+}
+
+
+BOOST_AUTO_TEST_CASE(graphchi_bulksync)
+{
+    metrics m("test-functional");
+    
+    /* Basic arguments for application */
+    bfs::path db_dir(DIR_PREFIX);
+    boost::filesystem::remove_all(db_dir);
+    bfs::create_directories(db_dir);
+    std::string filename = db_dir.string() + "/graphchi_bulksync_smoke";
+    ///generate fake inputs
+    std::ofstream of(filename.c_str());
+    const unsigned int size = 8;
+    const unsigned int src[size] = {1,2,3,4,5,6,7,8};
+    const unsigned int dest[size] = {4,2,3,1,3,2,8,1};	
+    const float weight[size] = {0.1,0.2,0.3,0.1,0.5,0.6,0.8,1};
+    for(unsigned int i = 0; i < size; ++i)
+        of<<src[i]<<" "<<dest[i]<<" "<<weight[i]<<std::endl;
+    of.close();
+    
+    int niters = get_option_int("niters", 4); // Number of iterations
+    std::string mode = get_option_string("mode", "semisync");
+    
+    logstream(LOG_INFO) << "Running bulk sync smoke test." << std::endl;
+    run_functional_unweighted_synchronous<BulksyncSmokeTestProgram>(filename, niters, m);
+    logstream(LOG_INFO) << "Smoketest passed successfully! Your system is working!" << std::endl;
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
