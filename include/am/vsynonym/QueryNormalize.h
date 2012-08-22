@@ -29,6 +29,8 @@ iphone#4s#4#3gs#3#
 ...
 */
 
+NS_IZENELIB_AM_BEGIN
+
 class QueryNormalize
 {
 public:
@@ -70,4 +72,6 @@ private:
     */
     string keyString_;
 };
+
+NS_IZENELIB_AM_END
 #endif

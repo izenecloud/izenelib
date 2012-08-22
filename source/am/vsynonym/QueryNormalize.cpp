@@ -1,4 +1,7 @@
 #include <am/vsynonym/QueryNormalize.h>
+
+NS_IZENELIB_AM_BEGIN
+
 QueryNormalize::QueryNormalize()
 {
     count_ = 0;
@@ -171,3 +174,4 @@ void QueryNormalize::stanrd_raw(string& str)
     str = s;
 }
 
+NS_IZENELIB_AM_END
