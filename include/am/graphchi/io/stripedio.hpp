@@ -215,9 +215,9 @@ namespace graphchi {
                     thread_infos.push_back(cthreadinfo);
                     
                     pthread_t iothread;
-                    pthread_create(&iothread, NULL, io_thread_loop, cthreadinfo);
+                    int ret = pthread_create(&iothread, NULL, io_thread_loop, cthreadinfo);
                     threads.push_back(iothread);
-                    //assert(ret>=0);
+                    IASSERT(ret>=0);
                     k++;
                 }
             }
@@ -396,8 +396,8 @@ namespace graphchi {
         /* Used for pipelined read */
         void launch_stream_reader(streaming_task  * task) {
             pthread_t t;
-            pthread_create(&t, NULL, stream_read_loop, (void*)task);
-            //assert(ret>=0);
+            int ret = pthread_create(&t, NULL, stream_read_loop, (void*)task);
+            IASSERT(ret>=0);
         }
         
         

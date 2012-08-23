@@ -273,13 +273,14 @@ namespace graphchi {
                 double max_shardsize = membudget_mb * 1024. * 1024. / 8;
                 logstream(LOG_INFO) << "Determining maximum shard size: " << (max_shardsize / 1024. / 1024.) << " MB." << std::endl;
                 
-                nshards = (int) ( 2 + (numedges * sizeof(EdgeDataType) / max_shardsize) + 0.5); 
+                nshards = (int) ( 2 + (numedges * sizeof(EdgeDataType) / max_shardsize) + 0.5);
+                assert(nshards > 1);
+
             } else {
                 nshards = atoi(nshards_string.c_str());
             }
             
             logstream(LOG_INFO) << "Number of shards to be created: " << nshards << std::endl;
-            assert(nshards > 1);
         }
         
         void compute_partitionintervals() {
@@ -551,7 +552,6 @@ namespace graphchi {
             std::vector<slidingshard_t * > sliding_shards;
             
             int subwindow = 5000000;
-            std::cout << "Subwindow : " << subwindow << std::endl;
             m.set("subwindow", (size_t)subwindow);
             
             int loadthreads = 4;
@@ -562,7 +562,7 @@ namespace graphchi {
             int blocksize = get_option_int("blocksize", 1024 * 1024);
             
             for(int p=0; p < nshards; p++) {
-                std::cout << "Initialize streaming shard: " << p << std::endl;
+                logstream(LOG_INFO) << "Initialize streaming shard: " << p << std::endl;
                 sliding_shards.push_back(
                                          new slidingshard_t(iomgr, filename_shard_edata<EdgeDataType>(basefilename, p, nshards), 
                                                             filename_shard_adj(basefilename, p, nshards), intervals[p].first, 
@@ -601,7 +601,7 @@ namespace graphchi {
                 memshard.only_adjacency = true;
                 logstream(LOG_INFO) << "Interval: " << interval_st << " " << interval_en << std::endl;
                 
-                for(vid_t subinterval_st=interval_st; subinterval_st < interval_en; ) {
+                for(vid_t subinterval_st=interval_st; subinterval_st <= interval_en; ) {
                     vid_t subinterval_en = std::min(interval_en, subinterval_st + subwindow);
                     logstream(LOG_INFO) << "(Degree proc.) Sub-window: [" << subinterval_st << " - " << subinterval_en << "]" << std::endl;
                     assert(subinterval_en >= subinterval_st && subinterval_en <= interval_en);
@@ -637,7 +637,7 @@ namespace graphchi {
                         }
                     }
                     
-                    m.stop_time(me, "stream_ahead", window,  true);  
+                    m.stop_time(me, "stream_ahead", window);  
                     
                     
                     metrics_entry mev = m.start_time();
