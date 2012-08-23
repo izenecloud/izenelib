@@ -185,6 +185,10 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
+    // rtype update is difference from common update, because rtype update is an inplace update while
+    // common update will remove old document and insert new document instead.
+    // so we should handle this separately.
+    // as result, the rtype property can not have any analyzer
     std::list<std::pair<IndexerPropertyConfig, IndexerDocumentPropertyType> >&
         propertyValueList = doc.getPropertyList();
     std::map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldDocMap;
