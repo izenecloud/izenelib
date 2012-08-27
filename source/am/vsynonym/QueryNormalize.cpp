@@ -145,9 +145,9 @@ bool QueryNormalize::isTypeString(const string& valuestring, const string& type)
 
 void QueryNormalize::stanrd_raw(string& str)
 {
-    transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     uint32_t len = str.length();
-    char * c = new char[len];
+    char c[len];
     uint32_t k = 0;
     uint32_t i = 0;
     while(str[i] == ' ')
