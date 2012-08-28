@@ -51,6 +51,12 @@ public:
                 result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
                 result->open();
                 instance_map_.insert(std::make_pair( property_name, (void*)result) );
+                if(type_map_.find(property_name) == type_map_.end())
+                {
+                    PropertyType type = T();
+                    type_map_[property_name] = type;
+                }
+
             }
         }
         if(result == NULL) // has been initialized
