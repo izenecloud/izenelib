@@ -108,15 +108,15 @@ public:
     /**
      * Adds the string str of length n at position pos in the original text.
      */
-    size_t addChars(char_type *str, size_t n, size_t pos);
+    size_t addChars(const char_type *str, size_t n, size_t pos);
     /**
      * Deletes n chars starting at position pos in the text.
      */
     size_t deleteChars(size_t n, size_t pos);
 
-    size_t addTextFromSA(const size_t *SA, char_type *str, size_t n);
-    size_t addText(char_type *str, size_t n); // length n of text must include "\0"!
-    size_t addTextFromFile(char *filename, size_t n); //data is read directly from disk using only BUFFER(macro) bytes
+    size_t addTextFromSA(const size_t *SA, const char_type *str, size_t n);
+    size_t addText(const char_type *str, size_t n); // length n of text must include "\0"!
+    size_t addTextFromFile(const char *filename, size_t n); //data is read directly from disk using only BUFFER(macro) bytes
     char_type *retrieveText();
 
     /**
@@ -485,10 +485,10 @@ size_t DynSA<CharT>::count(const char_type *pattern, size_t n, size_t &m)
     return result;
 }
 
-#if SAMPLE != 0
 template <class CharT>
 size_t *DynSA<CharT>::locate(const char_type *pattern, size_t n, size_t &m)
 {
+#if SAMPLE != 0
     std::pair<size_t, size_t> *p = backwardSearch(pattern, n, m);
     size_t sp = p->first, ep = p->second;
 
@@ -505,15 +505,11 @@ size_t *DynSA<CharT>::locate(const char_type *pattern, size_t n, size_t &m)
     }
 
     return matches;
-}
 #else
-template <class CharT>
-size_t *DynSA<CharT>::locate(const char_type *pattern, size_t n, size_t &m)
-{
     // if SAMPLE is turned off
     return 0;
-}
 #endif
+}
 
 template <class CharT>
 size_t DynSA<CharT>::getISA(size_t pos)
@@ -580,7 +576,7 @@ size_t DynSA<CharT>::invLF(size_t i)
 }
 
 template <class CharT>
-size_t DynSA<CharT>::addChars(char_type *str, size_t n, size_t pos)
+size_t DynSA<CharT>::addChars(const char_type *str, size_t n, size_t pos)
 {
     size_t rank_store;
     size_t oldbwt_pos;
@@ -742,7 +738,7 @@ size_t DynSA<CharT>::deleteChars(size_t n, size_t pos)
 }
 
 template <class CharT>
-size_t DynSA<CharT>::addTextFromSA(const size_t *SA,  char_type *str, size_t n)
+size_t DynSA<CharT>::addTextFromSA(const size_t *SA, const char_type *str, size_t n)
 {
     size_t i, pos;
 
@@ -761,7 +757,7 @@ size_t DynSA<CharT>::addTextFromSA(const size_t *SA,  char_type *str, size_t n)
 
 // length n of text must include "\0"!
 template <class CharT>
-size_t DynSA<CharT>::addText(char_type *str, size_t n)
+size_t DynSA<CharT>::addText(const char_type *str, size_t n)
 {
     // Initialises the different structures
     insert(str[n - 1], 1);
@@ -775,7 +771,7 @@ size_t DynSA<CharT>::addText(char_type *str, size_t n)
 }
 
 template <class CharT>
-size_t DynSA<CharT>::addTextFromFile(char *filename, size_t n)
+size_t DynSA<CharT>::addTextFromFile(const char *filename, size_t n)
 {
     std::ifstream ifs(filename, std::ios::binary);
     if (!ifs)

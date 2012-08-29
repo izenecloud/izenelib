@@ -128,7 +128,7 @@ void WatArray::RankAll(uint64_t c, uint64_t pos,
     }
     if (pos >= length_)
     {
-        pos = length_;
+        pos = length_ - 1;
     }
     uint64_t beg_node = 0;
     uint64_t end_node = length_;
@@ -447,9 +447,8 @@ void WatArray::SetArray(const vector<uint64_t>& array)
         uint64_t c = array[i];
         for (uint64_t j = 0; j < alphabet_bit_num_; ++j)
         {
-            uint64_t prefix_code = PrefixCode(c, j, alphabet_bit_num_);
-            uint64_t bit_pos     = beg_poses[j][prefix_code]++;
-            bit_arrays_[j].SetBit(GetMSB(c, j, alphabet_bit_num_), bit_pos);
+            bit_arrays_[j].SetBit(GetMSB(c, j, alphabet_bit_num_),
+                                  beg_poses[j][PrefixCode(c, j, alphabet_bit_num_)]++);
         }
     }
 
@@ -493,7 +492,7 @@ void WatArray::GetBegPoses(const vector<uint64_t>& array,
         uint64_t c = array[i];
         for (uint64_t j = 0; j < alpha_bit_num; ++j)
         {
-            beg_poses[j][PrefixCode(c, j, alpha_bit_num)]++;
+            ++beg_poses[j][PrefixCode(c, j, alpha_bit_num)];
         }
     }
 

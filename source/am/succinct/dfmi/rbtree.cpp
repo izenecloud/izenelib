@@ -351,7 +351,7 @@ bool RBTree::isLeftChild(RBNode *n)
 #ifndef NDEBUG
     if (n->parent == nil)
     {
-        cerr << "error: isLeftChild, no parent." << std::endl;
+        std::cerr << "error: isLeftChild, no parent." << std::endl;
         exit(EXIT_FAILURE);
     }
 #endif
@@ -363,7 +363,7 @@ bool RBTree::isRightChild(RBNode *n)
 #ifndef NDEBUG
     if (n->parent == nil)
     {
-        cerr << "error: isLeftChild, no parent." << std::endl;
+        std::cerr << "error: isLeftChild, no parent." << std::endl;
         exit(EXIT_FAILURE);
     }
 #endif

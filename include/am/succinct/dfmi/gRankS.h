@@ -528,14 +528,17 @@ void DynRankS<CharT>::deleteDynRankSNodes(node_type *n)
 }
 
 }
+}
+
+NS_IZENELIB_AM_END
 
 namespace std
 {
 
 template <class CharT>
-struct greater<dfmi::WaveletNode<CharT> *>
+struct greater<izenelib::am::succinct::dfmi::WaveletNode<CharT> *>
 {
-    bool operator()(dfmi::WaveletNode<CharT> const *p1, dfmi::WaveletNode<CharT> const *p2)
+    bool operator()(izenelib::am::succinct::dfmi::WaveletNode<CharT> const *p1, izenelib::am::succinct::dfmi::WaveletNode<CharT> const *p2)
     {
         if (!p1)
             return false;
@@ -546,8 +549,5 @@ struct greater<dfmi::WaveletNode<CharT> *>
 };
 
 }
-}
-
-NS_IZENELIB_AM_END
 
 #endif
