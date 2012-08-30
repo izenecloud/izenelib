@@ -22,6 +22,10 @@ WaveletTreeNode::WaveletTreeNode(uint64_t c, size_t freq)
 {
 }
 
+WaveletTreeNode::~WaveletTreeNode()
+{
+}
+
 WaveletTreeNode::WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right)
     : left_(left), right_(right), parent_()
     , freq_(left->freq_ + right->freq_), c0_(), c1_()
@@ -54,7 +58,7 @@ void WaveletTreeNode::setBit(size_t pos)
 
 void WaveletTreeNode::unsetBit(size_t pos)
 {
-    size_t index = pos / 32, offset = pos % 32;
+    size_t index = pos / 32/*, offset = pos % 32*/;
     if (pos >= len_)
     {
         len_ = pos + 1;
@@ -72,7 +76,7 @@ void WaveletTreeNode::changeBit(bool bit, size_t pos)
 
 void WaveletTreeNode::append0()
 {
-    size_t index = len_ / 32, offset = len_ % 32;
+    size_t index = len_ / 32/*, offset = len_ % 32*/;
     if (index >= raw_array_.size())
         raw_array_.resize(index + 1);
 //  raw_array_[index] &= ~(1U << offset);

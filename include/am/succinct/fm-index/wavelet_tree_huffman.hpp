@@ -361,6 +361,8 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
 {
     WaveletTree<CharT>::load(istr);
 
+    if (root_) deleteTree_(root_);
+
     code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 

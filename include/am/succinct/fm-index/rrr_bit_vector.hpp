@@ -71,34 +71,23 @@ public:
     void build(const std::vector<uint32_t> &bitseq, size_t len);
 
     bool access(const size_t i) const;
-
     bool access(const size_t i, size_t &r) const;
 
     size_t rank0(const size_t i) const;
-
     size_t rank1(const size_t i) const;
-
     size_t rank(bool b, const size_t i) const;
 
     size_t select0(const size_t i) const;
-
     size_t select1(const size_t i) const;
-
     size_t select(bool b, const size_t i) const;
 
     size_t count0() const;
-
     size_t count1() const;
 
     size_t length() const;
-
     size_t getSize() const;
 
-    /** Creates a new sampling for the queries */
-    void create_sampling();
-
     void save(std::ostream &os) const;
-
     void load(std::istream &is);
 
     /** Frees the space required by the table E, which is static and global
@@ -108,6 +97,10 @@ public:
     {
         delete E;
     }
+
+private:
+    /** Creates a new sampling for the queries */
+    void create_sampling_();
 
 private:
     /** Length of the bitstring */

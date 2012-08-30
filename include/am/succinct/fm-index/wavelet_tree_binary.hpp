@@ -52,7 +52,7 @@ WaveletTreeBinary<CharT>::~WaveletTreeBinary()
 {
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        delete nodes_[i];
+        if (nodes_[i]) delete nodes_[i];
     }
 }
 
@@ -284,6 +284,11 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::load(std::istream &istr)
 {
     WaveletTree<CharT>::load(istr);
+
+    for (size_t i = 0; i < nodes_.size(); ++i)
+    {
+        if (nodes_[i]) delete nodes_[i];
+    }
 
     alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
     nodes_.resize(alphabet_bit_num_);

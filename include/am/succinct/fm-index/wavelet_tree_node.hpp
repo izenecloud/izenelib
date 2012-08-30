@@ -18,6 +18,8 @@ public:
     WaveletTreeNode(uint64_t c, size_t freq);
     WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right);
 
+    ~WaveletTreeNode();
+
     void resize(size_t len);
 
     void setBit(size_t pos);

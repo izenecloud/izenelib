@@ -89,10 +89,10 @@ void RRRBitVector::build(const std::vector<uint32_t> &bitseq, size_t len)
         O_pos += E->get_log2binomial(BLOCK_SIZE, popcount(value));
     }
 
-    create_sampling();
+    create_sampling_();
 }
 
-void RRRBitVector::create_sampling()
+void RRRBitVector::create_sampling_()
 {
     // Sampling for Cv_
     C_sampling_len_ = C_len_ / sample_rate_ + 2;
@@ -434,7 +434,7 @@ void RRRBitVector::load(std::istream &istr)
     Ov_.resize(O_len_);
     istr.read((char *)&Ov_[0],                 sizeof(Ov_[0]) * Ov_.size());
 
-    create_sampling();
+    create_sampling_();
 }
 
 }
