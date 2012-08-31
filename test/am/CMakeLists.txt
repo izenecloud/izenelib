@@ -62,6 +62,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     succinct/t_succinct_vector.cpp
     succinct/t_fujimap.cpp
     succinct/t_minimal_perfect_hash.cpp
+    succinct/t_dense_succinct_bitv.cpp
     succinct/dag_vector/t_dag_vector.cpp
     succinct/dag_vector/t_sparse_set.cpp
     succinct/dag_vector/t_sparse_map.cpp
