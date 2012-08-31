@@ -108,6 +108,7 @@ uint64_t EnumCoder::SelectRaw(uint64_t code, uint64_t num)
         else return offset + kNthSetBit_[code >> offset & 0xFFLLU][num - 1];
     }
     assert(false);
+    return 0;
 }
 
 uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
@@ -131,6 +132,7 @@ uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
         }
     }
     assert(false);
+    return 0;
 }
 
 uint64_t EnumCoder::Select1(uint64_t code, uint64_t rank_sb, uint64_t num)
@@ -152,13 +154,14 @@ uint64_t EnumCoder::Select1(uint64_t code, uint64_t rank_sb, uint64_t num)
         }
     }
     assert(false);
+    return 0;
 }
 
 uint64_t EnumCoder::Select(uint64_t code, uint64_t rank_sb, uint64_t num, bool bit)
 {
     if (num == 0) return 0;
-    if (bit)      return Select1(code, rank_sb, num);
-    else          return Select0(code, rank_sb, num);
+    if (bit) return Select1(code, rank_sb, num);
+    else return Select0(code, rank_sb, num);
 }
 
 const uint8_t EnumCoder::kEnumCodeLength_[65] =
