@@ -1,5 +1,5 @@
-#ifndef _FM_INDEX_WAVELET_TREE_H
-#define _FM_INDEX_WAVELET_TREE_H
+#ifndef _FM_INDEX_WAVELET_TREE_HPP
+#define _FM_INDEX_WAVELET_TREE_HPP
 
 #include <types.h>
 

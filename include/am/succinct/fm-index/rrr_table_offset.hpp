@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FM_INDEX_RRR_TABLE_OFFSET_H
-#define _FM_INDEX_RRR_TABLE_OFFSET_H
+#ifndef _FM_INDEX_RRR_TABLE_OFFSET_HPP
+#define _FM_INDEX_RRR_TABLE_OFFSET_HPP
 
 #include "utils.hpp"
 

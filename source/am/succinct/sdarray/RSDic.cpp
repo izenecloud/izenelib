@@ -18,6 +18,12 @@ RSDic::~RSDic()
 {
 }
 
+void RSDic::add(size_t val)
+{
+    assert(val > 0);
+    sda_.add(val);
+}
+
 void RSDic::build(const std::vector<size_t>& bv)
 {
     build(bv, bv.size() * BLOCKSIZE);

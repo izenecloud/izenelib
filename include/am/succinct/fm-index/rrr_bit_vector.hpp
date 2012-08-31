@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FM_INDEX_RRR_BIT_VECTOR_H
-#define _FM_INDEX_RRR_BIT_VECTOR_H
+#ifndef _FM_INDEX_RRR_BIT_VECTOR_HPP
+#define _FM_INDEX_RRR_BIT_VECTOR_HPP
 
 #include "rrr_table_offset.hpp"
 

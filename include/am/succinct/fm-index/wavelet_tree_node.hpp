@@ -1,5 +1,5 @@
-#ifndef _FM_INDEX_WAVELET_TREE_NODE_H
-#define _FM_INDEX_WAVELET_TREE_NODE_H
+#ifndef _FM_INDEX_WAVELET_TREE_NODE_HPP
+#define _FM_INDEX_WAVELET_TREE_NODE_HPP
 
 #include "rrr_bit_vector.hpp"
 
@@ -50,8 +50,6 @@ public:
     uint64_t c1_;
 
     size_t len_;
-    size_t ones_;
-
     std::vector<uint32_t> raw_array_;
     RRRBitVector bit_vector_;
 };

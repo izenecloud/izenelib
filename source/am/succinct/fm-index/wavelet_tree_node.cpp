@@ -11,14 +11,14 @@ namespace fm_index
 WaveletTreeNode::WaveletTreeNode()
     : left_(), right_(), parent_()
     , freq_(), c0_(), c1_()
-    , len_(), ones_()
+    , len_()
 {
 }
 
 WaveletTreeNode::WaveletTreeNode(uint64_t c, size_t freq)
     : left_(), right_(), parent_()
     , freq_(freq), c0_(c), c1_()
-    , len_(), ones_()
+    , len_()
 {
 }
 
@@ -29,7 +29,7 @@ WaveletTreeNode::~WaveletTreeNode()
 WaveletTreeNode::WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right)
     : left_(left), right_(right), parent_()
     , freq_(left->freq_ + right->freq_), c0_(), c1_()
-    , len_(), ones_()
+    , len_()
 {
     left->parent_ = this;
     right->parent_ = this;
@@ -53,7 +53,6 @@ void WaveletTreeNode::setBit(size_t pos)
             raw_array_.resize(index + 1);
     }
     raw_array_[index] |= 1U << offset;
-    ++ones_;
 }
 
 void WaveletTreeNode::unsetBit(size_t pos)
@@ -90,7 +89,6 @@ void WaveletTreeNode::append1()
         raw_array_.resize(index + 1);
     raw_array_[index] |= 1U << offset;
     ++len_;
-    ++ones_;
 }
 
 void WaveletTreeNode::appendBit(bool bit)
@@ -126,7 +124,6 @@ void WaveletTreeNode::save(std::ostream &ostr) const
     ostr.write((const char *)&c0_,   sizeof(c0_));
     ostr.write((const char *)&c1_,   sizeof(c1_));
     ostr.write((const char *)&len_,  sizeof(len_));
-    ostr.write((const char *)&ones_, sizeof(ones_));
 
     bit_vector_.save(ostr);
 }
@@ -137,7 +134,6 @@ void WaveletTreeNode::load(std::istream &istr)
     istr.read((char *)&c0_,   sizeof(c0_));
     istr.read((char *)&c1_,   sizeof(c1_));
     istr.read((char *)&len_,  sizeof(len_));
-    istr.read((char *)&ones_, sizeof(ones_));
 
     bit_vector_.load(istr);
 }

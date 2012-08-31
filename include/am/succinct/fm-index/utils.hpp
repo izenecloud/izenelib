@@ -1,5 +1,5 @@
-#ifndef _FM_INDEX_UTILS_H
-#define _FM_INDEX_UTILS_H
+#ifndef _FM_INDEX_UTILS_HPP
+#define _FM_INDEX_UTILS_HPP
 
 #include <types.h>
 

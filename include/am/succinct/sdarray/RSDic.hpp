@@ -1,5 +1,5 @@
-#ifndef RSDIC_HPP__
-#define RSDIC_HPP__
+#ifndef SDARRAY_RSDIC_HPP__
+#define SDARRAY_RSDIC_HPP__
 
 #include "SDArray.hpp"
 
@@ -19,6 +19,7 @@ public:
     RSDic();
     ~RSDic();
 
+    void add(size_t val);
     void build(const std::vector<size_t>& bv);
     void build(const std::vector<size_t>& bv, size_t size);
 
@@ -43,4 +44,4 @@ private:
 
 NS_IZENELIB_AM_END
 
-#endif // RSDIC_HPP__
+#endif // SDARRAY_RSDIC_HPP__

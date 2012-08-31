@@ -1,5 +1,5 @@
-#ifndef _FM_INDEX_WAVELET_TREE_HUFFMAN_H
-#define _FM_INDEX_WAVELET_TREE_HUFFMAN_H
+#ifndef _FM_INDEX_WAVELET_TREE_HUFFMAN_HPP
+#define _FM_INDEX_WAVELET_TREE_HUFFMAN_HPP
 
 #include "wavelet_tree.hpp"
 #include "wavelet_tree_node.hpp"

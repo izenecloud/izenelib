@@ -17,8 +17,8 @@
  *      software without specific prior written permission.
  */
 
-#ifndef SDARRAY_HPP__
-#define SDARRAY_HPP__
+#ifndef SDARRAY_SDARRAY_HPP__
+#define SDARRAY_SDARRAY_HPP__
 
 #include <types.h>
 
@@ -106,4 +106,4 @@ private:
 
 NS_IZENELIB_AM_END
 
-#endif // SDARRAY_HPP__
+#endif // SDARRAY_SDARRAY_HPP__
