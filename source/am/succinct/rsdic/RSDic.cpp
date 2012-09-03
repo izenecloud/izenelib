@@ -41,8 +41,8 @@ RSDic::~RSDic()
 
 void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
 {
-    rank_blocks_.push_back(one_num_);
-    pointer_blocks_.push_back(offset_);
+    rank_blocks_.push_back(0);
+    pointer_blocks_.push_back(0);
 
     uint64_t index = len / kSmallBlockSize;
     uint64_t offset = len % kSmallBlockSize;
@@ -59,31 +59,36 @@ void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
 
 void RSDic::BuildBlock_(uint64_t block, uint64_t bits)
 {
-    block = block & ((1LLU << bits) - 1);
+    if (bits < kSmallBlockSize)
+    {
+        block = block & ((1LLU << bits) - 1);
+    }
 
-    uint64_t prev_one_num = one_num_;
-    uint64_t block_one_num = Util::PopCount(block);
+    uint64_t rank_sb = Util::PopCount(block);
 
-    if (one_num_ % kSelectBlockSize + block_one_num > kSelectBlockSize)
+    if (one_num_ % kSelectBlockSize + rank_sb > kSelectBlockSize)
     {
         select_one_inds_.push_back(num_ / kLargeBlockSize);
     }
-    if ((num_ - one_num_) % kSelectBlockSize + bits - block_one_num > kSelectBlockSize)
+    if ((num_ - one_num_) % kSelectBlockSize + bits - rank_sb > kSelectBlockSize)
     {
         select_zero_inds_.push_back(num_ / kLargeBlockSize);
     }
     num_ += bits;
-    one_num_ += block_one_num;
+    one_num_ += rank_sb;
 
-    uint64_t rank_sb = one_num_ - prev_one_num;
     rank_small_blocks_.push_back(rank_sb);
 
     uint64_t len = EnumCoder::Len(rank_sb);
     uint64_t code;
     if (len == kSmallBlockSize)
+    {
         code = block; // use raw
+    }
     else
+    {
         code = EnumCoder::Encode(block, rank_sb);
+    }
 
     uint64_t new_size = Util::Floor(offset_ + len, kSmallBlockSize);
     if (new_size > bits_.size())
@@ -138,6 +143,7 @@ uint64_t RSDic::Rank1(uint64_t pos) const
     uint64_t pointer = pointer_blocks_[lblock];
     uint64_t sblock = pos / kSmallBlockSize;
     uint64_t rank = rank_blocks_[lblock];
+
     uint64_t rank_sb;
     for (uint64_t i = lblock * kSmallBlockPerLargeBlock; i < sblock; ++i)
     {

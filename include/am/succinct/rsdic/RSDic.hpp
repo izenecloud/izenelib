@@ -59,21 +59,24 @@ public:
     void Load(std::istream& is);
     uint64_t GetUsageBytes() const;
 
-    uint64_t num() const
+    rsdic_uint num() const
     {
         return num_;
     }
 
-    uint64_t one_num() const
+    rsdic_uint one_num() const
     {
         return one_num_;
+    }
+
+    rsdic_uint zero_num() const
+    {
+        return num_ - one_num_;
     }
 
     bool operator == (const RSDic& bv) const;
 
 private:
-    friend class RSDicBuilder;
-
     void BuildBlock_(uint64_t block, uint64_t bits);
 
     template <class T>
