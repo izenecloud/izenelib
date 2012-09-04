@@ -308,7 +308,7 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 
     for (; walk->parent_; walk = walk->parent_)
     {
-        if ((rank = walk->bit_vector_.Select(rank, bit)) == 0)
+        if ((rank = walk->bit_vector_.Select(rank, bit)) == -1)
             return -1;
 
         bit = (walk == walk->parent_->right_);
