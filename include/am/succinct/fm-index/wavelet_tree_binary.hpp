@@ -3,6 +3,7 @@
 
 #include "wavelet_tree.hpp"
 #include "wavelet_tree_node.hpp"
+#include "utils.hpp"
 
 
 NS_IZENELIB_AM_BEGIN
@@ -127,19 +128,19 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const RRRBitVector &bv = nodes_[i]->bit_vector_;
+        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
 
-        before = bv.rank1(start - 1);
+        before = bv.Rank1(start);
 
-        if (bv.access(pos, optR))
+        if (bv.GetBit(pos, optR))
         {
             c |= bit_mask;
             start = this->occ_[c];
-            pos = start - before + optR - 1;
+            pos = start - before + optR;
         }
         else
         {
-            pos = before + optR - 1;
+            pos = before + optR;
         }
 
         bit_mask >>= 1;
@@ -161,19 +162,19 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const RRRBitVector &bv = nodes_[i]->bit_vector_;
+        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
 
-        before = bv.rank1(start - 1);
+        before = bv.Rank1(start);
 
-        if (bv.access(pos, optR))
+        if (bv.GetBit(pos, optR))
         {
             c |= bit_mask;
             start = this->occ_[c];
-            pos = start - before + optR - 1;
+            pos = start - before + optR;
         }
         else
         {
-            pos = before + optR - 1;
+            pos = before + optR;
         }
 
         bit_mask >>= 1;
@@ -191,26 +192,28 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
     size_t rank = 0;
     size_t before;
 
+    pos = std::min(pos + 1, length());
+
     char_type masked = 0;
     char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const RRRBitVector &bv = nodes_[i]->bit_vector_;
+        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
 
-        before = bv.rank1(start - 1);
+        before = bv.Rank1(start);
 
         if (c & bit_mask)
         {
             masked |= bit_mask;
             start = this->occ_[masked];
-            rank = bv.rank1(pos) - before;
-            pos = start + rank - 1;
+            rank = bv.Rank1(pos) - before;
+            pos = start + rank;
         }
         else
         {
-            pos = pos - bv.rank1(pos) + before;
-            rank = pos - start + 1;
+            pos = pos - bv.Rank1(pos) + before;
+            rank = pos - start;
         }
 
         if (rank == 0) return 0;
@@ -232,18 +235,18 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        const RRRBitVector &bv = nodes_[i]->bit_vector_;
+        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
 
         start = this->occ_[c & mask];
-        ones_start = bv.rank1(start - 1);
+        ones_start = bv.Rank1(start);
 
         if (c & bit_mask)
         {
-            pos = bv.select1(ones_start + pos + 1) - start;
+            pos = bv.Select1(ones_start + pos) - start;
         }
         else
         {
-            pos = bv.select0(start - ones_start + pos + 1) - start;
+            pos = bv.Select0(start - ones_start + pos) - start;
         }
 
         mask <<= 1;

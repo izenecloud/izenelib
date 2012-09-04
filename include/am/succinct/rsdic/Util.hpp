@@ -63,7 +63,7 @@ public:
         }
     }
 
-    static uint64_t Floor(uint64_t num, uint64_t div)
+    static uint64_t Ceiling(uint64_t num, uint64_t div)
     {
         return (num + div - 1) / div;
     }

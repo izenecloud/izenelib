@@ -203,9 +203,9 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos) const
 
     WaveletTreeNode *walk = root_;
 
-    for (size_t rank;; pos = rank - 1)
+    while (true)
     {
-        if (walk->bit_vector_.access(pos, rank))
+        if (walk->bit_vector_.GetBit(pos, pos))
         {
             if (walk->right_) walk = walk->right_;
             else return walk->c1_;
@@ -225,17 +225,31 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 
     WaveletTreeNode *walk = root_;
 
-    for (;; pos = rank - 1)
+    while (true)
     {
-        if (walk->bit_vector_.access(pos, rank))
+        if (walk->bit_vector_.GetBit(pos, pos))
         {
-            if (walk->right_) walk = walk->right_;
-            else return walk->c1_;
+            if (walk->right_)
+            {
+                walk = walk->right_;
+            }
+            else
+            {
+                rank = pos + 1;
+                return walk->c1_;
+            }
         }
         else
         {
-            if (walk->left_) walk = walk->left_;
-            else return walk->c0_;
+            if (walk->left_)
+            {
+                walk = walk->left_;
+            }
+            else
+            {
+                rank = pos + 1;
+                return walk->c0_;
+            }
         }
     }
 }
@@ -245,7 +259,7 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
     if (!leaves_[c]) return 0;
 
-    pos = std::min(pos, length() - 1);
+    pos = std::min(pos + 1, length());
 
     size_t code = code_map_[c];
     WaveletTreeNode *walk = root_;
@@ -256,24 +270,24 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
         {
             if (walk->right_)
             {
-                pos = walk->bit_vector_.rank1(pos) - 1;
+                pos = walk->bit_vector_.Rank1(pos);
                 walk = walk->right_;
             }
             else
             {
-                return walk->bit_vector_.rank1(pos);
+                return walk->bit_vector_.Rank1(pos);
             }
         }
         else
         {
             if (walk->left_)
             {
-                pos = walk->bit_vector_.rank0(pos) - 1;
+                pos = walk->bit_vector_.Rank0(pos);
                 walk = walk->left_;
             }
             else
             {
-                return walk->bit_vector_.rank0(pos);
+                return walk->bit_vector_.Rank0(pos);
             }
         }
     }
@@ -290,16 +304,17 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
     if (!walk) return -1;
 
     bool bit = (walk->c1_ == c);
+    --rank;
 
     for (; walk->parent_; walk = walk->parent_)
     {
-        if ((rank = walk->bit_vector_.select(bit, rank) + 1) == 0)
+        if ((rank = walk->bit_vector_.Select(rank, bit)) == 0)
             return -1;
 
         bit = (walk == walk->parent_->right_);
     }
 
-    return walk->bit_vector_.select(bit, rank);
+    return walk->bit_vector_.Select(rank, bit);
 }
 
 template <class CharT>

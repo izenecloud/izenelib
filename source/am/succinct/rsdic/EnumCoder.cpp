@@ -31,12 +31,13 @@ namespace rsdic
 uint64_t EnumCoder::Encode(uint64_t val, uint64_t rank_sb)
 {
     uint64_t code = 0;
-    uint64_t least_bit;
-    for (; rank_sb > 0; --rank_sb)
+    for (uint64_t i = 0; i < kSmallBlockSize; ++i)
     {
-        least_bit = __builtin_ffsl(val);
-        code += kCombinationTable64_[kSmallBlockSize - least_bit][rank_sb];
-        val ^= 1 << (least_bit - 1);
+        if (val >> i & 1LLU)
+        {
+            code += kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+            --rank_sb;
+        }
     }
     return code;
 }
@@ -73,6 +74,29 @@ bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos)
             --rank_sb;
         }
     }
+    return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
+}
+
+bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& rank)
+{
+    if (Len(rank_sb) == kSmallBlockSize)
+    {
+        rank = Util::PopCount(code & ((1LLU << pos) - 1));
+        return code >> pos & 1LLU;
+    }
+
+    rank = rank_sb;
+    uint64_t zero_case_num;
+    for (uint64_t i = 0; i < pos; ++i)
+    {
+        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        if (code >= zero_case_num)
+        {
+            code -= zero_case_num;
+            --rank_sb;
+        }
+    }
+    rank -= rank_sb;
     return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
 }
 

@@ -36,6 +36,7 @@ public:
     static uint64_t Encode(uint64_t val, uint64_t rank_sb);
     static uint64_t Decode(uint64_t code, uint64_t rank_sb);
     static bool GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos);
+    static bool GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& rank);
     static uint64_t Rank(uint64_t code, uint64_t rank_sb, uint64_t pos);
     static uint64_t Select(uint64_t code, uint64_t rank_sb, uint64_t num, bool bit);
 

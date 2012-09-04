@@ -1,7 +1,7 @@
 #ifndef _FM_INDEX_WAVELET_TREE_NODE_HPP
 #define _FM_INDEX_WAVELET_TREE_NODE_HPP
 
-#include "rrr_bit_vector.hpp"
+#include <am/succinct/rsdic/RSDic.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -50,8 +50,8 @@ public:
     uint64_t c1_;
 
     size_t len_;
-    std::vector<uint32_t> raw_array_;
-    RRRBitVector bit_vector_;
+    std::vector<uint64_t> raw_array_;
+    rsdic::RSDic bit_vector_;
 };
 
 }

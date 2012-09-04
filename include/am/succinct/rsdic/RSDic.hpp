@@ -77,7 +77,7 @@ public:
     bool operator == (const RSDic& bv) const;
 
 private:
-    void BuildBlock_(uint64_t block, uint64_t bits);
+    void BuildBlock_(uint64_t block, uint64_t offset, uint64_t& global_offset);
 
     template <class T>
     void Save(std::ostream& os, const std::vector<T>& vs) const
@@ -97,7 +97,6 @@ private:
     }
 
 private:
-    rsdic_uint offset_;
     rsdic_uint num_;
     rsdic_uint one_num_;
 
