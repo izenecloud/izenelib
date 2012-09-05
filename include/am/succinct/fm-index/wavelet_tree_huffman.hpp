@@ -31,6 +31,8 @@ public:
     size_t rank(char_type c, size_t pos) const;
     size_t select(char_type c, size_t rank) const;
 
+    size_t getOcc(char_type c) const;
+
     size_t length() const;
     size_t getSize() const;
 
@@ -49,6 +51,7 @@ private:
     void loadTree_(std::istream &istr, WaveletTreeNode *node);
 
 private:
+    std::vector<size_t> occ_;
     std::vector<size_t> code_map_;
     WaveletTreeNode *root_;
     std::vector<WaveletTreeNode *> leaves_;
@@ -80,10 +83,10 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
 
-    this->occ_.resize(this->alphabet_num_ + 1);
+    occ_.resize(this->alphabet_num_ + 1);
     for (size_t i = 0; i < len; ++i)
     {
-        ++this->occ_[char_seq[i] + 1];
+        ++occ_[char_seq[i] + 1];
     }
 
     leaves_.resize(this->alphabet_num_);
@@ -91,9 +94,9 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
     {
-        if (this->occ_[i + 1])
+        if (occ_[i + 1])
         {
-            leaves_[i] = new WaveletTreeNode(i, this->occ_[i + 1]);
+            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1]);
             node_queue.push((leaves_[i]));
         }
     }
@@ -138,9 +141,9 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         }
     }
 
-    for (size_t i = 2; i < this->occ_.size(); ++i)
+    for (size_t i = 2; i < occ_.size(); ++i)
     {
-        this->occ_[i] += this->occ_[i - 1];
+        occ_[i] += occ_[i - 1];
     }
 
     size_t code, level;
@@ -318,6 +321,12 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 }
 
 template <class CharT>
+size_t WaveletTreeHuffman<CharT>::getOcc(char_type c) const
+{
+    return occ_[c];
+}
+
+template <class CharT>
 size_t WaveletTreeHuffman<CharT>::length() const
 {
     return root_ ? root_->length() : 0;
@@ -327,7 +336,7 @@ template <class CharT>
 size_t WaveletTreeHuffman<CharT>::getSize() const
 {
     return sizeof(WaveletTreeHuffman<char_type>)
-        + sizeof(this->occ_[0]) * this->occ_.size()
+        + sizeof(occ_[0]) * occ_.size()
         + sizeof(code_map_[0]) * code_map_.size()
         + getTreeSize_(root_);
 }
@@ -344,6 +353,7 @@ void WaveletTreeHuffman<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
 
+    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     ostr.write((const char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     if (root_)
@@ -378,6 +388,8 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
 
     if (root_) deleteTree_(root_);
 
+    occ_.resize(this->alphabet_num_ + 1);
+    istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 

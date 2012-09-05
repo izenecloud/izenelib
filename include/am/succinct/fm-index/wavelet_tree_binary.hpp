@@ -4,6 +4,7 @@
 #include "wavelet_tree.hpp"
 #include "wavelet_tree_node.hpp"
 #include "utils.hpp"
+#include <am/succinct/sdarray/SDArray.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -30,6 +31,8 @@ public:
     size_t rank(char_type c, size_t pos) const;
     size_t select(char_type c, size_t rank) const;
 
+    size_t getOcc(char_type c) const;
+
     size_t length() const;
     size_t getSize() const;
 
@@ -38,6 +41,7 @@ public:
 
 private:
     size_t alphabet_bit_num_;
+    sdarray::SDArray occ_;
     std::vector<WaveletTreeNode *> nodes_;
 };
 
@@ -78,7 +82,7 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
             ++beg_poses[j][(c >> (alphabet_bit_num_ - j)) + 1];
         }
     }
-    for (size_t i = 1; i < beg_poses.size(); ++i)
+    for (size_t i = 1; i < beg_poses.size() - 1; ++i)
     {
         std::vector<size_t>& beg_poses_level = beg_poses[i];
         for (size_t j = 2; j < beg_poses_level.size(); ++j)
@@ -87,8 +91,12 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
         }
     }
 
-    this->occ_.swap(beg_poses.back());
+    for (size_t i = 0; i < this->alphabet_num_; ++i)
+    {
+        occ_.add(beg_poses.back()[i + 1]);
+    }
     beg_poses.pop_back();
+    occ_.build();
 
     nodes_.resize(alphabet_bit_num_);
     for (size_t i = 0; i < alphabet_bit_num_; ++i)
@@ -135,7 +143,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
         if (bv.GetBit(pos, optR))
         {
             c |= bit_mask;
-            start = this->occ_[c];
+            start = occ_.prefixSum(c);
             pos = start - before + optR;
         }
         else
@@ -169,7 +177,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
         if (bv.GetBit(pos, optR))
         {
             c |= bit_mask;
-            start = this->occ_[c];
+            start = occ_.prefixSum(c);
             pos = start - before + optR;
         }
         else
@@ -206,7 +214,7 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
         if (c & bit_mask)
         {
             masked |= bit_mask;
-            start = this->occ_[masked];
+            start = occ_.prefixSum(masked);
             rank = bv.Rank1(pos) - before;
             pos = start + rank;
         }
@@ -237,7 +245,7 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
     {
         const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
 
-        start = this->occ_[c & mask];
+        start = occ_.prefixSum(c & mask);
         ones_start = bv.Rank1(start);
 
         if (c & bit_mask)
@@ -257,6 +265,12 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 }
 
 template <class CharT>
+size_t WaveletTreeBinary<CharT>::getOcc(char_type c) const
+{
+    return occ_.prefixSum(c);
+}
+
+template <class CharT>
 size_t WaveletTreeBinary<CharT>::length() const
 {
     return nodes_.empty() ? 0 : nodes_[0]->length();
@@ -265,7 +279,7 @@ size_t WaveletTreeBinary<CharT>::length() const
 template <class CharT>
 size_t WaveletTreeBinary<CharT>::getSize() const
 {
-    size_t sum = sizeof(WaveletTreeBinary<char_type>) + sizeof(this->occ_[0]) * this->occ_.size();
+    size_t sum = sizeof(WaveletTreeBinary<char_type>) + occ_.allocSize();
     for (size_t i = 0; i < nodes_.size(); ++i)
         sum += nodes_[i]->getSize();
 
@@ -276,6 +290,7 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
+    occ_.save(ostr);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -287,6 +302,7 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::load(std::istream &istr)
 {
     WaveletTree<CharT>::load(istr);
+    occ_.load(istr);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {

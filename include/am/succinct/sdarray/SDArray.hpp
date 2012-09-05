@@ -35,8 +35,6 @@ namespace sdarray
 
 class SDArray
 {
-    static const size_t BEGPOS_WIDTH;
-    static const size_t BEGPOS_MASK;
     static const size_t BLOCK_SIZE;
 
 public:

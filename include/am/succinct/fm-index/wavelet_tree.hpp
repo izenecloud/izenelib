@@ -31,6 +31,8 @@ public:
     virtual size_t rank(char_type c, size_t pos) const = 0;
     virtual size_t select(char_type c, size_t rank) const = 0;
 
+    virtual size_t getOcc(char_type c) const = 0;
+
     virtual size_t length() const = 0;
     virtual size_t getSize() const = 0;
 
@@ -39,22 +41,14 @@ public:
         return alphabet_num_;
     }
 
-    inline size_t getOcc(char_type c) const
-    {
-        return (size_t)c < occ_.size() ? occ_[c] : -1;
-    }
-
     virtual void save(std::ostream &ostr) const
     {
         ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
-        ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     }
 
     virtual void load(std::istream &istr)
     {
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
-        occ_.resize(alphabet_num_ + 1);
-        istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     }
 
     static size_t getAlphabetNum(const char_type *char_seq, size_t len)
@@ -70,7 +64,6 @@ public:
 
 protected:
     size_t alphabet_num_;
-    std::vector<size_t> occ_;
 };
 
 }

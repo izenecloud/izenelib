@@ -162,9 +162,13 @@ size_t SDArray::prefixSum(const size_t pos) const
     size_t sum    = Ltable_[bpos * 2];
 
     if (offset == 0)
+    {
         return sum;
+    }
     else
+    {
         return sum + selectBlock_(offset, Ltable_[bpos * 2 + 1]);
+    }
 }
 
 size_t SDArray::prefixSumLookup(const size_t pos, size_t& val) const
@@ -175,9 +179,13 @@ size_t SDArray::prefixSumLookup(const size_t pos, size_t& val) const
     size_t prev   = 0;
 
     if (offset == 0)
+    {
         prev = 0;
+    }
     else
+    {
         prev = selectBlock_(offset, Ltable_[bpos * 2 + 1]);
+    }
 
     val = selectBlock_(offset + 1, Ltable_[bpos * 2 + 1]) - prev;
 
@@ -261,7 +269,7 @@ void SDArray::packHighs_(size_t begPos, size_t width)
     for (size_t i = 0; i < vals_.size(); ++i)
     {
         pos = (vals_[i] >> width) + i;
-        B_[begPos + (pos / BLOCK_SIZE)] |= 1LLU << (pos % BLOCK_SIZE);
+        B_[begPos + pos / BLOCK_SIZE] |= 1LLU << (pos % BLOCK_SIZE);
     }
 }
 
@@ -282,7 +290,7 @@ void SDArray::packLows_(size_t begPos, size_t width)
         B_[begPos + bpos] |= val << offset;
         if (offset + width > BLOCK_SIZE)
         {
-            B_[begPos + bpos + 1] |= (val >> (BLOCK_SIZE - offset));
+            B_[begPos + bpos + 1] |= val >> (BLOCK_SIZE - offset);
         }
     }
 }
@@ -301,9 +309,13 @@ size_t SDArray::selectBlock_(const size_t offset, const size_t header) const
 
     size_t high;
     if (offset <= firstSum)
+    {
         high = (select(B_[begPos], offset) + 1 - offset) << width;
+    }
     else
+    {
         high = (select(B_[begPos + 1], offset - firstSum) + 1 - offset + BLOCK_SIZE) << width;
+    }
 
     return high + getLow_(begPos, offset - 1, width);
 }
@@ -384,9 +396,13 @@ size_t SDArray::getBits_(const size_t pos, const size_t num) const
     size_t mask   = (1LLU << num) - 1;
 
     if (offset + num <= BLOCK_SIZE)
+    {
         return (B_[bpos] >> pos) & mask;
+    }
     else
+    {
         return ((B_[bpos] >> pos) + (B_[bpos + 1] << (BLOCK_SIZE - offset))) & mask;
+    }
 }
 
 }

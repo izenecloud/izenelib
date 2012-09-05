@@ -55,12 +55,6 @@ void WatArray::Init(const vector<uint64_t>& array)
     SetOccs(array);
 }
 
-void WatArray::Insert(uint64_t c, uint64_t pos)
-{
-    alphabet_num_ = max(alphabet_num_, c + 1);
-    length_       = max(length_, pos);
-}
-
 uint64_t WatArray::Lookup(uint64_t pos) const
 {
     if (pos >= length_) return NOTFOUND;

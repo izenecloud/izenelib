@@ -72,8 +72,6 @@ public:
      */
     void Init(const std::vector<uint64_t>& array);
 
-    void Insert(uint64_t c, uint64_t pos);
-
     /**
      * Clear and release the resouces
      */
