@@ -74,7 +74,7 @@ FieldIndexer::FieldIndexer(
 
     sorterFileName_ = field_+".tmp";
     bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_)
-                        /bfs::path(sorterFileName_));
+                   /bfs::path(sorterFileName_));
     sorterFullPath_ = path.string();
 }
 
@@ -98,16 +98,15 @@ void FieldIndexer::deletebinlog()
 void FieldIndexer::checkBinlog()
 {
     BarrelInfo* pCurBarrelInfo = pIndexer_->getIndexWriter()->getBarrelInfo();
-    
 
     if(pBinlog_ == NULL)
     {
-	pBinlog_ = new Binlog(pIndexer_);
+        pBinlog_ = new Binlog(pIndexer_);
         std::string BinlogName = field_ + ".binlog";
         bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_)
-                        /bfs::path(BinlogName));
+                       /bfs::path(BinlogName));
         BinlogPath_ = path.string();
-	if(pBinlog_->openForRead(BinlogPath_))
+        if(pBinlog_->openForRead(BinlogPath_))
         {
             if(!pCurBarrelInfo)
                 pIndexer_->getIndexWriter()->createBarrelInfo();
@@ -118,7 +117,7 @@ void FieldIndexer::checkBinlog()
                     pIndexer_->setDirty();
                 }
             }
-           
+
             vector<boost::shared_ptr<LAInput> > laInputArray;
             vector<uint32_t> docidList;
             pBinlog_->load_Binlog(laInputArray, docidList, BinlogPath_);
@@ -126,7 +125,7 @@ void FieldIndexer::checkBinlog()
             uint32_t i = 0;
             for(iter = laInputArray.begin(); iter != laInputArray.end(); iter++)
             {
-        	if (pIndexer_->getIndexWriter()->getBarrelInfo()->getBaseDocID() == BAD_DOCID)
+                if (pIndexer_->getIndexWriter()->getBarrelInfo()->getBaseDocID() == BAD_DOCID)
                     pIndexer_->getIndexWriter()->getBarrelInfo()->addBaseDocID(1,docidList[i]);
                 pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
                 pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
@@ -146,7 +145,7 @@ void FieldIndexer::setIndexMode(
     if(!realtime)
     {
         pMemCache_.reset(new MemCache(
-                pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_));
+                             pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_));
         setHitBuffer_(nBatchMemSize);
     }
     else
@@ -250,21 +249,21 @@ void FieldIndexer::addField(
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
-/**
-@breif add binlog
-*/	
+        /**
+        @breif add binlog
+        */
         ofstream oBinFile;
         oBinFile.open(BinlogPath_.c_str(), ios::binary | ios::app);//xxx
-	if(oBinFile.is_open())
+        if(oBinFile.is_open())
         {
             for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
             {
                 oBinFile.write(reinterpret_cast<char*>(&*iter),sizeof(TermId));
             }
         }
-	else
+        else
             cout<<"Binlog Path Wrong"<<endl;
-        
+
         boost::shared_ptr<RTPostingWriter> curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
@@ -388,7 +387,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
         gettimeofday (&tvafter , &tz);
         LOG(INFO) << "It takes " << ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
-            << " minutes to sort(" << recordCount_ << ")";
+                  << " minutes to sort(" << recordCount_ << ")";
         delete merger;
         recordCount_ = 0;
         run_num_ = 0;
@@ -420,25 +419,26 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         termid_t lastTerm = BAD_DOCID;
         try
         {
-        for (uint64_t i = 0; i < count; ++i)
-        {
-            ioStream._read((char *)(&r), 13);
-            if(r.tid != lastTerm && lastTerm != BAD_DOCID)
+            for (uint64_t i = 0; i < count; ++i)
             {
-                if (!pPosting->isEmpty())
+                ioStream._read((char *)(&r), 13);
+                if(r.tid != lastTerm && lastTerm != BAD_DOCID)
                 {
-                    pPosting->write(pWriterDesc, termInfo); 	///write posting data
-                    writeTermInfo(pVocWriter, lastTerm, termInfo);
-                    pPosting->reset();								///clear posting data
-                    pMemCache_->flushMem();
-                    termInfo.reset();
-                    termCount_++;
+                    if (!pPosting->isEmpty())
+                    {
+                        pPosting->write(pWriterDesc, termInfo); 	///write posting data
+                        writeTermInfo(pVocWriter, lastTerm, termInfo);
+                        pPosting->reset();								///clear posting data
+                        pMemCache_->flushMem();
+                        termInfo.reset();
+                        termCount_++;
+                    }
                 }
+                pPosting->add(r.docId, r.offset);
+                lastTerm = r.tid;
             }
-            pPosting->add(r.docId, r.offset);
-            lastTerm = r.tid;
         }
-        }catch(std::exception& e)
+        catch(std::exception& e)
         {
             LOG(WARNING) << e.what();
         }
