@@ -54,9 +54,9 @@ FieldIndexer::FieldIndexer(
     const char* field,
     Indexer* pIndexer
 )
-    :field_(field)
+    :pBinlog_(NULL)
+    ,field_(field)
     ,pIndexer_(pIndexer)
-    ,pBinlog_(NULL)
     ,vocFilePointer_(0)
     //,alloc_(0)
     ,f_(0)
