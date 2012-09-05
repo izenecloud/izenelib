@@ -15,7 +15,7 @@
 #include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 
 #include <util/scheduler.h>
-
+#include <fstream>
 using namespace std;
 
 NS_IZENELIB_IR_BEGIN
@@ -79,10 +79,11 @@ void IndexWriter::close()
     pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::close()";
+
 }
 
 void IndexWriter::flush()
-{
+{   
     DVLOG(2) << "=> IndexWriter::flush()...";
     if (!pCurBarrelInfo_)
     {
@@ -128,6 +129,16 @@ void IndexWriter::createBarrelInfo()
     DVLOG(2)<< "<= IndexWriter::createBarrelInfo()";
 }
 
+void IndexWriter::checkbinlog() 
+{ 
+    pIndexBarrelWriter_->checkbinlog(); 
+}
+
+void IndexWriter::deletebinlog()
+{
+    pIndexBarrelWriter_->deletebinlog();
+}
+
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
     boost::lock_guard<boost::mutex> lock(indexMutex_);
@@ -144,7 +155,8 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         if (pIndexBarrelWriter_->cacheFull())
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
-            flush();
+            flush();//
+	    deletebinlog();
             createBarrelInfo();
         }
     }

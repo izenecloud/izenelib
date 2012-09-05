@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <deque>
 #include <cstring>
-
+#include <fstream>
 using namespace std;
 using namespace izenelib::util;
 
@@ -89,6 +89,24 @@ void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool
     }
 }
 
+void CollectionIndexer::deletebinlog()
+{
+    map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
+    for (; fit != fieldIndexerMap_.end(); ++fit)
+    {
+        fit->second->deletebinlog();
+    }
+}
+
+void CollectionIndexer::checkbinlog() 
+{
+    map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
+    for (; fit != fieldIndexerMap_.end(); ++fit)
+    {
+        fit->second->checkBinlog();
+    }
+}
+
 void CollectionIndexer::addDocument(IndexerDocument& doc)
 {
     DocId uniqueID;
@@ -147,7 +165,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
             else
                 laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
 
-            it->second->addField(uniqueID.docId, laInput);
+            it->second->addField(uniqueID.docId, laInput);///xxxxx
 
             if (pDocLengthWriter_ && iter->first.isStoreDocLen())
                 pDocLengthWriter_->fill(iter->first.getPropertyId(), laInput->size(), docLength);

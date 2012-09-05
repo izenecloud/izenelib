@@ -132,7 +132,8 @@ void Indexer::setIndexManagerConfig(
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
 
-    setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
+    setIndexMode("realtime");
+//pConfigurationManager_->indexStrategy_.indexMode_);
     pIndexWriter_->tryResumeExistingBarrels();
 
     if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
@@ -144,6 +145,8 @@ void Indexer::setIndexManagerConfig(
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
+//add binlog
+    checkbinlog();
 }
 
 void Indexer::setIndexMode(const std::string& mode)

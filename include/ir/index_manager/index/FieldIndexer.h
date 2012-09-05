@@ -15,6 +15,7 @@
 #include <ir/index_manager/index/SortHelper.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 #include <am/external_sort/izene_sort.hpp>
+#include <ir/index_manager/index/IndexBinlog.h>
 
 #include <3rdparty/am/stx/btree_map>
 
@@ -349,6 +350,10 @@ public:
 
     ~FieldIndexer();
 public:
+    void checkBinlog();
+
+    void addBinlog(docid_t docid, boost::shared_ptr<LAInput> laInput);
+
     const char* getField() { return field_.c_str(); }
 
     void setField(const char* strfield) { field_ = strfield;}
@@ -371,6 +376,8 @@ public:
 
     /// whether indices for this field is empty
     bool isEmpty();
+
+    void deletebinlog();
 private:
     ///set memory cache size for izene sort
     void setHitBuffer_(size_t size);
@@ -380,6 +387,9 @@ private:
     bool isBatchEmpty_();
 
 private:
+
+    Binlog* pBinlog_;
+    
     InMemoryPostingMap postingMap_;
 
     std::string field_;
@@ -399,6 +409,8 @@ private:
     std::string sorterFullPath_;
 
     std::string sorterFileName_;
+
+    std::string BinlogPath_;
 
     FILE* f_;
 

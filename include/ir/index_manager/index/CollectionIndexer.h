@@ -40,6 +40,10 @@ public:
     ~CollectionIndexer();
 public:
 
+    void checkbinlog();
+
+    void deletebinlog();
+
     void setSchema(const IndexerCollectionMeta& schema);
 
     void setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool realtime);
