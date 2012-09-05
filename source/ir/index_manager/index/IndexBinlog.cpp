@@ -55,17 +55,17 @@ void Binlog::load_BinlogFile(vector<boost::shared_ptr<LAInput> >&laInputArray, v
     while(!iBinFile.eof())
     {
 	if(term.docId_ != docid)
-	{
-	    docidList.push_back(term.docId_);
-	    boost::shared_ptr<LAInput> laInput(new LAInput);
-	    laInputArray.push_back(laInput);
-	    tmpLainput = laInput;
-	    tmpLainput->push_back(term);
-	    docid = term.docId_;
-	}
+        {
+            docidList.push_back(term.docId_);
+            boost::shared_ptr<LAInput> laInput(new LAInput);
+            laInputArray.push_back(laInput);
+            tmpLainput = laInput;
+            tmpLainput->push_back(term);
+            docid = term.docId_;
+        }
 	else
-	{
-	    tmpLainput->push_back(term);
+        {
+            tmpLainput->push_back(term);
      	}
 	iBinFile.read(reinterpret_cast<char*>(&term),sizeof(TermId));	
     }

@@ -156,7 +156,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
             flush();//
-	    deletebinlog();
+            deletebinlog();
             createBarrelInfo();
         }
     }

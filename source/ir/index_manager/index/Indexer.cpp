@@ -132,8 +132,7 @@ void Indexer::setIndexManagerConfig(
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
 
-    setIndexMode("realtime");
-//pConfigurationManager_->indexStrategy_.indexMode_);
+    setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
     pIndexWriter_->tryResumeExistingBarrels();
 
     if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())

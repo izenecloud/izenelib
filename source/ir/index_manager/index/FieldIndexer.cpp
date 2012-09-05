@@ -108,33 +108,33 @@ void FieldIndexer::checkBinlog()
                         /bfs::path(BinlogName));
         BinlogPath_ = path.string();
 	if(pBinlog_->openForRead(BinlogPath_))
-	{
-	    if(!pCurBarrelInfo)
-	        pIndexer_->getIndexWriter()->createBarrelInfo();
+        {
+            if(!pCurBarrelInfo)
+                pIndexer_->getIndexWriter()->createBarrelInfo();
             if (pIndexer_->isRealTime())
             {
                 if (!pIndexer_->getIndexReader()->hasMemBarrelReader())
-	        {
+                {
                     pIndexer_->setDirty();
-	        }
+                }
             }
-	   
-	    vector<boost::shared_ptr<LAInput> > laInputArray;
-	    vector<uint32_t> docidList;
-	    pBinlog_->load_Binlog(laInputArray, docidList, BinlogPath_);
-	    vector<boost::shared_ptr<LAInput> >::iterator iter;
-	    uint32_t i = 0;
-	    for(iter = laInputArray.begin(); iter != laInputArray.end(); iter++)
-	    {
-		if (pIndexer_->getIndexWriter()->getBarrelInfo()->getBaseDocID() == BAD_DOCID)
-        		pIndexer_->getIndexWriter()->getBarrelInfo()->addBaseDocID(1,docidList[i]);
-		pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
-    		pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
-    		++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
-		addBinlog(docidList[i], (*iter));	////addField(docidList[i], (*iter))
-		i++;
+           
+            vector<boost::shared_ptr<LAInput> > laInputArray;
+            vector<uint32_t> docidList;
+            pBinlog_->load_Binlog(laInputArray, docidList, BinlogPath_);
+            vector<boost::shared_ptr<LAInput> >::iterator iter;
+            uint32_t i = 0;
+            for(iter = laInputArray.begin(); iter != laInputArray.end(); iter++)
+            {
+        	if (pIndexer_->getIndexWriter()->getBarrelInfo()->getBaseDocID() == BAD_DOCID)
+                    pIndexer_->getIndexWriter()->getBarrelInfo()->addBaseDocID(1,docidList[i]);
+                pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
+                pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
+                ++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
+                addBinlog(docidList[i], (*iter));	////addField(docidList[i], (*iter))
+                i++;
             }
-	}
+        }
     }
 }
 
@@ -261,10 +261,10 @@ void FieldIndexer::addField(
             {
                 oBinFile.write(reinterpret_cast<char*>(&*iter),sizeof(TermId));
             }
-	}
+        }
 	else
-	    cout<<"Binlog Path Wrong"<<endl;
-	
+            cout<<"Binlog Path Wrong"<<endl;
+        
         boost::shared_ptr<RTPostingWriter> curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
