@@ -43,10 +43,6 @@ public:
     ~IndexBarrelWriter();
 public:
     /**
-     * checkbinlog
-     */	
-    void checkbinlog();
-    /**
      * add a analyzed IndexerDocument
      * @param doc analyzed document
      */
@@ -107,8 +103,6 @@ public:
     void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 
     BitVector* getDocFilter() { return pDocFilter_; }
-
-    void deletebinlog();
 
 private:
     void createMemCache();

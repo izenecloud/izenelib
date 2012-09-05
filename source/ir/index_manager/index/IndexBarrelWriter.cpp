@@ -9,7 +9,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <cassert>
-#include <fstream>
+
 using namespace izenelib::ir::indexmanager;
 
 IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
@@ -51,20 +51,8 @@ void IndexBarrelWriter::destroyMemCache()
 
 void IndexBarrelWriter::close()
 {
-    flush(); 
+    flush();
     reset();
-}
-
-void IndexBarrelWriter::checkbinlog()
-{
-    CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[1];
-    pCollectionIndexer->checkbinlog();
-}
-
-void IndexBarrelWriter::deletebinlog()
-{
-    CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[1];
-    pCollectionIndexer->deletebinlog();
 }
 
 void IndexBarrelWriter::addDocument(IndexerDocument& doc)
@@ -117,6 +105,7 @@ void IndexBarrelWriter::flush()
 {
     if(! pBarrelInfo_)
         return;
+
     pBarrelInfo_->write(pDirectory_);
 }
 
