@@ -1,4 +1,6 @@
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/IndexReader.h>
+#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
@@ -54,6 +56,7 @@ FieldIndexer::FieldIndexer(
 )
     :field_(field)
     ,pIndexer_(pIndexer)
+    ,pBinlog_(NULL)
     ,vocFilePointer_(0)
     //,alloc_(0)
     ,f_(0)
@@ -82,6 +85,54 @@ FieldIndexer::~FieldIndexer()
         fclose(f_);
         if(! boost::filesystem::remove(sorterFullPath_))
             LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
+    }
+
+    deletebinlog();
+}
+
+void FieldIndexer::deletebinlog()
+{
+    boost::filesystem::remove(BinlogPath_);
+}
+
+void FieldIndexer::checkBinlog()
+{
+    BarrelInfo* pCurBarrelInfo = pIndexer_->getIndexWriter()->getBarrelInfo();
+    if(!pCurBarrelInfo)
+	pIndexer_->getIndexWriter()->createBarrelInfo();
+    if (pIndexer_->isRealTime())
+    {
+        if (!pIndexer_->getIndexReader()->hasMemBarrelReader())
+	{
+            pIndexer_->setDirty();
+	}
+    }
+
+    if(pBinlog_ == NULL)
+    {
+	pBinlog_ = new Binlog(pIndexer_);
+        std::string BinlogName = field_ + ".binlog";
+        bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_)
+                        /bfs::path(BinlogName));
+        BinlogPath_ = path.string();
+	if(pBinlog_->openForRead(BinlogPath_))
+	{
+	    vector<boost::shared_ptr<LAInput> > laInputArray;
+	    vector<uint32_t> docidList;
+	    pBinlog_->load_Binlog(laInputArray, docidList, BinlogPath_);
+	    vector<boost::shared_ptr<LAInput> >::iterator iter;
+	    uint32_t i = 0;
+	    for(iter = laInputArray.begin(); iter != laInputArray.end(); iter++)
+	    {
+		if (pIndexer_->getIndexWriter()->getBarrelInfo()->getBaseDocID() == BAD_DOCID)
+        		pIndexer_->getIndexWriter()->getBarrelInfo()->addBaseDocID(1,docidList[i]);
+		pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
+    		pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
+    		++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
+		addBinlog(docidList[i], (*iter));	////addField(docidList[i], (*iter))
+		i++;
+            }
+	}
     }
 }
 
@@ -170,6 +221,26 @@ void FieldIndexer::writeHitBuffer_(int iHits)
     ++run_num_;
 }
 
+void FieldIndexer::addBinlog(
+    docid_t docid,
+    boost::shared_ptr<LAInput> laInput)
+{
+    boost::shared_ptr<RTPostingWriter> curPosting;
+    for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
+    {
+        InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termid_);
+        if (postingIter == postingMap_.end())
+        {
+            curPosting.reset(new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_));
+            boost::unique_lock<boost::shared_mutex> lock(rwLock_);
+            postingMap_[iter->termid_] = curPosting;
+        }
+        else
+            curPosting = postingIter->second;
+        curPosting->add(docid, iter->wordOffset_, true);
+    }
+}
+
 void FieldIndexer::addField(
     docid_t docid,
     boost::shared_ptr<LAInput> laInput)
@@ -177,6 +248,21 @@ void FieldIndexer::addField(
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
+/**
+@breif add binlog
+*/	
+        ofstream oBinFile;
+        oBinFile.open(BinlogPath_.c_str(), ios::binary | ios::app);//xxx
+	if(oBinFile.is_open())
+        {
+            for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
+            {
+                oBinFile.write(reinterpret_cast<char*>(&*iter),sizeof(TermId));
+            }
+	}
+	else
+	    cout<<"Binlog Path Wrong"<<endl;
+	
         boost::shared_ptr<RTPostingWriter> curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {

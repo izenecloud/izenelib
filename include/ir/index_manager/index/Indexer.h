@@ -147,6 +147,8 @@ public:
     izenelib::util::ReadWriteLock& getLock() { return mutex_; }
 
 public:
+    void checkbinlog() { pIndexWriter_->checkbinlog(); }
+
     BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
 
     Directory* getDirectory() { return pDirectory_; }

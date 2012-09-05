@@ -64,8 +64,20 @@ public:
 
     void tryResumeExistingBarrels();
 
-private:
+    BarrelInfo* getBarrelInfo() { return pCurBarrelInfo_; }
+
+    BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_ ;}
+
+    IndexBarrelWriter* getIndexBarrelWriter() { return pIndexBarrelWriter_; }
+
     void createBarrelInfo();
+
+    void checkbinlog();
+
+    void deletebinlog();
+
+private:
+    
     /// optimize index offline
     void lazyOptimizeIndex();
 private:
