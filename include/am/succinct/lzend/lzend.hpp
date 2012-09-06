@@ -590,7 +590,7 @@ private:
             {
                 if (bv.Lookup(i))
                 {
-                    CHECK(i - prev < UINT32_MAX);
+                    CHECK(i - prev < std::numeric_limits<uint32_t>::max());
                     tbv.push_back(i - prev);
                     prev = i;
                 }
@@ -933,7 +933,7 @@ private:
             {
                 if (bv.Lookup(i))
                 {
-                    CHECK(i - prev < UINT32_MAX);
+                    CHECK(i - prev < std::numeric_limits<uint32_t>::max());
                     tbv.push_back(i - prev);
                     prev = i;
                 }
