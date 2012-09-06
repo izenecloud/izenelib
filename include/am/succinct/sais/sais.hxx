@@ -1,5 +1,5 @@
 /*
- * sais.hxx for sais
+ * sais.hxx for sais-lite
  * Copyright (c) 2008-2010 Yuta Mori All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person
@@ -55,7 +55,7 @@ template<typename bucketC_type, typename bucketB_type, typename index_type>
 void
 getBuckets(const bucketC_type C, bucketB_type B, index_type k, bool end) {
   index_type i, sum = 0;
-  if(end) { for(i = 0; i < k; ++i) { sum += C[i]; B[i] = sum; } }
+  if(end != false) { for(i = 0; i < k; ++i) { sum += C[i]; B[i] = sum; } }
   else { for(i = 0; i < k; ++i) { sum += C[i]; B[i] = sum - C[i]; } }
 }
 
@@ -71,7 +71,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
   char_type c0, c1;
 
   /* compute SAl */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, false); /* find starts of buckets */
   j = n - 1;
   b = SA + B[c1 = T[j]];
@@ -90,7 +90,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
     }
   }
   /* compute SAs */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, true); /* find ends of buckets */
   for(i = n - 1, b = SA + B[c1 = 0]; 0 <= i; --i) {
     if(0 < (j = SA[i])) {
@@ -143,7 +143,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
       for(j = 0; (j < plen) && (T[p + j] == T[q + j]); ++j) { }
       if(j == plen) { diff = false; }
     }
-    if(diff) { ++name, q = p, qlen = plen; }
+    if(diff != false) { ++name, q = p, qlen = plen; }
     SA[m + (p >> 1)] = name;
   }
 
@@ -262,7 +262,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
   index_type i, j;
   char_type c0, c1;
   /* compute SAl */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, false); /* find starts of buckets */
   b = SA + B[c1 = T[j = n - 1]];
   *b++ = ((0 < j) && (T[j - 1] < c1)) ? ~j : j;
@@ -274,7 +274,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
     }
   }
   /* compute SAs */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, true); /* find ends of buckets */
   for(i = n - 1, b = SA + B[c1 = 0]; 0 <= i; --i) {
     if(0 < (j = SA[i])) {
@@ -295,7 +295,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
   index_type i, j, pidx = -1;
   char_type c0, c1;
   /* compute SAl */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, false); /* find starts of buckets */
   b = SA + B[c1 = T[j = n - 1]];
   *b++ = ((0 < j) && (T[j - 1] < c1)) ? ~j : j;
@@ -309,7 +309,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
     }
   }
   /* compute SAs */
-  if(recount) { getCounts(T, C, n, k); }
+  if(recount != false) { getCounts(T, C, n, k); }
   getBuckets(C, B, k, true); /* find ends of buckets */
   for(i = n - 1, b = SA + B[c1 = 0]; 0 <= i; --i) {
     if(0 < (j = SA[i])) {
@@ -411,8 +411,8 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
     } while(0 <= i);
     while(0 < j) { SA[--j] = 0; }
   }
-  if(isbwt) { pidx = computeBWT(T, SA, C, B, n, k, (flags & (4 | 64)) != 0); }
-  else { induceSA(T, SA, C, B, n, k, (flags & (4 | 64)) != 0); }
+  if(isbwt == false) { induceSA(T, SA, C, B, n, k, (flags & (4 | 64)) != 0); }
+  else { pidx = computeBWT(T, SA, C, B, n, k, (flags & (4 | 64)) != 0); }
   return pidx;
 }
 
@@ -500,7 +500,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
     for(i = m + (n >> 1) - 1, j = m - 1; m <= i; --i) {
       if(SA[i] != 0) { RA[j--] = SA[i] - 1; }
     }
-    if(suffixsort(RA, SA, newfs, m, name, false) < 0) { if(flags & 1) { delete[] Cp; } return -2; }
+    if(suffixsort(RA, SA, newfs, m, name, false) != 0) { if(flags & 1) { delete[] Cp; } return -2; }
     i = n - 1; j = m - 1; c0 = T[n - 1];
     do { c1 = c0; } while((0 <= --i) && ((c0 = T[i]) >= c1));
     for(; 0 <= i;) {
@@ -557,7 +557,7 @@ typedef typename std::iterator_traits<sarray_type>::value_type savalue_type;
   assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
   if((n < 0) || (k <= 0)) { return -1; }
   if(n <= 1) { if(n == 1) { SA[0] = 0; } return 0; }
-  return saisxx_private::suffixsort(T, SA, (index_type)0, n, k, false);
+  return saisxx_private::suffixsort(T, SA, 0, n, k, false);
 }
 
 /**
@@ -581,7 +581,7 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
   assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
   if((n < 0) || (k <= 0)) { return -1; }
   if(n <= 1) { if(n == 1) { U[0] = T[0]; } return n; }
-  pidx = saisxx_private::suffixsort(T, A, (index_type)0, n, k, true);
+  pidx = saisxx_private::suffixsort(T, A, 0, n, k, true);
   if(0 <= pidx) {
     U[0] = T[n - 1];
     for(i = 0; i < pidx; ++i) { U[i + 1] = (char_type)A[i]; }

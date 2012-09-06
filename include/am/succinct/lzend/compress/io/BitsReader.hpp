@@ -13,64 +13,81 @@
  *-----------------------------------------------------------------------------
  */
 
-#ifndef __BITSREADER_HPP__
-#define __BITSREADER_HPP__
+#ifndef IZENELIB_AM_SUCCINCT_LZEND_BITSREADER_HPP
+#define IZENELIB_AM_SUCCINCT_LZEND_BITSREADER_HPP
 
-#include <stdint.h>
+#include <types.h>
+
+NS_IZENELIB_AM_BEGIN
+namespace succinct
+{
+namespace lzend
+{
 
 using namespace std;
 
-class BitsReader {
+class BitsReader
+{
 private:
-        uint64_t        buffer;
-        uint32_t        Fill; 
-        uint32_t        *data;
+    uint64_t buffer;
+    uint32_t Fill;
+    uint32_t *data;
 
 public:
-        BitsReader(uint32_t *in) {
-                data = in;
-                Fill = 32;
-                buffer = *data++;
-        }
-                
-        uint32_t bit_reader(uint32_t bits) {
-                if (bits == 0)
-                        return 0;
+    BitsReader(uint32_t *in)
+    {
+        data = in;
+        Fill = 32;
+        buffer = *data++;
+    }
 
-                if (Fill < bits) {
-                        buffer = (buffer << 32) | *data++;
-                        Fill += 32;
-                }
+    uint32_t bit_reader(uint32_t bits)
+    {
+        if (bits == 0)
+            return 0;
 
-                Fill -= bits;
-
-                return (buffer >> Fill) & ((1ULL << bits) - 1);
+        if (Fill < bits)
+        {
+            buffer = (buffer << 32) | *data++;
+            Fill += 32;
         }
 
-        /* Gamma & Delta code */
-        uint32_t N_Gamma() {
-                uint32_t count = 0;
-                while (bit_reader(1) == 0)
-                        count++;
+        Fill -= bits;
 
-                uint32_t d = ((1 << count) |
-                                bit_reader(count));
+        return (buffer >> Fill) & ((1ULL << bits) - 1);
+    }
 
-                return d - 1;
-        }
+    /* Gamma & Delta code */
+    uint32_t N_Gamma()
+    {
+        uint32_t count = 0;
+        while (bit_reader(1) == 0)
+            count++;
 
-        uint32_t N_Delta() {
-                uint32_t count = N_Gamma();
-                return ((1 << count) |
-                                bit_reader(count)) - 1;
-        }
+        uint32_t d = ((1 << count) |
+                      bit_reader(count));
 
-        void N_DeltaArray(uint32_t *out,
-                        uint32_t nvalues) {
-                uint32_t i = 0;
-                while (i < nvalues)
-                        out[i++] = N_Delta();
-        }
+        return d - 1;
+    }
+
+    uint32_t N_Delta()
+    {
+        uint32_t count = N_Gamma();
+        return ((1 << count) |
+                bit_reader(count)) - 1;
+    }
+
+    void N_DeltaArray(uint32_t *out,
+                      uint32_t nvalues)
+    {
+        uint32_t i = 0;
+        while (i < nvalues)
+            out[i++] = N_Delta();
+    }
 };
+
+}
+}
+NS_IZENELIB_AM_END
 
 #endif /* __BITSREADER_HPP__ */
