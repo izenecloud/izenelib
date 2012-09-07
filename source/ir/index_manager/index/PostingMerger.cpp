@@ -438,12 +438,12 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
             if(nMtf < nTF)
                 nMtf = nTF;
             nLastDocID = nDocID;
-            if(pSkipListMerger_ && postingDesc_.df > 0 && postingDesc_.df % skipInterval_ == 0)
+            if(pSkipListWriter_ && postingDesc_.df > 0 && postingDesc_.df % skipInterval_ == 0)
             {
                 if(pPOutput)
-                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer());
+                    pSkipListWriter_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer());
                 else
-                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),0);
+                    pSkipListWriter_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),0);
             }
         }
         else ///this document has been deleted

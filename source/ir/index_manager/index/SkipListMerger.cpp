@@ -46,16 +46,15 @@ bool SkipListMerger::addToMerge(
 	for(int i = 0;i < maxSkipLevel_;i++)
             skipIntervals_[i] += nCurSkipped;
 
-	nSkipIntervalBetweenBarrels = 0;
-	
 	if(skipIntervals_[0] <= 1)
            continue;
+
         addSkipPoint( pSkipReader->getDoc() + baseDocID_, 
                             pSkipReader->getOffset() + baseOffset_,
                             pSkipReader->getPOffset() + basePOffset_
                           );
-
 	lastdoc = pSkipReader->getDoc();
+	nSkipIntervalBetweenBarrels = 0;
     }
     return true;
 }
