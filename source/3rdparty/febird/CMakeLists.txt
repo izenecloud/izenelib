@@ -26,11 +26,6 @@ IF(febird_SHOULD_BUILD)
     io/var_int.cpp
     io/WinFileStream.cpp
     io/ZlibStream.cpp
-    rpc/client.cpp
-    rpc/MessageInputStream.cpp
-    rpc/rpc_basic.cpp
-    rpc/server.cpp
-    rpc/server_io.cpp
     )
 
   INCLUDE_DIRECTORIES(
