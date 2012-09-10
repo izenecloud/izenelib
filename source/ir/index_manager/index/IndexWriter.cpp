@@ -13,7 +13,8 @@
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
-
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <util/scheduler.h>
 #include <fstream>
 using namespace std;
@@ -21,7 +22,7 @@ using namespace std;
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
+namespace bfs = boost::filesystem;
 IndexWriter::IndexWriter(Indexer* pIndex)
         :pIndexer_(pIndex)
         ,pIndexBarrelWriter_(NULL)
@@ -73,9 +74,10 @@ void IndexWriter::close()
         return;
     }
     assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
-
-    pIndexBarrelWriter_->flush();
-    pBarrelsInfo_->write(pIndexer_->getDirectory());
+    /*for realtime index need not flush when stop normally*/
+    //pIndexBarrelWriter_->flush();
+    //pBarrelsInfo_->write(pIndexer_->getDirectory());
+    
     pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::close()";

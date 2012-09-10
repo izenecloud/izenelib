@@ -159,34 +159,36 @@ void TermDocFreqsTestFixture::checkUpdateDocsImpl(const std::list<docid_t>& upda
     }
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
-    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+    if(!indexer_->isRealTime())
+    {
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
     // regenerate term ids for each doc
-    resetRand2();
-    list<docid_t>::const_iterator updateIt = updateDocList.begin();
-    for(docid_t docID = 1; docID <= maxDocID_; ++docID)
-    {
-        DTermIdMapT docTermIdMap;
-
-        bool isDocUpdated = (docID == *updateIt);
-        const unsigned int docLen = docLenRand2_();
-        for(unsigned int j = 0; j < docLen; ++j)
+       resetRand2();
+        list<docid_t>::const_iterator updateIt = updateDocList.begin();
+        for(docid_t docID = 1; docID <= maxDocID_; ++docID)
         {
-            unsigned int termId = termIDRand2_();
+            DTermIdMapT docTermIdMap;
+
+            bool isDocUpdated = (docID == *updateIt);
+            const unsigned int docLen = docLenRand2_();
+            for(unsigned int j = 0; j < docLen; ++j)
+            {
+                unsigned int termId = termIDRand2_();
+
+                if(isDocUpdated)
+                    docTermIdMap[termId].push_back(j);
+            }
 
             if(isDocUpdated)
-                docTermIdMap[termId].push_back(j);
-        }
+            {
+                queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand_, isCheckRand_);
 
-        if(isDocUpdated)
-        {
-            queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand_, isCheckRand_);
-
-            if(++updateIt == updateDocList.end())
-                break;
+                if(++updateIt == updateDocList.end())
+                    break;
+            }
         }
     }
-
     VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocsImpl()";
 }
 
@@ -254,33 +256,36 @@ void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
     VLOG(2) << "=> TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
-    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
-
-    if(mapDocIdLen_.empty())
+    if(!indexer_->isRealTime())
     {
-        // TermReader should be NULL when no doc exists
-        BOOST_CHECK(pTermReader.get() == NULL);
-        VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl(), no doc exists";
-        return;
-    }
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+        if(mapDocIdLen_.empty())
+        {
+            // TermReader should be NULL when no doc exists
+            BOOST_CHECK(pTermReader.get() == NULL);
+            VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl(), no doc exists";
+            return;
+        }
 
 #ifdef LOG_QUERY_OPERATION
-    BOOST_TEST_MESSAGE("check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms.");
+        BOOST_TEST_MESSAGE("check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms.");
 #endif
-    Term term(INVERTED_FIELD);
-    for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
+        Term term(INVERTED_FIELD);
+        for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
             termIt != mapCTermId_.end(); ++termIt)
-    {
-        term.setValue(termIt->first);
+        {
+            term.setValue(termIt->first);
 #ifdef LOG_TERM_ID
-        BOOST_TEST_MESSAGE("check term id: " << termIt->first);
+            BOOST_TEST_MESSAGE("check term id: " << termIt->first);
 #endif
-        BOOST_CHECK(pTermReader->seek(&term));
+            BOOST_CHECK(pTermReader->seek(&term));
 
-        boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
-        if(!pTermDocFreqs) throw std::runtime_error("index dirty");
-        BOOST_CHECK_EQUAL(pTermDocFreqs->docFreq(), termIt->second.first);
-        BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
+            boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+            if(!pTermDocFreqs) throw std::runtime_error("index dirty");
+            BOOST_CHECK_EQUAL(pTermDocFreqs->docFreq(), termIt->second.first);
+            BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
+        }
     }
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
@@ -300,50 +305,53 @@ void TermDocFreqsTestFixture::checkTermIteratorImpl()
     VLOG(2) << "=> TermDocFreqsTestFixture::checkTermIteratorImpl()";
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
-    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
-
-    if(mapDocIdLen_.empty())
+    if(!indexer_->isRealTime())
     {
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+        if(mapDocIdLen_.empty())
+        {
         // TermReader should be NULL when no doc exists
-        BOOST_CHECK(pTermReader.get() == NULL);
-        VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIteratorImpl(), no doc exists";
-        return;
-    }
+            BOOST_CHECK(pTermReader.get() == NULL);
+            VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIteratorImpl(), no doc exists";
+           return;
+        }
 
 #ifdef LOG_TERM_ITERATE
-    BOOST_TEST_MESSAGE("check TermIterator on " << mapCTermId_.size() << " terms.");
+        BOOST_TEST_MESSAGE("check TermIterator on " << mapCTermId_.size() << " terms.");
 #endif
 
-    boost::scoped_ptr<TermIterator> pTermIterator(pTermReader->termIterator(INVERTED_FIELD));
-    Term term(INVERTED_FIELD);
-    for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
+        boost::scoped_ptr<TermIterator> pTermIterator(pTermReader->termIterator(INVERTED_FIELD));//xxx
+        Term term(INVERTED_FIELD);
+        for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
             termIt != mapCTermId_.end(); ++termIt)
-    {
-        BOOST_CHECK(pTermIterator->next());
+        {
+            BOOST_CHECK(pTermIterator->next());
 
-        const Term* pTerm = pTermIterator->term();
-        BOOST_REQUIRE(pTerm);
-        const TermInfo* pTermInfo = pTermIterator->termInfo();
-        BOOST_REQUIRE(pTermInfo);
+            const Term* pTerm = pTermIterator->term();
+            BOOST_REQUIRE(pTerm);
+            const TermInfo* pTermInfo = pTermIterator->termInfo();
+            BOOST_REQUIRE(pTermInfo);
 
 #ifdef LOG_TERM_ITERATE
-        BOOST_TEST_MESSAGE("term id: " << pTerm->value
+            BOOST_TEST_MESSAGE("term id: " << pTerm->value
                            << ", df: " << pTermInfo->docFreq_
                            << ", ctf: " << pTermInfo->ctf_);
 #endif
-        BOOST_CHECK_EQUAL(pTerm->value, termIt->first);
-        BOOST_CHECK_EQUAL(pTerm->field, INVERTED_FIELD);
-        BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
-        BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
+            BOOST_CHECK_EQUAL(pTerm->value, termIt->first);
+            BOOST_CHECK_EQUAL(pTerm->field, INVERTED_FIELD);
+            BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
+            BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
 
-        term.setValue(termIt->first);
-        BOOST_CHECK_EQUAL(pTermReader->docFreq(&term), termIt->second.first);
+            term.setValue(termIt->first);
+            BOOST_CHECK_EQUAL(pTermReader->docFreq(&term), termIt->second.first);
 
-        pTermInfo = pTermReader->termInfo(&term);
-        BOOST_REQUIRE(pTermInfo);
+            pTermInfo = pTermReader->termInfo(&term);
+            BOOST_REQUIRE(pTermInfo);
 
-        BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
-        BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
+            BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
+            BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
+        }
     }
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIteratorImpl()";
@@ -432,48 +440,50 @@ void TermDocFreqsTestFixture::queryDocsImpl(docid_t startDocID, docid_t endDocID
     }
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
-    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
-
-    if(pTermReader.get() == NULL)
+    if (!indexer_->isRealTime())
     {
-        BOOST_CHECK_TS(isDocEmpty());
-        VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl(), no doc exists and TermReader is NULL";
-        return;
-    }
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+        if(pTermReader.get() == NULL)
+        {
+            BOOST_CHECK_TS(isDocEmpty());
+            VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl(), no doc exists and TermReader is NULL";
+            return;
+        }
 
     // regenerate term ids for each doc
-    boost::mt19937 newEngine;
+        boost::mt19937 newEngine;
 
-    IntRandGeneratorT docLenRand2(docLenRand_);
-    docLenRand2.engine() = newEngine;
+        IntRandGeneratorT docLenRand2(docLenRand_);
+        docLenRand2.engine() = newEngine;
 
-    IntRandGeneratorT termIDRand2(termIDRand_);
-    termIDRand2.engine() = newEngine;
+        IntRandGeneratorT termIDRand2(termIDRand_);
+        termIDRand2.engine() = newEngine;
 
-    BoolRandGeneratorT isSkipToRand2(isSkipToRand_);
-    isSkipToRand2.engine() = newEngine;
+        BoolRandGeneratorT isSkipToRand2(isSkipToRand_);
+        isSkipToRand2.engine() = newEngine;
 
-    BoolRandGeneratorT isCheckRand2(isCheckRand_);
-    isCheckRand2.engine() = newEngine;
+        BoolRandGeneratorT isCheckRand2(isCheckRand_);
+        isCheckRand2.engine() = newEngine;
 
-    // skip random term ids of docs before the range
-    for(docid_t docID = 1; docID < startDocID; ++docID)
-    {
-        const unsigned int docLen = docLenRand2();
-        for(unsigned int j = 0; j < docLen; ++j)
-            termIDRand2();
-    }
+        // skip random term ids of docs before the range
+        for(docid_t docID = 1; docID < startDocID; ++docID)
+        {
+            const unsigned int docLen = docLenRand2();
+            for(unsigned int j = 0; j < docLen; ++j)
+                termIDRand2();
+        }
 
     // query the range
-    for(docid_t docID = startDocID; docID <= endDocID; ++docID)
-    {
-        const unsigned int docLen = docLenRand2();
-        DTermIdMapT docTermIdMap;
-        for(unsigned int j = 0; j < docLen; ++j)
-            docTermIdMap[termIDRand2()].push_back(j);
-        queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand2, isCheckRand2);
+        for(docid_t docID = startDocID; docID <= endDocID; ++docID)
+        {
+            const unsigned int docLen = docLenRand2();
+            DTermIdMapT docTermIdMap;
+            for(unsigned int j = 0; j < docLen; ++j)
+                docTermIdMap[termIDRand2()].push_back(j);
+            queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand2, isCheckRand2);
+        }
     }
-
     VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl()";
 }
 
@@ -531,7 +541,7 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
 
             moveToDoc(pTermDocFreqs.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
-                BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
+               BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
 
             boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
             if(!pTermPositions) throw std::runtime_error("index dirty");
