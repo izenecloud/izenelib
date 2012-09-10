@@ -116,7 +116,7 @@
     (log_stream_dispatch<(lvl >= OUTPUTLEVEL)>::exec(lvl,__FILE__, __func__ ,__LINE__) )
 #endif
 
-static const char* messages[] = {  "DEBUG:    ",
+static const char* log_messages[] = {  "DEBUG:    ",
     "INFO:     ",
     "WARNING:  ",
     "ERROR:    ",
@@ -329,7 +329,7 @@ class file_logger{
             
             // write the actual header
             int byteswritten = snprintf(str,1024, "%s%s(%s:%d): ",
-                                        messages[lineloglevel],file,function,line);
+                                        log_messages[lineloglevel],file,function,line);
             // write the actual logger
             
             byteswritten += vsnprintf(str + byteswritten,1024 - byteswritten,fmt,ap);
@@ -374,7 +374,7 @@ class file_logger{
             
             // length of the 'head' of the string
             size_t headerlen = snprintf(NULL,0,"%s%s(%s:%d): ",
-                                        messages[lineloglevel],file,function,line);
+                                        log_messages[lineloglevel],file,function,line);
             
             if (headerlen> 2047) {
                 std::cerr << "Header length exceed buffer length!";
@@ -384,7 +384,7 @@ class file_logger{
                 const char *newline="\n";
                 // write the actual header
                 int byteswritten = snprintf(str,2047,"%s%s(%s:%d): ",
-                                            messages[lineloglevel],file,function,line);
+                                            log_messages[lineloglevel],file,function,line);
                 _lograw(lineloglevel,str, byteswritten);
                 _lograw(lineloglevel,buf, len);
                 _lograw(lineloglevel,newline, (int)strlen(newline));
@@ -437,7 +437,7 @@ class file_logger{
         
         if (lineloglevel >= log_level){
             if (streambuffer.str().length() == 0) {
-                streambuffer << messages[lineloglevel] << file
+                streambuffer << log_messages[lineloglevel] << file
                 << "(" << function << ":" <<line<<"): ";
             }
             streamactive = true;
