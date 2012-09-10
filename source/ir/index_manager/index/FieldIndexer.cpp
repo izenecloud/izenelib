@@ -108,6 +108,8 @@ void FieldIndexer::checkBinlog()
         BinlogPath_ = path.string();
         if(pBinlog_->openForRead(BinlogPath_))
         {
+            if (!pIndexer_->isRealTime())
+                pIndexer_->setIndexMode("realtime");
             if(!pCurBarrelInfo)
                 pIndexer_->getIndexWriter()->createBarrelInfo();
             if (pIndexer_->isRealTime())
