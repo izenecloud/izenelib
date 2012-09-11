@@ -172,7 +172,6 @@ inline void index(const IndexerTestConfig& config)
 
     for(int i=0; i<config.iterNum_; ++i)
         fixture.createDocument(0,!config.isRealTimeMode());
-
     fixture.checkTermDocFreqs();
     fixture.checkTermIterator();
     fixture.queryCollection();

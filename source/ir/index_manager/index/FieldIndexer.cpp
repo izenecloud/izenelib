@@ -86,8 +86,6 @@ FieldIndexer::~FieldIndexer()
         if(! boost::filesystem::remove(sorterFullPath_))
             LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
     }
-
-    deletebinlog();
 }
 
 void FieldIndexer::deletebinlog()
@@ -108,7 +106,7 @@ void FieldIndexer::checkBinlog()
         BinlogPath_ = path.string();
         if(pBinlog_->openForRead(BinlogPath_))
         {
-            if (!pIndexer_->isRealTime())
+            if(!pIndexer_->isRealTime())
                 pIndexer_->setIndexMode("realtime");
             if(!pCurBarrelInfo)
                 pIndexer_->getIndexWriter()->createBarrelInfo();
@@ -132,9 +130,11 @@ void FieldIndexer::checkBinlog()
                 pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
                 pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
                 ++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
-                addBinlog(docidList[i], (*iter));	////addField(docidList[i], (*iter))
+                addBinlog(docidList[i], (*iter));
                 i++;
             }
+            pIndexer_->setDirty();
+            pIndexer_->getIndexReader();
         }
     }
 }

@@ -124,7 +124,6 @@ void IndexerTestFixture::createDocument(unsigned int docNum, bool manualFlush)
 
     if(docNum == 0)
         docNum = newDocNum_;
-
     docid_t docID = maxDocID_ + 1;
     for(unsigned int i = 1; i <= docNum; i++, ++docID)
     {
@@ -139,7 +138,12 @@ void IndexerTestFixture::createDocument(unsigned int docNum, bool manualFlush)
     }
 
     if(isRealIndex_)
-        indexer_->flush();
+    {
+        if(indexer_->isRealTime())
+            indexer_->flush(false);
+        else
+            indexer_->flush();
+    }
 
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
 }
@@ -187,7 +191,12 @@ void IndexerTestFixture::updateDocument(bool manualFlush)
     }
 
     if(isRealIndex_)
-        indexer_->flush();
+    {
+        if(indexer_->isRealTime())
+            indexer_->flush(false);
+        else
+            indexer_->flush();
+    }
 
     removeDocList.sort();
     removeFixtureDocs(removeDocList);
@@ -239,7 +248,12 @@ void IndexerTestFixture::removeDocument()
     }
 
     if(isRealIndex_)
-        indexer_->flush();
+    {
+        if(indexer_->isRealTime())
+            indexer_->flush(false);
+        else
+            indexer_->flush();
+    }
 
     removeDocList.sort();
     removeFixtureDocs(removeDocList);

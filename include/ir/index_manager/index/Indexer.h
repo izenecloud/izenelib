@@ -149,6 +149,8 @@ public:
 public:
     void checkbinlog() { pIndexWriter_->checkbinlog(); }
 
+    void deletebinlog() { pIndexWriter_->deletebinlog(); }
+
     BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
 
     Directory* getDirectory() { return pDirectory_; }

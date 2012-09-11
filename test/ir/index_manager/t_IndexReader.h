@@ -29,19 +29,21 @@ public:
     /** Check document length. */
     void checkDocLength() {
         VLOG(2) << "=> IndexReaderTestFixture::checkDocLength()";
-
+        
         IndexReader* pIndexReader = indexer_->getIndexReader();
+       if(!indexer_->isRealTime())
+       {
+           BOOST_CHECK_EQUAL(pIndexReader->numDocs(), mapDocIdLen_.size());
+           BOOST_CHECK_EQUAL(pIndexReader->maxDoc(), maxDocID_);
 
-        BOOST_CHECK_EQUAL(pIndexReader->numDocs(), mapDocIdLen_.size());
-        BOOST_CHECK_EQUAL(pIndexReader->maxDoc(), maxDocID_);
-
-        for(DocIdLenMapT::const_iterator lenMapIt = mapDocIdLen_.begin();
+           for(DocIdLenMapT::const_iterator lenMapIt = mapDocIdLen_.begin();
                 lenMapIt != mapDocIdLen_.end(); ++lenMapIt)
-        {
+           {
 #ifdef LOG_CHECK_OPERATION
-            BOOST_TEST_MESSAGE("check: " << lenMapIt->first);
+                BOOST_TEST_MESSAGE("check: " << lenMapIt->first);
 #endif
-            BOOST_CHECK_EQUAL(pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), lenMapIt->second);
+                BOOST_CHECK_EQUAL(pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), lenMapIt->second);
+           }
         }
 
         VLOG(2) << "<= IndexReaderTestFixture::checkDocLength()";

@@ -32,6 +32,7 @@ inline void index(const IndexerTestConfig& config)
     // not to merge when offline mode, in order to check each barrel
     if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
         newConfig.isMerge_ = false;
+
     fixture.configTest(newConfig);
 
     const int barrelNum = config.iterNum_;
@@ -144,31 +145,33 @@ inline void pauseResumeMerge(const IndexerTestConfig& config)
     const int barrelNum = config.iterNum_;
     for(int i=0; i<barrelNum; ++i)
         fixture.createDocument(); // create barrel i
+    if( !pIndexer->isRealTime())
+    {
+        IndexReader* pIndexReader = pIndexer->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
 
-    IndexReader* pIndexReader = pIndexer->getIndexReader();
-    BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
-    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
-    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+        if(pIndexer->getIndexManagerConfig()->indexStrategy_.indexMode_ == IndexerTestFixture::INDEX_MODE_REALTIME)
+            BOOST_CHECK_GE(pBarrelsInfo->getBarrelCount(), barrelNum);
+        else
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
 
-    if(pIndexer->getIndexManagerConfig()->indexStrategy_.indexMode_ == IndexerTestFixture::INDEX_MODE_REALTIME)
-        BOOST_CHECK_GE(pBarrelsInfo->getBarrelCount(), barrelNum);
-    else
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
+        pIndexer->resumeMerge();
+        pIndexer->optimizeIndex();
 
-    pIndexer->resumeMerge();
-    pIndexer->optimizeIndex();
+        // wait for merge finish
+        pIndexer->waitForMergeFinish();
 
-    // wait for merge finish
-    pIndexer->waitForMergeFinish();
+        pIndexReader = pIndexer->getIndexReader();
+        pBarrelsInfo = pIndexReader->getBarrelsInfo();
 
-    pIndexReader = pIndexer->getIndexReader();
-    pBarrelsInfo = pIndexReader->getBarrelsInfo();
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
 
-    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
-    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
-    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
-
-    VLOG(2) << "<= t_BarrelsInfo::pauseResumeMerge";
+        VLOG(2) << "<= t_BarrelsInfo::pauseResumeMerge";
+    }
 }
 
 /**
@@ -237,17 +240,17 @@ inline void resumeMergeAtStartUp(const IndexerTestConfig& config)
         const int barrelNum = config.iterNum_;
         for(int i=0; i<barrelNum; ++i)
             fixture.createDocument();
-
         Indexer* pIndexer = fixture.getIndexer();
         // wait for merge finish
         pIndexer->waitForMergeFinish();
 
         IndexReader* pIndexReader = pIndexer->getIndexReader();
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
-
-        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
-
+	if(!pIndexer->isRealTime())
+        {
+            BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+        }
         if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
         {
             // when merge is triggered
@@ -265,9 +268,11 @@ inline void resumeMergeAtStartUp(const IndexerTestConfig& config)
 
         pIndexReader = pIndexer->getIndexReader();
         pBarrelsInfo = pIndexReader->getBarrelsInfo();
-
-        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+        if(!pIndexer->isRealTime())
+        {
+            BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+        }
 
         if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
         {
