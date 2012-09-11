@@ -248,6 +248,8 @@ void IndexWriter::optimizeIndex()
 {
     boost::lock_guard<boost::mutex> lock(indexMutex_);
     flush();
+    if(pIndexer_->isRealTime())
+        deletebinlog();
     pIndexMergeManager_->optimizeIndex();
 }
 
@@ -269,6 +271,8 @@ void IndexWriter::lazyOptimizeIndex()
     {
         boost::lock_guard<boost::mutex> lock(indexMutex_);
         flush();
+        if(pIndexer_->isRealTime())
+            deletebinlog();
         pIndexMergeManager_->optimizeIndex();
     }
 }
