@@ -243,10 +243,13 @@ size_t SDArray::allocSize() const
 void SDArray::save(std::ostream& os) const
 {
     os.write((const char *)&size_, sizeof(size_));
+    os.write((const char *)&sum_, sizeof(sum_));
+
+    os.write((const char *)&Ltable_[0],  sizeof(Ltable_[0]) * Ltable_.size());
+
     size_t Bsize = B_.size();
     os.write((const char *)&Bsize, sizeof(Bsize));
     os.write((const char *)&B_[0],  sizeof(B_[0]) * B_.size());
-    os.write((const char *)&Ltable_[0],  sizeof(Ltable_[0]) * Ltable_.size());
 }
 
 void SDArray::load(std::istream& is)
@@ -254,13 +257,16 @@ void SDArray::load(std::istream& is)
     clear();
 
     is.read((char *)&size_, sizeof(size_));
+    is.read((char *)&sum_, sizeof(sum_));
+
+    size_t Lsize = (size_ + BLOCK_SIZE - 1) / BLOCK_SIZE * 2;
+    Ltable_.resize(Lsize);
+    is.read((char *)&Ltable_[0], sizeof(Ltable_[0]) * Ltable_.size());
+
     size_t Bsize = 0;
     is.read((char *)&Bsize, sizeof(Bsize));
     B_.resize(Bsize);
     is.read((char *)&B_[0], sizeof(B_[0]) * B_.size());
-    size_t Lsize = (size_ + BLOCK_SIZE - 1) / BLOCK_SIZE * 2;
-    Ltable_.resize(Lsize);
-    is.read((char *)Ltable_[0], sizeof(Ltable_[0]) * Ltable_.size());
 }
 
 void SDArray::packHighs_(size_t begPos, size_t width)

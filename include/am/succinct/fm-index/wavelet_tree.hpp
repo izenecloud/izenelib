@@ -34,7 +34,7 @@ public:
     virtual size_t getOcc(char_type c) const = 0;
 
     virtual size_t length() const = 0;
-    virtual size_t getSize() const = 0;
+    virtual size_t allocSize() const = 0;
 
     inline size_t getAlphabetNum() const
     {

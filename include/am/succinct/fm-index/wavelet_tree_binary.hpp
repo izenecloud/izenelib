@@ -34,7 +34,7 @@ public:
     size_t getOcc(char_type c) const;
 
     size_t length() const;
-    size_t getSize() const;
+    size_t allocSize() const;
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
@@ -277,11 +277,11 @@ size_t WaveletTreeBinary<CharT>::length() const
 }
 
 template <class CharT>
-size_t WaveletTreeBinary<CharT>::getSize() const
+size_t WaveletTreeBinary<CharT>::allocSize() const
 {
     size_t sum = sizeof(WaveletTreeBinary<char_type>) + occ_.allocSize();
     for (size_t i = 0; i < nodes_.size(); ++i)
-        sum += nodes_[i]->getSize();
+        sum += nodes_[i]->allocSize();
 
     return sum;
 }

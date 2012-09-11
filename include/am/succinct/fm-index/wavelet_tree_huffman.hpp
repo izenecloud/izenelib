@@ -34,7 +34,7 @@ public:
     size_t getOcc(char_type c) const;
 
     size_t length() const;
-    size_t getSize() const;
+    size_t allocSize() const;
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
@@ -333,7 +333,7 @@ size_t WaveletTreeHuffman<CharT>::length() const
 }
 
 template <class CharT>
-size_t WaveletTreeHuffman<CharT>::getSize() const
+size_t WaveletTreeHuffman<CharT>::allocSize() const
 {
     return sizeof(WaveletTreeHuffman<char_type>)
         + sizeof(occ_[0]) * occ_.size()
@@ -345,7 +345,7 @@ template <class CharT>
 size_t WaveletTreeHuffman<CharT>::getTreeSize_(const WaveletTreeNode *node) const
 {
     if (!node) return 0;
-    return node->getSize() + getTreeSize_(node->left_) + getTreeSize_(node->right_);
+    return node->allocSize() + getTreeSize_(node->left_) + getTreeSize_(node->right_);
 }
 
 template <class CharT>
@@ -411,24 +411,25 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
     uint32_t flag = 0;
     istr.read((char *)&flag, sizeof(flag));
 
-    if (flag)
+    if (flag & 1U)
     {
-        if (flag & 1U)
-        {
-            node->left_ = new WaveletTreeNode;
-            node->left_->parent_ = node;
-            loadTree_(istr, node->left_);
-        }
-        if (flag & 2U)
-        {
-            node->right_ = new WaveletTreeNode;
-            node->right_->parent_ = node;
-            loadTree_(istr, node->right_);
-        }
+        node->left_ = new WaveletTreeNode;
+        node->left_->parent_ = node;
+        loadTree_(istr, node->left_);
     }
     else
     {
         leaves_[node->c0_] = node;
+    }
+
+    if (flag & 2U)
+    {
+        node->right_ = new WaveletTreeNode;
+        node->right_->parent_ = node;
+        loadTree_(istr, node->right_);
+    }
+    else
+    {
         leaves_[node->c1_] = node;
     }
 }

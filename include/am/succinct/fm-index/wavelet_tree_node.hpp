@@ -33,7 +33,7 @@ public:
     void build();
 
     size_t length() const;
-    size_t getSize() const;
+    size_t allocSize() const;
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
