@@ -51,6 +51,10 @@ private:
     void buildkeystring();
     bool isTypeString(const string& valuestring, const string& type);
     /**
+    @brief check if Query dic is load ok
+    */
+    bool LoadOK_;
+    /**
     @brief process the space and upper char in string
     */
     void stanrd_raw(string& str);

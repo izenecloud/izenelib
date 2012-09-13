@@ -11,6 +11,7 @@ QueryNormalize::QueryNormalize()
     keyStr_ = new string[MAX_NORMALIZE_SIZE];
     valueStr_ = new string[MAX_NORMALIZE_SIZE];
     keyString_ = "";
+    LoadOK_ = false;
 }
 
 QueryNormalize::~QueryNormalize()
@@ -21,12 +22,15 @@ QueryNormalize::~QueryNormalize()
 
 bool QueryNormalize::query_Normalize(string &str)
 {
+    stanrd_raw(str);
+
     if(count_ == 0)
 	return false;
-    stanrd_raw(str);
     if(str.length() < 3)
         return false;
     string firstthree = str.substr(0, 3);
+    if(LoadOK_)
+    {
     if(keyString_.find(firstthree) == string::npos)
     {
         return true;
@@ -34,44 +38,59 @@ bool QueryNormalize::query_Normalize(string &str)
     else
     {
         string tmp = "";
-        uint32_t i, pos;//uint32_t
+        uint32_t i, pos;
         for(i = 0; i < count_; i++)
         {
-            if(str.find(keyStr_[i]) == 0)
+            if(str.length() < keyStr_[i].length())
+                continue;
+            if(str.find(keyStr_[i]) != string::npos)//check
             {
                 tmp.append(keyStr_[i]);
                 if(tmp.length() == str.length())
                     return true;
-                tmp.append(" ");
                 break;
             }
         }
-        pos = keyStr_[i].length();
-        while(str[pos] == ' ')
-            pos++;
-        string nextpart = str.substr(pos);
-        uint32_t len = nextpart.length();
-        uint32_t size;
-        if( len < MAX_TYPE_LENGTH)
-            size = len;
-        else
-            size = MAX_TYPE_LENGTH;
-        uint32_t j;
-        for(j = size; j > 0; j--)
+
+        if (count_ == i)//only sub, return
         {
-            string tmpstr = nextpart.substr(0, j);
-            if(isTypeString(valueStr_[i], tmpstr))
-            {
-                tmp.append(tmpstr);
-                if(tmp.length() != str.length() + 1)
-                    tmp.append(" ");
-                break;
-            }
+            return true;
         }
-        while(nextpart[j] == ' ')
-            j++;
-        tmp.append(nextpart.substr(j));
+        
+        if(str.length() == keyStr_[i].length())
+            return true;
+        pos = keyStr_[i].length();
+        if(str[pos] == ' ')
+            pos++;
+        if(str.length() > pos)
+        {
+            tmp.append(" ");
+            string nextpart = str.substr(pos);
+            uint32_t len = nextpart.length();//the next must be its type, like "nokia 800c jiage"
+            uint32_t size;
+            if( len < MAX_TYPE_LENGTH)
+                size = len;
+            else
+                size = MAX_TYPE_LENGTH;
+            uint32_t j;
+            for(j = size; j > 0; j--)
+            {
+                string tmpstr = nextpart.substr(0, j);
+                if(isTypeString(valueStr_[i], tmpstr))
+                {
+                    pos += j;
+                    tmp.append(tmpstr);
+                    if(str.length() >  pos)
+                        tmp.append("");
+                    break;
+                }
+            }
+            if(nextpart[j] == ' ')
+                j++;
+            tmp.append(nextpart.substr(j));
+        }
         str = tmp;
+    }
     }
     return true;
 }
@@ -83,23 +102,38 @@ bool QueryNormalize::load(string nameFile)
     const char* path = filePath_.c_str();
     in.open(path, ios::in);
     string strline;
+    size_t count = 0;
+    getline(in, strline);
     if(in.good())
     {
 	while(!in.eof())
         {
-            getline(in, strline);
-            if(strline[0] != '#')
+            count++;
+            if(count >= MAX_NORMALIZE_SIZE)
             {
-                 if(!build(strline));
+                cout<<"[error]: file size is more than MAX_NORMALIZE_SIZE"<<endl;
+                LoadOK_ = false;
+                return false;
             }
+            if(strline.length() > 3)
+            {
+                if(strline[0] != '#')
+                {
+                    build(strline);
+                }
+            }
+	    getline(in, strline);
         }
     }
     else
     {
+        cout<<"[error]:Load QUERYNORMALIZE FILE error"<<endl;
+        LoadOK_ = false;
         return false;
     }
     in.close();
     buildkeystring();
+    LoadOK_ = true;
     return true;
 }
 
@@ -118,6 +152,8 @@ void QueryNormalize::buildkeystring()
 {
     for(uint32_t i = 0; i < count_; i++)
     {
+        if(keyStr_[i].length() < 3)
+            continue;
         string str = keyStr_[i].substr(0, 3);
         keyString_.append(str);
         keyString_.append("#");
@@ -149,29 +185,29 @@ void QueryNormalize::stanrd_raw(string& str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     boost::algorithm::trim(str);
-    if(str.empty()) return;
-    uint32_t len = str.length();
-    char c[len];
-    uint32_t k = 0;
-    uint32_t i = 0;
-    for(; i < len; i++)
+    if(str.empty()) 
+        return;
+    size_t i=0;
+    size_t j = 0;
+    bool lastspace = false; 
+    for (; i < str.length(); i++)
     {
-        if(str[i] == ' ')
+        if (str[i] != ' ')
         {
-            if(str[i - 1] != ' ')
-            {
-                c[k] = str[i];
-                k++;
-            }
+            str[j] = str[i];
+            j++;
+            lastspace = false;
+            continue;
         }
-        else
+
+	if(lastspace == false)
         {
-            c[k] = str[i];
-            k++;
+             str[j] = str[i];
+	     j++;
+             lastspace = true;
         }
     }
-    string s(c,k);
-    str = s;
+    str.resize(j);
 }
 
 NS_IZENELIB_AM_END
