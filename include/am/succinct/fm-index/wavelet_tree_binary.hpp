@@ -188,7 +188,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
         bit_mask >>= 1;
     }
 
-    rank = pos - start + 1;
+    rank = pos - start;
 
     return c;
 }
@@ -200,7 +200,7 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
     size_t rank = 0;
     size_t before;
 
-    pos = std::min(pos + 1, length());
+    pos = std::min(pos, length());
 
     char_type masked = 0;
     char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
@@ -235,7 +235,6 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
 template <class CharT>
 size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 {
-    size_t pos = rank - 1;
     size_t start, ones_start;
 
     char_type mask = ((char_type)1 << alphabet_bit_num_) - 2;
@@ -250,18 +249,18 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 
         if (c & bit_mask)
         {
-            pos = bv.Select1(ones_start + pos) - start;
+            rank = bv.Select1(ones_start + rank) - start;
         }
         else
         {
-            pos = bv.Select0(start - ones_start + pos) - start;
+            rank = bv.Select0(start - ones_start + rank) - start;
         }
 
         mask <<= 1;
         bit_mask <<= 1;
     }
 
-    return pos;
+    return rank;
 }
 
 template <class CharT>

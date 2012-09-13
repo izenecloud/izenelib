@@ -238,7 +238,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
             }
             else
             {
-                rank = pos + 1;
+                rank = pos;
                 return walk->c1_;
             }
         }
@@ -250,7 +250,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
             }
             else
             {
-                rank = pos + 1;
+                rank = pos;
                 return walk->c0_;
             }
         }
@@ -262,7 +262,7 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
     if (!leaves_[c]) return 0;
 
-    pos = std::min(pos + 1, length());
+    pos = std::min(pos, length());
 
     size_t code = code_map_[c];
     WaveletTreeNode *walk = root_;
@@ -307,7 +307,6 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
     if (!walk) return -1;
 
     bool bit = (walk->c1_ == c);
-    --rank;
 
     for (; walk->parent_; walk = walk->parent_)
     {

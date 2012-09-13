@@ -45,13 +45,15 @@ public:
     WaveletTreeNode *right_;
     WaveletTreeNode *parent_;
 
-    size_t freq_;
     uint64_t c0_;
     uint64_t c1_;
 
+    rsdic::RSDic bit_vector_;
+
+private:
+    size_t freq_;
     size_t len_;
     std::vector<uint64_t> raw_array_;
-    rsdic::RSDic bit_vector_;
 };
 
 }
