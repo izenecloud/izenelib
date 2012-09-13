@@ -1,5 +1,7 @@
 #include <am/vsynonym/QueryNormalize.h>
 
+#include <boost/algorithm/string/trim.hpp>
+
 NS_IZENELIB_AM_BEGIN
 
 QueryNormalize::QueryNormalize()
@@ -146,14 +148,12 @@ bool QueryNormalize::isTypeString(const string& valuestring, const string& type)
 void QueryNormalize::stanrd_raw(string& str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    boost::algorithm::trim(str);
+    if(str.empty()) return;
     uint32_t len = str.length();
     char c[len];
     uint32_t k = 0;
     uint32_t i = 0;
-    while(str[i] == ' ')
-        i++;
-    while(str[len - 1] == ' ')
-        len--;
     for(; i < len; i++)
     {
         if(str[i] == ' ')
