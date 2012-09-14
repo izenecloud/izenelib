@@ -80,8 +80,8 @@ bool QueryNormalize::query_Normalize(string &str)
                 {
                     pos += j;
                     tmp.append(tmpstr);
-                    if(str.length() >  pos)
-                        tmp.append("");
+                    if(str.length() > pos)
+                        tmp.append(" ");
                     break;
                 }
             }
