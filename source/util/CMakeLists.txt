@@ -92,6 +92,11 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/decDelta.cpp
     compression/int/decUnary.cpp
 
+    compression/int/fastpfor/bitpackingaligned.cpp
+    compression/int/fastpfor/bitpacking.cpp
+    compression/int/fastpfor/bitpackingunaligned.cpp
+    compression/int/fastpfor/bitpacksimd.cpp
+
     compressed_vector/detail/Compressor.cpp
 
     sysinfo/commandparser.cpp

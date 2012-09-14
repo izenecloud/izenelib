@@ -73,6 +73,7 @@ TARGET_LINK_LIBRARIES(t_mempool
 ADD_EXECUTABLE(t_compressor 
   Runner.cpp 
   t_compressor.cpp
+  t_fastpfor.cpp
   ) 
 
 TARGET_LINK_LIBRARIES(t_compressor 
