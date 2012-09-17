@@ -6,15 +6,15 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 // Maximum number of documents in a chunk.
-#define CHUNK_SIZE 128
+static const int CHUNK_SIZE = 128;
 
 // Fixed size in bytes of a block
-#define BLOCK_SIZE 8192
+static const int BLOCK_SIZE = 8192;
 
-#define INIT_POS_CHUNK_SIZE CHUNK_SIZE*8
+static const int INIT_POS_CHUNK_SIZE = CHUNK_SIZE * 8;
 
 // The lower bound size of a single chunk in bytes (one integer per docID, frequency, and position).
-#define MIN_COMPRESSED_CHUNK_SIZE (2 * sizeof(uint32_t))
+static const int MIN_COMPRESSED_CHUNK_SIZE = 2 * sizeof(uint32_t);
 
 // Determines the size of the input buffer that will be compressed.
 // It needs to be a multiple of the block size for when we use blockwise codings, because we need to pad the input buffer with 0s until the block size.
@@ -40,4 +40,3 @@ namespace indexmanager{
 NS_IZENELIB_IR_END
 
 #endif
-
