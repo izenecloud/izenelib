@@ -17,6 +17,7 @@
 #include <util/compression/int/newpfor_s9_compressor.h>
 #include <util/compression/int/fastpfor/fastpfor.h>
 #include <util/compression/int/fastpfor/simdfastpfor.h>
+#include <util/compression/int/fastpfor/simple8b.h>
 
 namespace izenelib{namespace util{namespace compression{
 
@@ -74,6 +75,7 @@ typedef Compressor<pfordelta_compressor> PForDelta_Compressor;
 typedef Compressor<newpfor_mix_s9_compressor> PForDeltaMixS9_Compressor;
 typedef Compressor<FastPFor> FastPFor_Compressor;
 typedef Compressor<SIMDFastPFor> SIMDFastPFor_Compressor;
+typedef Compressor<Simple8b<true> > Simple8b_Compressor;
 }}}
 #endif
 

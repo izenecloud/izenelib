@@ -208,4 +208,6 @@ BOOST_AUTO_TEST_CASE(compressor)
     test_compressor(fastpfor, "FastPFor_Compressor");
     SIMDFastPFor_Compressor simdfastpfor;
     test_compressor(simdfastpfor, "SIMDFastPFor_Compressor");
+    Simple8b_Compressor simple8b;
+    test_compressor(simple8b, "Simple8b_Compressor");
 }
