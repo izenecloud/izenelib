@@ -1,41 +1,41 @@
 #include <util/compression/int/fastpfor/bitpackingunaligned.h>
 
 
-typedef const byte * (*runpacker)(const byte *  __restrict__ in, uint32_t *  __restrict__  out);
-typedef byte * (*rpacker)(const uint32_t *  __restrict__ in, byte *  __restrict__  out);
+typedef const uint8_t * (*runpacker)(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out);
+typedef uint8_t * (*rpacker)(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  out);
 
 
-typedef const byte * (*rbyteunpacker)(const byte *  __restrict__ in, byte *  __restrict__  out);
-typedef byte * (*rbytepacker)(const byte *  __restrict__ in, byte *  __restrict__  out);
+typedef const uint8_t * (*ruint8_tunpacker)(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out);
+typedef uint8_t * (*ruint8_tpacker)(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out);
 
 
-byte * nullpacker(const uint32_t *  __restrict__ /*in*/, byte *  __restrict__  out)
+uint8_t * nullpacker(const uint32_t *  __restrict__ /*in*/, uint8_t *  __restrict__  out)
 {
     return out;
 }
 
-byte * nullbytepacker(const byte *  __restrict__ /*in*/, byte *  __restrict__  out)
+uint8_t * nulluint8_tpacker(const uint8_t *  __restrict__ /*in*/, uint8_t *  __restrict__  out)
 {
     return out;
 }
 
-const byte * nullunpacker8(const byte *  __restrict__ in, uint32_t *  __restrict__  out)
+const uint8_t * nullunpacker8(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out)
 {
     memset(out,0,8 * 4);
     return in;
 }
 
 
-const byte * nullbyteunpacker8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * nulluint8_tunpacker8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
     memset(out,0,8 );
     return in;
 }
 
 
-byte * __fastunalignedpackwithoutmask1_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask1_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -54,14 +54,14 @@ byte * __fastunalignedpackwithoutmask1_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  7 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask2_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask2_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -80,14 +80,14 @@ byte * __fastunalignedpackwithoutmask2_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  14 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask3_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask3_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -106,14 +106,14 @@ byte * __fastunalignedpackwithoutmask3_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  21 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask4_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask4_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -133,14 +133,14 @@ byte * __fastunalignedpackwithoutmask4_8(const uint32_t *  __restrict__ in, byte
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask5_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask5_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -161,14 +161,14 @@ byte * __fastunalignedpackwithoutmask5_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  3 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask6_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask6_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -189,14 +189,14 @@ byte * __fastunalignedpackwithoutmask6_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  10 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask7_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask7_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -217,14 +217,14 @@ byte * __fastunalignedpackwithoutmask7_8(const uint32_t *  __restrict__ in, byte
     *out |= ( (*in)  ) <<  17 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask8_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask8_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -245,14 +245,14 @@ byte * __fastunalignedpackwithoutmask8_8(const uint32_t *  __restrict__ in, byte
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask9_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask9_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -275,14 +275,14 @@ byte * __fastunalignedpackwithoutmask9_8(const uint32_t *  __restrict__ in, byte
     *out =  ( (*in) ) >> ( 9  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask10_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask10_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -305,14 +305,14 @@ byte * __fastunalignedpackwithoutmask10_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  6 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask11_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask11_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -335,14 +335,14 @@ byte * __fastunalignedpackwithoutmask11_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  13 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask12_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask12_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -366,14 +366,14 @@ byte * __fastunalignedpackwithoutmask12_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask13_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask13_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -398,14 +398,14 @@ byte * __fastunalignedpackwithoutmask13_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 13  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask14_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask14_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -430,14 +430,14 @@ byte * __fastunalignedpackwithoutmask14_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  2 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask15_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask15_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -462,14 +462,14 @@ byte * __fastunalignedpackwithoutmask15_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  9 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask16_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask16_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -492,14 +492,14 @@ byte * __fastunalignedpackwithoutmask16_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask17_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask17_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -526,14 +526,14 @@ byte * __fastunalignedpackwithoutmask17_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 17  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask18_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask18_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -560,14 +560,14 @@ byte * __fastunalignedpackwithoutmask18_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 18  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask19_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask19_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -594,14 +594,14 @@ byte * __fastunalignedpackwithoutmask19_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  5 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask20_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask20_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -629,14 +629,14 @@ byte * __fastunalignedpackwithoutmask20_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask21_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask21_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -665,14 +665,14 @@ byte * __fastunalignedpackwithoutmask21_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 21  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask22_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask22_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -701,14 +701,14 @@ byte * __fastunalignedpackwithoutmask22_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 22  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask23_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask23_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -737,14 +737,14 @@ byte * __fastunalignedpackwithoutmask23_8(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  1 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask24_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask24_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -773,14 +773,14 @@ byte * __fastunalignedpackwithoutmask24_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask25_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask25_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -811,14 +811,14 @@ byte * __fastunalignedpackwithoutmask25_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 25  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask26_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask26_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -849,14 +849,14 @@ byte * __fastunalignedpackwithoutmask26_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 26  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask27_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask27_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -887,14 +887,14 @@ byte * __fastunalignedpackwithoutmask27_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 27  -  24 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask28_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask28_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -926,14 +926,14 @@ byte * __fastunalignedpackwithoutmask28_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask29_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask29_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -966,14 +966,14 @@ byte * __fastunalignedpackwithoutmask29_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 29  -  8 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 1;
+    return reinterpret_cast<uint8_t *>(out) + 1;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask30_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask30_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -1006,14 +1006,14 @@ byte * __fastunalignedpackwithoutmask30_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 30  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask31_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask31_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -1046,14 +1046,14 @@ byte * __fastunalignedpackwithoutmask31_8(const uint32_t *  __restrict__ in, byt
     *out =  ( (*in) ) >> ( 31  -  24 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 3;
+    return reinterpret_cast<uint8_t *>(out) + 3;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask32_8(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask32_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++out;
@@ -1080,15 +1080,15 @@ byte * __fastunalignedpackwithoutmask32_8(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack1_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack1_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   & 1 ;
     out++;
@@ -1107,15 +1107,15 @@ const byte * __fastunalignedunpack1_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  7  )   & 1 ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack2_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack2_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 2 ) ;
     out++;
@@ -1134,15 +1134,15 @@ const byte * __fastunalignedunpack2_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  14  )   % (1U << 2 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack3_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack3_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 3 ) ;
     out++;
@@ -1161,15 +1161,15 @@ const byte * __fastunalignedunpack3_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  21  )   % (1U << 3 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack4_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack4_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 4 ) ;
     out++;
@@ -1189,15 +1189,15 @@ const byte * __fastunalignedunpack4_8(const byte *  __restrict__ inbyte, uint32_
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack5_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack5_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 5 ) ;
     out++;
@@ -1218,15 +1218,15 @@ const byte * __fastunalignedunpack5_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  3  )   % (1U << 5 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack6_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack6_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 6 ) ;
     out++;
@@ -1247,15 +1247,15 @@ const byte * __fastunalignedunpack6_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  10  )   % (1U << 6 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack7_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack7_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 7 ) ;
     out++;
@@ -1276,15 +1276,15 @@ const byte * __fastunalignedunpack7_8(const byte *  __restrict__ inbyte, uint32_
     *out = ( (*in) >>  17  )   % (1U << 7 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack8_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack8_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 8 ) ;
     out++;
@@ -1305,15 +1305,15 @@ const byte * __fastunalignedunpack8_8(const byte *  __restrict__ inbyte, uint32_
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack9_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack9_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 9 ) ;
     out++;
@@ -1336,15 +1336,15 @@ const byte * __fastunalignedunpack9_8(const byte *  __restrict__ inbyte, uint32_
     *out |= ((*in) % (1U<< 8 ))<<( 9 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack10_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack10_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 10 ) ;
     out++;
@@ -1367,15 +1367,15 @@ const byte * __fastunalignedunpack10_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  6  )   % (1U << 10 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack11_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack11_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 11 ) ;
     out++;
@@ -1398,15 +1398,15 @@ const byte * __fastunalignedunpack11_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  13  )   % (1U << 11 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack12_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack12_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 12 ) ;
     out++;
@@ -1430,15 +1430,15 @@ const byte * __fastunalignedunpack12_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack13_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack13_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 13 ) ;
     out++;
@@ -1463,15 +1463,15 @@ const byte * __fastunalignedunpack13_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 8 ))<<( 13 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack14_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack14_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 14 ) ;
     out++;
@@ -1496,15 +1496,15 @@ const byte * __fastunalignedunpack14_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  2  )   % (1U << 14 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack15_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack15_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 15 ) ;
     out++;
@@ -1529,15 +1529,15 @@ const byte * __fastunalignedunpack15_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  9  )   % (1U << 15 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack16_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack16_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 16 ) ;
     out++;
@@ -1560,15 +1560,15 @@ const byte * __fastunalignedunpack16_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack17_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack17_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 17 ) ;
     out++;
@@ -1595,15 +1595,15 @@ const byte * __fastunalignedunpack17_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 8 ))<<( 17 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack18_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack18_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 18 ) ;
     out++;
@@ -1630,15 +1630,15 @@ const byte * __fastunalignedunpack18_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 16 ))<<( 18 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack19_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack19_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 19 ) ;
     out++;
@@ -1665,15 +1665,15 @@ const byte * __fastunalignedunpack19_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  5  )   % (1U << 19 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack20_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack20_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 20 ) ;
     out++;
@@ -1701,15 +1701,15 @@ const byte * __fastunalignedunpack20_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack21_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack21_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 21 ) ;
     out++;
@@ -1738,15 +1738,15 @@ const byte * __fastunalignedunpack21_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 8 ))<<( 21 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack22_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack22_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 22 ) ;
     out++;
@@ -1775,15 +1775,15 @@ const byte * __fastunalignedunpack22_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 16 ))<<( 22 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack23_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack23_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 23 ) ;
     out++;
@@ -1812,15 +1812,15 @@ const byte * __fastunalignedunpack23_8(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  1  )   % (1U << 23 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack24_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack24_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 24 ) ;
     out++;
@@ -1849,15 +1849,15 @@ const byte * __fastunalignedunpack24_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack25_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack25_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 25 ) ;
     out++;
@@ -1888,15 +1888,15 @@ const byte * __fastunalignedunpack25_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 8 ))<<( 25 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack26_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack26_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 26 ) ;
     out++;
@@ -1927,15 +1927,15 @@ const byte * __fastunalignedunpack26_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 16 ))<<( 26 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack27_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack27_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 27 ) ;
     out++;
@@ -1966,15 +1966,15 @@ const byte * __fastunalignedunpack27_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 24 ))<<( 27 - 24 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack28_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack28_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 28 ) ;
     out++;
@@ -2006,15 +2006,15 @@ const byte * __fastunalignedunpack28_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack29_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack29_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 29 ) ;
     out++;
@@ -2047,15 +2047,15 @@ const byte * __fastunalignedunpack29_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 8 ))<<( 29 - 8 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 1;
+    return reinterpret_cast<const uint8_t *>(in)  + 1;
 }
 
 
 
 
-const byte * __fastunalignedunpack30_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack30_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 30 ) ;
     out++;
@@ -2088,15 +2088,15 @@ const byte * __fastunalignedunpack30_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 16 ))<<( 30 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack31_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack31_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 31 ) ;
     out++;
@@ -2129,15 +2129,15 @@ const byte * __fastunalignedunpack31_8(const byte *  __restrict__ inbyte, uint32
     *out |= ((*in) % (1U<< 24 ))<<( 31 - 24 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 3;
+    return reinterpret_cast<const uint8_t *>(in)  + 3;
 }
 
 
 
 
-const byte * __fastunalignedunpack32_8(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack32_8(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  ) ;
     ++in;
@@ -2164,12 +2164,12 @@ const byte * __fastunalignedunpack32_8(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
-byte * __fastunalignedbytepackwithoutmask1_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask1_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2195,7 +2195,7 @@ byte * __fastunalignedbytepackwithoutmask1_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask2_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask2_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2222,7 +2222,7 @@ byte * __fastunalignedbytepackwithoutmask2_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask3_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask3_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2252,7 +2252,7 @@ byte * __fastunalignedbytepackwithoutmask3_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask4_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask4_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2281,7 +2281,7 @@ byte * __fastunalignedbytepackwithoutmask4_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask5_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask5_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2315,7 +2315,7 @@ byte * __fastunalignedbytepackwithoutmask5_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask6_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask6_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2350,7 +2350,7 @@ byte * __fastunalignedbytepackwithoutmask6_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask7_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask7_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2388,7 +2388,7 @@ byte * __fastunalignedbytepackwithoutmask7_8(const byte *  __restrict__ in, byte
 
 
 
-byte * __fastunalignedbytepackwithoutmask8_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask8_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -2422,7 +2422,7 @@ byte * __fastunalignedbytepackwithoutmask8_8(const byte *  __restrict__ in, byte
 
 
 
-const byte * __fastunalignedbyteunpack1_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack1_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   & 1 ;
@@ -2449,7 +2449,7 @@ const byte * __fastunalignedbyteunpack1_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack2_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack2_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 2 ) ;
@@ -2477,7 +2477,7 @@ const byte * __fastunalignedbyteunpack2_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack3_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack3_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 3 ) ;
@@ -2508,7 +2508,7 @@ const byte * __fastunalignedbyteunpack3_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack4_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack4_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 4 ) ;
@@ -2538,7 +2538,7 @@ const byte * __fastunalignedbyteunpack4_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack5_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack5_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 5 ) ;
@@ -2573,7 +2573,7 @@ const byte * __fastunalignedbyteunpack5_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack6_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack6_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 6 ) ;
@@ -2609,7 +2609,7 @@ const byte * __fastunalignedbyteunpack6_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack7_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack7_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 7 ) ;
@@ -2648,7 +2648,7 @@ const byte * __fastunalignedbyteunpack7_8(const byte *  __restrict__ in, byte * 
 
 
 
-const byte * __fastunalignedbyteunpack8_8(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack8_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 8 ) ;
@@ -2757,7 +2757,7 @@ static const rpacker       packarray_8[] =
 };
 
 
-const byte * fastunalignedunpack_8(const byte *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
+const uint8_t * fastunalignedunpack_8(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
@@ -2869,7 +2869,7 @@ const byte * fastunalignedunpack_8(const byte *  __restrict__ in, uint32_t *  __
 
 
 /*assumes that integers fit in the prescribed number of bits*/
-byte * fastunalignedpackwithoutmask_8(const uint32_t *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+uint8_t * fastunalignedpackwithoutmask_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
@@ -2979,64 +2979,64 @@ byte * fastunalignedpackwithoutmask_8(const uint32_t *  __restrict__ in, byte * 
 }
 
 
-static const rbyteunpacker       byteunpackarray_8[] =
+static const ruint8_tunpacker       uint8_tunpackarray_8[] =
 {
-    nullbyteunpacker8,
-    __fastunalignedbyteunpack1_8,
-    __fastunalignedbyteunpack2_8,
-    __fastunalignedbyteunpack3_8,
-    __fastunalignedbyteunpack4_8,
-    __fastunalignedbyteunpack5_8,
-    __fastunalignedbyteunpack6_8,
-    __fastunalignedbyteunpack7_8,
-    __fastunalignedbyteunpack8_8,
+    nulluint8_tunpacker8,
+    __fastunaligneduint8_tunpack1_8,
+    __fastunaligneduint8_tunpack2_8,
+    __fastunaligneduint8_tunpack3_8,
+    __fastunaligneduint8_tunpack4_8,
+    __fastunaligneduint8_tunpack5_8,
+    __fastunaligneduint8_tunpack6_8,
+    __fastunaligneduint8_tunpack7_8,
+    __fastunaligneduint8_tunpack8_8,
 };
 
 
-static const rbytepacker       bytepackarray_8[] =
+static const ruint8_tpacker       uint8_tpackarray_8[] =
 {
-    nullbytepacker,
-    __fastunalignedbytepackwithoutmask1_8,
-    __fastunalignedbytepackwithoutmask2_8,
-    __fastunalignedbytepackwithoutmask3_8,
-    __fastunalignedbytepackwithoutmask4_8,
-    __fastunalignedbytepackwithoutmask5_8,
-    __fastunalignedbytepackwithoutmask6_8,
-    __fastunalignedbytepackwithoutmask7_8,
-    __fastunalignedbytepackwithoutmask8_8,
+    nulluint8_tpacker,
+    __fastunaligneduint8_tpackwithoutmask1_8,
+    __fastunaligneduint8_tpackwithoutmask2_8,
+    __fastunaligneduint8_tpackwithoutmask3_8,
+    __fastunaligneduint8_tpackwithoutmask4_8,
+    __fastunaligneduint8_tpackwithoutmask5_8,
+    __fastunaligneduint8_tpackwithoutmask6_8,
+    __fastunaligneduint8_tpackwithoutmask7_8,
+    __fastunaligneduint8_tpackwithoutmask8_8,
 };
 
 
-const byte * fastunalignedbyteunpack_8(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+const uint8_t * fastunaligneduint8_tunpack_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
     case 0:
-        return nullbyteunpacker8(in,out);
+        return nulluint8_tunpacker8(in,out);
 
     case 1:
-        return __fastunalignedbyteunpack1_8(in,out);
+        return __fastunaligneduint8_tunpack1_8(in,out);
 
     case 2:
-        return __fastunalignedbyteunpack2_8(in,out);
+        return __fastunaligneduint8_tunpack2_8(in,out);
 
     case 3:
-        return __fastunalignedbyteunpack3_8(in,out);
+        return __fastunaligneduint8_tunpack3_8(in,out);
 
     case 4:
-        return __fastunalignedbyteunpack4_8(in,out);
+        return __fastunaligneduint8_tunpack4_8(in,out);
 
     case 5:
-        return __fastunalignedbyteunpack5_8(in,out);
+        return __fastunaligneduint8_tunpack5_8(in,out);
 
     case 6:
-        return __fastunalignedbyteunpack6_8(in,out);
+        return __fastunaligneduint8_tunpack6_8(in,out);
 
     case 7:
-        return __fastunalignedbyteunpack7_8(in,out);
+        return __fastunaligneduint8_tunpack7_8(in,out);
 
     case 8:
-        return __fastunalignedbyteunpack8_8(in,out);
+        return __fastunaligneduint8_tunpack8_8(in,out);
 
     default:
         break;
@@ -3047,36 +3047,36 @@ const byte * fastunalignedbyteunpack_8(const byte *  __restrict__ in, byte *  __
 
 
 /*assumes that integers fit in the prescribed number of bits*/
-byte * fastunalignedbytepackwithoutmask_8(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+uint8_t * fastunaligneduint8_tpackwithoutmask_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
     case 0:
-        return nullbytepacker(in,out);
+        return nulluint8_tpacker(in,out);
 
     case 1:
-        return __fastunalignedbytepackwithoutmask1_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask1_8(in,out);
 
     case 2:
-        return __fastunalignedbytepackwithoutmask2_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask2_8(in,out);
 
     case 3:
-        return __fastunalignedbytepackwithoutmask3_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask3_8(in,out);
 
     case 4:
-        return __fastunalignedbytepackwithoutmask4_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask4_8(in,out);
 
     case 5:
-        return __fastunalignedbytepackwithoutmask5_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask5_8(in,out);
 
     case 6:
-        return __fastunalignedbytepackwithoutmask6_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask6_8(in,out);
 
     case 7:
-        return __fastunalignedbytepackwithoutmask7_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask7_8(in,out);
 
     case 8:
-        return __fastunalignedbytepackwithoutmask8_8(in,out);
+        return __fastunaligneduint8_tpackwithoutmask8_8(in,out);
 
     default:
         break;
@@ -3085,23 +3085,23 @@ byte * fastunalignedbytepackwithoutmask_8(const byte *  __restrict__ in, byte * 
 }
 
 
-const byte * nullunpacker16(const byte *  __restrict__ in, uint32_t *  __restrict__  out)
+const uint8_t * nullunpacker16(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out)
 {
     memset(out,0,16 * 4);
     return in;
 }
 
 
-const byte * nullbyteunpacker16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * nulluint8_tunpacker16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
     memset(out,0,16 );
     return in;
 }
 
 
-byte * __fastunalignedpackwithoutmask1_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask1_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3136,14 +3136,14 @@ byte * __fastunalignedpackwithoutmask1_16(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  15 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask2_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask2_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3179,14 +3179,14 @@ byte * __fastunalignedpackwithoutmask2_16(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask3_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask3_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3223,14 +3223,14 @@ byte * __fastunalignedpackwithoutmask3_16(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  13 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask4_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask4_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3267,14 +3267,14 @@ byte * __fastunalignedpackwithoutmask4_16(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask5_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask5_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3313,14 +3313,14 @@ byte * __fastunalignedpackwithoutmask5_16(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  11 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask6_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask6_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3360,14 +3360,14 @@ byte * __fastunalignedpackwithoutmask6_16(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask7_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask7_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3408,14 +3408,14 @@ byte * __fastunalignedpackwithoutmask7_16(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  9 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask8_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask8_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3454,14 +3454,14 @@ byte * __fastunalignedpackwithoutmask8_16(const uint32_t *  __restrict__ in, byt
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask9_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask9_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3504,14 +3504,14 @@ byte * __fastunalignedpackwithoutmask9_16(const uint32_t *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  7 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask10_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask10_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3555,14 +3555,14 @@ byte * __fastunalignedpackwithoutmask10_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask11_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask11_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3607,14 +3607,14 @@ byte * __fastunalignedpackwithoutmask11_16(const uint32_t *  __restrict__ in, by
     *out |= ( (*in)  ) <<  5 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask12_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask12_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3659,14 +3659,14 @@ byte * __fastunalignedpackwithoutmask12_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask13_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask13_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3713,14 +3713,14 @@ byte * __fastunalignedpackwithoutmask13_16(const uint32_t *  __restrict__ in, by
     *out |= ( (*in)  ) <<  3 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask14_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask14_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3768,14 +3768,14 @@ byte * __fastunalignedpackwithoutmask14_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask15_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask15_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3824,14 +3824,14 @@ byte * __fastunalignedpackwithoutmask15_16(const uint32_t *  __restrict__ in, by
     *out |= ( (*in)  ) <<  1 ;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask16_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask16_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3874,14 +3874,14 @@ byte * __fastunalignedpackwithoutmask16_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask17_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask17_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3932,14 +3932,14 @@ byte * __fastunalignedpackwithoutmask17_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 17  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask18_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask18_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -3991,14 +3991,14 @@ byte * __fastunalignedpackwithoutmask18_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask19_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask19_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4051,14 +4051,14 @@ byte * __fastunalignedpackwithoutmask19_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 19  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask20_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask20_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4111,14 +4111,14 @@ byte * __fastunalignedpackwithoutmask20_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask21_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask21_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4173,14 +4173,14 @@ byte * __fastunalignedpackwithoutmask21_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 21  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask22_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask22_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4236,14 +4236,14 @@ byte * __fastunalignedpackwithoutmask22_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask23_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask23_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4300,14 +4300,14 @@ byte * __fastunalignedpackwithoutmask23_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 23  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask24_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask24_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4362,14 +4362,14 @@ byte * __fastunalignedpackwithoutmask24_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask25_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask25_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4428,14 +4428,14 @@ byte * __fastunalignedpackwithoutmask25_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 25  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask26_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask26_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4495,14 +4495,14 @@ byte * __fastunalignedpackwithoutmask26_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask27_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask27_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4563,14 +4563,14 @@ byte * __fastunalignedpackwithoutmask27_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 27  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask28_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask28_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4631,14 +4631,14 @@ byte * __fastunalignedpackwithoutmask28_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask29_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask29_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4701,14 +4701,14 @@ byte * __fastunalignedpackwithoutmask29_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 29  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask30_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask30_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4772,14 +4772,14 @@ byte * __fastunalignedpackwithoutmask30_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask31_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask31_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++in;
@@ -4844,14 +4844,14 @@ byte * __fastunalignedpackwithoutmask31_16(const uint32_t *  __restrict__ in, by
     *out =  ( (*in) ) >> ( 31  -  16 );
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 2;
+    return reinterpret_cast<uint8_t *>(out) + 2;
 }
 
 
 
-byte * __fastunalignedpackwithoutmask32_16(const uint32_t *  __restrict__ in, byte *  __restrict__  outbyte)
+uint8_t * __fastunalignedpackwithoutmask32_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  outuint8_t)
 {
-    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outbyte);
+    uint32_t *  __restrict__ out = reinterpret_cast<uint32_t *>(outuint8_t);
 
     *out =  (*in)  ;
     ++out;
@@ -4902,15 +4902,15 @@ byte * __fastunalignedpackwithoutmask32_16(const uint32_t *  __restrict__ in, by
     ++out;
     ++in;
 
-    return reinterpret_cast<byte *>(out) + 0;
+    return reinterpret_cast<uint8_t *>(out) + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack1_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack1_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   & 1 ;
     out++;
@@ -4945,15 +4945,15 @@ const byte * __fastunalignedunpack1_16(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  15  )   & 1 ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack2_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack2_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 2 ) ;
     out++;
@@ -4989,15 +4989,15 @@ const byte * __fastunalignedunpack2_16(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack3_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack3_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 3 ) ;
     out++;
@@ -5034,15 +5034,15 @@ const byte * __fastunalignedunpack3_16(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  13  )   % (1U << 3 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack4_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack4_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 4 ) ;
     out++;
@@ -5079,15 +5079,15 @@ const byte * __fastunalignedunpack4_16(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack5_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack5_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 5 ) ;
     out++;
@@ -5126,15 +5126,15 @@ const byte * __fastunalignedunpack5_16(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  11  )   % (1U << 5 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack6_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack6_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 6 ) ;
     out++;
@@ -5174,15 +5174,15 @@ const byte * __fastunalignedunpack6_16(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack7_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack7_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 7 ) ;
     out++;
@@ -5223,15 +5223,15 @@ const byte * __fastunalignedunpack7_16(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  9  )   % (1U << 7 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack8_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack8_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 8 ) ;
     out++;
@@ -5270,15 +5270,15 @@ const byte * __fastunalignedunpack8_16(const byte *  __restrict__ inbyte, uint32
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack9_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack9_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 9 ) ;
     out++;
@@ -5321,15 +5321,15 @@ const byte * __fastunalignedunpack9_16(const byte *  __restrict__ inbyte, uint32
     *out = ( (*in) >>  7  )   % (1U << 9 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack10_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack10_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 10 ) ;
     out++;
@@ -5373,15 +5373,15 @@ const byte * __fastunalignedunpack10_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack11_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack11_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 11 ) ;
     out++;
@@ -5426,15 +5426,15 @@ const byte * __fastunalignedunpack11_16(const byte *  __restrict__ inbyte, uint3
     *out = ( (*in) >>  5  )   % (1U << 11 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack12_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack12_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 12 ) ;
     out++;
@@ -5479,15 +5479,15 @@ const byte * __fastunalignedunpack12_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack13_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack13_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 13 ) ;
     out++;
@@ -5534,15 +5534,15 @@ const byte * __fastunalignedunpack13_16(const byte *  __restrict__ inbyte, uint3
     *out = ( (*in) >>  3  )   % (1U << 13 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack14_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack14_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 14 ) ;
     out++;
@@ -5590,15 +5590,15 @@ const byte * __fastunalignedunpack14_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack15_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack15_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 15 ) ;
     out++;
@@ -5647,15 +5647,15 @@ const byte * __fastunalignedunpack15_16(const byte *  __restrict__ inbyte, uint3
     *out = ( (*in) >>  1  )   % (1U << 15 ) ;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack16_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack16_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 16 ) ;
     out++;
@@ -5698,15 +5698,15 @@ const byte * __fastunalignedunpack16_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack17_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack17_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 17 ) ;
     out++;
@@ -5757,15 +5757,15 @@ const byte * __fastunalignedunpack17_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 17 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack18_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack18_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 18 ) ;
     out++;
@@ -5817,15 +5817,15 @@ const byte * __fastunalignedunpack18_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack19_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack19_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 19 ) ;
     out++;
@@ -5878,15 +5878,15 @@ const byte * __fastunalignedunpack19_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 19 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack20_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack20_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 20 ) ;
     out++;
@@ -5939,15 +5939,15 @@ const byte * __fastunalignedunpack20_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack21_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack21_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 21 ) ;
     out++;
@@ -6002,15 +6002,15 @@ const byte * __fastunalignedunpack21_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 21 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack22_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack22_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 22 ) ;
     out++;
@@ -6066,15 +6066,15 @@ const byte * __fastunalignedunpack22_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack23_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack23_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 23 ) ;
     out++;
@@ -6131,15 +6131,15 @@ const byte * __fastunalignedunpack23_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 23 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack24_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack24_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 24 ) ;
     out++;
@@ -6194,15 +6194,15 @@ const byte * __fastunalignedunpack24_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack25_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack25_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 25 ) ;
     out++;
@@ -6261,15 +6261,15 @@ const byte * __fastunalignedunpack25_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 25 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack26_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack26_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 26 ) ;
     out++;
@@ -6329,15 +6329,15 @@ const byte * __fastunalignedunpack26_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack27_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack27_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 27 ) ;
     out++;
@@ -6398,15 +6398,15 @@ const byte * __fastunalignedunpack27_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 27 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack28_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack28_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 28 ) ;
     out++;
@@ -6467,15 +6467,15 @@ const byte * __fastunalignedunpack28_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack29_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack29_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 29 ) ;
     out++;
@@ -6538,15 +6538,15 @@ const byte * __fastunalignedunpack29_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 29 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack30_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack30_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 30 ) ;
     out++;
@@ -6610,15 +6610,15 @@ const byte * __fastunalignedunpack30_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
 
-const byte * __fastunalignedunpack31_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack31_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  )   % (1U << 31 ) ;
     out++;
@@ -6683,15 +6683,15 @@ const byte * __fastunalignedunpack31_16(const byte *  __restrict__ inbyte, uint3
     *out |= ((*in) % (1U<< 16 ))<<( 31 - 16 );
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 2;
+    return reinterpret_cast<const uint8_t *>(in)  + 2;
 }
 
 
 
 
-const byte * __fastunalignedunpack32_16(const byte *  __restrict__ inbyte, uint32_t *  __restrict__  out)
+const uint8_t * __fastunalignedunpack32_16(const uint8_t *  __restrict__ inuint8_t, uint32_t *  __restrict__  out)
 {
-    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inbyte);
+    const uint32_t *  __restrict__ in = reinterpret_cast<const uint32_t *>(inuint8_t);
 
     *out = ( (*in) >>  0  ) ;
     ++in;
@@ -6742,12 +6742,12 @@ const byte * __fastunalignedunpack32_16(const byte *  __restrict__ inbyte, uint3
     ++in;
     out++;
 
-    return reinterpret_cast<const byte *>(in)  + 0;
+    return reinterpret_cast<const uint8_t *>(in)  + 0;
 }
 
 
 
-byte * __fastunalignedbytepackwithoutmask1_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask1_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -6790,7 +6790,7 @@ byte * __fastunalignedbytepackwithoutmask1_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask2_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask2_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -6835,30 +6835,9 @@ byte * __fastunalignedbytepackwithoutmask2_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask3_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask3_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
-    *out =  (*in)  ;
-    ++in;
-    *out |= ( (*in)  ) <<  3 ;
-    ++in;
-    *out |= ( (*in)  ) <<  6 ;
-    ++out;
-    *out =  ( (*in) ) >> ( 3  -  1 );
-    ++in;
-    *out |= ( (*in)  ) <<  1 ;
-    ++in;
-    *out |= ( (*in)  ) <<  4 ;
-    ++in;
-    *out |= ( (*in)  ) <<  7 ;
-    ++out;
-    *out =  ( (*in) ) >> ( 3  -  2 );
-    ++in;
-    *out |= ( (*in)  ) <<  2 ;
-    ++in;
-    *out |= ( (*in)  ) <<  5 ;
-    ++out;
-    ++in;
     *out =  (*in)  ;
     ++in;
     *out |= ( (*in)  ) <<  3 ;
@@ -6880,13 +6859,34 @@ byte * __fastunalignedbytepackwithoutmask3_16(const byte *  __restrict__ in, byt
     *out |= ( (*in)  ) <<  5 ;
     ++out;
     ++in;
+    *out =  (*in)  ;
+    ++in;
+    *out |= ( (*in)  ) <<  3 ;
+    ++in;
+    *out |= ( (*in)  ) <<  6 ;
+    ++out;
+    *out =  ( (*in) ) >> ( 3  -  1 );
+    ++in;
+    *out |= ( (*in)  ) <<  1 ;
+    ++in;
+    *out |= ( (*in)  ) <<  4 ;
+    ++in;
+    *out |= ( (*in)  ) <<  7 ;
+    ++out;
+    *out =  ( (*in) ) >> ( 3  -  2 );
+    ++in;
+    *out |= ( (*in)  ) <<  2 ;
+    ++in;
+    *out |= ( (*in)  ) <<  5 ;
+    ++out;
+    ++in;
 
     return out;
 }
 
 
 
-byte * __fastunalignedbytepackwithoutmask4_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask4_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -6935,7 +6935,7 @@ byte * __fastunalignedbytepackwithoutmask4_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask5_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask5_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -6994,7 +6994,7 @@ byte * __fastunalignedbytepackwithoutmask5_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask6_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask6_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -7055,7 +7055,7 @@ byte * __fastunalignedbytepackwithoutmask6_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask7_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask7_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -7122,7 +7122,7 @@ byte * __fastunalignedbytepackwithoutmask7_16(const byte *  __restrict__ in, byt
 
 
 
-byte * __fastunalignedbytepackwithoutmask8_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+uint8_t * __fastunaligneduint8_tpackwithoutmask8_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out =  (*in)  ;
@@ -7180,7 +7180,7 @@ byte * __fastunalignedbytepackwithoutmask8_16(const byte *  __restrict__ in, byt
 
 
 
-const byte * __fastunalignedbyteunpack1_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack1_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   & 1 ;
@@ -7224,7 +7224,7 @@ const byte * __fastunalignedbyteunpack1_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack2_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack2_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 2 ) ;
@@ -7270,7 +7270,7 @@ const byte * __fastunalignedbyteunpack2_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack3_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack3_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 3 ) ;
@@ -7322,7 +7322,7 @@ const byte * __fastunalignedbyteunpack3_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack4_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack4_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 4 ) ;
@@ -7372,7 +7372,7 @@ const byte * __fastunalignedbyteunpack4_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack5_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack5_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 5 ) ;
@@ -7432,7 +7432,7 @@ const byte * __fastunalignedbyteunpack5_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack6_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack6_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 6 ) ;
@@ -7494,7 +7494,7 @@ const byte * __fastunalignedbyteunpack6_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack7_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack7_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 7 ) ;
@@ -7562,7 +7562,7 @@ const byte * __fastunalignedbyteunpack7_16(const byte *  __restrict__ in, byte *
 
 
 
-const byte * __fastunalignedbyteunpack8_16(const byte *  __restrict__ in, byte *  __restrict__  out)
+const uint8_t * __fastunaligneduint8_tunpack8_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out)
 {
 
     *out = ( (*in) >>  0  )   % (1U << 8 ) ;
@@ -7695,7 +7695,7 @@ static const rpacker       packarray_16[] =
 };
 
 
-const byte * fastunalignedunpack_16(const byte *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
+const uint8_t * fastunalignedunpack_16(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
@@ -7807,7 +7807,7 @@ const byte * fastunalignedunpack_16(const byte *  __restrict__ in, uint32_t *  _
 
 
 /*assumes that integers fit in the prescribed number of bits*/
-byte * fastunalignedpackwithoutmask_16(const uint32_t *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+uint8_t * fastunalignedpackwithoutmask_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
@@ -7917,64 +7917,64 @@ byte * fastunalignedpackwithoutmask_16(const uint32_t *  __restrict__ in, byte *
 }
 
 
-static const rbyteunpacker       byteunpackarray_16[] =
+static const ruint8_tunpacker       uint8_tunpackarray_16[] =
 {
-    nullbyteunpacker16,
-    __fastunalignedbyteunpack1_16,
-    __fastunalignedbyteunpack2_16,
-    __fastunalignedbyteunpack3_16,
-    __fastunalignedbyteunpack4_16,
-    __fastunalignedbyteunpack5_16,
-    __fastunalignedbyteunpack6_16,
-    __fastunalignedbyteunpack7_16,
-    __fastunalignedbyteunpack8_16,
+    nulluint8_tunpacker16,
+    __fastunaligneduint8_tunpack1_16,
+    __fastunaligneduint8_tunpack2_16,
+    __fastunaligneduint8_tunpack3_16,
+    __fastunaligneduint8_tunpack4_16,
+    __fastunaligneduint8_tunpack5_16,
+    __fastunaligneduint8_tunpack6_16,
+    __fastunaligneduint8_tunpack7_16,
+    __fastunaligneduint8_tunpack8_16,
 };
 
 
-static const rbytepacker       bytepackarray_16[] =
+static const ruint8_tpacker       uint8_tpackarray_16[] =
 {
-    nullbytepacker,
-    __fastunalignedbytepackwithoutmask1_16,
-    __fastunalignedbytepackwithoutmask2_16,
-    __fastunalignedbytepackwithoutmask3_16,
-    __fastunalignedbytepackwithoutmask4_16,
-    __fastunalignedbytepackwithoutmask5_16,
-    __fastunalignedbytepackwithoutmask6_16,
-    __fastunalignedbytepackwithoutmask7_16,
-    __fastunalignedbytepackwithoutmask8_16,
+    nulluint8_tpacker,
+    __fastunaligneduint8_tpackwithoutmask1_16,
+    __fastunaligneduint8_tpackwithoutmask2_16,
+    __fastunaligneduint8_tpackwithoutmask3_16,
+    __fastunaligneduint8_tpackwithoutmask4_16,
+    __fastunaligneduint8_tpackwithoutmask5_16,
+    __fastunaligneduint8_tpackwithoutmask6_16,
+    __fastunaligneduint8_tpackwithoutmask7_16,
+    __fastunaligneduint8_tpackwithoutmask8_16,
 };
 
 
-const byte * fastunalignedbyteunpack_16(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+const uint8_t * fastunaligneduint8_tunpack_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
     case 0:
-        return nullbyteunpacker16(in,out);
+        return nulluint8_tunpacker16(in,out);
 
     case 1:
-        return __fastunalignedbyteunpack1_16(in,out);
+        return __fastunaligneduint8_tunpack1_16(in,out);
 
     case 2:
-        return __fastunalignedbyteunpack2_16(in,out);
+        return __fastunaligneduint8_tunpack2_16(in,out);
 
     case 3:
-        return __fastunalignedbyteunpack3_16(in,out);
+        return __fastunaligneduint8_tunpack3_16(in,out);
 
     case 4:
-        return __fastunalignedbyteunpack4_16(in,out);
+        return __fastunaligneduint8_tunpack4_16(in,out);
 
     case 5:
-        return __fastunalignedbyteunpack5_16(in,out);
+        return __fastunaligneduint8_tunpack5_16(in,out);
 
     case 6:
-        return __fastunalignedbyteunpack6_16(in,out);
+        return __fastunaligneduint8_tunpack6_16(in,out);
 
     case 7:
-        return __fastunalignedbyteunpack7_16(in,out);
+        return __fastunaligneduint8_tunpack7_16(in,out);
 
     case 8:
-        return __fastunalignedbyteunpack8_16(in,out);
+        return __fastunaligneduint8_tunpack8_16(in,out);
 
     default:
         break;
@@ -7985,36 +7985,36 @@ const byte * fastunalignedbyteunpack_16(const byte *  __restrict__ in, byte *  _
 
 
 /*assumes that integers fit in the prescribed number of bits*/
-byte * fastunalignedbytepackwithoutmask_16(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit)
+uint8_t * fastunaligneduint8_tpackwithoutmask_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit)
 {
     switch(bit)
     {
     case 0:
-        return nullbytepacker(in,out);
+        return nulluint8_tpacker(in,out);
 
     case 1:
-        return __fastunalignedbytepackwithoutmask1_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask1_16(in,out);
 
     case 2:
-        return __fastunalignedbytepackwithoutmask2_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask2_16(in,out);
 
     case 3:
-        return __fastunalignedbytepackwithoutmask3_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask3_16(in,out);
 
     case 4:
-        return __fastunalignedbytepackwithoutmask4_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask4_16(in,out);
 
     case 5:
-        return __fastunalignedbytepackwithoutmask5_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask5_16(in,out);
 
     case 6:
-        return __fastunalignedbytepackwithoutmask6_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask6_16(in,out);
 
     case 7:
-        return __fastunalignedbytepackwithoutmask7_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask7_16(in,out);
 
     case 8:
-        return __fastunalignedbytepackwithoutmask8_16(in,out);
+        return __fastunaligneduint8_tpackwithoutmask8_16(in,out);
 
     default:
         break;
