@@ -10,7 +10,7 @@
 
 #include "bitpacking.h"
 
-void fastunpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
+static void fastunpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
 {
     // Could have used function pointers instead of switch.
     // Switch calls do offer the compiler more opportunities for optimization in
@@ -123,7 +123,7 @@ void fastunpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out
 
 
 
-void fastpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
+static void fastpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
 {
     // Could have used function pointers instead of switch.
     // Switch calls do offer the compiler more opportunities for optimization in
@@ -237,7 +237,7 @@ void fastpack(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, 
 
 
 /*assumes that integers fit in the prescribed number of bits*/
-void fastpackwithoutmask(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
+static void fastpackwithoutmask(const uint32_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit)
 {
     // Could have used function pointers instead of switch.
     // Switch calls do offer the compiler more opportunities for optimization in
@@ -350,7 +350,7 @@ void fastpackwithoutmask(const uint32_t *  __restrict__ in, uint32_t *  __restri
 
 
 template <uint32_t BlockSize>
-uint32_t * packblockup(const uint32_t * source, uint32_t * out,
+static uint32_t * packblockup(const uint32_t * source, uint32_t * out,
                        const uint32_t bit)
 {
     for (uint32_t j = 0; j != BlockSize; j += 32)
@@ -362,7 +362,7 @@ uint32_t * packblockup(const uint32_t * source, uint32_t * out,
 }
 
 template <uint32_t BlockSize>
-const uint32_t * unpackblock(const uint32_t * source, uint32_t * out,
+static const uint32_t * unpackblock(const uint32_t * source, uint32_t * out,
                              const uint32_t bit)
 {
     for (uint32_t j = 0; j != BlockSize; j += 32)

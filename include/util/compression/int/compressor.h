@@ -15,6 +15,8 @@
 #include <util/compression/int/pfordelta_compressor.h>
 #include <util/compression/int/pfordelta_mix_s16_compressor.h>
 #include <util/compression/int/newpfor_s9_compressor.h>
+#include <util/compression/int/fastpfor/fastpfor.h>
+#include <util/compression/int/fastpfor/simdfastpfor.h>
 
 namespace izenelib{namespace util{namespace compression{
 
@@ -70,7 +72,8 @@ typedef Compressor<pfordelta_mix_compressor> PForDeltaMix_Compressor;
 typedef Compressor<s16_compressor> S16_Compressor;
 typedef Compressor<pfordelta_compressor> PForDelta_Compressor;
 typedef Compressor<newpfor_mix_s9_compressor> PForDeltaMixS9_Compressor;
-
+typedef Compressor<FastPFor> FastPFor_Compressor;
+typedef Compressor<SIMDFastPFor> SIMDFastPFor_Compressor;
 }}}
 #endif
 

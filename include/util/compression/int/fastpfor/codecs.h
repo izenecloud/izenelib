@@ -77,6 +77,20 @@ public:
         return compresseddata;
     }
 
+    int compress(unsigned int* input, unsigned int* output, int size)
+    {
+        size_t nvalue;
+        encodeArray(static_cast<const uint32_t *>(input), size, output, nvalue);
+        return nvalue;
+    }
+
+    int decompress(unsigned int* input, unsigned int* output, int size)
+    {
+        size_t nvalue = size;
+        decodeArray(static_cast<const uint32_t *>(input), size, output, nvalue);
+        return nvalue;
+    }
+
     /**
      * Will uncompress the content of a vector into
      * another vector. Some CODECs know exactly how much data to uncompress,

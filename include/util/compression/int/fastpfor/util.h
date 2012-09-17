@@ -33,14 +33,14 @@ using namespace std;
 /**
  * Computes the greatest common divisor
  */
-__attribute__ ((const))
+static __attribute__ ((const))
 uint32_t gcd(uint32_t x, uint32_t y)
 {
     return (x % y) == 0 ? y :  gcd(y,x % y);
 }
 
 template<uint32_t _x,uint32_t _y>
-__attribute__ ((const))
+static __attribute__ ((const))
 uint32_t gcd()
 {
     uint32_t x = _x;
@@ -57,7 +57,7 @@ uint32_t gcd()
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 T * padTo32bits(T * inbyte)
 {
     return reinterpret_cast< T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -65,7 +65,7 @@ T * padTo32bits(T * inbyte)
 }
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 const T * padTo32bits(const T * inbyte)
 {
     return reinterpret_cast<const T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -73,7 +73,7 @@ const T * padTo32bits(const T * inbyte)
 }
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 T * padTo64bits(T * inbyte)
 {
     return reinterpret_cast<T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -81,7 +81,7 @@ T * padTo64bits(T * inbyte)
 }
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 const T * padTo64bits(const  T * inbyte)
 {
     return reinterpret_cast<const T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -90,7 +90,7 @@ const T * padTo64bits(const  T * inbyte)
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 T * padTo128bits(T * inbyte)
 {
     return reinterpret_cast<T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -98,7 +98,7 @@ T * padTo128bits(T * inbyte)
 }
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 const T * padTo128bits(const T * inbyte)
 {
     return reinterpret_cast<const T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -107,7 +107,7 @@ const T * padTo128bits(const T * inbyte)
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 T * padTo64bytes(T * inbyte)
 {
     return reinterpret_cast<T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -117,7 +117,7 @@ T * padTo64bytes(T * inbyte)
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 const T * padTo64bytes(const T * inbyte)
 {
     return reinterpret_cast<T *> ((reinterpret_cast<uintptr_t> (inbyte)
@@ -126,14 +126,14 @@ const T * padTo64bytes(const T * inbyte)
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 bool needPaddingTo32Bits(const T * inbyte)
 {
     return reinterpret_cast<uintptr_t> (inbyte) & 3;
 }
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 bool needPaddingTo64Bits(const T * inbyte)
 {
     return reinterpret_cast<uintptr_t> (inbyte) & 7;
@@ -141,7 +141,7 @@ bool needPaddingTo64Bits(const T * inbyte)
 
 
 template <class T>
-__attribute__ ((const))
+static __attribute__ ((const))
 bool needPaddingTo128Bits(const T * inbyte)
 {
     return reinterpret_cast<uintptr_t> (inbyte) & 15;
@@ -149,20 +149,20 @@ bool needPaddingTo128Bits(const T * inbyte)
 
 
 template <class T>
-bool  needPaddingTo64bytes(const T * inbyte)
+static bool  needPaddingTo64bytes(const T * inbyte)
 {
     return reinterpret_cast<uintptr_t> (inbyte) & 63;
 }
 
 
 
-__attribute__ ((const))
+static __attribute__ ((const))
 uint32_t gccbits(const uint32_t v)
 {
     return v == 0 ? 0 : 32 - __builtin_clz(v);
 }
 
-__attribute__ ((const))
+static __attribute__ ((const))
 bool divisibleby(size_t a, uint32_t x)
 {
     return (a % x == 0);
@@ -173,7 +173,7 @@ bool divisibleby(size_t a, uint32_t x)
  * function if speed matters. This is only for convenience.
  */
 template <class container>
-container diffs(const container & in, const bool aredistinct)
+static container diffs(const container & in, const bool aredistinct)
 {
     container out;
     if (in.empty())
@@ -187,7 +187,7 @@ container diffs(const container & in, const bool aredistinct)
     return out;
 }
 
-void checkifdivisibleby(size_t a, uint32_t x)
+static void checkifdivisibleby(size_t a, uint32_t x)
 {
     if (!divisibleby(a, x))
     {
@@ -199,7 +199,7 @@ void checkifdivisibleby(size_t a, uint32_t x)
 
 
 template<class iter>
-void printme(iter i, iter b)
+static void printme(iter i, iter b)
 {
     for (iter j = i; j != b; ++j)
         cout << *j << " ";
@@ -207,7 +207,7 @@ void printme(iter i, iter b)
 }
 
 
-__attribute__ ((const))
+static __attribute__ ((const))
 uint32_t asmbits(const uint32_t v)
 {
     if (v == 0)
@@ -217,19 +217,7 @@ uint32_t asmbits(const uint32_t v)
     return answer + 1;
 }
 
-__attribute__ ((const))
-uint32_t slowbits(uint32_t v)
-{
-    uint32_t r = 0;
-    while (v)
-    {
-        r++;
-        v = v >> 1;
-    }
-    return r;
-}
-
-__attribute__ ((const))
+static __attribute__ ((const))
 uint32_t bits(uint32_t v)
 {
     uint32_t r(0);
@@ -261,13 +249,8 @@ uint32_t bits(uint32_t v)
     return r;
 }
 
-uint32_t div_roundup(uint32_t v, uint32_t divisor)
-{
-    return (v + (divisor - 1)) / divisor;
-}
-
 template<class iterator>
-__attribute__ ((pure))
+static __attribute__ ((pure))
 uint32_t maxbits(const iterator & begin, const iterator & end)
 {
     uint32_t accumulator = 0;
@@ -279,9 +262,8 @@ uint32_t maxbits(const iterator & begin, const iterator & end)
 }
 
 
-
 template<class iterator>
-uint32_t slowmaxbits(const iterator & begin, const iterator & end)
+static uint32_t slowmaxbits(const iterator & begin, const iterator & end)
 {
     uint32_t accumulator = 0;
     for (iterator k = begin; k != end; ++k)
@@ -359,7 +341,7 @@ int greedy_bit_size_lookahead( const iterator &begin,
 
 // assume the previous bit size is close to the required bit size
 template<int b, class t, class iterator>
-int greedy_bit_size_lookahead( const iterator &begin,
+static int greedy_bit_size_lookahead( const iterator &begin,
                                const iterator &end, uint32_t previous_size)
 {
 

@@ -118,7 +118,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<"Small_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     int decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
-    BOOST_CHECK_EQUAL(decompressNum, compressNum);
+    BOOST_CHECK_EQUAL(decompressNum, data_size);
     cout<<"Small_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
@@ -134,7 +134,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<"Large_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
-    BOOST_CHECK_EQUAL(decompressNum, compressNum);
+    BOOST_CHECK_EQUAL(decompressNum, data_size);
     cout<<"Large_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
@@ -204,4 +204,8 @@ BOOST_AUTO_TEST_CASE(compressor)
     test_compressor(pformix16, "PForDeltaMixS16_Compressor");
     PForDeltaMixS9_Compressor pformixs9;
     test_compressor(pformixs9, "PForDeltaMixS9_Compressor");
+    FastPFor_Compressor fastpfor;
+    test_compressor(fastpfor, "FastPFor_Compressor");
+    SIMDFastPFor_Compressor simdfastpfor;
+    test_compressor(simdfastpfor, "SIMDFastPFor_Compressor");
 }
