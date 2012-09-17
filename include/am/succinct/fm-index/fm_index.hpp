@@ -36,9 +36,10 @@ public:
     void clear();
 
     void addDoc(const char_type *text, size_t len);
+    void setOrigText(std::vector<char_type> &orig_text);
 
     void build();
-    void reconstructText(const std::vector<uint32_t> &del_docid_list);
+    void reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text);
 
     size_t backwardSearch(const char_type *pattern, size_t len, std::pair<size_t, size_t> &match_range) const;
     void getDocIdList(const std::pair<size_t, size_t> &match_range, std::vector<uint32_t> &docid_list) const;
@@ -47,6 +48,9 @@ public:
 
     size_t length() const;
     size_t allocSize() const;
+
+    size_t bufferLength() const;
+    size_t docCount() const;
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
@@ -57,8 +61,10 @@ private:
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
+
     rsdic::RSDic sampled_;
     std::vector<uint32_t> positions_;
+
     WaveletTree<char_type> *bwt_tree_;
 
     std::vector<char_type> temp_text_;
@@ -87,7 +93,11 @@ void FMIndex<CharT>::clear()
 
     std::vector<uint32_t>().swap(positions_);
 
-    if (bwt_tree_) delete bwt_tree_;
+    if (bwt_tree_)
+    {
+        delete bwt_tree_;
+        bwt_tree_ = NULL;
+    }
     doc_delim_.clear();
 
     std::vector<char_type>().swap(temp_text_);
@@ -98,6 +108,12 @@ void FMIndex<CharT>::addDoc(const char_type *text, size_t len)
 {
     temp_text_.insert(temp_text_.end(), text, text + len);
     temp_text_.push_back('\n');
+}
+
+template <class CharT>
+void FMIndex<CharT>::setOrigText(std::vector<char_type> &orig_text)
+{
+    temp_text_.swap(orig_text);
 }
 
 template <class CharT>
@@ -171,9 +187,9 @@ void FMIndex<CharT>::build()
 }
 
 template <class CharT>
-void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list)
+void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text)
 {
-    temp_text_.resize(length_);
+    orig_text.resize(length_);
 
     size_t pos = 0;
     char_type c;
@@ -181,16 +197,16 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
     for (size_t i = 0; i < length_; ++i)
     {
         c = bwt_tree_->access(pos, pos);
-        temp_text_[length_ - i - 1] = c;
+        orig_text[length_ - i - 1] = c;
         pos += bwt_tree_->getOcc(c);
     }
 
-    if (del_docid_list.empty()) return;
+    if (del_docid_list.empty() || del_docid_list[0] > doc_delim_.size()) return;
 
     size_t old_pos = doc_delim_.prefixSum(del_docid_list[0] - 1);
     size_t new_pos = doc_delim_.prefixSum(del_docid_list[0]) - 1;
 
-    for (size_t i = 1; i < del_docid_list.size(); ++i)
+    for (size_t i = 1; i < del_docid_list.size() && del_docid_list[i] <= doc_delim_.size(); ++i)
     {
         pos = doc_delim_.prefixSum(del_docid_list[i] - 1);
         if (old_pos == new_pos)
@@ -201,7 +217,7 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
         {
             for (; new_pos < pos; ++old_pos, ++new_pos)
             {
-                temp_text_[old_pos] = temp_text_[new_pos];
+                orig_text[old_pos] = orig_text[new_pos];
             }
         }
         new_pos = doc_delim_.prefixSum(del_docid_list[i]) - 1;
@@ -211,8 +227,9 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
     {
         for (; new_pos < length_; ++old_pos, ++new_pos)
         {
-            temp_text_[old_pos] = temp_text_[new_pos];
+            orig_text[old_pos] = orig_text[new_pos];
         }
+        orig_text.resize(old_pos);
     }
 }
 
@@ -371,6 +388,18 @@ size_t FMIndex<CharT>::allocSize() const
         + doc_delim_.allocSize() - sizeof(sdarray::SDArray)
         + sampled_.GetUsageBytes()
         + bwt_tree_->allocSize();
+}
+
+template <class CharT>
+size_t FMIndex<CharT>::bufferLength() const
+{
+    return temp_text_.size();
+}
+
+template <class CharT>
+size_t FMIndex<CharT>::docCount() const
+{
+    return doc_delim_.size();
 }
 
 template <class CharT>

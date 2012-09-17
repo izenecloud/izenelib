@@ -120,9 +120,9 @@ void WatArray::RankAll(uint64_t c, uint64_t pos,
         rank           = NOTFOUND;
         return;
     }
-    if (pos >= length_)
+    if (pos > length_)
     {
-        pos = length_ - 1;
+        pos = length_;
     }
     uint64_t beg_node = 0;
     uint64_t end_node = length_;
@@ -159,7 +159,7 @@ uint64_t WatArray::Select(uint64_t c, uint64_t rank) const
     {
         return NOTFOUND;
     }
-    if (rank > Freq(c))
+    if (rank >= Freq(c))
     {
         return NOTFOUND;
     }
