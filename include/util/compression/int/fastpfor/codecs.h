@@ -87,8 +87,8 @@ public:
     int decompress(unsigned int* input, unsigned int* output, int size)
     {
         size_t nvalue = size;
-        decodeArray(static_cast<const uint32_t *>(input), size, output, nvalue);
-        return nvalue;
+        const uint32_t* ret = decodeArray(static_cast<const uint32_t *>(input), size, output, nvalue);
+        return ret - input;
     }
 
     /**

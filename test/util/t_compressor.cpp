@@ -118,7 +118,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<"Small_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     int decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
-    BOOST_CHECK_EQUAL(decompressNum, data_size);
+    BOOST_CHECK_EQUAL(decompressNum, compressNum);
     cout<<"Small_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_small.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
@@ -134,7 +134,7 @@ void test_compressor(Compressor<T>& compressor, std::string info){
     cout<<"Large_sorted_data, compress, length: "<<compressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     BOOST_CHECK_LE(compressNum, data_size);
     decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
-    BOOST_CHECK_EQUAL(decompressNum, data_size);
+    BOOST_CHECK_EQUAL(decompressNum, compressNum);
     cout<<"Large_sorted_data, decompress, length:  "<<decompressNum<<" ,time elapsed: "<<timer_large.elapsed()<<endl;
     for(uint32_t i = 0; i < data_size; ++i){
         BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
