@@ -155,7 +155,7 @@ void SDArray::clear()
     sum_  = 0;
 }
 
-size_t SDArray::prefixSum(const size_t pos) const
+size_t SDArray::prefixSum(size_t pos) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
@@ -171,7 +171,7 @@ size_t SDArray::prefixSum(const size_t pos) const
     }
 }
 
-size_t SDArray::prefixSumLookup(const size_t pos, size_t& val) const
+size_t SDArray::prefixSumLookup(size_t pos, size_t& val) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
@@ -192,7 +192,23 @@ size_t SDArray::prefixSumLookup(const size_t pos, size_t& val) const
     return sum + prev;
 }
 
-size_t SDArray::find(const size_t val) const
+size_t SDArray::getVal(size_t pos) const
+{
+    size_t bpos   = pos / BLOCK_SIZE;
+    size_t offset = pos % BLOCK_SIZE;
+    size_t header = Ltable_[bpos * 2 + 1];
+
+    if (offset == 0)
+    {
+        return selectBlock_(offset + 1, header);
+    }
+    else
+    {
+        return selectBlock_(offset + 1, header) - selectBlock_(offset, header);
+    }
+}
+
+size_t SDArray::find(size_t val) const
 {
     if (sum_ == 0 || sum_ < val)
     {
@@ -301,7 +317,7 @@ void SDArray::packLows_(size_t begPos, size_t width)
     }
 }
 
-size_t SDArray::selectBlock_(const size_t offset, const size_t header) const
+size_t SDArray::selectBlock_(size_t offset, size_t header) const
 {
     if (getBits(header, 48, 1))
     {
@@ -326,7 +342,7 @@ size_t SDArray::selectBlock_(const size_t offset, const size_t header) const
     return high + getLow_(begPos, offset - 1, width);
 }
 
-size_t SDArray::rankBlock_(const size_t val, size_t header) const
+size_t SDArray::rankBlock_(size_t val, size_t header) const
 {
     if (getBits(header, 48, 1))
     {
@@ -390,12 +406,12 @@ size_t SDArray::getLow_(size_t begPos, size_t num, size_t width) const
     return getBits_((begPos + 2) * BLOCK_SIZE + num * width, width);
 }
 
-bool SDArray::getBit_(const size_t pos) const
+bool SDArray::getBit_(size_t pos) const
 {
     return (B_[pos / BLOCK_SIZE] >> (pos % BLOCK_SIZE)) & 1LLU;
 }
 
-size_t SDArray::getBits_(const size_t pos, const size_t num) const
+size_t SDArray::getBits_(size_t pos, size_t num) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;

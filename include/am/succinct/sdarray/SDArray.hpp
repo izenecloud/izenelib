@@ -69,6 +69,8 @@ public:
      */
     size_t prefixSumLookup(size_t pos, size_t& val) const;
 
+    size_t getVal(size_t pos) const;
+
     /*
      * @ret Return ind s.t. prefixSum(ind) <= val < prefixSum(ind+1) or NOTFOUND if not exist
      */

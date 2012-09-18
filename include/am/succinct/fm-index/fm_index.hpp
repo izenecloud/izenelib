@@ -42,9 +42,10 @@ public:
     void reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text);
 
     size_t backwardSearch(const char_type *pattern, size_t len, std::pair<size_t, size_t> &match_range) const;
-    void getDocIdList(const std::pair<size_t, size_t> &match_range, std::vector<uint32_t> &docid_list) const;
+    size_t longestSuffixMatch(const char_type *patter, size_t len, std::vector<std::pair<size_t, size_t> > &match_ranges) const;
 
-    size_t longestSuffixMatch(const char_type *patter, size_t len, size_t max_docs, std::vector<uint32_t> &docid_list) const;
+    void getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
+    void getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -265,34 +266,8 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, std:
 }
 
 template <class CharT>
-void FMIndex<CharT>::getDocIdList(const std::pair<size_t, size_t> &match_range, std::vector<uint32_t> &docid_list) const
+size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, std::vector<std::pair<size_t, size_t> > &match_ranges) const
 {
-    docid_list.reserve(match_range.second - match_range.first);
-
-    char_type c;
-    size_t pos, dist;
-
-    for (size_t i = match_range.first; i < match_range.second; ++i)
-    {
-        for (pos = i, dist = 0; !sampled_.GetBit(pos); ++dist)
-        {
-            c = bwt_tree_->access(pos, pos);
-            pos += bwt_tree_->getOcc(c);
-        }
-
-        docid_list.push_back(doc_delim_.find(positions_[sampled_.Rank1(pos)] + dist) + 1);
-        if (docid_list.size() == 100) break;
-    }
-
-    std::sort(docid_list.begin(), docid_list.end());
-    docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
-
-}
-
-template <class CharT>
-size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, size_t max_docs, std::vector<uint32_t> &docid_list) const
-{
-    std::vector<std::pair<size_t, size_t> > match_ranges;
     std::pair<size_t, size_t> match_range;
     std::vector<std::pair<size_t, size_t> > prune_bounds(len);
 
@@ -348,16 +323,50 @@ PRUNED:
         assert(true);
     }
 
+    return max_match;
+}
+
+template <class CharT>
+void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
+{
+    char_type c;
+    size_t pos, dist;
+
+    for (size_t i = match_range.first; i < match_range.second; ++i)
+    {
+        for (pos = i, dist = 0; !sampled_.GetBit(pos); ++dist)
+        {
+            c = bwt_tree_->access(pos, pos);
+            pos += bwt_tree_->getOcc(c);
+        }
+
+        docid_list.push_back(doc_delim_.find(positions_[sampled_.Rank1(pos)] + dist) + 1);
+        if (docid_list.size() == max_docs) break;
+    }
+
+    std::sort(docid_list.begin(), docid_list.end());
+    docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
+
+    doclen_list.resize(docid_list.size());
+    for (size_t i = 0; i < docid_list.size(); ++i)
+    {
+        doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
+    }
+}
+
+template <class CharT>
+void FMIndex<CharT>::getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
+{
+    char_type c;
     size_t pos, dist;
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = match_ranges.begin();
             it != match_ranges.end(); ++it)
     {
-        for (i = it->first; i < it->second; ++i)
+        for (size_t i = it->first; i < it->second; ++i)
         {
             for (pos = i, dist = 0; !sampled_.GetBit(pos); ++dist)
             {
-                assert(dist < samplerate_);
                 c = bwt_tree_->access(pos, pos);
                 pos += bwt_tree_->getOcc(c);
             }
@@ -371,7 +380,11 @@ EXIT:
     std::sort(docid_list.begin(), docid_list.end());
     docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
 
-    return max_match;
+    doclen_list.resize(docid_list.size());
+    for (size_t i = 0; i < docid_list.size(); ++i)
+    {
+        doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
+    }
 }
 
 template <class CharT>
