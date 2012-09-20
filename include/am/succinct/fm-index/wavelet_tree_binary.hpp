@@ -298,67 +298,83 @@ void WaveletTreeBinary<CharT>::doIntersect_(
         char_type symbol,
         std::vector<char_type> &results) const
 {
-    if (level == nodes_.size())
+    if (level == alphabet_bit_num_)
     {
         results.push_back(symbol);
         return;
     }
 
-    std::vector<std::pair<size_t, size_t> > sub_ranges;
-    sub_ranges.reserve(ranges.size());
+    std::vector<std::pair<size_t, size_t> > zero_ranges, one_ranges;
+    zero_ranges.reserve(ranges.size());
+    one_ranges.reserve(ranges.size());
+
+    size_t zero_thres = thres, one_thres = thres;
+    bool has_zeros = true, has_ones = true;
 
     const rsdic::RSDic &bv = nodes_[level]->bit_vector_;
 
-    size_t before = bv.Rank0(start);
-    size_t new_thres = thres;
+    size_t before = bv.Rank1(start);
     size_t rank_start, rank_end;
 
-    for (size_t i = 0; i < ranges.size(); i++)
+    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
+            it != ranges.end(); ++it)
     {
-        rank_start = bv.Rank0(start + ranges[i].first);
-        rank_end = bv.Rank0(start + ranges[i].second);
+        rank_start = bv.Rank1(start + it->first);
+        rank_end = bv.Rank1(start + it->second);
 
-        if (rank_start >= rank_end)
+        if (has_zeros)
         {
-            if (new_thres == 0) goto PRUNED_ZERO;
-            else --new_thres;
+            if (it->first - rank_start >= it->second - rank_end)
+            {
+                if (zero_thres == 0)
+                {
+                    if (!has_ones) return;
+                    has_zeros = false;
+                }
+                else
+                {
+                    --zero_thres;
+                }
+            }
+            else
+            {
+                zero_ranges.push_back(std::make_pair(it->first - rank_start + before, it->second - rank_end + before));
+            }
         }
-        else
+
+        if (has_ones)
         {
-            sub_ranges.push_back(std::make_pair(rank_start - before, rank_end - before));
+            if (rank_start >= rank_end)
+            {
+                if (one_thres == 0)
+                {
+                    if (!has_zeros) return;
+                    has_ones = false;
+                }
+                else
+                {
+                    --one_thres;
+                }
+            }
+            else
+            {
+                one_ranges.push_back(std::make_pair(rank_start - before, rank_end - before));
+            }
         }
     }
 
-    doIntersect_(sub_ranges, new_thres, level + 1, start, symbol, results);
-
-PRUNED_ZERO:
-    sub_ranges.clear();
-    before = bv.Rank1(start);
-    new_thres = thres;
-
-    for (size_t i = 0; i < ranges.size(); i++)
+    if (has_zeros)
     {
-        rank_start = bv.Rank1(start + ranges[i].first);
-        rank_end = bv.Rank1(start + ranges[i].second);
-
-        if (rank_start >= rank_end)
-        {
-            if (new_thres == 0) goto PRUNED_ONE;
-            else --new_thres;
-        }
-        else
-        {
-            sub_ranges.push_back(std::make_pair(rank_start - before, rank_end - before));
-        }
+        doIntersect_(zero_ranges, zero_thres, level + 1, start, symbol, results);
     }
 
-    symbol |= (char_type)1 << level;
-    start = occ_.prefixSum(symbol);
+    if (has_ones)
+    {
+        symbol |= (char_type)1 << (alphabet_bit_num_ - level - 1);
+        start = occ_.prefixSum(symbol);
 
-    doIntersect_(sub_ranges, new_thres, level + 1, start, symbol, results);
-
-PRUNED_ONE:
-    assert(true);
+        doIntersect_(one_ranges, one_thres, level + 1, start, symbol, results);
+    }
 }
 
 template <class CharT>
