@@ -177,6 +177,10 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
+    ///avoid of delete counting error
+    BitVector* del_filter = pIndexer_->getIndexReader()->getDocFilter();
+    if(del_filter && del_filter->test(docId)) return;
+    ///Perform deletion
     pIndexer_->getIndexReader()->delDocument(colID, docId);
     pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
     if (!pIndexBarrelWriter_->getDocFilter())
