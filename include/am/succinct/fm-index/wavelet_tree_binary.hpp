@@ -31,6 +31,11 @@ public:
     size_t rank(char_type c, size_t pos) const;
     size_t select(char_type c, size_t rank) const;
 
+    void intersect(
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t thres,
+            std::vector<char_type> &results) const;
+
     size_t getOcc(char_type c) const;
 
     size_t length() const;
@@ -38,6 +43,15 @@ public:
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
+
+private:
+    void doIntersect_(
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t thres,
+            size_t level,
+            size_t start,
+            char_type symbol,
+            std::vector<char_type> &results) const;
 
 private:
     size_t alphabet_bit_num_;
@@ -261,6 +275,90 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
     }
 
     return rank;
+}
+
+template <class CharT>
+void WaveletTreeBinary<CharT>::intersect(
+        const std::vector<std::pair<size_t, size_t> > &ranges,
+        size_t thres,
+        std::vector<char_type> &results) const
+{
+    if (thres > ranges.size()) return;
+    if (thres > 0) thres = ranges.size() - thres;
+
+    doIntersect_(ranges, thres, 0, 0, 0, results);
+}
+
+template <class CharT>
+void WaveletTreeBinary<CharT>::doIntersect_(
+        const std::vector<std::pair<size_t, size_t> > &ranges,
+        size_t thres,
+        size_t level,
+        size_t start,
+        char_type symbol,
+        std::vector<char_type> &results) const
+{
+    if (level == nodes_.size())
+    {
+        results.push_back(symbol);
+        return;
+    }
+
+    std::vector<std::pair<size_t, size_t> > sub_ranges;
+    sub_ranges.reserve(ranges.size());
+
+    const rsdic::RSDic &bv = nodes_[level]->bit_vector_;
+
+    size_t before = bv.Rank0(start);
+    size_t new_thres = thres;
+    size_t rank_start, rank_end;
+
+    for (size_t i = 0; i < ranges.size(); i++)
+    {
+        rank_start = bv.Rank0(start + ranges[i].first);
+        rank_end = bv.Rank0(start + ranges[i].second);
+
+        if (rank_start >= rank_end)
+        {
+            if (new_thres == 0) goto PRUNED_ZERO;
+            else --new_thres;
+        }
+        else
+        {
+            sub_ranges.push_back(std::make_pair(rank_start - before, rank_end - before));
+        }
+    }
+
+    doIntersect_(sub_ranges, new_thres, level + 1, start, symbol, results);
+
+PRUNED_ZERO:
+    sub_ranges.clear();
+    before = bv.Rank1(start);
+    new_thres = thres;
+
+    for (size_t i = 0; i < ranges.size(); i++)
+    {
+        rank_start = bv.Rank1(start + ranges[i].first);
+        rank_end = bv.Rank1(start + ranges[i].second);
+
+        if (rank_start >= rank_end)
+        {
+            if (new_thres == 0) goto PRUNED_ONE;
+            else --new_thres;
+        }
+        else
+        {
+            sub_ranges.push_back(std::make_pair(rank_start - before, rank_end - before));
+        }
+    }
+
+    symbol |= (char_type)1 << level;
+    start = occ_.prefixSum(symbol);
+
+    doIntersect_(sub_ranges, new_thres, level + 1, start, symbol, results);
+
+PRUNED_ONE:
+    assert(true);
 }
 
 template <class CharT>

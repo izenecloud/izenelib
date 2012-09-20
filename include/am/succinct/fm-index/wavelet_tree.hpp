@@ -31,6 +31,11 @@ public:
     virtual size_t rank(char_type c, size_t pos) const = 0;
     virtual size_t select(char_type c, size_t rank) const = 0;
 
+    virtual void intersect(
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t thres,
+            std::vector<char_type> &result) const = 0;
+
     virtual size_t getOcc(char_type c) const = 0;
 
     virtual size_t length() const = 0;

@@ -31,6 +31,11 @@ public:
     size_t rank(char_type c, size_t pos) const;
     size_t select(char_type c, size_t rank) const;
 
+    void intersect(
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t thres,
+            std::vector<char_type> &results) const;
+
     size_t getOcc(char_type c) const;
 
     size_t length() const;
@@ -44,6 +49,12 @@ private:
 
     void deleteTree_(WaveletTreeNode *node);
     void buildTreeNodes_(WaveletTreeNode *node);
+
+    void recursiveIntersect_(
+            const WaveletTreeNode *node,
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t thres,
+            std::vector<char_type> &results) const;
 
     size_t getTreeSize_(const WaveletTreeNode *node) const;
 
@@ -317,6 +328,91 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
     }
 
     return walk->bit_vector_.Select(rank, bit);
+}
+
+template <class CharT>
+void WaveletTreeHuffman<CharT>::intersect(
+        const std::vector<std::pair<size_t, size_t> > &ranges,
+        size_t thres,
+        std::vector<char_type> &results) const
+{
+    if (thres > ranges.size()) return;
+    if (thres > 0) thres = ranges.size() - thres;
+
+    recursiveIntersect_(root_, ranges, thres, results);
+}
+
+template <class CharT>
+void WaveletTreeHuffman<CharT>::recursiveIntersect_(
+        const WaveletTreeNode *node,
+        const std::vector<std::pair<size_t, size_t> > &ranges,
+        size_t thres,
+        std::vector<char_type> &results) const
+{
+    std::vector<std::pair<size_t, size_t> > sub_ranges;
+    sub_ranges.reserve(ranges.size());
+
+    const rsdic::RSDic &bv = node->bit_vector_;
+
+    size_t new_thres = thres;
+    size_t rank_start, rank_end;
+
+    for (size_t i = 0; i < ranges.size(); ++i)
+    {
+        rank_start = bv.Rank0(ranges[i].first);
+        rank_end = bv.Rank0(ranges[i].second);
+
+        if (rank_start >= rank_end)
+        {
+            if (new_thres == 0) goto PRUNED_ZERO;
+            else --new_thres;
+        }
+        else
+        {
+            sub_ranges.push_back(std::make_pair(rank_start, rank_end));
+        }
+    }
+
+    if (node->left_)
+    {
+        recursiveIntersect_(node->left_, sub_ranges, new_thres, results);
+    }
+    else
+    {
+        results.push_back(node->c0_);
+    }
+
+PRUNED_ZERO:
+    sub_ranges.clear();
+    new_thres = thres;
+
+    for (size_t i = 0; i < ranges.size(); ++i)
+    {
+        rank_start = bv.Rank1(ranges[i].first);
+        rank_end = bv.Rank1(ranges[i].second);
+
+        if (rank_start >= rank_end)
+        {
+            if (new_thres == 0) goto PRUNED_ONE;
+            else --new_thres;
+        }
+        else
+        {
+            sub_ranges.push_back(std::make_pair(rank_start, rank_end));
+        }
+    }
+
+    if (node->right_)
+    {
+        recursiveIntersect_(node->right_, sub_ranges, new_thres, results);
+    }
+    else
+    {
+        results.push_back(node->c1_);
+    }
+
+PRUNED_ONE:
+    assert(true);
 }
 
 template <class CharT>
