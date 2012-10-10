@@ -108,7 +108,7 @@ template <class CharT>
 void FMIndex<CharT>::addDoc(const char_type *text, size_t len)
 {
     temp_text_.insert(temp_text_.end(), text, text + len);
-    temp_text_.push_back('\n');
+    temp_text_.push_back(003);
 }
 
 template <class CharT>
@@ -125,11 +125,11 @@ void FMIndex<CharT>::build()
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
     size_t pos = 0;
-    while (temp_text_[pos] != '\n') ++pos;
+    while (temp_text_[pos] != 003) ++pos;
     doc_delim_.add(pos + 1);
     for (size_t i = pos + 1; i < length_; ++i)
     {
-        if (temp_text_[i] == '\n')
+        if (temp_text_[i] == 003)
         {
             doc_delim_.add(i - pos);
             pos = i;
