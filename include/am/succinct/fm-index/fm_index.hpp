@@ -57,16 +57,28 @@ public:
     void load(std::istream &istr);
 
 private:
+    template <class T>
+    WaveletTree<T> *getWaveletTree_(size_t charset_size) const
+    {
+        if (charset_size <= 65536)
+        {
+            return new WaveletTreeHuffman<T>(charset_size);
+        }
+        else
+        {
+            return new WaveletTreeBinary<T>(charset_size);
+        }
+    }
+
+private:
     size_t samplerate_;
     size_t length_;
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
 
-    rsdic::RSDic sampled_;
-    std::vector<uint32_t> positions_;
-
     WaveletTree<char_type> *bwt_tree_;
+    WaveletTree<uint32_t> *doc_array_;
 
     std::vector<char_type> temp_text_;
 };
@@ -76,6 +88,7 @@ FMIndex<CharT>::FMIndex(uint32_t samplerate)
     : samplerate_(samplerate)
     , length_(), alphabet_num_()
     , bwt_tree_()
+    , doc_array_()
 {
 }
 
@@ -83,6 +96,7 @@ template <class CharT>
 FMIndex<CharT>::~FMIndex()
 {
     if (bwt_tree_) delete bwt_tree_;
+    if (doc_array_) delete doc_array_;
 }
 
 template <class CharT>
@@ -92,14 +106,18 @@ void FMIndex<CharT>::clear()
     length_ = 0;
     alphabet_num_ = 0;
 
-    std::vector<uint32_t>().swap(positions_);
+    doc_delim_.clear();
 
     if (bwt_tree_)
     {
         delete bwt_tree_;
         bwt_tree_ = NULL;
     }
-    doc_delim_.clear();
+    if (doc_array_)
+    {
+        delete doc_array_;
+        doc_array_ = NULL;
+    }
 
     std::vector<char_type>().swap(temp_text_);
 }
@@ -124,6 +142,13 @@ void FMIndex<CharT>::build()
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
+    std::vector<int32_t> sa(length_);
+    if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
+    {
+        std::vector<char_type>().swap(temp_text_);
+        return;
+    }
+
     size_t pos = 0;
     while (temp_text_[pos] != 003) ++pos;
     doc_delim_.add(pos + 1);
@@ -137,52 +162,32 @@ void FMIndex<CharT>::build()
     }
     doc_delim_.build();
 
-    std::vector<int32_t> sa(length_);
-    if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
-    {
-        std::vector<char_type>().swap(temp_text_);
-        return;
-    }
-
     std::vector<char_type> bwt(length_);
     for (size_t i = 0; i < length_; ++i)
     {
         if (sa[i] == 0)
         {
             bwt[i] = temp_text_[length_ - 1];
+            sa[i] = docCount();
         }
         else
         {
             bwt[i] = temp_text_[sa[i] - 1];
+            sa[i] = doc_delim_.find(sa[i] - 1);
         }
     }
 
     std::vector<char_type>().swap(temp_text_);
 
-    positions_.reserve((length_ + samplerate_ - 1) / samplerate_);
-    std::vector<uint64_t> bit_seq((length_ + 63) / 64);
-    for (size_t i = 0; i < length_; ++i)
-    {
-        if (sa[i] % samplerate_ == 0)
-        {
-            bit_seq[i / 64] |= 1LLU << (i % 64);
-            positions_.push_back(sa[i]);
-        }
-    }
-    sampled_.Build(bit_seq, length_);
-    std::vector<uint64_t>().swap(bit_seq);
+    bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
+    bwt_tree_->build(&bwt[0], length_);
+
+    std::vector<char_type>().swap(bwt);
+
+    doc_array_ = getWaveletTree_<uint32_t>(docCount());
+    doc_array_->build((uint32_t *)&sa[0], length_);
 
     std::vector<int32_t>().swap(sa);
-
-    if (alphabet_num_ <= 65536)
-    {
-        bwt_tree_ = new WaveletTreeHuffman<char_type>(alphabet_num_);
-    }
-    else
-    {
-        bwt_tree_ = new WaveletTreeBinary<char_type>(alphabet_num_);
-    }
-    bwt_tree_->build(&bwt[0], length_);
 
     --length_;
 }
@@ -334,13 +339,7 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_
 
     for (size_t i = match_range.first; i < match_range.second; ++i)
     {
-        for (pos = i, dist = 0; !sampled_.GetBit(pos); ++dist)
-        {
-            c = bwt_tree_->access(pos, pos);
-            pos += bwt_tree_->getOcc(c);
-        }
-
-        docid_list.push_back(doc_delim_.find(positions_[sampled_.Rank1(pos)] + dist) + 1);
+        docid_list.push_back(doc_array_->access(i) + 1);
         if (docid_list.size() == max_docs) break;
     }
 
@@ -365,13 +364,7 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::vector<std::pair<size_t, siz
     {
         for (size_t i = it->first; i < it->second; ++i)
         {
-            for (pos = i, dist = 0; !sampled_.GetBit(pos); ++dist)
-            {
-                c = bwt_tree_->access(pos, pos);
-                pos += bwt_tree_->getOcc(c);
-            }
-
-            docid_list.push_back(doc_delim_.find(positions_[sampled_.Rank1(pos)] + dist) + 1);
+            docid_list.push_back(doc_array_->access(i) + 1);
             if (docid_list.size() == max_docs) goto EXIT;
         }
     }
@@ -397,9 +390,7 @@ template <class CharT>
 size_t FMIndex<CharT>::allocSize() const
 {
     return sizeof(FMIndex)
-        + sizeof(positions_[0]) * positions_.size()
         + doc_delim_.allocSize() - sizeof(sdarray::SDArray)
-        + sampled_.GetUsageBytes()
         + bwt_tree_->allocSize();
 }
 
@@ -421,11 +412,10 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&samplerate_,   sizeof(samplerate_));
     ostr.write((const char *)&length_,       sizeof(length_));
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
-    ostr.write((const char *)&positions_[0], sizeof(positions_[0]) * positions_.size());
 
     doc_delim_.save(ostr);
-    sampled_.Save(ostr);
     bwt_tree_->save(ostr);
+    doc_array_->save(ostr);
 }
 
 template <class CharT>
@@ -434,20 +424,12 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&samplerate_,   sizeof(samplerate_));
     istr.read((char *)&length_,       sizeof(length_));
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
-    positions_.resize((length_ + samplerate_) / samplerate_);
-    istr.read((char *)&positions_[0], sizeof(positions_[0]) * positions_.size());
 
     doc_delim_.load(istr);
-    sampled_.Load(istr);
-    if (alphabet_num_ <= 65536)
-    {
-        bwt_tree_ = new WaveletTreeHuffman<char_type>(alphabet_num_);
-    }
-    else
-    {
-        bwt_tree_ = new WaveletTreeBinary<char_type>(alphabet_num_);
-    }
+    bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
     bwt_tree_->load(istr);
+    doc_array_ = getWaveletTree_<uint32_t>(alphabet_num_);
+    doc_array_->load(istr);
 }
 
 }
