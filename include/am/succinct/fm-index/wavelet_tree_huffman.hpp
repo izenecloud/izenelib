@@ -36,6 +36,11 @@ public:
             size_t thres,
             std::vector<char_type> &results) const;
 
+    void topKUnion(
+            const std::vector<std::pair<size_t, size_t> > &ranges,
+            size_t topK,
+            std::vector<char_type> &result) const;
+
     size_t getOcc(char_type c) const;
 
     size_t length() const;
@@ -430,6 +435,15 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
             results.push_back(node->c1_);
         }
     }
+}
+
+template <class CharT>
+void WaveletTreeHuffman<CharT>::topKUnion(
+        const std::vector<std::pair<size_t, size_t> > &ranges,
+        size_t topK,
+        std::vector<char_type> &results) const
+{
+    if (topK == 0) return;
 }
 
 template <class CharT>

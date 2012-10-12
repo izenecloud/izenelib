@@ -69,8 +69,6 @@ struct greater<izenelib::am::succinct::fm_index::WaveletTreeNode *>
 {
     bool operator()(izenelib::am::succinct::fm_index::WaveletTreeNode *p1, izenelib::am::succinct::fm_index::WaveletTreeNode *p2)
     {
-        if (!p1) return false;
-        if (!p2) return true;
         return *p1 > *p2;
     }
 };

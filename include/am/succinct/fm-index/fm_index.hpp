@@ -3,6 +3,7 @@
 
 #include "wavelet_tree_huffman.hpp"
 #include "wavelet_tree_binary.hpp"
+#include "wavelet_matrix.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/sdarray/SDArray.hpp>
 #include <am/succinct/sais/sais.hxx>
@@ -66,7 +67,7 @@ private:
         }
         else
         {
-            return new WaveletTreeBinary<T>(charset_size);
+            return new WaveletMatrix<T>(charset_size);
         }
     }
 
