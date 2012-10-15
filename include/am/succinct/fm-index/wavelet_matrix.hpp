@@ -250,7 +250,7 @@ void WaveletMatrix<CharT>::intersect(
     if (thres > ranges.size()) return;
     if (thres > 0) thres = ranges.size() - thres;
 
-    doIntersect_(ranges, thres, 0, 0, 0, results);
+    doIntersect_(ranges, thres, 0, 0, results);
 }
 
 template <class CharT>
@@ -387,7 +387,7 @@ template <class CharT>
 void WaveletMatrix<CharT>::load(std::istream &istr)
 {
     WaveletTree<CharT>::load(istr);
-    occ_.load(ostr);
+    occ_.load(istr);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
