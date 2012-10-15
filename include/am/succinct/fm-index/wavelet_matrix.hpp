@@ -117,6 +117,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
             }
             else
             {
+                nodes_[i]->unsetBit(prev_begin_pos[subscript]++);
                 ++node_begin_pos[subscript + 1];
             }
         }
@@ -148,9 +149,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
-
-        if (bv.GetBit(pos, pos))
+        if (nodes_[i]->bit_vector_.GetBit(pos, pos))
         {
             c |= bit_mask;
             pos += zero_counts_[i];
@@ -172,9 +171,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos, size_t &rank) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
-
-        if (bv.GetBit(pos, pos))
+        if (nodes_[i]->bit_vector_.GetBit(pos, pos))
         {
             c |= bit_mask;
             pos += zero_counts_[i];
@@ -197,15 +194,13 @@ size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
-
         if (c & bit_mask)
         {
-            pos = bv.Rank1(pos) + zero_counts_[i];
+            pos = nodes_[i]->bit_vector_.Rank1(pos) + zero_counts_[i];
         }
         else
         {
-            pos -= bv.Rank1(pos);
+            pos -= nodes_[i]->bit_vector_.Rank1(pos);
         }
 
         bit_mask <<= 1;
@@ -222,15 +217,13 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
-
         if (c & bit_mask)
         {
-            pos = bv.Select1(pos - zero_counts_[i]);
+            pos = nodes_[i]->bit_vector_.Select1(pos - zero_counts_[i]);
         }
         else
         {
-            pos = bv.Select0(pos);
+            pos = nodes_[i]->bit_vector_.Select0(pos);
         }
 
         if (pos == (size_t)-1) return -1;
