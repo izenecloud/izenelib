@@ -164,7 +164,7 @@ void FMIndex<CharT>::build()
         else
         {
             bwt[i] = temp_text_[sa[i] - 1];
-            sa[i] = doc_delim_.find(sa[i] - 1);
+            sa[i] = doc_delim_.find(sa[i]);
         }
     }
 
