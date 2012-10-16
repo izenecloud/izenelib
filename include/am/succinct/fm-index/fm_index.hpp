@@ -22,16 +22,9 @@ template <class CharT>
 class FMIndex
 {
 public:
-    enum
-    {
-        HUFFMAN = 0,
-        BINARY,
-        NA
-    };
-
     typedef CharT char_type;
 
-    FMIndex(uint32_t samplerate = 64);
+    FMIndex();
     ~FMIndex();
 
     void clear();
@@ -72,7 +65,6 @@ private:
     }
 
 private:
-    size_t samplerate_;
     size_t length_;
     size_t alphabet_num_;
 
@@ -85,9 +77,8 @@ private:
 };
 
 template <class CharT>
-FMIndex<CharT>::FMIndex(uint32_t samplerate)
-    : samplerate_(samplerate)
-    , length_(), alphabet_num_()
+FMIndex<CharT>::FMIndex()
+    : length_(), alphabet_num_()
     , bwt_tree_()
     , doc_array_()
 {
@@ -103,7 +94,6 @@ FMIndex<CharT>::~FMIndex()
 template <class CharT>
 void FMIndex<CharT>::clear()
 {
-    samplerate_ = 0;
     length_ = 0;
     alphabet_num_ = 0;
 
@@ -392,7 +382,7 @@ size_t FMIndex<CharT>::allocSize() const
 {
     return sizeof(FMIndex)
         + doc_delim_.allocSize() - sizeof(sdarray::SDArray)
-        + bwt_tree_->allocSize();
+        + bwt_tree_->allocSize() + doc_array_->allocSize();
 }
 
 template <class CharT>
@@ -410,7 +400,6 @@ size_t FMIndex<CharT>::docCount() const
 template <class CharT>
 void FMIndex<CharT>::save(std::ostream &ostr) const
 {
-    ostr.write((const char *)&samplerate_,   sizeof(samplerate_));
     ostr.write((const char *)&length_,       sizeof(length_));
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
@@ -422,14 +411,13 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
 template <class CharT>
 void FMIndex<CharT>::load(std::istream &istr)
 {
-    istr.read((char *)&samplerate_,   sizeof(samplerate_));
     istr.read((char *)&length_,       sizeof(length_));
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
     doc_delim_.load(istr);
     bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
     bwt_tree_->load(istr);
-    doc_array_ = getWaveletTree_<uint32_t>(alphabet_num_);
+    doc_array_ = getWaveletTree_<uint32_t>(docCount());
     doc_array_->load(istr);
 }
 
