@@ -325,9 +325,6 @@ PRUNED:
 template <class CharT>
 void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
 {
-    char_type c;
-    size_t pos, dist;
-
     for (size_t i = match_range.first; i < match_range.second; ++i)
     {
         docid_list.push_back(doc_array_->access(i) + 1);
@@ -347,9 +344,6 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_
 template <class CharT>
 void FMIndex<CharT>::getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
 {
-    char_type c;
-    size_t pos, dist;
-
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = match_ranges.begin();
             it != match_ranges.end(); ++it)
     {
