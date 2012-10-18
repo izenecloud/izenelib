@@ -37,9 +37,9 @@ public:
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
-            std::vector<char_type> &result) const;
+            std::vector<std::pair<double, char_type> > &results) const;
 
     size_t getOcc(char_type c) const;
 
@@ -439,11 +439,72 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnion(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
         size_t topK,
-        std::vector<char_type> &results) const
+        std::vector<std::pair<double, char_type> > &results) const
 {
     if (topK == 0) return;
+
+    boost::container::priority_deque<RangeList *> ranges_queue;
+    ranges_queue.push(new RangeList((char_type)0, root_, ranges));
+
+    RangeList *top_ranges, *zero_ranges, *one_ranges;
+    size_t rank_start, rank_end;
+
+    while (results.size() < topK)
+    {
+        top_ranges = ranges_queue.top();
+        ranges_queue.pop_top();
+
+        const WaveletTreeNode *node = top_ranges->node_;
+
+        zero_ranges = new RangeList((char_type)0, node->left_);
+        one_ranges = new RangeList((char_type)0, node->right_);
+
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
+                it != top_ranges->ranges_.end(); ++it)
+        {
+            if (it->get<0>() == it->get<1>())
+            {
+                zero_ranges->addRange(*it);
+                one_ranges->addRange(*it);
+            }
+            else
+            {
+                rank_start = node->bit_vector_.Rank1(it->get<0>());
+                rank_end = node->bit_vector_.Rank1(it->get<1>());
+
+                zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+                one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
+            }
+        }
+
+        if (zero_ranges->node_)
+        {
+            ranges_queue.push(zero_ranges);
+        }
+        else
+        {
+            results.push_back(std::make_pair(zero_ranges->score_, node->c0_));
+            delete zero_ranges;
+        }
+        if (one_ranges->node_)
+        {
+            ranges_queue.push(one_ranges);
+        }
+        else
+        {
+            results.push_back(std::make_pair(one_ranges->score_, node->c1_));
+            delete one_ranges;
+        }
+
+        delete top_ranges;
+
+        if (ranges_queue.size() > topK)
+        {
+            ranges_queue.pop_bottom();
+        }
+    }
 }
 
 template <class CharT>

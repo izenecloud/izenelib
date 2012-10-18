@@ -2,6 +2,7 @@
 #define _FM_INDEX_WAVELET_TREE_HPP
 
 #include "wavelet_tree_node.hpp"
+#include <3rdparty/boost/container/priority_deque.hpp>
 
 #include <boost/tuple/tuple.hpp>
 
@@ -36,9 +37,9 @@ public:
             std::vector<char_type> &result) const = 0;
 
     virtual void topKUnion(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
-            std::vector<char_type> &result) const = 0;
+            std::vector<std::pair<double, char_type> > &results) const = 0;
 
     virtual size_t getOcc(char_type c) const = 0;
 
@@ -78,29 +79,27 @@ protected:
 class RangeList
 {
 public:
-    RangeList(size_t start, size_t end, uint64_t sym, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
+    RangeList(uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
         : sym_(sym)
-        , start_(start)
-        , end_(end)
         , score_(getScore_(ranges))
+        , node_(node)
         , ranges_(ranges)
     {
     };
 
-    RangeList(size_t start, size_t end, uint64_t sym)
+    RangeList(uint64_t sym, const WaveletTreeNode *node)
         : sym_(sym)
-        , start_(start)
-        , end_(end)
         , score_()
+        , node_(node)
     {
     };
 
     ~RangeList() {}
 
-    void addRange(size_t sp, size_t ep, double score)
+    void addRange(const boost::tuple<size_t, size_t, double> &range)
     {
-        ranges_.push_back(boost::make_tuple(sp, ep, score));
-        score_ += getScore_(ranges_.back());
+        ranges_.push_back(range);
+        score_ += (range.get<1>() - range.get<0>()) * range.get<2>();
     };
 
     bool operator<(const RangeList &rhs) const
@@ -109,24 +108,14 @@ public:
     };
 
 private:
-    double getScore_(const boost::tuple<size_t, size_t, double> &range) const
-    {
-        switch (range.get<0>() - range.get<1>())
-        {
-        case 0: return 0.0;
-        case 1: return range.get<2>();
-        case 2: return range.get<2>() * 1.3;
-        default : return range.get<2>() * 1.5;
-        }
-    }
-
     double getScore_(const std::vector<boost::tuple<size_t, size_t, double> > &ranges) const
     {
         double score = 0.0;
 
         for (size_t i = 0; i < ranges.size(); ++i)
         {
-            score += getScore_(ranges[i]);
+            const boost::tuple<size_t, size_t, double> &range = ranges[i];
+            score += (range.get<1>() - range.get<0>()) * range.get<2>();
         }
 
         return score;
@@ -134,9 +123,8 @@ private:
 
 public:
     uint64_t sym_;
-    size_t start_;
-    size_t end_;
     size_t score_;
+    const WaveletTreeNode *node_;
     std::vector<boost::tuple<size_t, size_t, double> > ranges_;
 };
 

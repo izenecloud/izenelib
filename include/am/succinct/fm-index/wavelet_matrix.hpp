@@ -36,9 +36,9 @@ public:
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
-            std::vector<char_type> &result) const;
+            std::vector<std::pair<double, char_type> > &results) const;
 
     size_t getOcc(char_type c) const;
 
@@ -333,9 +333,9 @@ void WaveletMatrix<CharT>::doIntersect_(
 
 template <class CharT>
 void WaveletMatrix<CharT>::topKUnion(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
         size_t topK,
-        std::vector<char_type> &results) const
+        std::vector<std::pair<double, char_type> > &results) const
 {
     if (topK == 0) return;
 }
