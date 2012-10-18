@@ -71,7 +71,7 @@ struct KeyEdge
     void save(std::ofstream& ofs);
     void load(std::ifstream& ifs);
 
-    uint64_t v[3];
+    uint64_t v[R];
     ValueType code;
 };
 

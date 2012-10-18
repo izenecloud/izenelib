@@ -71,14 +71,24 @@ struct FujimapCommon
 template <class ValueType>
 uint64_t FujimapCommon::log2(const ValueType& x)
 {
-    if (x == 0) return 0;
-    uint64_t ret = 1;
-    uint64_t max = sizeof(x) * 8;
-    while (ret < max && x >> ret)
-    {
-        ++ret;
-    }
-    return ret;
+    if (!x) return 0;
+    else return 32 - __builtin_clz(x);
+}
+
+template <>
+inline uint64_t FujimapCommon::log2<uint64_t>(const uint64_t& x)
+{
+    if (!x) return 0;
+    else return 64 - __builtin_clzl(x);
+}
+
+template <>
+inline uint64_t FujimapCommon::log2<uint128_t>(const uint128_t& x)
+{
+    if (!x) return 0;
+    uint64_t high = x >> 64;
+    if (high) return 128 - __builtin_clzl(high);
+    else return 64 - __builtin_clzl((uint64_t)x);
 }
 
 template <class ValueType>
