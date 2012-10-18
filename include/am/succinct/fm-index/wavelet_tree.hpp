@@ -123,7 +123,7 @@ private:
 
 public:
     uint64_t sym_;
-    size_t score_;
+    double score_;
     const WaveletTreeNode *node_;
     std::vector<boost::tuple<size_t, size_t, double> > ranges_;
 };

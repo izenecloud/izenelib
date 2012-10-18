@@ -139,6 +139,12 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
     {
         nodes_[i]->build();
     }
+    for (size_t i = 1; i < nodes_.size(); ++i)
+    {
+        nodes_[i]->parent_ = nodes_[i - 1];
+        nodes_[i - 1]->left_ = nodes_[i];
+        nodes_[i - 1]->right_ = nodes_[i];
+    }
 }
 
 template <class CharT>
@@ -390,6 +396,70 @@ void WaveletTreeBinary<CharT>::topKUnion(
         std::vector<std::pair<double, char_type> > &results) const
 {
     if (topK == 0) return;
+
+    boost::container::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
+    ranges_queue.push(std::make_pair(new RangeList((char_type)0, nodes_[0], ranges), 0));
+
+    RangeList *top_ranges, *zero_ranges, *one_ranges;
+    size_t start, before, rank_start, rank_end;
+
+    while (results.size() < topK)
+    {
+        top_ranges = ranges_queue.top().first;
+        start = ranges_queue.top().second;
+        ranges_queue.pop_top();
+
+        const WaveletTreeNode *node = top_ranges->node_;
+
+        zero_ranges = new RangeList(top_ranges->sym_ << 1, node->left_);
+        one_ranges = new RangeList(top_ranges->sym_ << 1 | (char_type)1, node->right_);
+
+        before = node->bit_vector_.Rank1(start);
+
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
+                it != top_ranges->ranges_.end(); ++it)
+        {
+            if (it->get<0>() == it->get<1>())
+            {
+                zero_ranges->addRange(*it);
+                one_ranges->addRange(*it);
+            }
+            else
+            {
+                rank_start = node->bit_vector_.Rank1(start + it->get<0>());
+                rank_end = node->bit_vector_.Rank1(start + it->get<1>());
+
+                zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start + before, it->get<1>() - rank_end + before, it->get<2>()));
+                one_ranges->addRange(boost::make_tuple(rank_start - before, rank_end - before, it->get<2>()));
+            }
+        }
+
+        delete top_ranges;
+
+        if (zero_ranges->node_)
+        {
+            ranges_queue.push(std::make_pair(zero_ranges, start));
+        }
+        else
+        {
+            results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+            delete zero_ranges;
+        }
+        if (one_ranges->node_)
+        {
+            ranges_queue.push(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+        }
+        else
+        {
+            results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+            delete one_ranges;
+        }
+
+        if (ranges_queue.size() > topK)
+        {
+            ranges_queue.pop_bottom();
+        }
+    }
 }
 
 template <class CharT>
@@ -444,6 +514,12 @@ void WaveletTreeBinary<CharT>::load(std::istream &istr)
     {
         nodes_[i] = new WaveletTreeNode;
         nodes_[i]->load(istr);
+    }
+    for (size_t i = 1; i < nodes_.size(); ++i)
+    {
+        nodes_[i]->parent_ = nodes_[i - 1];
+        nodes_[i - 1]->left_ = nodes_[i];
+        nodes_[i - 1]->right_ = nodes_[i];
     }
 }
 

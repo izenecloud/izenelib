@@ -479,6 +479,8 @@ void WaveletTreeHuffman<CharT>::topKUnion(
             }
         }
 
+        delete top_ranges;
+
         if (zero_ranges->node_)
         {
             ranges_queue.push(zero_ranges);
@@ -497,8 +499,6 @@ void WaveletTreeHuffman<CharT>::topKUnion(
             results.push_back(std::make_pair(one_ranges->score_, node->c1_));
             delete one_ranges;
         }
-
-        delete top_ranges;
 
         if (ranges_queue.size() > topK)
         {
