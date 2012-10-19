@@ -233,6 +233,8 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
 template <class CharT>
 size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, std::pair<size_t, size_t> &match_range) const
 {
+    if (len == 0) return 0;
+
     size_t orig_len = len;
 
     char_type c = pattern[--len];
@@ -264,6 +266,8 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, std:
 template <class CharT>
 size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, std::vector<std::pair<size_t, size_t> > &match_ranges) const
 {
+    if (len == 0) return 0;
+
     std::pair<size_t, size_t> match_range;
     std::vector<std::pair<size_t, size_t> > prune_bounds(len);
 
