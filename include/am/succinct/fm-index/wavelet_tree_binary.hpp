@@ -436,7 +436,11 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         delete top_ranges;
 
-        if (zero_ranges->node_)
+        if (zero_ranges->score_ == 0.0)
+        {
+            delete zero_ranges;
+        }
+        else if (zero_ranges->node_)
         {
             ranges_queue.push(std::make_pair(zero_ranges, start));
         }
@@ -445,7 +449,12 @@ void WaveletTreeBinary<CharT>::topKUnion(
             results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
             delete zero_ranges;
         }
-        if (one_ranges->node_)
+
+        if (one_ranges->score_ == 0.0)
+        {
+            delete one_ranges;
+        }
+        else if (one_ranges->node_)
         {
             ranges_queue.push(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
         }
