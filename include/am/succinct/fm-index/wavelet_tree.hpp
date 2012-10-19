@@ -99,7 +99,8 @@ public:
     void addRange(const boost::tuple<size_t, size_t, double> &range)
     {
         ranges_.push_back(range);
-        score_ += (range.get<1>() - range.get<0>()) * range.get<2>();
+        if (range.get<1>() > range.get<0>())
+            score_ += range.get<2>();
     };
 
     bool operator<(const RangeList &rhs) const
@@ -115,7 +116,8 @@ private:
         for (size_t i = 0; i < ranges.size(); ++i)
         {
             const boost::tuple<size_t, size_t, double> &range = ranges[i];
-            score += (range.get<1>() - range.get<0>()) * range.get<2>();
+            if (range.get<1>() > range.get<0>())
+                score += range.get<2>();
         }
 
         return score;
