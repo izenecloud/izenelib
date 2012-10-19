@@ -347,12 +347,13 @@ void WaveletMatrix<CharT>::topKUnion(
     if (topK == 0) return;
 
     boost::container::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
+    size_t max_queue_size = std::max(topK, (size_t)1000);
     ranges_queue.push(std::make_pair(new RangeList((char_type)0, nodes_[0], ranges), 0));
 
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end;
 
-    while (results.size() < topK)
+    while (!ranges_queue.empty() && results.size() < topK)
     {
         top_ranges = ranges_queue.top().first;
         level = ranges_queue.top().second;
@@ -411,7 +412,7 @@ void WaveletMatrix<CharT>::topKUnion(
             delete one_ranges;
         }
 
-        if (ranges_queue.size() > topK)
+        if (ranges_queue.size() > max_queue_size)
         {
             ranges_queue.pop_bottom();
         }
