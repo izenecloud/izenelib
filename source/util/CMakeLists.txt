@@ -165,7 +165,8 @@ IF(izene_util_SHOULD_BUILD)
     osgi/util/LoggerFactory.cpp
 
     string/StringUtils.cpp
-
+    string/LevenshteinAutomata.cpp
+    
     test/BoostTestThreadSafety.cpp
     )
 
