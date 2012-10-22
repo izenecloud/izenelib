@@ -346,23 +346,23 @@ void WaveletMatrix<CharT>::topKUnion(
 {
     if (topK == 0) return;
 
-    boost::container::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
+    boost::container::priority_deque<RangeList *> ranges_queue;
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    ranges_queue.push(std::make_pair(new RangeList((char_type)0, nodes_[0], ranges), 0));
+    ranges_queue.push(new RangeList(0, (char_type)0, nodes_[0], ranges));
 
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end;
 
     while (!ranges_queue.empty() && results.size() < topK)
     {
-        top_ranges = ranges_queue.top().first;
-        level = ranges_queue.top().second;
+        top_ranges = ranges_queue.top();
+        level = top_ranges->level_;
         ranges_queue.pop_top();
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(top_ranges->sym_, node->left_);
-        one_ranges = new RangeList(top_ranges->sym_ | (char_type)1 << level, node->right_);
+        zero_ranges = new RangeList(level + 1, top_ranges->sym_, node->left_);
+        one_ranges = new RangeList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
@@ -391,7 +391,7 @@ void WaveletMatrix<CharT>::topKUnion(
         }
         else if (zero_ranges->node_)
         {
-            ranges_queue.push(std::make_pair(zero_ranges, level + 1));
+            ranges_queue.push(zero_ranges);
         }
         else
         {
@@ -406,7 +406,7 @@ void WaveletMatrix<CharT>::topKUnion(
         }
         else if (one_ranges->node_)
         {
-            ranges_queue.push(std::make_pair(one_ranges, level + 1));
+            ranges_queue.push(one_ranges);
         }
         else
         {

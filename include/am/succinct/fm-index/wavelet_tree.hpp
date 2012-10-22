@@ -80,16 +80,18 @@ protected:
 class RangeList
 {
 public:
-    RangeList(uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
-        : sym_(sym)
-        , score_(getScore_(ranges))
+    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
+        : level_(level)
+        , sym_(sym)
+        , score_(getScore_(level, ranges))
         , node_(node)
         , ranges_(ranges)
     {
     };
 
-    RangeList(uint64_t sym, const WaveletTreeNode *node)
-        : sym_(sym)
+    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node)
+        : level_(level)
+        , sym_(sym)
         , score_()
         , node_(node)
     {
@@ -104,7 +106,7 @@ public:
 
     void calcScore()
     {
-        score_ = getScore_(ranges_);
+        score_ = getScore_(level_, ranges_);
     }
 
     bool operator<(const RangeList &rhs) const
@@ -113,7 +115,7 @@ public:
     };
 
 private:
-    double getScore_(const std::vector<boost::tuple<size_t, size_t, double> > &ranges) const
+    double getScore_(size_t level, const std::vector<boost::tuple<size_t, size_t, double> > &ranges) const
     {
         double score = 0.0;
 
@@ -124,10 +126,11 @@ private:
                 score += it->get<2>();
         }
 
-        return score;
+        return score * (level + 1);
     }
 
 public:
+    size_t level_;
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;

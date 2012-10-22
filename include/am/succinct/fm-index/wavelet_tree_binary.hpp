@@ -399,7 +399,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
     boost::container::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    ranges_queue.push(std::make_pair(new RangeList((char_type)0, nodes_[0], ranges), 0));
+    ranges_queue.push(std::make_pair(new RangeList(0, (char_type)0, nodes_[0], ranges), 0));
 
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
@@ -412,8 +412,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(top_ranges->sym_ << 1, node->left_);
-        one_ranges = new RangeList(top_ranges->sym_ << 1 | (char_type)1, node->right_);
+        zero_ranges = new RangeList(top_ranges->level_ + 1, top_ranges->sym_ << 1, node->left_);
+        one_ranges = new RangeList(top_ranges->level_ + 1, top_ranges->sym_ << 1 | (char_type)1, node->right_);
 
         before = node->bit_vector_.Rank1(start);
 
