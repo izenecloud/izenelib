@@ -40,6 +40,9 @@ public:
 
     void getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
     void getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
+    void getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+   const std::vector<double>& max_match_list, size_t max_docs, 
+   std::vector< std::pair< double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -417,6 +420,29 @@ void FMIndex<CharT>::load(std::istream &istr)
     bwt_tree_->load(istr);
     doc_array_ = getWaveletTree_<uint32_t>(docCount());
     doc_array_->load(istr);
+}
+
+template <class CharT>
+void FMIndex<CharT>::getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+   const std::vector<double>& max_match_list, size_t max_docs, 
+   std::vector< std::pair< double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
+{
+    std::vector<boost::tuple<size_t, size_t, double> > match_ranges;
+    for(size_t i = 0; i < match_ranges_list.size(); ++i)
+    {
+        boost::tuple<size_t, size_t, double> single_range;
+        single_range.get<0>() = match_ranges_list[i].first;
+        single_range.get<1>() = match_ranges_list[i].second;
+        single_range.get<2>() = max_match_list[i];
+        match_ranges.push_back(single_range);
+    }
+    doc_array_->topKUnion(match_ranges, max_docs, res_list);
+
+    doclen_list.resize(res_list.size());
+    for (size_t i = 0; i < res_list.size(); ++i)
+    {
+        doclen_list[i] = doc_delim_.getVal(res_list[i].second - 1) - 1;
+    }
 }
 
 }
