@@ -441,7 +441,7 @@ void FMIndex<CharT>::getMatchedTopKDocIdList(const std::vector<std::pair<size_t,
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
     {
-        doclen_list[i] = doc_delim_.getVal(res_list[i].second - 1) - 1;
+        doclen_list[i] = doc_delim_.getVal(++res_list[i].second - 1) - 1;
     }
 }
 
