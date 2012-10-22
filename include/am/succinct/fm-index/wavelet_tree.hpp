@@ -1,6 +1,7 @@
 #ifndef _FM_INDEX_WAVELET_TREE_HPP
 #define _FM_INDEX_WAVELET_TREE_HPP
 
+#include "const.hpp"
 #include "wavelet_tree_node.hpp"
 #include <3rdparty/boost/container/priority_deque.hpp>
 
@@ -99,9 +100,12 @@ public:
     void addRange(const boost::tuple<size_t, size_t, double> &range)
     {
         ranges_.push_back(range);
-        if (range.get<1>() > range.get<0>())
-            score_ += range.get<2>();
     };
+
+    void calcScore()
+    {
+        score_ = getScore_(ranges_);
+    }
 
     bool operator<(const RangeList &rhs) const
     {
@@ -113,11 +117,11 @@ private:
     {
         double score = 0.0;
 
-        for (size_t i = 0; i < ranges.size(); ++i)
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = ranges.begin();
+                it != ranges.end(); ++it)
         {
-            const boost::tuple<size_t, size_t, double> &range = ranges[i];
-            if (range.get<1>() > range.get<0>())
-                score += range.get<2>();
+            if (it->get<1>() > it->get<0>())
+                score += it->get<2>();
         }
 
         return score;
