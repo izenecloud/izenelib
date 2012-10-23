@@ -466,6 +466,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (ranges_queue.size() > max_queue_size)
         {
+            delete ranges_queue.bottom().first;
             ranges_queue.pop_bottom();
         }
     }
