@@ -67,7 +67,7 @@ namespace std
 template <>
 struct greater<izenelib::am::succinct::fm_index::WaveletTreeNode *>
 {
-    bool operator()(izenelib::am::succinct::fm_index::WaveletTreeNode *p1, izenelib::am::succinct::fm_index::WaveletTreeNode *p2)
+    bool operator()(izenelib::am::succinct::fm_index::WaveletTreeNode * const &p1, izenelib::am::succinct::fm_index::WaveletTreeNode * const &p2)
     {
         return *p1 > *p2;
     }

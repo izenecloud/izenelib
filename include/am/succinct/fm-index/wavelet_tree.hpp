@@ -145,9 +145,18 @@ namespace std
 template <>
 struct less<izenelib::am::succinct::fm_index::RangeList *>
 {
-    bool operator()(izenelib::am::succinct::fm_index::RangeList *p1, izenelib::am::succinct::fm_index::RangeList *p2)
+    bool operator()(izenelib::am::succinct::fm_index::RangeList * const &p1, izenelib::am::succinct::fm_index::RangeList * const &p2)
     {
         return *p1 < *p2;
+    }
+};
+
+template <>
+struct less<pair<izenelib::am::succinct::fm_index::RangeList *, size_t> >
+{
+    bool operator()(pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p1, pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p2)
+    {
+        return *p1.first < *p2.first;
     }
 };
 
