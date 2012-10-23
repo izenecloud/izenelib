@@ -9,7 +9,10 @@
 #include "NFAState.h"
 #include "DFAState.h"
 
-namespace izenelib{ namespace util{
+namespace izenelib
+{
+namespace util
+{
 
 using std::vector;
 using std::map;
@@ -19,7 +22,8 @@ using std::set;
 //Declarations:
 
 template <class T>
-class DFA {
+class DFA
+{
     DFAState<T> startState;
     DFAState<T> deadEnd;
     set<DFAState<T>, DFAStateComparation<T> > finalStates;
@@ -32,7 +36,9 @@ public:
     void AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination);
     void AddFinalState(const DFAState<T>& inpState);
     bool IsFinal(const DFAState<T>& inpDFAState) const;
-    void setDeadState(const DFAState<T>& inpDeadState);
+    bool IsDeadState(const DFAState<T>& inpDeadState) const;
+    void SetDeadState(const DFAState<T>& inpDeadState);
+    bool FindNextEdge(const DFAState<unsigned int>& inpDFAState, const string& input, string& result);
     const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput);
     const DFAState<T> GetStartState();
 };
@@ -40,36 +46,43 @@ public:
 //Definitions:
 
 template <class T>
-DFA<T>::DFA(const DFAState<T>& inpStartState){
+DFA<T>::DFA(const DFAState<T>& inpStartState)
+{
     this->startState = inpStartState;
 }
 
 template <class T>
-DFA<T>::DFA(){}
+DFA<T>::DFA() {}
 
 template <class T>
-void DFA<T>::AddFinalState(const DFAState<T>& inpStartState){
+void DFA<T>::AddFinalState(const DFAState<T>& inpStartState)
+{
     this->finalStates.insert(inpStartState);
 }
 
 template <class T>
-void DFA<T>::AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const string& inpInput){
+void DFA<T>::AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const string& inpInput)
+{
     typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionForSource = this->transitions.find(inpSource);
-    if (transitionForSource == this->transitions.end()){
+    if (transitionForSource == this->transitions.end())
+    {
         map<string, DFAState<T> > newTransition;
         newTransition.insert(std::pair<string, DFAState<T> >(inpInput, inpDestination));
         this->transitions.insert(std::pair<DFAState<T>,  map<string, DFAState<T> > >(inpSource, newTransition));
-    } else
+    }
+    else
         transitionForSource->second.insert(std::pair<string, DFAState<T> >(inpInput, inpDestination));
 }
 
 template <class T>
-void DFA<T>::AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination){
+void DFA<T>::AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination)
+{
     this->defaults.insert(std::pair<DFAState<T>, DFAState<T> >(inpSource, inpDestination));
 }
 
 template <class T>
-bool DFA<T>::IsFinal(const DFAState<T>& inpDFAState) const{
+bool DFA<T>::IsFinal(const DFAState<T>& inpDFAState) const
+{
     if (this->finalStates.find(inpDFAState) == this->finalStates.end())
         return false;
     else
@@ -77,40 +90,78 @@ bool DFA<T>::IsFinal(const DFAState<T>& inpDFAState) const{
 }
 
 template <class T>
-void DFA<T>::setDeadState(const DFAState<T>& inpDeadState){
+void DFA<T>::SetDeadState(const DFAState<T>& inpDeadState)
+{
     this->deadEnd = inpDeadState;
     this->AddDefaultTransition(this->deadEnd, this->deadEnd);
 }
 
 template <class T>
-const DFAState<T>  DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput){
-    //state_transitions = self.transitions.get(src, {})
+bool DFA<T>::IsDeadState(const DFAState<T>& inpDeadState) const
+{
+    return this->deadEnd == inpDeadState;
+}
+
+template <class T>
+bool DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, const string& input, string& result)
+{
     typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
-    if (transitionInpState == this->transitions.end()){
+    if (transitionInpState == this->transitions.end())
+    {
+        typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
+        if (defaultsIter == this->defaults.end())
+            return false;
+        else
+        {
+            result = input;
+            return true;
+        }
+    }
+    else
+    {
+        map<string, DFAState<T> >& transition = transitionInpState->second;
+        typename map<string, DFAState<T> >::iterator transIter = transition.upper_bound(input);
+        result = transIter->first;
+        return true;
+    }
+}
+
+
+template <class T>
+const DFAState<T> DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput)
+{
+    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
+    if (transitionInpState == this->transitions.end())
+    {
         typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
         if (defaultsIter == this->defaults.end())
             return this->deadEnd;
         else
             return defaultsIter->second;
-    } else{
-        map<string, DFAState<T> > transition = transitionInpState->second;
+    }
+    else
+    {
+        map<string, DFAState<T> >& transition = transitionInpState->second;
         typename map<string, DFAState<T> >::iterator transIter = transition.find(inpInput);
-        if (transIter == transition.end()){
+        if (transIter == transition.end())
+        {
             typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
             if (defaultsIter == this->defaults.end())
                 return this->deadEnd;
             else
                 return defaultsIter->second;
-        } else
+        }
+        else
             return transIter->second;
     }
-    //return state_transitions.get(input, self.defaults.get(src, None))
 }
 
 template <class T>
-const DFAState<T> DFA<T>::GetStartState(){
+const DFAState<T> DFA<T>::GetStartState()
+{
     return this->startState;
 }
 
-}}
+}
+}
 #endif
