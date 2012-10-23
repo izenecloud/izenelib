@@ -447,7 +447,7 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
     boost::container::priority_deque<RangeList *> ranges_queue;
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    ranges_queue.push(new RangeList(0, (char_type)0, root_, ranges));
+    ranges_queue.push(new RangeList((char_type)0, root_, ranges));
 
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t rank_start, rank_end;
@@ -459,8 +459,8 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(0, (char_type)0, node->left_);
-        one_ranges = new RangeList(0, (char_type)0, node->right_);
+        zero_ranges = new RangeList((char_type)0, node->left_);
+        one_ranges = new RangeList((char_type)0, node->right_);
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
