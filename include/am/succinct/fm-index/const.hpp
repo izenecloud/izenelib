@@ -11,7 +11,7 @@ namespace succinct
 namespace fm_index
 {
 
-static const size_t DEFAULT_TOP_K = 4096;
+static const size_t DEFAULT_TOP_K = 1024;
 
 }
 }

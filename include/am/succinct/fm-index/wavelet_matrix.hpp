@@ -392,8 +392,13 @@ void WaveletMatrix<CharT>::topKUnion(
         delete top_ranges;
 
         zero_ranges->calcScore();
-        if (zero_ranges->score_ == 0.0)
+        if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
         {
+            delete zero_ranges;
+        }
+        else if (!zero_ranges->node_ && zero_ranges->score_ >= ranges_queue.top().first->score_)
+        {
+            results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
             delete zero_ranges;
         }
         else
@@ -402,8 +407,13 @@ void WaveletMatrix<CharT>::topKUnion(
         }
 
         one_ranges->calcScore();
-        if (one_ranges->score_ == 0.0)
+        if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
         {
+            delete one_ranges;
+        }
+        else if (!one_ranges->node_ && one_ranges->score_ >= ranges_queue.top().first->score_)
+        {
+            results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
             delete one_ranges;
         }
         else
