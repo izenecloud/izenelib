@@ -457,10 +457,17 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         top_ranges = ranges_queue.top();
         ranges_queue.pop_top();
 
+        if (!top_ranges->node_)
+        {
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            delete top_ranges;
+            continue;
+        }
+
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList((char_type)0, node->left_);
-        one_ranges = new RangeList((char_type)0, node->right_);
+        zero_ranges = new RangeList(node->c0_, node->left_);
+        one_ranges = new RangeList(node->c1_, node->right_);
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
@@ -487,14 +494,9 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         {
             delete zero_ranges;
         }
-        else if (zero_ranges->node_)
-        {
-            ranges_queue.push(zero_ranges);
-        }
         else
         {
-            results.push_back(std::make_pair(zero_ranges->score_, node->c0_));
-            delete zero_ranges;
+            ranges_queue.push(zero_ranges);
         }
 
         one_ranges->calcScore();
@@ -502,14 +504,9 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         {
             delete one_ranges;
         }
-        else if (one_ranges->node_)
-        {
-            ranges_queue.push(one_ranges);
-        }
         else
         {
-            results.push_back(std::make_pair(one_ranges->score_, node->c1_));
-            delete one_ranges;
+            ranges_queue.push(one_ranges);
         }
 
         if (ranges_queue.size() > max_queue_size)
