@@ -6,11 +6,21 @@ BOOST_AUTO_TEST_SUITE(t_levenshtein_automata)
 
 BOOST_AUTO_TEST_CASE(automata_test)
 {
-    izenelib::util::LevenshteinAutomata automata("aaaaa", 1);
-    BOOST_CHECK(automata.Match("aaaab"));
+    {
+    using izenelib::util::UString;
+    izenelib::util::LevenshteinAutomata<UString> automata(UString("aaaaa",UString::UTF_8), 1);
+    BOOST_CHECK(automata.Match(UString("aaaaa",UString::UTF_8)));
+    BOOST_CHECK(automata.Match(UString("aaaaab",UString::UTF_8)));
+    BOOST_CHECK(automata.Match(UString("aaaa",UString::UTF_8)));	
+    BOOST_CHECK(!automata.Match(UString("baaab",UString::UTF_8)));
+    }
+    {
+    izenelib::util::LevenshteinAutomata<std::string> automata("aaaaa", 1);
+    BOOST_CHECK(automata.Match("aaaaa"));
     BOOST_CHECK(automata.Match("aaaaab"));
     BOOST_CHECK(automata.Match("aaaa"));	
     BOOST_CHECK(!automata.Match("baaab"));
+    }
 }
 
 
