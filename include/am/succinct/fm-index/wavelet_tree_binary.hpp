@@ -33,6 +33,7 @@ public:
     void intersect(
             const std::vector<std::pair<size_t, size_t> > &ranges,
             size_t thres,
+            size_t max_count,
             std::vector<char_type> &results) const;
 
     void topKUnion(
@@ -52,6 +53,7 @@ private:
     void doIntersect_(
             const std::vector<std::pair<size_t, size_t> > &ranges,
             size_t thres,
+            size_t max_count,
             size_t level,
             size_t start,
             char_type symbol,
@@ -293,23 +295,27 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::intersect(
         const std::vector<std::pair<size_t, size_t> > &ranges,
         size_t thres,
+        size_t max_count,
         std::vector<char_type> &results) const
 {
     if (thres > ranges.size()) return;
     if (thres > 0) thres = ranges.size() - thres;
 
-    doIntersect_(ranges, thres, 0, 0, 0, results);
+    doIntersect_(ranges, thres, max_count, 0, 0, 0, results);
 }
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::doIntersect_(
         const std::vector<std::pair<size_t, size_t> > &ranges,
         size_t thres,
+        size_t max_count,
         size_t level,
         size_t start,
         char_type symbol,
         std::vector<char_type> &results) const
 {
+    if (results.size() >= max_count) return;
+
     if (level == alphabet_bit_num_)
     {
         results.push_back(symbol);
@@ -377,7 +383,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 
     if (has_zeros)
     {
-        doIntersect_(zero_ranges, zero_thres, level + 1, start, symbol, results);
+        doIntersect_(zero_ranges, zero_thres, max_count, level + 1, start, symbol, results);
     }
 
     if (has_ones)
@@ -385,7 +391,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
         symbol |= (char_type)1 << (alphabet_bit_num_ - level - 1);
         start = occ_.prefixSum(symbol);
 
-        doIntersect_(one_ranges, one_thres, level + 1, start, symbol, results);
+        doIntersect_(one_ranges, one_thres, max_count, level + 1, start, symbol, results);
     }
 }
 

@@ -35,6 +35,7 @@ public:
     virtual void intersect(
             const std::vector<std::pair<size_t, size_t> > &ranges,
             size_t thres,
+            size_t max_count,
             std::vector<char_type> &result) const = 0;
 
     virtual void topKUnion(

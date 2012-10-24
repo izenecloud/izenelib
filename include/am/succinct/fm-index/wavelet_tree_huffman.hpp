@@ -34,6 +34,7 @@ public:
     void intersect(
             const std::vector<std::pair<size_t, size_t> > &ranges,
             size_t thres,
+            size_t max_count,
             std::vector<char_type> &results) const;
 
     void topKUnion(
@@ -59,6 +60,7 @@ private:
             const WaveletTreeNode *node,
             const std::vector<std::pair<size_t, size_t> > &ranges,
             size_t thres,
+            size_t max_count,
             std::vector<char_type> &results) const;
 
     size_t getTreeSize_(const WaveletTreeNode *node) const;
@@ -339,12 +341,13 @@ template <class CharT>
 void WaveletTreeHuffman<CharT>::intersect(
         const std::vector<std::pair<size_t, size_t> > &ranges,
         size_t thres,
+        size_t max_count,
         std::vector<char_type> &results) const
 {
     if (thres > ranges.size()) return;
     if (thres > 0) thres = ranges.size() - thres;
 
-    recursiveIntersect_(root_, ranges, thres, results);
+    recursiveIntersect_(root_, ranges, thres, max_count, results);
 }
 
 template <class CharT>
@@ -352,8 +355,11 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
         const WaveletTreeNode *node,
         const std::vector<std::pair<size_t, size_t> > &ranges,
         size_t thres,
+        size_t max_count,
         std::vector<char_type> &results) const
 {
+    if (results.size() >= max_count) return;
+
     std::vector<std::pair<size_t, size_t> > zero_ranges, one_ranges;
     zero_ranges.reserve(ranges.size());
     one_ranges.reserve(ranges.size());
@@ -416,7 +422,7 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
     {
         if (node->left_)
         {
-            recursiveIntersect_(node->left_, zero_ranges, zero_thres, results);
+            recursiveIntersect_(node->left_, zero_ranges, zero_thres, max_count, results);
         }
         else
         {
@@ -424,11 +430,13 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
         }
     }
 
+    if (results.size() >= max_count) return;
+
     if (has_ones)
     {
         if (node->right_)
         {
-            recursiveIntersect_(node->right_, one_ranges, one_thres, results);
+            recursiveIntersect_(node->right_, one_ranges, one_thres, max_count, results);
         }
         else
         {

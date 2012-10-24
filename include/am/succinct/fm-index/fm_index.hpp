@@ -41,8 +41,8 @@ public:
     void getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
     void getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
     void getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-   const std::vector<double>& max_match_list, size_t max_docs, 
-   std::vector< std::pair< double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const;
+                                 const std::vector<double>& max_match_list, size_t max_docs,
+                                 std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -332,14 +332,10 @@ PRUNED:
 template <class CharT>
 void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
 {
-    for (size_t i = match_range.first; i < match_range.second; ++i)
-    {
-        docid_list.push_back(doc_array_->access(i) + 1);
-        if (docid_list.size() == max_docs) break;
-    }
+    std::vector<std::pair<size_t, size_t> > ranges;
+    ranges.push_back(match_range);
 
-    std::sort(docid_list.begin(), docid_list.end());
-    docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
+    doc_array_->intersect(ranges, 1, max_docs, docid_list);
 
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
@@ -351,17 +347,15 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_
 template <class CharT>
 void FMIndex<CharT>::getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const
 {
-    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = match_ranges.begin();
-            it != match_ranges.end(); ++it)
+    std::vector<std::pair<size_t, size_t> > ranges(1);
+    for (size_t i = 0; i < match_ranges.size(); ++i)
     {
-        for (size_t i = it->first; i < it->second; ++i)
-        {
-            docid_list.push_back(doc_array_->access(i) + 1);
-            if (docid_list.size() == max_docs) goto EXIT;
-        }
+        ranges[0] = match_ranges[i];
+        doc_array_->intersect(ranges, 1, max_docs, docid_list);
+
+        if (docid_list.size() >= max_docs) break;
     }
 
-EXIT:
     std::sort(docid_list.begin(), docid_list.end());
     docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
 
@@ -424,24 +418,22 @@ void FMIndex<CharT>::load(std::istream &istr)
 
 template <class CharT>
 void FMIndex<CharT>::getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-   const std::vector<double>& max_match_list, size_t max_docs, 
-   std::vector< std::pair< double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
+                                             const std::vector<double>& max_match_list, size_t max_docs,
+                                             std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
 {
-    std::vector<boost::tuple<size_t, size_t, double> > match_ranges;
+    std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
     for(size_t i = 0; i < match_ranges_list.size(); ++i)
     {
-        boost::tuple<size_t, size_t, double> single_range;
-        single_range.get<0>() = match_ranges_list[i].first;
-        single_range.get<1>() = match_ranges_list[i].second;
-        single_range.get<2>() = max_match_list[i];
-        match_ranges.push_back(single_range);
+        match_ranges[i].get<0>() = match_ranges_list[i].first;
+        match_ranges[i].get<1>() = match_ranges_list[i].second;
+        match_ranges[i].get<2>() = max_match_list[i];
     }
     doc_array_->topKUnion(match_ranges, max_docs, res_list);
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
     {
-        doclen_list[i] = doc_delim_.getVal(++res_list[i].second - 1) - 1;
+        doclen_list[i] = doc_delim_.getVal(res_list[i].second++) - 1;
     }
 }
 
