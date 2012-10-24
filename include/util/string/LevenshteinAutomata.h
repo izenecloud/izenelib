@@ -4,8 +4,10 @@
 #include "DFA.h"
 #include "NFA.h"
 #include <util/ustring/UString.h>
+
 #include <string>
 #include <stack>
+#include <boost/tuple/tuple.hpp>
 
 namespace izenelib
 {
@@ -77,52 +79,6 @@ bool LevenshteinAutomata<UString>::Match(const UString& testString) const
 }
 
 template <>
-bool LevenshteinAutomata<UString>::NextValidString(const UString& input, UString& result) const
-{
-    std::stack<std::pair<UString, DFAState<unsigned int> > > state_stack;
-    DFAState<unsigned int> currentState = DFA_.GetStartState();
-    for (unsigned int i = 0; i < input.length(); ++i)
-    {
-        UString cc(input, i, 1);
-        state_stack.push(std::make_pair(cc, currentState));
-        std::string c;
-        cc.convertString(c, UString::UTF_8);
-        currentState = DFA_.GetNextDFAState(currentState, c);
-        if(DFA_.IsDeadState(currentState))
-        {
-            UString cc(input, i+1, i);
-            state_stack.push(std::make_pair(cc, currentState));
-            break;
-        }
-    }
-    if (DFA_.IsFinal(currentState))
-    {
-        result = input;
-        return true;
-    }
-
-    while(!state_stack.empty())
-    {
-        std::pair<UString, DFAState<unsigned int> > item = state_stack.top();
-        state_stack.pop();
-        std::string c;
-        item.first.convertString(c, UString::UTF_8);
-        DFAState<unsigned int> state = item.second;
-        if(DFA_.FindNextEdge(state,c,c))
-        {
-            result += item.first;
-            state = DFA_.GetNextDFAState(state, c);
-            if(DFA_.IsFinal(state))
-            {
-                return true;
-            }
-            state_stack.push(std::make_pair(result, state));
-        }
-    }
-    return false;
-}
-
-template <>
 LevenshteinAutomata<string>::LevenshteinAutomata(const string & pattern, unsigned int distance)
 {
     NFA<unsigned int> nfa(NFAState<unsigned int>(0,0));
@@ -173,20 +129,30 @@ bool LevenshteinAutomata<string>::Match(const string& testString) const
 template <>
 bool LevenshteinAutomata<string>::NextValidString(const string& input, string& result) const
 {
-    std::stack<std::pair<string, DFAState<unsigned int> > > state_stack;
+    result.clear();
+    std::stack<boost::tuple<string, DFAState<unsigned int>, char > > state_stack;
     DFAState<unsigned int> currentState = DFA_.GetStartState();
-    for (unsigned int i = 0; i < input.length(); ++i)
+    unsigned int i = 0;
+    bool deadState = false;
+    for (; i < input.length(); ++i)
     {
-        string c(input, i, 1);
-        state_stack.push(std::make_pair(c, currentState));
-        currentState = DFA_.GetNextDFAState(currentState, c);
+        string path(input, 0, i);
+        char x = input[i];
+        state_stack.push(boost::make_tuple(path, currentState, x));
+        currentState = DFA_.GetNextDFAState(currentState, string()+x);
         if(DFA_.IsDeadState(currentState))
         {
-            string cc(input, i+1, i);
-            state_stack.push(std::make_pair(cc, currentState));
+            deadState = true;
             break;
         }
     }
+
+    if(!deadState)
+    {
+        string cc(input, 0, i);
+        state_stack.push(boost::make_tuple(cc, currentState, -1));
+    }
+
     if (DFA_.IsFinal(currentState))
     {
         result = input;
@@ -195,19 +161,22 @@ bool LevenshteinAutomata<string>::NextValidString(const string& input, string& r
 
     while(!state_stack.empty())
     {
-        std::pair<string, DFAState<unsigned int> > item = state_stack.top();
+        boost::tuple<string, DFAState<unsigned int>, char > item = state_stack.top();
         state_stack.pop();
-        std::string c;
-        DFAState<unsigned int> state = item.second;
-        if(DFA_.FindNextEdge(state,item.first,c))
+        std::string path = item.get<0>();
+        DFAState<unsigned int> state = item.get<1>();
+        char x = item.get<2>();
+        x = DFA_.FindNextEdge(state,x);
+        if(x != -1)
         {
-            result += item.first;
-            state = DFA_.GetNextDFAState(state, c);
+            path += x;
+            state = DFA_.GetNextDFAState(state, string()+x);
             if(DFA_.IsFinal(state))
             {
+                result = path;
                 return true;
             }
-            state_stack.push(std::make_pair(result, state));
+            state_stack.push(boost::make_tuple(path, state, -1));
         }
     }
     return false;

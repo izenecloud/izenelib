@@ -79,7 +79,7 @@ template <class T>
 bool operator==(const Pair<T>& inpLeftPair, const Pair<T>& inpRightPair)
 {
     return (inpLeftPair.GetFirstValue() == inpRightPair.GetFirstValue()) &&
-                (inpLeftPair.GetSecondValue() < inpRightPair.GetSecondValue());
+                (inpLeftPair.GetSecondValue() == inpRightPair.GetSecondValue());
 }
 
 }

@@ -8,7 +8,7 @@
 #include <utility>
 #include "NFAState.h"
 #include "DFAState.h"
-
+#include <iostream>
 namespace izenelib
 {
 namespace util
@@ -38,9 +38,10 @@ public:
     bool IsFinal(const DFAState<T>& inpDFAState) const;
     bool IsDeadState(const DFAState<T>& inpDeadState) const;
     void SetDeadState(const DFAState<T>& inpDeadState);
-    bool FindNextEdge(const DFAState<unsigned int>& inpDFAState, const string& input, string& result);
+    char FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input);
     const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput);
     const DFAState<T> GetStartState();
+    const DFAState<T> GetDeadState();
 };
 
 //Definitions:
@@ -103,29 +104,39 @@ bool DFA<T>::IsDeadState(const DFAState<T>& inpDeadState) const
 }
 
 template <class T>
-bool DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, const string& input, string& result)
+char DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input)
 {
-    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
-    if (transitionInpState == this->transitions.end())
+    if(input == -1) input = 0;
+    if(input != 0) ++input; 
+
+    typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
+    if (defaultsIter != this->defaults.end())
     {
-        typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
-        if (defaultsIter == this->defaults.end())
-            return false;
+        return input;
+    }
+
+    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
+    if (transitionInpState != this->transitions.end())
+    {
+        map<string, DFAState<T> >& transition = transitionInpState->second;
+        typename map<string, DFAState<T> >::iterator transIter = transition.find(string()+input);
+        if(transIter == transition.end())
+        {
+            transIter = transition.upper_bound(string()+input);
+            if(transIter == transition.end()) 
+            {
+                return -1;
+            }
+            return (transIter->first)[0];
+        }
         else
         {
-            result = input;
-            return true;
+            return input;
         }
     }
     else
-    {
-        map<string, DFAState<T> >& transition = transitionInpState->second;
-        typename map<string, DFAState<T> >::iterator transIter = transition.upper_bound(input);
-        result = transIter->first;
-        return true;
-    }
+        return -1;
 }
-
 
 template <class T>
 const DFAState<T> DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput)
@@ -160,6 +171,12 @@ template <class T>
 const DFAState<T> DFA<T>::GetStartState()
 {
     return this->startState;
+}
+
+template <class T>
+const DFAState<T> DFA<T>::GetDeadState()
+{
+    return this->deadEnd;
 }
 
 }
