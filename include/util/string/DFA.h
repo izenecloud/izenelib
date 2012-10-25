@@ -4,11 +4,11 @@
 #include <map>
 #include <vector>
 #include <set>
-#include <string>
 #include <utility>
+#include <types.h>
 #include "NFAState.h"
 #include "DFAState.h"
-#include <iostream>
+
 namespace izenelib
 {
 namespace util
@@ -16,73 +16,72 @@ namespace util
 
 using std::vector;
 using std::map;
-using std::string;
 using std::set;
 
 //Declarations:
 
-template <class T>
+template <class T, class StringType>
 class DFA
 {
     DFAState<T> startState;
     DFAState<T> deadEnd;
     set<DFAState<T>, DFAStateComparation<T> > finalStates;
-    map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> > transitions;
+    map<DFAState<T>, map<StringType, DFAState<T> >, DFAStateComparation<T> > transitions;
     map<DFAState<T>, DFAState<T>, DFAStateComparation<T> > defaults;
 public:
     DFA(const DFAState<T>& inpStartState);
     DFA();
-    void AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const string& inpInput);
+    void AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const StringType& inpInput);
     void AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination);
     void AddFinalState(const DFAState<T>& inpState);
     bool IsFinal(const DFAState<T>& inpDFAState) const;
     bool IsDeadState(const DFAState<T>& inpDeadState) const;
     void SetDeadState(const DFAState<T>& inpDeadState);
-    char FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input);
-    const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput);
+    StringType FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input, uint16_t DELIMITER);
+    const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const StringType& inpInput);
     const DFAState<T> GetStartState();
     const DFAState<T> GetDeadState();
 };
 
 //Definitions:
 
-template <class T>
-DFA<T>::DFA(const DFAState<T>& inpStartState)
+template <class T, class StringType>
+DFA<T, StringType>::DFA(const DFAState<T>& inpStartState)
 {
     this->startState = inpStartState;
 }
 
-template <class T>
-DFA<T>::DFA() {}
+template <class T, class StringType>
+DFA<T, StringType>::DFA() {}
 
-template <class T>
-void DFA<T>::AddFinalState(const DFAState<T>& inpStartState)
+template <class T, class StringType>
+void DFA<T, StringType>::AddFinalState(const DFAState<T>& inpStartState)
 {
     this->finalStates.insert(inpStartState);
 }
 
-template <class T>
-void DFA<T>::AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const string& inpInput)
+template <class T, class StringType>
+void DFA<T, StringType>::AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const StringType& inpInput)
 {
-    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionForSource = this->transitions.find(inpSource);
+    typename map<DFAState<T>, map<StringType, DFAState<T> >, DFAStateComparation<T> >::iterator transitionForSource = this->transitions.find(inpSource);
     if (transitionForSource == this->transitions.end())
     {
-        map<string, DFAState<T> > newTransition;
-        newTransition.insert(std::pair<string, DFAState<T> >(inpInput, inpDestination));
-        this->transitions.insert(std::pair<DFAState<T>,  map<string, DFAState<T> > >(inpSource, newTransition));
+        map<StringType, DFAState<T> > newTransition;
+        newTransition.insert(std::pair<StringType, DFAState<T> >(inpInput, inpDestination));
+        this->transitions.insert(std::pair<DFAState<T>,  map<StringType, DFAState<T> > >(inpSource, newTransition));
     }
     else
-        transitionForSource->second.insert(std::pair<string, DFAState<T> >(inpInput, inpDestination));
+        transitionForSource->second.insert(std::pair<StringType, DFAState<T> >(inpInput, inpDestination));
 }
 
-template <class T>
-void DFA<T>::AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination)
+template <class T, class StringType>
+void DFA<T, StringType>::AddDefaultTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination)
 {
     this->defaults.insert(std::pair<DFAState<T>, DFAState<T> >(inpSource, inpDestination));
 }
 
-template <class T>
-bool DFA<T>::IsFinal(const DFAState<T>& inpDFAState) const
+template <class T, class StringType>
+bool DFA<T, StringType>::IsFinal(const DFAState<T>& inpDFAState) const
 {
     if (this->finalStates.find(inpDFAState) == this->finalStates.end())
         return false;
@@ -90,24 +89,28 @@ bool DFA<T>::IsFinal(const DFAState<T>& inpDFAState) const
         return true;
 }
 
-template <class T>
-void DFA<T>::SetDeadState(const DFAState<T>& inpDeadState)
+template <class T, class StringType>
+void DFA<T, StringType>::SetDeadState(const DFAState<T>& inpDeadState)
 {
     this->deadEnd = inpDeadState;
     this->AddDefaultTransition(this->deadEnd, this->deadEnd);
 }
 
-template <class T>
-bool DFA<T>::IsDeadState(const DFAState<T>& inpDeadState) const
+template <class T, class StringType>
+bool DFA<T, StringType>::IsDeadState(const DFAState<T>& inpDeadState) const
 {
     return this->deadEnd == inpDeadState;
 }
 
-template <class T>
-char DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input)
+template <class T, class StringType>
+StringType DFA<T, StringType>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input, uint16_t DELIMITER)
 {
-    if(input == -1) input = 0;
-    if(input != 0) ++input; 
+    if(input[input.length() - 1] != DELIMITER) 
+    {
+        uint16_t code = input[input.length() - 1];
+        ++code;
+        input[input.length() - 1] = code;
+    }
 
     typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
     if (defaultsIter != this->defaults.end())
@@ -115,19 +118,19 @@ char DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input)
         return input;
     }
 
-    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
+    typename map<DFAState<T>, map<StringType, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
     if (transitionInpState != this->transitions.end())
     {
-        map<string, DFAState<T> >& transition = transitionInpState->second;
-        typename map<string, DFAState<T> >::iterator transIter = transition.find(string()+input);
+        map<StringType, DFAState<T> >& transition = transitionInpState->second;
+        typename map<StringType, DFAState<T> >::iterator transIter = transition.find(input);
         if(transIter == transition.end())
         {
-            transIter = transition.upper_bound(string()+input);
+            transIter = transition.upper_bound(input);
             if(transIter == transition.end()) 
             {
-                return -1;
+                return StringType(1,DELIMITER);
             }
-            return (transIter->first)[0];
+            return (transIter->first);//[0];
         }
         else
         {
@@ -135,13 +138,13 @@ char DFA<T>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, char input)
         }
     }
     else
-        return -1;
+        return StringType(1,DELIMITER);
 }
 
-template <class T>
-const DFAState<T> DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput)
+template <class T, class StringType>
+const DFAState<T> DFA<T, StringType>::GetNextDFAState(const DFAState<T>& inpDFAState, const StringType& inpInput)
 {
-    typename map<DFAState<T>, map<string, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
+    typename map<DFAState<T>, map<StringType, DFAState<T> >, DFAStateComparation<T> >::iterator transitionInpState = this->transitions.find(inpDFAState);
     if (transitionInpState == this->transitions.end())
     {
         typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
@@ -152,8 +155,8 @@ const DFAState<T> DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const 
     }
     else
     {
-        map<string, DFAState<T> >& transition = transitionInpState->second;
-        typename map<string, DFAState<T> >::iterator transIter = transition.find(inpInput);
+        map<StringType, DFAState<T> >& transition = transitionInpState->second;
+        typename map<StringType, DFAState<T> >::iterator transIter = transition.find(inpInput);
         if (transIter == transition.end())
         {
             typename map<DFAState<T>, DFAState<T> , DFAStateComparation<T> >::iterator defaultsIter = this->defaults.find(inpDFAState);
@@ -167,14 +170,14 @@ const DFAState<T> DFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const 
     }
 }
 
-template <class T>
-const DFAState<T> DFA<T>::GetStartState()
+template <class T, class StringType>
+const DFAState<T> DFA<T, StringType>::GetStartState()
 {
     return this->startState;
 }
 
-template <class T>
-const DFAState<T> DFA<T>::GetDeadState()
+template <class T, class StringType>
+const DFAState<T> DFA<T, StringType>::GetDeadState()
 {
     return this->deadEnd;
 }

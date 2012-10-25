@@ -56,6 +56,42 @@ BOOST_AUTO_TEST_CASE(dict_test)
         ret = automata.NextValidString(next,match);
     }
     }
+
+    {
+    using izenelib::util::UString;
+    izenelib::util::LevenshteinAutomata<UString> automata(UString("food",UString::UTF_8), 1);
+    std::set<UString> dict;
+    dict.insert(UString("fod",UString::UTF_8));
+    dict.insert(UString("food",UString::UTF_8));
+    dict.insert(UString("bood",UString::UTF_8));
+    dict.insert(UString("feod",UString::UTF_8));
+    dict.insert(UString("flood",UString::UTF_8));
+
+
+    UString match;
+    UString start(1,'\0');
+    bool ret = automata.NextValidString(start,match);
+    std::cout<<"begin match "<<match<<" ret "<<ret<<std::endl;
+
+    while(ret)
+    {
+        std::set<UString>::iterator dicIt = dict.find(match);
+        if(dicIt == dict.end())
+        {
+            dicIt = dict.upper_bound(match);
+            if(*dicIt == *(dict.rbegin()))
+                break;
+        }
+        UString next = *dicIt;
+        if(next == match)
+        {
+            std::cout<<"result: "<<next<<std::endl;
+            next += start;
+        }
+        ret = automata.NextValidString(next,match);
+    }
+    }
+
 }
 
 

@@ -4,8 +4,8 @@
 #include <map>
 #include <vector>
 #include <set>
-#include <string>
 #include <utility>
+
 #include "NFAState.h"
 #include "DFAState.h"
 #include "DFA.h"
@@ -17,58 +17,62 @@ namespace util
 
 using std::vector;
 using std::map;
-using std::string;
 using std::set;
-
 //Declarations:
 
-template <class T>
+template <class T, class StringType>
 class NFA
 {
     set<NFAState<T>, NFAStateComparation<T> > startStates;
     set<NFAState<T>, NFAStateComparation<T> > finalStates;
-    map<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> > transitions;
+    map<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> > transitions;
 
 public:
-
+    static StringType ANY;
+    static StringType EPSILON;
     const set<NFAState<T>, NFAStateComparation<T> > Expand(set<NFAState<T>, NFAStateComparation<T> >& inpStates);
-    const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput);
-    const set<string> GetInputsForDFA(const DFAState<T>& inpDFAState);
+    const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const StringType& inpInput);
+    const set<StringType> GetInputsForDFA(const DFAState<T>& inpDFAState);
     bool IsFinal(const DFAState<T>& inpDFAState) const;
 
 public:
     NFA(const NFAState<T>& inpStartState);
-    void AddTransition(const NFAState<T>& inpSource, const NFAState<T>& inpDestination, const string& inpInput);
+    void AddTransition(const NFAState<T>& inpSource, const NFAState<T>& inpDestination, const StringType& inpInput);
     void AddFinalState(const NFAState<T>& inpState);
     const set<NFAState<T>, NFAStateComparation<T> > GetStartStates();
-    DFA<T> ToDFA();
+    DFA<T, StringType> ToDFA();
 };
 
 //Definitions:
+template <class T, class StringType>
+StringType NFA<T, StringType>::ANY = StringType("ANY");
 
-template <class T>
-NFA<T>::NFA(const NFAState<T>& inpStartState)
+template <class T, class StringType>
+StringType NFA<T, StringType>::EPSILON = StringType("EPSILON");
+
+template <class T, class StringType>
+NFA<T, StringType>::NFA(const NFAState<T>& inpStartState)
 {
     this->startStates.insert(inpStartState);
 }
 
-template <class T>
-void NFA<T>::AddTransition(const NFAState<T>& inpSource, const NFAState<T>& inpDestination, const string& inpInput)
+template <class T, class StringType>
+void NFA<T, StringType>::AddTransition(const NFAState<T>& inpSource, const NFAState<T>& inpDestination, const StringType& inpInput)
 {
-    typename map<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator transitionForSource = this->transitions.find(inpSource);
+    typename map<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator transitionForSource = this->transitions.find(inpSource);
     if(transitionForSource == this->transitions.end())
     {
-        map<string, set<NFAState<T>, NFAStateComparation<T> > > newTransition;
+        map<StringType, set<NFAState<T>, NFAStateComparation<T> > > newTransition;
         set<NFAState<T>, NFAStateComparation<T> > dest;
         dest.insert(inpDestination);
-        newTransition.insert(std::pair<string, set<NFAState<T>, NFAStateComparation<T> > >(inpInput, dest));
-        this->transitions.insert(std::pair<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > > >(inpSource, newTransition));
+        newTransition.insert(std::pair<StringType, set<NFAState<T>, NFAStateComparation<T> > >(inpInput, dest));
+        this->transitions.insert(std::pair<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > > >(inpSource, newTransition));
     }
     else if (transitionForSource->second.find(inpInput) == transitionForSource->second.end())
     {
         set<NFAState<T>, NFAStateComparation<T> > dest;
         dest.insert(inpDestination);
-        transitionForSource->second.insert(std::pair<string, set<NFAState<T>, NFAStateComparation<T> > >(inpInput, dest));
+        transitionForSource->second.insert(std::pair<StringType, set<NFAState<T>, NFAStateComparation<T> > >(inpInput, dest));
     }
     else
     {
@@ -79,14 +83,14 @@ void NFA<T>::AddTransition(const NFAState<T>& inpSource, const NFAState<T>& inpD
     return;
 }
 
-template <class T>
-void NFA<T>::AddFinalState(const NFAState<T>& inpState)
+template <class T, class StringType>
+void NFA<T, StringType>::AddFinalState(const NFAState<T>& inpState)
 {
     this->finalStates.insert(inpState);
 }
 
-template <class T>
-bool NFA<T>::IsFinal(const DFAState<T>& inpDFAState) const
+template <class T, class StringType>
+bool NFA<T, StringType>::IsFinal(const DFAState<T>& inpDFAState) const
 {
     typename set<NFAState<T>, NFAStateComparation<T> >::iterator iter;
     bool result = false;
@@ -99,8 +103,8 @@ bool NFA<T>::IsFinal(const DFAState<T>& inpDFAState) const
     return result;
 }
 
-template <class T>
-const set<NFAState<T>, NFAStateComparation<T> > NFA<T>::Expand(set<NFAState<T>, NFAStateComparation<T> >& inpStates)
+template <class T, class StringType>
+const set<NFAState<T>, NFAStateComparation<T> > NFA<T, StringType>::Expand(set<NFAState<T>, NFAStateComparation<T> >& inpStates)
 {
     set<NFAState<T>, NFAStateComparation<T> > frontier(inpStates);
     typename set<NFAState<T>, NFAStateComparation<T> >::iterator frontierIter;
@@ -110,12 +114,12 @@ const set<NFAState<T>, NFAStateComparation<T> > NFA<T>::Expand(set<NFAState<T>, 
         NFAState<T> state = *frontierIter;
         frontier.erase(frontierIter);
         set<NFAState<T>, NFAStateComparation<T> > newStates;
-        typename map<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator transitionForState = this->transitions.find(state);
+        typename map<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator transitionForState = this->transitions.find(state);
         if(transitionForState == this->transitions.end())
             continue;
         else
         {
-            typename map<string, set<NFAState<T>, NFAStateComparation<T> > >::iterator epsilonTransition = transitionForState->second.find("EPSILON");
+            typename map<StringType, set<NFAState<T>, NFAStateComparation<T> > >::iterator epsilonTransition = transitionForState->second.find(EPSILON);
             if (epsilonTransition == transitionForState->second.end())
                 continue;
             else
@@ -133,33 +137,33 @@ const set<NFAState<T>, NFAStateComparation<T> > NFA<T>::Expand(set<NFAState<T>, 
     return inpStates;
 }
 
-template <class T>
-const set<NFAState<T>, NFAStateComparation<T> > NFA<T>::GetStartStates()
+template <class T, class StringType>
+const set<NFAState<T>, NFAStateComparation<T> > NFA<T, StringType>::GetStartStates()
 {
     return this->Expand(this->startStates);
 }
 
-template <class T>
-const DFAState<T> NFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const string& inpInput)
+template <class T, class StringType>
+const DFAState<T> NFA<T, StringType>::GetNextDFAState(const DFAState<T>& inpDFAState, const StringType& inpInput)
 {
     set<NFAState<T>, NFAStateComparation<T> > destStates;
     set<NFAState<T>, NFAStateComparation<T> > states = inpDFAState.GetValue();
     typename set<NFAState<T>, NFAStateComparation<T> >::iterator statesIter;
     for (statesIter = states.begin(); statesIter != states.end(); ++statesIter)
     {
-        map<string, set<NFAState<T>, NFAStateComparation<T> > > stateTransitions;
-        typename map<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator stateTransitionsIter = this->transitions.find(*statesIter);
+        map<StringType, set<NFAState<T>, NFAStateComparation<T> > > stateTransitions;
+        typename map<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator stateTransitionsIter = this->transitions.find(*statesIter);
         if(stateTransitionsIter == this->transitions.end())
             continue;
         stateTransitions = stateTransitionsIter->second;
         set<NFAState<T>, NFAStateComparation<T> > inputStates;
-        typename map<string, set<NFAState<T>, NFAStateComparation<T> > >::iterator inputStatesIter = stateTransitions.find(inpInput);
+        typename map<StringType, set<NFAState<T>, NFAStateComparation<T> > >::iterator inputStatesIter = stateTransitions.find(inpInput);
         if (inputStatesIter != stateTransitions.end())
         {
             inputStates = inputStatesIter->second;
             destStates.insert(inputStates.begin(),inputStates.end());
         }
-        inputStatesIter = stateTransitions.find("ANY");
+        inputStatesIter = stateTransitions.find(ANY);
         if (inputStatesIter != stateTransitions.end())
         {
             inputStates = inputStatesIter->second;
@@ -169,30 +173,30 @@ const DFAState<T> NFA<T>::GetNextDFAState(const DFAState<T>& inpDFAState, const 
     return DFAState<T>(this->Expand(destStates));
 }
 
-template <class T>
-const set<string> NFA<T>::GetInputsForDFA(const DFAState<T>& inpDFAState)
+template <class T, class StringType>
+const set<StringType> NFA<T, StringType>::GetInputsForDFA(const DFAState<T>& inpDFAState)
 {
-    set<string> inputs;
+    set<StringType> inputs;
     set<NFAState<T>, NFAStateComparation<T> > states = inpDFAState.GetValue();
     typename set<NFAState<T>, NFAStateComparation<T> >::iterator statesIter;
     for (statesIter = states.begin(); statesIter != states.end(); ++statesIter)
     {
-        map<string, set<NFAState<T>, NFAStateComparation<T> > > stateTransitions;
-        typename map<NFAState<T>, map<string, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator stateTransitionsIter = this->transitions.find(*statesIter);
+        map<StringType, set<NFAState<T>, NFAStateComparation<T> > > stateTransitions;
+        typename map<NFAState<T>, map<StringType, set<NFAState<T>, NFAStateComparation<T> > >, NFAStateComparation<T> >::iterator stateTransitionsIter = this->transitions.find(*statesIter);
         if(stateTransitionsIter == this->transitions.end())
             continue;
         stateTransitions = stateTransitionsIter->second;
-        typename map<string, set<NFAState<T>, NFAStateComparation<T> > >::iterator inputStatesIter;
+        typename map<StringType, set<NFAState<T>, NFAStateComparation<T> > >::iterator inputStatesIter;
         for (inputStatesIter = stateTransitions.begin(); inputStatesIter != stateTransitions.end(); ++inputStatesIter)
             inputs.insert(inputStatesIter->first);
     }
     return inputs;
 }
 
-template <class T>
-DFA<T> NFA<T>::ToDFA()
+template <class T, class StringType>
+DFA<T, StringType> NFA<T, StringType>::ToDFA()
 {
-    DFA<T> dfa(DFAState<T>(this->GetStartStates()));
+    DFA<T, StringType> dfa(DFAState<T>(this->GetStartStates()));
     vector<DFAState<T> > frontier;
     frontier.push_back(DFAState<T>(this->GetStartStates()));
     set<DFAState<T>, DFAStateComparation<T> > seen;
@@ -200,11 +204,11 @@ DFA<T> NFA<T>::ToDFA()
     {
         DFAState<T> current = frontier.back();
         frontier.pop_back();
-        set<string> inputs = this->GetInputsForDFA(current);
-        set<string>::iterator inputsIter;
+        set<StringType> inputs = this->GetInputsForDFA(current);
+        typename set<StringType>::iterator inputsIter;
         for (inputsIter = inputs.begin(); inputsIter != inputs.end(); ++inputsIter)
         {
-            if (*inputsIter == "EPSILON")
+            if (*inputsIter == EPSILON)
                 continue;
             DFAState<T> newState = this->GetNextDFAState(current, *inputsIter);
             if (seen.find(newState) == seen.end())
@@ -214,7 +218,7 @@ DFA<T> NFA<T>::ToDFA()
                 if (this->IsFinal(newState))
                     dfa.AddFinalState(newState);
             }
-            if (*inputsIter == "ANY")
+            if (*inputsIter == ANY)
                 dfa.AddDefaultTransition(current, newState);
             else
                 dfa.AddTransition(current, newState, *inputsIter);
