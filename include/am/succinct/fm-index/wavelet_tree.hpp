@@ -81,16 +81,18 @@ protected:
 class RangeList
 {
 public:
-    RangeList(uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
-        : sym_(sym)
+    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
+        : level_(level)
+        , sym_(sym)
         , score_(getScore_(ranges))
         , node_(node)
         , ranges_(ranges)
     {
     };
 
-    RangeList(uint64_t sym, const WaveletTreeNode *node)
-        : sym_(sym)
+    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node)
+        : level_(level)
+        , sym_(sym)
         , score_()
         , node_(node)
     {
@@ -110,7 +112,18 @@ public:
 
     bool operator<(const RangeList &rhs) const
     {
-        return score_ < rhs.score_;
+        if (score_ < rhs.score_)
+        {
+            return true;
+        }
+        else if (score_ == rhs.score_)
+        {
+            return level_ < rhs.level_;
+        }
+        else
+        {
+            return false;
+        }
     };
 
 private:
@@ -129,6 +142,7 @@ private:
     }
 
 public:
+    size_t level_;
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
