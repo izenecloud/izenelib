@@ -433,13 +433,12 @@ public:
             {
                 swap_elements(n - 1, n);
                 bubble_max(n - 1);
-                trickle_max(n - 1);
             }
             else
             {
                 bubble_min(n);
-                trickle_min(n);
             }
+            trickle_min(n);
         }
         else
         {
@@ -447,13 +446,12 @@ public:
             {
                 swap_elements(n, n + 1);
                 bubble_min(n + 1);
-                trickle_min(n + 1);
             }
             else
             {
                 bubble_max(n);
-                trickle_max(n);
             }
+            trickle_max(n);
         }
     }
 
@@ -475,15 +473,7 @@ public:
         }
         else
         {
-            if (size() > n + 1 && compare_(container_[n], container_[n + 1]))
-            {
-                swap_elements(n, n + 1);
-                bubble_min(n + 1);
-            }
-            else
-            {
-                bubble_max(n);
-            }
+            bubble_max(n);
         }
     }
 
@@ -496,25 +486,23 @@ public:
     {
         assert(size() > 0);
         size_type n = size() - 1;
-        if (n == 1)
+        if (n <= 1)
         {
-            container_[0] = container_[n];
+            swap_elements(0, n);
             container_.pop_back();
             return;
         }
         if (n & 0x1)
         {
-            container_[0] = container_[n - 1];
-            container_[n - 1] = container_[n];
-            container_.pop_back();
-            trickle_max(0);
+            swap_elements(0, n - 1);
+            swap_elements(n - 1, n);
         }
         else
         {
-            container_[0] = container_[n];
-            container_.pop_back();
-            trickle_max(0);
+            swap_elements(0, n);
         }
+        container_.pop_back();
+        trickle_max(0);
     }
 
     inline const_reference bottom(void) const
@@ -532,7 +520,7 @@ public:
             container_.pop_back();
             return;
         }
-        container_[1] = container_.back();
+        swap_elements(1, size() - 1);
         container_.pop_back();
         trickle_min(1);
     }
@@ -562,6 +550,18 @@ private:
     {
         if (n == 0) return;
         size_type parent = get_parent(n);
+        if (size() == n + 1 && compare_(container_[n], container_[parent + 1]))
+        {
+            ++parent;
+            do
+            {
+                swap_elements(n, parent);
+                if (parent == 1) break;
+                n = parent;
+                parent = get_parent(n);
+            } while (compare_(container_[n], container_[parent]));
+            return;
+        }
         while (compare_(container_[parent], container_[n]))
         {
             swap_elements(n, parent);
@@ -574,13 +574,36 @@ private:
     void trickle_min(size_type n)
     {
         size_type child = get_min_child(n);
-        if (size() <= child) return;
+        if (size() <= child)
+        {
+            if (size() == child && compare_(container_[--child], container_[n]))
+            {
+                swap_elements(n, child);
+            }
+            return;
+        }
         size_type smallest = n;
         if (compare_(container_[child], container_[smallest]))
         {
             smallest = child;
         }
-        if (size() > (child += 2) && compare_(container_[child], container_[smallest]))
+        if (size() <= (child += 2))
+        {
+            if (size() == child && compare_(container_[--child], container_[smallest]))
+            {
+                swap_elements(n, child);
+            }
+            else if (n != smallest)
+            {
+                swap_elements(n, smallest);
+                if (compare_(container_[smallest - 1], container_[smallest]))
+                {
+                    swap_elements(smallest - 1, smallest);
+                }
+            }
+            return;
+        }
+        if (compare_(container_[child], container_[smallest]))
         {
             smallest = child;
         }
@@ -590,16 +613,37 @@ private:
             if (compare_(container_[smallest - 1], container_[smallest]))
             {
                 swap_elements(smallest - 1, smallest);
-                trickle_max(smallest - 1);
-                return;
             }
             n = smallest;
-            if (size() <= (child = get_min_child(n))) return;
+            if (size() <= (child = get_min_child(n)))
+            {
+                if (size() == child && compare_(container_[--child], container_[n]))
+                {
+                    swap_elements(n, child);
+                }
+                return;
+            }
             if (compare_(container_[child], container_[smallest]))
             {
                 smallest = child;
             }
-            if (size() > (child += 2) && compare_(container_[child], container_[smallest]))
+            if (size() <= (child += 2))
+            {
+                if (size() == child && compare_(container_[--child], container_[smallest]))
+                {
+                    swap_elements(n, child);
+                }
+                else if (n != smallest)
+                {
+                    swap_elements(n, smallest);
+                    if (compare_(container_[smallest - 1], container_[smallest]))
+                    {
+                        swap_elements(smallest - 1, smallest);
+                    }
+                }
+                return;
+            }
+            if (compare_(container_[child], container_[smallest]))
             {
                 smallest = child;
             }
@@ -614,7 +658,15 @@ private:
         {
             largest = child;
         }
-        if (size() > (child += 2) && compare_(container_[largest], container_[child]))
+        if (size() <= (child += 2))
+        {
+            if (n != largest)
+            {
+                swap_elements(n, largest);
+            }
+            return;
+        }
+        if (compare_(container_[largest], container_[child]))
         {
             largest = child;
         }
@@ -625,8 +677,6 @@ private:
             if (compare_(container_[largest], container_[largest + 1]))
             {
                 swap_elements(largest, largest + 1);
-                trickle_min(largest + 1);
-                return;
             }
             n = largest;
             if (size() <= (child = get_max_child(n))) return;
@@ -634,7 +684,15 @@ private:
             {
                 largest = child;
             }
-            if (size() > (child += 2) && compare_(container_[largest], container_[child]))
+            if (size() <= (child += 2))
+            {
+                if (n != largest)
+                {
+                    swap_elements(n, largest);
+                }
+                return;
+            }
+            if (compare_(container_[largest], container_[child]))
             {
                 largest = child;
             }
@@ -651,8 +709,8 @@ private:
             {
                 swap_elements(i, i + 1);
             }
-            trickle_max(i - 1);
-            trickle_min(i);
+            trickle_max(i);
+            trickle_min(i + 1);
             if (i == 0) break;
         }
     }
@@ -676,7 +734,7 @@ class priority_deque
 public:
     // Some containers may change the type (eg. vector<bool>), so I need to change the type too.
     typedef T value_type;
-    typedef detail::min_max_heap<T, Container, Compare> heap_type;
+    typedef detail::interval_heap<T, Container, Compare> heap_type;
     typedef typename heap_type::const_reference const_reference;
     typedef typename heap_type::size_type size_type;
     typedef priority_deque<T, Container, Compare> self_type;
