@@ -663,6 +663,10 @@ private:
             if (n != largest)
             {
                 swap_elements(n, largest);
+                if (size() == largest + 2 && compare_(container_[largest], container_[largest + 1]))
+                {
+                    swap_elements(largest, largest + 1);
+                }
             }
             return;
         }
@@ -673,7 +677,7 @@ private:
         while (n != largest)
         {
             swap_elements(n, largest);
-            if (size() <= largest + 1) break;
+            if (size() <= largest + 1) return;
             if (compare_(container_[largest], container_[largest + 1]))
             {
                 swap_elements(largest, largest + 1);
@@ -689,6 +693,10 @@ private:
                 if (n != largest)
                 {
                     swap_elements(n, largest);
+                    if (size() == largest + 2 && compare_(container_[largest], container_[largest + 1]))
+                    {
+                        swap_elements(largest, largest + 1);
+                    }
                 }
                 return;
             }
