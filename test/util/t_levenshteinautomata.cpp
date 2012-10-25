@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(dict_test)
         if(dicIt == dict.end())
         {
             dicIt = dict.upper_bound(match);
-            if(*dicIt == *(dict.rbegin()))
+            if(dicIt == dict.end())
                 break;
         }
         std::string next = *dicIt;
@@ -73,6 +73,7 @@ BOOST_AUTO_TEST_CASE(dict_test)
     dict.insert(UString("bood",UString::UTF_8));
     dict.insert(UString("feod",UString::UTF_8));
     dict.insert(UString("flood",UString::UTF_8));
+    dict.insert(UString("gooasddd",UString::UTF_8));
 
 
     UString match;
@@ -86,7 +87,7 @@ BOOST_AUTO_TEST_CASE(dict_test)
         if(dicIt == dict.end())
         {
             dicIt = dict.upper_bound(match);
-            if(*dicIt == *(dict.rbegin()))
+            if(dicIt == dict.end())
                 break;
         }
         UString next = *dicIt;
