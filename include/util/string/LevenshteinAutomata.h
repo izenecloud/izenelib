@@ -70,7 +70,6 @@ struct LevenshteinAutomata
 
     bool NextValidString(const StringType& input, StringType& result) const
     {
-        static const uint16_t DELIMITER = 001;
         result.clear();
         std::stack<boost::tuple<StringType, DFAState<unsigned int>, StringType > > state_stack;
         DFAState<unsigned int> currentState = DFA_.GetStartState();
@@ -92,7 +91,7 @@ struct LevenshteinAutomata
         if(!deadState)
         {
             StringType cc(input, 0, i);
-            state_stack.push(boost::make_tuple(cc, currentState, StringType(1,DELIMITER)));
+            state_stack.push(boost::make_tuple(cc, currentState, DFA_.DELIMITER));
         }
 
         if (DFA_.IsFinal(currentState))
@@ -108,18 +107,17 @@ struct LevenshteinAutomata
             StringType& path = boost::get<0>(item);
             DFAState<unsigned int>& state = boost::get<1>(item);
             StringType& x = boost::get<2>(item);
-
-            x = DFA_.FindNextEdge(state,x,DELIMITER);
-            if(x[x.length() - 1] != DELIMITER)
+            x = DFA_.FindNextEdge(state,x);
+            if(x != DFA_.DELIMITER)
             {
                 path += x;
-                state = DFA_.GetNextDFAState(state, x);
-                if(DFA_.IsFinal(state))
+                DFAState<unsigned int> currentstate = DFA_.GetNextDFAState(state, x);
+                if(DFA_.IsFinal(currentstate))
                 {
                     result = path;
                     return true;
                 }
-                state_stack.push(boost::make_tuple(path, state, StringType(1,DELIMITER)));
+                state_stack.push(boost::make_tuple(path, currentstate, DFA_.DELIMITER));
             }
         }
         return false;

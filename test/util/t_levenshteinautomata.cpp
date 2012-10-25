@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <util/string/LevenshteinAutomata.h>
+#include <util/ClockTimer.h>
 
 BOOST_AUTO_TEST_SUITE(t_levenshtein_automata)
 
@@ -25,8 +26,15 @@ BOOST_AUTO_TEST_CASE(automata_test)
 
 BOOST_AUTO_TEST_CASE(dict_test)
 {
+    using izenelib::util::UString;
     {
-    izenelib::util::LevenshteinAutomata<std::string> automata("food", 1);
+    izenelib::util::ClockTimer timer;
+    izenelib::util::LevenshteinAutomata<UString> automata (UString("asdfkllkklasdfasdfasdffood", UString::UTF_8), 2);
+    std::cout<<"construction time:"<<timer.elapsed()<<std::endl;
+    }
+
+    {
+    izenelib::util::LevenshteinAutomata<std::string> automata("foosddd", 5);
     std::set<std::string> dict;
     dict.insert("fod");
     dict.insert("food");
@@ -58,8 +66,7 @@ BOOST_AUTO_TEST_CASE(dict_test)
     }
 
     {
-    using izenelib::util::UString;
-    izenelib::util::LevenshteinAutomata<UString> automata(UString("food",UString::UTF_8), 1);
+    izenelib::util::LevenshteinAutomata<UString> automata(UString("foosddd",UString::UTF_8), 5);
     std::set<UString> dict;
     dict.insert(UString("fod",UString::UTF_8));
     dict.insert(UString("food",UString::UTF_8));

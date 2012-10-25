@@ -29,6 +29,9 @@ class DFA
     map<DFAState<T>, map<StringType, DFAState<T> >, DFAStateComparation<T> > transitions;
     map<DFAState<T>, DFAState<T>, DFAStateComparation<T> > defaults;
 public:
+    static StringType DELIMITER;
+    static StringType ZERO;
+	
     DFA(const DFAState<T>& inpStartState);
     DFA();
     void AddTransition(const DFAState<T>& inpSource, const DFAState<T>& inpDestination, const StringType& inpInput);
@@ -37,13 +40,19 @@ public:
     bool IsFinal(const DFAState<T>& inpDFAState) const;
     bool IsDeadState(const DFAState<T>& inpDeadState) const;
     void SetDeadState(const DFAState<T>& inpDeadState);
-    StringType FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input, uint16_t DELIMITER);
+    StringType FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input);
     const DFAState<T> GetNextDFAState(const DFAState<T>& inpDFAState, const StringType& inpInput);
     const DFAState<T> GetStartState();
     const DFAState<T> GetDeadState();
 };
 
 //Definitions:
+
+template <class T, class StringType>
+StringType DFA<T, StringType>::DELIMITER = StringType(1,(char)0xFF);
+template <class T, class StringType>
+StringType DFA<T, StringType>::ZERO = StringType(1,'\0');
+
 
 template <class T, class StringType>
 DFA<T, StringType>::DFA(const DFAState<T>& inpStartState)
@@ -103,9 +112,10 @@ bool DFA<T, StringType>::IsDeadState(const DFAState<T>& inpDeadState) const
 }
 
 template <class T, class StringType>
-StringType DFA<T, StringType>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input, uint16_t DELIMITER)
+StringType DFA<T, StringType>::FindNextEdge(const DFAState<unsigned int>& inpDFAState, StringType& input)
 {
-    if(input[input.length() - 1] != DELIMITER) 
+    if(input == DELIMITER) input = ZERO;
+    if(input != ZERO) 
     {
         uint16_t code = input[input.length() - 1];
         ++code;
@@ -128,9 +138,9 @@ StringType DFA<T, StringType>::FindNextEdge(const DFAState<unsigned int>& inpDFA
             transIter = transition.upper_bound(input);
             if(transIter == transition.end()) 
             {
-                return StringType(1,DELIMITER);
+                return DELIMITER;
             }
-            return (transIter->first);//[0];
+            return (transIter->first);
         }
         else
         {
@@ -138,7 +148,7 @@ StringType DFA<T, StringType>::FindNextEdge(const DFAState<unsigned int>& inpDFA
         }
     }
     else
-        return StringType(1,DELIMITER);
+        return DELIMITER;
 }
 
 template <class T, class StringType>
