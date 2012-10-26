@@ -433,6 +433,11 @@ void WaveletMatrix<CharT>::topKUnion(
             ranges_queue.pop_bottom();
         }
     }
+
+    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    {
+        delete ranges_queue.get(i);
+    }
 }
 
 template <class CharT>

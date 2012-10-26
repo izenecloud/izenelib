@@ -486,6 +486,11 @@ void WaveletTreeBinary<CharT>::topKUnion(
             ranges_queue.pop_bottom();
         }
     }
+
+    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    {
+        delete ranges_queue.get(i).first;
+    }
 }
 
 template <class CharT>
