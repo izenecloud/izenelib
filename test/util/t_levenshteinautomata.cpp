@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 
-#include <util/string/LevenshteinAutomata.h>
+#include <util/string/automata/LevenshteinAutomata.h>
 #include <util/ClockTimer.h>
 
 BOOST_AUTO_TEST_SUITE(t_levenshtein_automata)
