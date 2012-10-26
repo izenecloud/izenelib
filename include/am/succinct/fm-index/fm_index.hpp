@@ -340,7 +340,7 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::pair<size_t, size_t> &match_
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
+        doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
     }
 }
 
@@ -362,7 +362,7 @@ void FMIndex<CharT>::getMatchedDocIdList(const std::vector<std::pair<size_t, siz
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
+        doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
     }
 }
 
