@@ -453,7 +453,7 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 {
     if (topK == 0) return;
 
-    boost::container::priority_deque<RangeList *> ranges_queue;
+    boost::priority_deque<RangeList *> ranges_queue;
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     ranges_queue.push(new RangeList(0, (char_type)0, root_, ranges));
 

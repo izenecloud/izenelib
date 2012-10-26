@@ -3,7 +3,7 @@
 
 #include "const.hpp"
 #include "wavelet_tree_node.hpp"
-#include <3rdparty/boost/container/priority_deque.hpp>
+#include <3rdparty/boost/priority_deque.hpp>
 
 #include <boost/tuple/tuple.hpp>
 

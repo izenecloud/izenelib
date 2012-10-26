@@ -403,7 +403,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 {
     if (topK == 0) return;
 
-    boost::container::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
+    boost::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     ranges_queue.push(std::make_pair(new RangeList(0, (char_type)0, nodes_[0], ranges), 0));
 
