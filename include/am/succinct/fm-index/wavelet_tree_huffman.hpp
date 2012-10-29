@@ -474,16 +474,16 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(top_ranges->level_ + 1, node->c0_, node->left_);
-        one_ranges = new RangeList(zero_ranges->level_, node->c1_, node->right_);
+        zero_ranges = new RangeList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->ranges_.size());
+        one_ranges = new RangeList(zero_ranges->level_, node->c1_, node->right_, top_ranges->ranges_.size());
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
             if (it->get<0>() >= it->get<1>())
             {
-                zero_ranges->addRange(*it);
-                one_ranges->addRange(*it);
+//              zero_ranges->addRange(*it);
+//              one_ranges->addRange(*it);
             }
             else
             {

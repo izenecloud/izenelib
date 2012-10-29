@@ -425,8 +425,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(top_ranges->level_ + 1, top_ranges->sym_ << 1, node->left_);
-        one_ranges = new RangeList(zero_ranges->level_, zero_ranges->sym_ | (char_type)1, node->right_);
+        zero_ranges = new RangeList(top_ranges->level_ + 1, top_ranges->sym_ << 1, node->left_, top_ranges->ranges_.size());
+        one_ranges = new RangeList(zero_ranges->level_, zero_ranges->sym_ | (char_type)1, node->right_, top_ranges->ranges_.size());
 
         before = node->bit_vector_.Rank1(start);
 
@@ -435,8 +435,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
         {
             if (it->get<0>() >= it->get<1>())
             {
-                zero_ranges->addRange(*it);
-                one_ranges->addRange(*it);
+//              zero_ranges->addRange(*it);
+//              one_ranges->addRange(*it);
             }
             else
             {

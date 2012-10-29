@@ -88,22 +88,23 @@ public:
         , node_(node)
         , ranges_(ranges)
     {
-    };
+    }
 
-    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, size_t capacity)
         : level_(level)
         , sym_(sym)
         , score_()
         , node_(node)
     {
-    };
+        ranges_.reserve(capacity);
+    }
 
     ~RangeList() {}
 
     void addRange(const boost::tuple<size_t, size_t, double> &range)
     {
         ranges_.push_back(range);
-    };
+    }
 
     void calcScore()
     {
@@ -124,7 +125,7 @@ public:
         {
             return false;
         }
-    };
+    }
 
 private:
     double getScore_(const std::vector<boost::tuple<size_t, size_t, double> > &ranges) const

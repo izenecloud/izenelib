@@ -374,16 +374,16 @@ void WaveletMatrix<CharT>::topKUnion(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        zero_ranges = new RangeList(level + 1, top_ranges->sym_, node->left_);
-        one_ranges = new RangeList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+        zero_ranges = new RangeList(level + 1, top_ranges->sym_, node->left_, top_ranges->ranges_.size());
+        one_ranges = new RangeList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->ranges_.size());
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
             if (it->get<0>() >= it->get<1>())
             {
-                zero_ranges->addRange(*it);
-                one_ranges->addRange(*it);
+//              zero_ranges->addRange(*it);
+//              one_ranges->addRange(*it);
             }
             else
             {
