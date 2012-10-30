@@ -2,10 +2,8 @@
 #define _FM_INDEX_WAVELET_TREE_HPP
 
 #include "const.hpp"
-#include "wavelet_tree_node.hpp"
+#include "range_list.hpp"
 #include <3rdparty/boost/priority_deque.hpp>
-
-#include <boost/tuple/tuple.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -78,104 +76,9 @@ protected:
     size_t alphabet_num_;
 };
 
-class RangeList
-{
-public:
-    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
-        : level_(level)
-        , sym_(sym)
-        , score_(getScore_(ranges))
-        , node_(node)
-        , ranges_(ranges)
-    {
-    }
-
-    RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, size_t capacity)
-        : level_(level)
-        , sym_(sym)
-        , score_()
-        , node_(node)
-    {
-        ranges_.reserve(capacity);
-    }
-
-    ~RangeList() {}
-
-    void addRange(const boost::tuple<size_t, size_t, double> &range)
-    {
-        ranges_.push_back(range);
-    }
-
-    void calcScore()
-    {
-        score_ = getScore_(ranges_);
-    }
-
-    bool operator<(const RangeList &rhs) const
-    {
-        if (score_ < rhs.score_)
-        {
-            return true;
-        }
-        else if (score_ == rhs.score_)
-        {
-            return level_ < rhs.level_;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-private:
-    double getScore_(const std::vector<boost::tuple<size_t, size_t, double> > &ranges) const
-    {
-        double score = 0.0;
-
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = ranges.begin();
-                it != ranges.end(); ++it)
-        {
-            if (it->get<1>() > it->get<0>())
-                score += it->get<2>();
-        }
-
-        return score;
-    }
-
-public:
-    size_t level_;
-    uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
-    std::vector<boost::tuple<size_t, size_t, double> > ranges_;
-};
-
 }
 }
 
 NS_IZENELIB_AM_END
-
-namespace std
-{
-
-template <>
-struct less<izenelib::am::succinct::fm_index::RangeList *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::RangeList * const &p1, izenelib::am::succinct::fm_index::RangeList * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
-template <>
-struct less<pair<izenelib::am::succinct::fm_index::RangeList *, size_t> >
-{
-    bool operator()(pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p1, pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p2)
-    {
-        return *p1.first < *p2.first;
-    }
-};
-
-}
 
 #endif
