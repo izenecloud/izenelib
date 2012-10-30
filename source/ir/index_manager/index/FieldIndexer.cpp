@@ -86,6 +86,10 @@ FieldIndexer::~FieldIndexer()
         if(! boost::filesystem::remove(sorterFullPath_))
             LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
     }
+    if (pBinlog_ != NULL)
+    {
+        delete pBinlog_;
+    }
 }
 
 void FieldIndexer::deletebinlog()
