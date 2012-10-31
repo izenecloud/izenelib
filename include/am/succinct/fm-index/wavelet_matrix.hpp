@@ -41,6 +41,12 @@ public:
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
+    void topKUnionWithFilter(
+            const std::pair<size_t, size_t> &filter,
+            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            size_t topK,
+            std::vector<std::pair<double, char_type> > &results) const;
+
     size_t getOcc(char_type c) const;
 
     size_t length() const;
@@ -353,16 +359,21 @@ void WaveletMatrix<CharT>::topKUnion(
     if (topK == 0) return;
 
     boost::priority_deque<RangeList *> ranges_queue;
-    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     ranges_queue.push(new RangeList(0, (char_type)0, nodes_[0], ranges));
 
+    if (ranges_queue.top()->score_ == 0.0)
+    {
+        delete ranges_queue.top();
+        return;
+    }
+
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end;
 
     while (!ranges_queue.empty() && results.size() < topK)
     {
         top_ranges = ranges_queue.top();
-        level = top_ranges->level_;
         ranges_queue.pop_top();
 
         if (!top_ranges->node_)
@@ -372,6 +383,7 @@ void WaveletMatrix<CharT>::topKUnion(
             continue;
         }
 
+        level = top_ranges->level_;
         const WaveletTreeNode *node = top_ranges->node_;
 
         zero_ranges = new RangeList(level + 1, top_ranges->sym_, node->left_, top_ranges->ranges_.size());
@@ -380,12 +392,7 @@ void WaveletMatrix<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
-            if (it->get<0>() >= it->get<1>())
-            {
-//              zero_ranges->addRange(*it);
-//              one_ranges->addRange(*it);
-            }
-            else
+            if (it->get<0>() < it->get<1>())
             {
                 rank_start = node->bit_vector_.Rank1(it->get<0>());
                 rank_end = node->bit_vector_.Rank1(it->get<1>());
@@ -425,6 +432,145 @@ void WaveletMatrix<CharT>::topKUnion(
         else
         {
             ranges_queue.push(one_ranges);
+        }
+
+        if (ranges_queue.size() > max_queue_size)
+        {
+            delete ranges_queue.bottom();
+            ranges_queue.pop_bottom();
+        }
+    }
+
+    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    {
+        delete ranges_queue.get(i);
+    }
+}
+
+template <class CharT>
+void WaveletMatrix<CharT>::topKUnionWithFilter(
+        const std::pair<size_t, size_t> &filter,
+        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        size_t topK,
+        std::vector<std::pair<double, char_type> > &results) const
+{
+    if (topK == 0) return;
+
+    boost::priority_deque<FilteredRangeList *> ranges_queue;
+    ranges_queue.push(new FilteredRangeList(0, (char_type)0, nodes_[0], filter, ranges));
+
+    if (ranges_queue.top()->score_ == 0.0)
+    {
+        delete ranges_queue.top();
+        return;
+    }
+
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
+    FilteredRangeList *top_ranges, *zero_ranges, *one_ranges;
+    size_t level, rank_start, rank_end, zero_end;
+
+    while (!ranges_queue.empty() && results.size() < topK)
+    {
+        top_ranges = ranges_queue.top();
+        ranges_queue.pop_top();
+
+        level = top_ranges->level_;
+        zero_end = zero_counts_[level];
+
+        if (!top_ranges->node_)
+        {
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            delete top_ranges;
+            continue;
+        }
+
+        const WaveletTreeNode *node = top_ranges->node_;
+
+        rank_start = node->bit_vector_.Rank1(top_ranges->filter_.first);
+        rank_end = node->bit_vector_.Rank1(top_ranges->filter_.second);
+
+        if (rank_start < rank_end)
+        {
+            one_ranges = new FilteredRangeList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, std::make_pair(rank_start + zero_end, rank_end + zero_end), top_ranges->ranges_.size());
+        }
+        else
+        {
+            one_ranges = NULL;
+        }
+
+        rank_start = top_ranges->filter_.first - rank_start;
+        rank_end = top_ranges->filter_.second - rank_end;
+
+        if (rank_start < rank_end)
+        {
+            zero_ranges = new FilteredRangeList(level + 1, top_ranges->sym_, node->left_, std::make_pair(rank_start, rank_end), top_ranges->ranges_.size());
+        }
+        else
+        {
+            zero_ranges = NULL;
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            delete top_ranges;
+            continue;
+        }
+
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
+                it != top_ranges->ranges_.end(); ++it)
+        {
+            if (it->get<0>() < it->get<1>())
+            {
+                rank_start = node->bit_vector_.Rank1(it->get<0>());
+                rank_end = node->bit_vector_.Rank1(it->get<1>());
+
+                if (zero_ranges)
+                {
+                    zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+                }
+                if (one_ranges)
+                {
+                    one_ranges->addRange(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
+                }
+            }
+        }
+
+        delete top_ranges;
+
+        if (zero_ranges)
+        {
+            zero_ranges->calcScore();
+            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+            {
+                delete zero_ranges;
+            }
+            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+            {
+                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                delete zero_ranges;
+            }
+            else
+            {
+                ranges_queue.push(zero_ranges);
+            }
+        }
+
+        if (one_ranges)
+        {
+            one_ranges->calcScore();
+            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            {
+                delete one_ranges;
+            }
+            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+            {
+                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                delete one_ranges;
+            }
+            else
+            {
+                ranges_queue.push(one_ranges);
+            }
         }
 
         if (ranges_queue.size() > max_queue_size)

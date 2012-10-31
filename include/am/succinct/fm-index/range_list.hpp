@@ -36,6 +36,30 @@ public:
     std::vector<boost::tuple<size_t, size_t, double> > ranges_;
 };
 
+class FilteredRangeList
+{
+public:
+    FilteredRangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::pair<size_t, size_t> &filter, const std::vector<boost::tuple<size_t, size_t, double> > &ranges);
+
+    FilteredRangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::pair<size_t, size_t> &filter, size_t capacity);
+
+    ~FilteredRangeList();
+
+    void addRange(const boost::tuple<size_t, size_t, double> &range);
+
+    void calcScore();
+
+    bool operator<(const FilteredRangeList &rhs) const;
+
+public:
+    size_t level_;
+    uint64_t sym_;
+    double score_;
+    const WaveletTreeNode *node_;
+    std::pair<size_t, size_t> filter_;
+    std::vector<boost::tuple<size_t, size_t, double> > ranges_;
+};
+
 }
 }
 
@@ -53,10 +77,28 @@ struct less<izenelib::am::succinct::fm_index::RangeList *>
     }
 };
 
-template <>
-struct less<pair<izenelib::am::succinct::fm_index::RangeList *, size_t> >
+template <class T>
+struct less<pair<izenelib::am::succinct::fm_index::RangeList *, T> >
 {
-    bool operator()(pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p1, pair<izenelib::am::succinct::fm_index::RangeList *, size_t> const &p2)
+    bool operator()(pair<izenelib::am::succinct::fm_index::RangeList *, T> const &p1, pair<izenelib::am::succinct::fm_index::RangeList *, T> const &p2)
+    {
+        return *p1.first < *p2.first;
+    }
+};
+
+template <>
+struct less<izenelib::am::succinct::fm_index::FilteredRangeList *>
+{
+    bool operator()(izenelib::am::succinct::fm_index::FilteredRangeList * const &p1, izenelib::am::succinct::fm_index::FilteredRangeList * const &p2)
+    {
+        return *p1 < *p2;
+    }
+};
+
+template <class T>
+struct less<pair<izenelib::am::succinct::fm_index::FilteredRangeList *, T> >
+{
+    bool operator()(pair<izenelib::am::succinct::fm_index::FilteredRangeList *, T> const &p1, pair<izenelib::am::succinct::fm_index::FilteredRangeList *, T> const &p2)
     {
         return *p1.first < *p2.first;
     }
