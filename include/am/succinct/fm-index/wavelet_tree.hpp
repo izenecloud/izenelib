@@ -41,8 +41,8 @@ public:
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const = 0;
 
-    virtual void topKUnionWithFilter(
-            const std::pair<size_t, size_t> &filter,
+    virtual void topKUnionWithFilters(
+            const std::vector<std::pair<size_t, size_t> > &filter,
             const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const = 0;

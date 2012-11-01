@@ -42,8 +42,8 @@ public:
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
-    void topKUnionWithFilter(
-            const std::pair<size_t, size_t> &filter,
+    void topKUnionWithFilters(
+            const std::vector<std::pair<size_t, size_t> > &filters,
             const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
@@ -548,8 +548,8 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 }
 
 template <class CharT>
-void WaveletTreeHuffman<CharT>::topKUnionWithFilter(
-        const std::pair<size_t, size_t> &filter,
+void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
+        const std::vector<std::pair<size_t, size_t> > &filters,
         const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
@@ -557,7 +557,7 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilter(
     if (topK == 0) return;
 
     boost::priority_deque<FilteredRangeList *> ranges_queue;
-    ranges_queue.push(new FilteredRangeList(0, (char_type)0, root_, filter, ranges));
+    ranges_queue.push(new FilteredRangeList(0, (char_type)0, root_, filters, ranges));
 
     if (ranges_queue.top()->score_ == 0.0)
     {
@@ -583,30 +583,29 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilter(
 
         const WaveletTreeNode *node = top_ranges->node_;
 
-        rank_start = node->bit_vector_.Rank1(top_ranges->filter_.first);
-        rank_end = node->bit_vector_.Rank1(top_ranges->filter_.second);
+        zero_ranges = new FilteredRangeList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.size(), top_ranges->ranges_.size());
+        one_ranges = new FilteredRangeList(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.size(), top_ranges->ranges_.size());
 
-        if (rank_start < rank_end)
+        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
+                it != top_ranges->filters_.end(); ++it)
         {
-            one_ranges = new FilteredRangeList(top_ranges->level_ + 1, node->c1_, node->right_, std::make_pair(rank_start, rank_end), top_ranges->ranges_.size());
-        }
-        else
-        {
-            one_ranges = NULL;
+            rank_start = node->bit_vector_.Rank1(it->first);
+            rank_end = node->bit_vector_.Rank1(it->second);
+
+            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
+            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
         }
 
-        rank_start = top_ranges->filter_.first - rank_start;
-        rank_end = top_ranges->filter_.second - rank_end;
-
-        if (rank_start < rank_end)
+        if (zero_ranges->filters_.empty())
         {
-            zero_ranges = new FilteredRangeList(top_ranges->level_ + 1, node->c0_, node->left_, std::make_pair(rank_start, rank_end), top_ranges->ranges_.size());
-        }
-        else
-        {
+            delete zero_ranges;
             zero_ranges = NULL;
         }
-
+        if (one_ranges->filters_.empty())
+        {
+            delete one_ranges;
+            one_ranges = NULL;
+        }
         if (!zero_ranges && !one_ranges)
         {
             delete top_ranges;
