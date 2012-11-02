@@ -24,21 +24,6 @@ double getScore(const std::vector<boost::tuple<size_t, size_t, double> > &ranges
     return score;
 }
 
-double getScore(const std::vector<std::pair<size_t, size_t> > &filters, const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
-{
-//  if (filters_.empty()) return 0.0;
-
-    double score = 0.0;
-
-    for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = ranges.begin();
-            it != ranges.end(); ++it)
-    {
-        score += it->get<2>();
-    }
-
-    return score;
-}
-
 static struct InvalidRange
 {
     bool operator()(const std::pair<size_t, size_t> &value) const
@@ -110,13 +95,17 @@ FilteredRangeList::FilteredRangeList(
         const std::vector<boost::tuple<size_t, size_t, double> > &ranges)
     : level_(level)
     , sym_(sym)
+    , score_()
     , node_(node)
     , filters_(filters)
     , ranges_(ranges)
 {
     std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange);
-    std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange);
-    score_ = detail::getScore(filters_, ranges_);
+    if (!filters_.empty())
+    {
+        std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange);
+        score_ = detail::getScore(ranges_);
+    }
 }
 
 FilteredRangeList::FilteredRangeList(
@@ -150,7 +139,7 @@ void FilteredRangeList::addRange(const boost::tuple<size_t, size_t, double> &ran
 
 void FilteredRangeList::calcScore()
 {
-    score_ = detail::getScore(filters_, ranges_);
+    score_ = detail::getScore(ranges_);
 }
 
 bool FilteredRangeList::operator<(const FilteredRangeList &rhs) const
