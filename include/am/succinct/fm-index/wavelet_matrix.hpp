@@ -369,7 +369,7 @@ void WaveletMatrix<CharT>::topKUnion(
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     RangeList *top_ranges, *zero_ranges, *one_ranges;
-    size_t level, rank_start, rank_end;
+    size_t level, rank_start, rank_end, zero_end;
 
     while (!ranges_queue.empty() && results.size() < topK)
     {
@@ -384,6 +384,7 @@ void WaveletMatrix<CharT>::topKUnion(
         }
 
         level = top_ranges->level_;
+        zero_end = zero_counts_[level];
         const WaveletTreeNode *node = top_ranges->node_;
 
         zero_ranges = new RangeList(level + 1, top_ranges->sym_, node->left_, top_ranges->ranges_.size());
@@ -398,7 +399,7 @@ void WaveletMatrix<CharT>::topKUnion(
                 rank_end = node->bit_vector_.Rank1(it->get<1>());
 
                 zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
-                one_ranges->addRange(boost::make_tuple(rank_start + zero_counts_[level], rank_end + zero_counts_[level], it->get<2>()));
+                one_ranges->addRange(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
             }
         }
 
