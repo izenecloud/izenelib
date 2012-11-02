@@ -241,7 +241,7 @@ size_t SDArray::find(size_t val) const
 
     size_t bpos = low - 1;
     assert(Ltable_[bpos * 2] <= val);
-    assert((bpos + 1) * 2 < Ltable_.size() && val < Ltable_[(bpos + 1) * 2]);
+    assert((bpos + 1) * 2 >= Ltable_.size() || val < Ltable_[(bpos + 1) * 2]);
 
     return bpos * BLOCK_SIZE + rankBlock_(val - Ltable_[bpos * 2], Ltable_[bpos * 2 + 1]);
 }
