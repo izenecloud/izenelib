@@ -39,20 +39,11 @@ public:
 class FilteredRangeList
 {
 public:
-    FilteredRangeList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges);
+    FilteredRangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::pair<size_t, size_t> &filter, const std::vector<boost::tuple<size_t, size_t, double> > &ranges);
 
-    FilteredRangeList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            size_t filter_count, size_t range_count);
+    FilteredRangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, const std::pair<size_t, size_t> &filter, size_t capacity);
 
     ~FilteredRangeList();
-
-    void addFilter(const std::pair<size_t, size_t> &filter);
 
     void addRange(const boost::tuple<size_t, size_t, double> &range);
 
@@ -65,7 +56,7 @@ public:
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
-    std::vector<std::pair<size_t, size_t> > filters_;
+    std::pair<size_t, size_t> filter_;
     std::vector<boost::tuple<size_t, size_t, double> > ranges_;
 };
 
