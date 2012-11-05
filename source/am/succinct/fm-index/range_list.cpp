@@ -45,7 +45,7 @@ RangeList::RangeList(size_t level, uint64_t sym, const WaveletTreeNode *node, co
     , node_(node)
     , ranges_(ranges)
 {
-    std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange);
+    ranges_.erase(std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange), ranges_.end());
     score_ = detail::getScore(ranges_);
 }
 
@@ -100,10 +100,10 @@ FilteredRangeList::FilteredRangeList(
     , filters_(filters)
     , ranges_(ranges)
 {
-    std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange);
+    filters_.erase(std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange), filters_.end());
     if (!filters_.empty())
     {
-        std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange);
+        ranges_.erase(std::remove_if(ranges_.begin(), ranges_.end(), detail::InvalidRange), ranges_.end());
         score_ = detail::getScore(ranges_);
     }
 }
