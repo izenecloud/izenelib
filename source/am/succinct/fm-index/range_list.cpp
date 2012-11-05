@@ -64,7 +64,8 @@ RangeList::~RangeList()
 
 void RangeList::addRange(const boost::tuple<size_t, size_t, double> &range)
 {
-    ranges_.push_back(range);
+    if (range.get<0>() < range.get<1>())
+        ranges_.push_back(range);
 }
 
 void RangeList::calcScore()
