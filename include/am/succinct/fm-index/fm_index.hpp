@@ -54,7 +54,7 @@ public:
     void getMatchedTopKDocIdListByFilter(
                                  const std::vector< std::pair<size_t, size_t> >& filter_ranges,
                                  const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-                                 const std::vector<double>& max_match_list, size_t max_docs, 
+                                 const std::vector<double>& max_match_list, size_t max_docs,
                                  std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const;
     size_t length() const;
     size_t allocSize() const;
@@ -81,6 +81,8 @@ private:
     }
 
 private:
+    static const unsigned char DOC_DELIM = 003;
+
     size_t length_;
     size_t alphabet_num_;
     std::string filter_data_path_;
@@ -144,7 +146,7 @@ template <class CharT>
 void FMIndex<CharT>::addDoc(const char_type *text, size_t len)
 {
     temp_text_.insert(temp_text_.end(), text, text + len);
-    temp_text_.push_back(003);
+    temp_text_.push_back(DOC_DELIM);
 }
 
 template <class CharT>
@@ -179,11 +181,11 @@ void FMIndex<CharT>::build()
     }
 
     size_t pos = 0;
-    while (temp_text_[pos] != 003) ++pos;
+    while (temp_text_[pos] != DOC_DELIM) ++pos;
     doc_delim_.add(pos + 1);
     for (size_t i = pos + 1; i < length_; ++i)
     {
-        if (temp_text_[i] == 003)
+        if (temp_text_[i] == DOC_DELIM)
         {
             doc_delim_.add(i - pos);
             pos = i;
@@ -479,7 +481,7 @@ void FMIndex<CharT>::getMatchedTopKDocIdList(const std::vector<std::pair<size_t,
                                              std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
 {
     std::vector< std::pair<size_t, size_t> > empty_filter;
-    getMatchedTopKDocIdListByFilter(empty_filter, match_ranges_list, max_match_list, 
+    getMatchedTopKDocIdListByFilter(empty_filter, match_ranges_list, max_match_list,
         max_docs, res_list, doclen_list);
 }
 
@@ -487,7 +489,7 @@ template <class CharT>
 void FMIndex<CharT>::getMatchedTopKDocIdListByFilter(
                                  const std::vector< std::pair<size_t, size_t> >& filter_ranges,
                                  const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-                                 const std::vector<double>& max_match_list, size_t max_docs, 
+                                 const std::vector<double>& max_match_list, size_t max_docs,
                                  std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
 {
     std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());

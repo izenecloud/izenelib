@@ -439,14 +439,11 @@ void WaveletTreeBinary<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
-            if (it->get<0>() < it->get<1>())
-            {
-                rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
-                rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
+            rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
+            rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
 
-                zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
-                one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
-            }
+            zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
         delete top_ranges;
@@ -565,46 +562,55 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
-            if (it->get<0>() < it->get<1>())
-            {
-                rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
-                rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
+            rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
+            rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
 
+            if (zero_ranges)
+            {
                 zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            }
+            if (one_ranges)
+            {
                 one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
             }
         }
 
         delete top_ranges;
 
-        zero_ranges->calcScore();
-        if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
+        if (zero_ranges)
         {
-            delete zero_ranges;
-        }
-        else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top().first->score_))
-        {
-            results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-            delete zero_ranges;
-        }
-        else
-        {
-            ranges_queue.push(std::make_pair(zero_ranges, start));
+            zero_ranges->calcScore();
+            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
+            {
+                delete zero_ranges;
+            }
+            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top().first->score_))
+            {
+                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                delete zero_ranges;
+            }
+            else
+            {
+                ranges_queue.push(std::make_pair(zero_ranges, start));
+            }
         }
 
-        one_ranges->calcScore();
-        if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
+        if (one_ranges)
         {
-            delete one_ranges;
-        }
-        else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top().first->score_))
-        {
-            results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-            delete one_ranges;
-        }
-        else
-        {
-            ranges_queue.push(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            one_ranges->calcScore();
+            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
+            {
+                delete one_ranges;
+            }
+            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top().first->score_))
+            {
+                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                delete one_ranges;
+            }
+            else
+            {
+                ranges_queue.push(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
         }
 
         if (ranges_queue.size() > max_queue_size)

@@ -393,14 +393,11 @@ void WaveletMatrix<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
                 it != top_ranges->ranges_.end(); ++it)
         {
-            if (it->get<0>() < it->get<1>())
-            {
-                rank_start = node->bit_vector_.Rank1(it->get<0>());
-                rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->bit_vector_.Rank1(it->get<0>());
+            rank_end = node->bit_vector_.Rank1(it->get<1>());
 
-                zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
-                one_ranges->addRange(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
-            }
+            zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            one_ranges->addRange(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
         }
 
         delete top_ranges;
