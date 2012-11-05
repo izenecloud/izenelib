@@ -88,8 +88,6 @@ private:
     }
 
 private:
-    static const unsigned char DOC_DELIM = 003;
-
     size_t length_;
     size_t alphabet_num_;
     std::string filter_data_path_;
