@@ -173,7 +173,7 @@ void FMIndex<CharT>::build()
     filter_doc_range_.build();
     cout << "filter data total length: " << filter_doc_range_.getSum() - length_ << endl;
 
-    std::vector<int32_t> sa(filter_doc_range_.getSum());
+    std::vector<int32_t> sa(std::max(length_, (filter_doc_range_.getSum() * sizeof(uint32_t) - 1) / sizeof(int32_t) + 1));
     if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
     {
         std::vector<char_type>().swap(temp_text_);
