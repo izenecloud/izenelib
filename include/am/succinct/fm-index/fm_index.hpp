@@ -173,9 +173,7 @@ void FMIndex<CharT>::build()
     filter_doc_range_.build();
     cout << "filter data total length: " << filter_doc_range_.getSum() - length_ << endl;
 
-    std::vector<int32_t> sa;
-    sa.reserve(filter_doc_range_.getSum());
-    sa.resize(length_);
+    std::vector<int32_t> sa(filter_doc_range_.getSum());
     if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
     {
         std::vector<char_type>().swap(temp_text_);
@@ -196,17 +194,18 @@ void FMIndex<CharT>::build()
     doc_delim_.build();
 
     std::vector<char_type> bwt(length_);
+    uint32_t *da = (uint32_t *)&sa[0];
     for (size_t i = 0; i < length_; ++i)
     {
         if (sa[i] == 0)
         {
             bwt[i] = temp_text_[length_ - 1];
-            sa[i] = docCount();
+            da[i] = docCount();
         }
         else
         {
             bwt[i] = temp_text_[sa[i] - 1];
-            sa[i] = doc_delim_.find(sa[i]);
+            da[i] = doc_delim_.find(sa[i]);
         }
     }
 
@@ -218,15 +217,17 @@ void FMIndex<CharT>::build()
     std::vector<char_type>().swap(bwt);
 
     // add the additional filter data to the doc_array_
+    da = (uint32_t *)&sa[length_];
     for (size_t i = 0; i < temp_filter_data_.size(); ++i)
     {
         const FilterItemT &item = temp_filter_data_[i];
-        sa.insert(sa.end(), item.begin(), item.end());
+        da = std::copy(item.begin(), item.end(), da);
         //cout << "filter data added, id: " << i << ", doclist size: " << item.size() << endl;
     }
     std::vector<FilterItemT>().swap(temp_filter_data_);
     doc_array_ = getWaveletTree_<uint32_t>(docCount());
-    doc_array_->build((uint32_t *)&sa[0], sa.size());
+    da = (uint32_t *)&sa[0];
+    doc_array_->build(da, filter_doc_range_.getSum());
 
     std::vector<int32_t>().swap(sa);
 
