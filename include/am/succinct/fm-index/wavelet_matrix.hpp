@@ -367,6 +367,8 @@ void WaveletMatrix<CharT>::topKUnion(
         return;
     }
 
+    results.reserve(topK);
+
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end, zero_end;
@@ -462,6 +464,8 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         delete ranges_queue.top();
         return;
     }
+
+    results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     FilteredRangeList *top_ranges, *zero_ranges, *one_ranges;

@@ -413,6 +413,14 @@ void WaveletTreeBinary<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     ranges_queue.push(std::make_pair(new RangeList(0, (char_type)0, nodes_[0], ranges), 0));
 
+    if (ranges_queue.top().first->score_ == 0.0)
+    {
+        delete ranges_queue.top().first;
+        return;
+    }
+
+    results.reserve(topK);
+
     RangeList *top_ranges, *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
 
@@ -508,6 +516,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         delete ranges_queue.top().first;
         return;
     }
+
+    results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
     FilteredRangeList *top_ranges, *zero_ranges, *one_ranges;

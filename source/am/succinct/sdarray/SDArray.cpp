@@ -246,6 +246,11 @@ size_t SDArray::find(size_t val) const
     return bpos * BLOCK_SIZE + rankBlock_(val - Ltable_[bpos * 2], Ltable_[bpos * 2 + 1]);
 }
 
+size_t SDArray::getSum() const
+{
+    return sum_;
+}
+
 size_t SDArray::size() const
 {
     return size_;

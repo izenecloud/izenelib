@@ -75,18 +75,7 @@ void RangeList::calcScore()
 
 bool RangeList::operator<(const RangeList &rhs) const
 {
-    if (score_ < rhs.score_)
-    {
-        return true;
-    }
-    else if (score_ == rhs.score_)
-    {
-        return level_ < rhs.level_;
-    }
-    else
-    {
-        return false;
-    }
+    return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
 }
 
 FilteredRangeList::FilteredRangeList(
@@ -145,18 +134,7 @@ void FilteredRangeList::calcScore()
 
 bool FilteredRangeList::operator<(const FilteredRangeList &rhs) const
 {
-    if (score_ < rhs.score_)
-    {
-        return true;
-    }
-    else if (score_ == rhs.score_)
-    {
-        return level_ < rhs.level_;
-    }
-    else
-    {
-        return false;
-    }
+    return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
 }
 
 }
