@@ -200,12 +200,12 @@ void FMIndex<CharT>::build()
         if (sa[i] == 0)
         {
             bwt[i] = temp_text_[length_ - 1];
-            da[i] = docCount();
+            *(da++) = docCount();
         }
         else
         {
             bwt[i] = temp_text_[sa[i] - 1];
-            da[i] = doc_delim_.find(sa[i]);
+            *(da++) = doc_delim_.find(sa[i]);
         }
     }
 
@@ -217,7 +217,6 @@ void FMIndex<CharT>::build()
     std::vector<char_type>().swap(bwt);
 
     // add the additional filter data to the doc_array_
-    da = (uint32_t *)&sa[length_];
     for (size_t i = 0; i < temp_filter_data_.size(); ++i)
     {
         const FilterItemT &item = temp_filter_data_[i];
