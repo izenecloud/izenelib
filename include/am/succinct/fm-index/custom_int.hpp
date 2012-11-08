@@ -18,6 +18,7 @@ class int48_t
 public:
     int16_t upper16; 	//signed
     uint32_t lower32;	//unsigned
+
 public:
     int48_t()
     {
@@ -31,20 +32,18 @@ public:
     }
     int48_t(int64_t in_trunc)
     {
-        upper16 = int16_t( in_trunc >> 32 );
-        lower32  = (uint32_t) ( in_trunc & ( 0xFFFFFFFF) ); //the bit-clearing may not be really necessary
+        upper16 = int16_t(in_trunc >> 32);
+        lower32 = (uint32_t)in_trunc; //the bit-clearing may not be really necessary
     }
 
     operator int64_t() const  	//!Implicit, to make use of the type similarly automatic to that of builtin ints
     {
-        int64_t tmp = 0;
-        tmp |= lower32;
-        tmp |= (uint64_t(upper16) << 32);
-        return tmp;
+        return (int64_t)lower32 | (int64_t)upper16 << 32;
     }
     int48_t& operator ++()   //prefix
     {
-        *this  = (int64_t)(*this) + 1;
+        *this = (int64_t)(*this) + 1;
+//      if (!(++lower32)) ++upper16;
         return *this;
     }
     int48_t operator ++(int)  	//suffix, int dummy param
@@ -53,9 +52,11 @@ public:
         ++(*this);
         return tmp;
     }
+
     int48_t& operator --()   //prefix
     {
-        *this  = (int64_t)(*this) - 1;
+        *this = (int64_t)(*this) + 1;
+//      if (!(lower32--)) --upper16;
         return *this;
     }
     int48_t operator --(int)  	//suffix, int dummy param
@@ -67,13 +68,13 @@ public:
     int48_t& operator =(const int48_t& i)
     {
         upper16 = i.upper16;
-        lower32  = i.lower32;
+        lower32 = i.lower32;
         return *this;
     }
     int48_t& operator =(const int64_t i)
     {
-        upper16 = int16_t( i >> 32 );
-        lower32  = (uint32_t) ( i & ( 0xFFFFFFFF) );
+        upper16 = int16_t(i >> 32);
+        lower32 = (uint32_t)i;
         return *this;
     }
     bool operator >(const int48_t& b) const
@@ -141,7 +142,7 @@ public:
     }
     int48_t operator -(const int48_t &x) const
     {
-        return (int64_t)(*this) - (int64_t)x;    
+        return (int64_t)(*this) - (int64_t)x;
     }
     template<class IntType>
     int48_t operator -(IntType n) const
@@ -150,16 +151,16 @@ public:
     }
     int48_t operator *(const int48_t &x) const
     {
-        return (int64_t)(*this) * (int64_t)x;    
+        return (int64_t)(*this) * (int64_t)x;
     }
-    template<class IntType>	
+    template<class IntType>
     int48_t operator *(IntType n) const
     {
         return (int64_t)(*this) * n;
     }
     int48_t operator /(const int48_t &x) const
     {
-        return (int64_t)(*this) / (int64_t)x;    
+        return (int64_t)(*this) / (int64_t)x;
     }
     template<class IntType>
     int48_t operator /(IntType n) const
@@ -168,7 +169,7 @@ public:
     }
     int48_t operator %(const int48_t &x) const
     {
-        return (int64_t)(*this) % (int64_t)x;    
+        return (int64_t)(*this) % (int64_t)x;
     }
     template<class IntType>
     int48_t operator %(IntType n) const
@@ -177,7 +178,7 @@ public:
     }
     int48_t operator &(const int48_t &x) const
     {
-        return (int64_t)(*this) & (int64_t)x;    
+        return (int64_t)(*this) & (int64_t)x;
     }
     template<class IntType>
     int48_t operator &(IntType n) const
@@ -186,7 +187,7 @@ public:
     }
     int48_t operator |(const int48_t &x) const
     {
-        return (int64_t)(*this) | (int64_t)x;    
+        return (int64_t)(*this) | (int64_t)x;
     }
     template<class IntType>
     int48_t operator |(IntType n) const
@@ -195,7 +196,7 @@ public:
     }
     int48_t operator ^(const int48_t &x) const
     {
-        return (int64_t)(*this) ^ (int64_t)x;    
+        return (int64_t)(*this) ^ (int64_t)x;
     }
     template<class IntType>
     int48_t operator ^(IntType n) const
@@ -273,7 +274,7 @@ public:
     bool operator !() const
     {
         return !((int64_t)*this);
-    }	
+    }
     int48_t operator -() const
     {
         return -((int64_t)*this);
@@ -284,7 +285,6 @@ public:
     }
 };
 #pragma pack(pop)
-
 
 }
 }
@@ -300,7 +300,7 @@ class numeric_limits<int48_t>
 public:
   static int48_t min() throw()
   {
-      return int48_t(-0x7FFFFFFFFFFF -1);
+      return int48_t(-0x7FFFFFFFFFFF - 1);
   }
   static int48_t max() throw()
   {
@@ -308,5 +308,5 @@ public:
   }
 };
 }
-#endif
 
+#endif
