@@ -4,9 +4,11 @@
 #include "wavelet_tree_huffman.hpp"
 #include "wavelet_tree_binary.hpp"
 #include "wavelet_matrix.hpp"
+#include "custom_int.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/sdarray/SDArray.hpp>
 #include <am/succinct/sais/sais.hxx>
+#include <am/leveldb/Table.h>
 
 #include <algorithm>
 
@@ -23,6 +25,8 @@ class FMIndex
 {
 public:
     typedef CharT char_type;
+    typedef std::pair<size_t, size_t> FilterRangeT;
+    typedef std::vector<uint32_t> FilterItemT;
 
     FMIndex();
     ~FMIndex();
@@ -31,6 +35,7 @@ public:
 
     void addDoc(const char_type *text, size_t len);
     void setOrigText(std::vector<char_type> &orig_text);
+    void setAdditionFilterData(std::vector<FilterItemT> &filter_data);
 
     void build();
     void reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text);
@@ -40,9 +45,28 @@ public:
 
     void getMatchedDocIdList(const std::pair<size_t, size_t> &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
     void getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
-    void getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-                                 const std::vector<double>& max_match_list, size_t max_docs,
-                                 std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const;
+
+    bool getFilterRange(const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
+
+    inline void getTopKDocIdList(
+            const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+            const std::vector<double> &max_match_list,
+            size_t max_docs,
+            std::vector<std::pair<double, uint32_t> > &res_list,
+            std::vector<size_t> &doclen_list) const
+    {
+        static const std::vector<std::pair<size_t, size_t> > empty_filter;
+        getTopKDocIdListByFilter(empty_filter, match_ranges_list, max_match_list,
+                max_docs, res_list, doclen_list);
+    }
+
+    void getTopKDocIdListByFilter(
+            const std::vector<std::pair<size_t, size_t> > &filter_ranges,
+            const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+            const std::vector<double> &max_match_list,
+            size_t max_docs,
+            std::vector<std::pair<double, uint32_t> > &res_list,
+            std::vector<size_t> &doclen_list) const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -72,11 +96,13 @@ private:
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
+    sdarray::SDArray filter_doc_range_;
 
     WaveletTree<char_type> *bwt_tree_;
     WaveletTree<uint32_t> *doc_array_;
 
     std::vector<char_type> temp_text_;
+    std::vector<FilterItemT> temp_filter_data_;
 };
 
 template <class CharT>
@@ -101,6 +127,7 @@ void FMIndex<CharT>::clear()
     alphabet_num_ = 0;
 
     doc_delim_.clear();
+    filter_doc_range_.clear();
 
     if (bwt_tree_)
     {
@@ -114,13 +141,20 @@ void FMIndex<CharT>::clear()
     }
 
     std::vector<char_type>().swap(temp_text_);
+    std::vector<FilterItemT>().swap(temp_filter_data_);
 }
 
 template <class CharT>
 void FMIndex<CharT>::addDoc(const char_type *text, size_t len)
 {
     temp_text_.insert(temp_text_.end(), text, text + len);
-    temp_text_.push_back(003);
+    temp_text_.push_back(DOC_DELIM);
+}
+
+template <class CharT>
+void FMIndex<CharT>::setAdditionFilterData(std::vector<FilterItemT> &filter_inverted_data)
+{
+    temp_filter_data_.swap(filter_inverted_data);
 }
 
 template <class CharT>
@@ -136,19 +170,29 @@ void FMIndex<CharT>::build()
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
-    std::vector<int32_t> sa(length_);
-    if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
+    filter_doc_range_.add(length_);
+    for (size_t i = 0; i < temp_filter_data_.size(); ++i)
+    {
+        filter_doc_range_.add(temp_filter_data_[i].size());
+        for (size_t j = 0; j < temp_filter_data_[i].size(); ++j)
+            --temp_filter_data_[i][j];
+    }
+    filter_doc_range_.build();
+    cout << "filter data total length: " << filter_doc_range_.getSum() - length_ << endl;
+
+    std::vector<int32_t> sa(std::max(length_, (filter_doc_range_.getSum() * sizeof(uint32_t) - 1) / sizeof(int32_t) + 1));
+    if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
         std::vector<char_type>().swap(temp_text_);
         return;
     }
 
     size_t pos = 0;
-    while (temp_text_[pos] != 003) ++pos;
+    while (temp_text_[pos] != DOC_DELIM) ++pos;
     doc_delim_.add(pos + 1);
     for (size_t i = pos + 1; i < length_; ++i)
     {
-        if (temp_text_[i] == 003)
+        if (temp_text_[i] == DOC_DELIM)
         {
             doc_delim_.add(i - pos);
             pos = i;
@@ -157,17 +201,18 @@ void FMIndex<CharT>::build()
     doc_delim_.build();
 
     std::vector<char_type> bwt(length_);
+    uint32_t *da = (uint32_t *)&sa[0];
     for (size_t i = 0; i < length_; ++i)
     {
         if (sa[i] == 0)
         {
             bwt[i] = temp_text_[length_ - 1];
-            sa[i] = docCount();
+            *(da++) = docCount();
         }
         else
         {
             bwt[i] = temp_text_[sa[i] - 1];
-            sa[i] = doc_delim_.find(sa[i]);
+            *(da++) = doc_delim_.find(sa[i]);
         }
     }
 
@@ -178,8 +223,17 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(bwt);
 
+    // add the additional filter data to the doc_array_
+    for (size_t i = 0; i < temp_filter_data_.size(); ++i)
+    {
+        const FilterItemT &item = temp_filter_data_[i];
+        da = std::copy(item.begin(), item.end(), da);
+        //cout << "filter data added, id: " << i << ", doclist size: " << item.size() << endl;
+    }
+    std::vector<FilterItemT>().swap(temp_filter_data_);
     doc_array_ = getWaveletTree_<uint32_t>(docCount());
-    doc_array_->build((uint32_t *)&sa[0], length_);
+    da = (uint32_t *)&sa[0];
+    doc_array_->build(da, filter_doc_range_.getSum());
 
     std::vector<int32_t>().swap(sa);
 
@@ -231,6 +285,17 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
         }
         orig_text.resize(old_pos);
     }
+}
+
+template <class CharT>
+bool FMIndex<CharT>::getFilterRange(const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
+{
+    if (//filter_id_range.first >= filter_doc_range_.size() ||
+            filter_id_range.second >= filter_doc_range_.size())
+        return false;
+    match_range.first = filter_doc_range_.prefixSum(filter_id_range.first + 1);
+    match_range.second = filter_doc_range_.prefixSum(filter_id_range.second + 1);
+    return true;
 }
 
 template <class CharT>
@@ -399,6 +464,7 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
     doc_delim_.save(ostr);
+    filter_doc_range_.save(ostr);
     bwt_tree_->save(ostr);
     doc_array_->save(ostr);
 }
@@ -410,6 +476,7 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
     doc_delim_.load(istr);
+    filter_doc_range_.load(istr);
     bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
     bwt_tree_->load(istr);
     doc_array_ = getWaveletTree_<uint32_t>(docCount());
@@ -417,18 +484,30 @@ void FMIndex<CharT>::load(std::istream &istr)
 }
 
 template <class CharT>
-void FMIndex<CharT>::getMatchedTopKDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-                                             const std::vector<double>& max_match_list, size_t max_docs,
-                                             std::vector<std::pair<double, uint32_t> > &res_list, std::vector<size_t> &doclen_list) const
+void FMIndex<CharT>::getTopKDocIdListByFilter(
+        const std::vector<std::pair<size_t, size_t> > &filter_ranges,
+        const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+        const std::vector<double> &max_match_list,
+        size_t max_docs,
+        std::vector<std::pair<double, uint32_t> > &res_list,
+        std::vector<size_t> &doclen_list) const
 {
     std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
-    for(size_t i = 0; i < match_ranges_list.size(); ++i)
+    for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
         match_ranges[i].get<0>() = match_ranges_list[i].first;
         match_ranges[i].get<1>() = match_ranges_list[i].second;
         match_ranges[i].get<2>() = max_match_list[i];
     }
-    doc_array_->topKUnion(match_ranges, max_docs, res_list);
+
+    if (filter_ranges.empty())
+    {
+        doc_array_->topKUnion(match_ranges, max_docs, res_list);
+    }
+    else
+    {
+        doc_array_->topKUnionWithFilters(filter_ranges, match_ranges, max_docs, res_list);
+    }
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)

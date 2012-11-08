@@ -76,6 +76,8 @@ public:
      */
     size_t find(size_t val) const;
 
+    size_t getSum() const;
+
     size_t size() const;
     size_t allocSize() const;
 
