@@ -55,7 +55,7 @@ public:
 
     int48_t& operator --()   //prefix
     {
-        *this = (int64_t)(*this) + 1;
+        *this = (int64_t)(*this) - 1;
 //      if (!(lower32--)) --upper16;
         return *this;
     }
