@@ -13,71 +13,66 @@ namespace fm_index
 {
 
 #pragma pack(push,1)
-class int48_t
+class int40_t
 {
+    char upper8; //signed
+    uint32_t lower32; //unsigned
 public:
-    int16_t upper16; 	//signed
-    uint32_t lower32;	//unsigned
-
-public:
-    int48_t()
+    int40_t()
     {
-        upper16 = 0;
+        upper8 = 0;
         lower32 = 0;
     }
-    int48_t(const int48_t& o)
+    int40_t(const int40_t& o)
     {
-        upper16 = o.upper16;
+        upper8 = o.upper8;
         lower32 = o.lower32;
     }
-    int48_t(int64_t in_trunc)
+    int40_t(int64_t in_trunc)
     {
-        upper16 = int16_t(in_trunc >> 32);
-        lower32 = (uint32_t)in_trunc; //the bit-clearing may not be really necessary
+        upper8 = char(in_trunc >> 32);
+        lower32 = (uint32_t)in_trunc;
     }
 
-    operator int64_t() const  	//!Implicit, to make use of the type similarly automatic to that of builtin ints
+    operator int64_t() const //!Implicit, to make use of the type similarly automatic to that of builtin ints
     {
-        return (int64_t)lower32 | (int64_t)upper16 << 32;
+        return (int64_t)lower32 | (int64_t)upper8 << 32;
     }
-    int48_t& operator ++()   //prefix
+    int40_t& operator ++() //prefix
     {
         *this = (int64_t)(*this) + 1;
-//      if (!(++lower32)) ++upper16;
         return *this;
     }
-    int48_t operator ++(int)  	//suffix, int dummy param
+    int40_t operator ++(int) //suffix
     {
-        int48_t tmp = *this;
+        int40_t tmp = *this;
         ++(*this);
         return tmp;
     }
-
-    int48_t& operator --()   //prefix
+    int40_t& operator --() //prefix
     {
         *this = (int64_t)(*this) - 1;
-//      if (!(lower32--)) --upper16;
         return *this;
     }
-    int48_t operator --(int)  	//suffix, int dummy param
+    int40_t operator --(int) //suffix
     {
-        int48_t tmp = *this;
+        int40_t tmp = *this;
         --(*this);
         return tmp;
     }
-    int48_t& operator =(const int48_t& i)
+    int40_t& operator =(const int40_t& i)
     {
-        upper16 = i.upper16;
+        upper8 = i.upper8;
         lower32 = i.lower32;
         return *this;
     }
-    int48_t& operator =(const int64_t i)
+    int40_t& operator =(const int64_t i)
     {
-        upper16 = int16_t(i >> 32);
+        upper8 = char(i >> 32);
         lower32 = (uint32_t)i;
         return *this;
     }
-    bool operator >(const int48_t& b) const
+    bool operator >(const int40_t& b) const
     {
         return (int64_t)(*this) > (int64_t)b;
     }
@@ -86,7 +81,7 @@ public:
     {
         return (int64_t)(*this) > b;
     }
-    bool operator >=(const int48_t& b) const
+    bool operator >=(const int40_t& b) const
     {
         return (int64_t)(*this) >= (int64_t)b;
     }
@@ -95,7 +90,7 @@ public:
     {
         return (int64_t)(*this) >= b;
     }
-    bool operator <(const int48_t& b) const
+    bool operator <(const int40_t& b) const
     {
         return (int64_t)(*this) < (int64_t)b;
     }
@@ -104,7 +99,7 @@ public:
     {
         return (int64_t)(*this) < b;
     }
-    bool operator <=(const int48_t& b) const
+    bool operator <=(const int40_t& b) const
     {
         return (int64_t)(*this) <= (int64_t)b;
     }
@@ -113,7 +108,7 @@ public:
     {
         return (int64_t)(*this) <= b;
     }
-    bool operator ==(const int48_t& b) const
+    bool operator ==(const int40_t& b) const
     {
         return (int64_t)(*this) == (int64_t)b;
     }
@@ -122,7 +117,7 @@ public:
     {
         return (int64_t)(*this) == b;
     }
-    bool operator !=(const int48_t& b) const
+    bool operator !=(const int40_t& b) const
     {
         return (int64_t)(*this) != (int64_t)b;
     }
@@ -131,155 +126,215 @@ public:
     {
         return (int64_t)(*this) != b;
     }
-    int48_t operator +(const int48_t &x) const
+    int40_t operator +(const int40_t &x) const
     {
         return (int64_t)(*this) + (int64_t)x;
     }
     template<class IntType>
-    int48_t operator +(IntType n) const
+    int40_t operator +(IntType n) const
     {
         return (int64_t)(*this) + n;
     }
-    int48_t operator -(const int48_t &x) const
+    int40_t operator -(const int40_t &x) const
     {
         return (int64_t)(*this) - (int64_t)x;
     }
     template<class IntType>
-    int48_t operator -(IntType n) const
+    int40_t operator -(IntType n) const
     {
         return (int64_t)(*this) - n;
     }
-    int48_t operator *(const int48_t &x) const
+    int40_t operator *(const int40_t &x) const
     {
         return (int64_t)(*this) * (int64_t)x;
     }
     template<class IntType>
-    int48_t operator *(IntType n) const
+    int40_t operator *(IntType n) const
     {
         return (int64_t)(*this) * n;
     }
-    int48_t operator /(const int48_t &x) const
+    int40_t operator /(const int40_t &x) const
     {
         return (int64_t)(*this) / (int64_t)x;
     }
     template<class IntType>
-    int48_t operator /(IntType n) const
+    int40_t operator /(IntType n) const
     {
         return (int64_t)(*this) / n;
     }
-    int48_t operator %(const int48_t &x) const
+    int40_t operator %(const int40_t &x) const
     {
         return (int64_t)(*this) % (int64_t)x;
     }
     template<class IntType>
-    int48_t operator %(IntType n) const
+    int40_t operator %(IntType n) const
     {
         return (int64_t)(*this) % n;
     }
-    int48_t operator &(const int48_t &x) const
+    int40_t operator &(const int40_t &x) const
     {
         return (int64_t)(*this) & (int64_t)x;
     }
     template<class IntType>
-    int48_t operator &(IntType n) const
+    int40_t operator &(IntType n) const
     {
         return (int64_t)(*this) & n;
     }
-    int48_t operator |(const int48_t &x) const
+    int40_t operator |(const int40_t &x) const
     {
         return (int64_t)(*this) | (int64_t)x;
     }
     template<class IntType>
-    int48_t operator |(IntType n) const
+    int40_t operator |(IntType n) const
     {
         return (int64_t)(*this) | n;
     }
-    int48_t operator ^(const int48_t &x) const
+    int40_t operator ^(const int40_t &x) const
     {
         return (int64_t)(*this) ^ (int64_t)x;
     }
     template<class IntType>
-    int48_t operator ^(IntType n) const
+    int40_t operator ^(IntType n) const
     {
         return (int64_t)(*this) ^ n;
     }
-    int48_t operator >>( const int48_t &b ) const
+    int40_t operator >>( const int40_t &b ) const
     {
-        return int48_t( (int64_t)*this >> (int64_t)b );
+        return int40_t( (int64_t)*this >> (int64_t)b );
     }
     template<class IntType>
-    int48_t operator >>( const IntType b ) const
+    int40_t operator >>( const IntType b ) const
     {
-        return int48_t( (int64_t)*this >> b );
+        return int40_t( (int64_t)*this >> b );
     }
-    int48_t operator <<( const int48_t &b ) const
+    int40_t operator <<( const int40_t &b ) const
     {
-        return int48_t( (int64_t)*this << (int64_t)b );
+        return int40_t( (int64_t)*this << (int64_t)b );
     }
     template<class IntType>
-    int48_t operator <<( const IntType b ) const
+    int40_t operator <<( const IntType b ) const
     {
-        return int48_t( (int64_t)*this >> b );
+        return int40_t( (int64_t)*this >> b );
     }
-    int48_t& operator +=(const int48_t& b)
+    int40_t& operator +=(const int40_t& b)
     {
         *this = (*this) + b;
         return *this;
     }
-    int48_t& operator -=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator +=(IntType b)
+    {
+        *this = (int64_t)(*this) + b;
+        return *this;
+    }
+    int40_t& operator -=(const int40_t& b)
     {
         *this = (*this) - b;
         return *this;
     }
-    int48_t& operator *=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator -=(IntType b)
+    {
+        *this = (int64_t)(*this) - b;
+        return *this;
+    }
+    int40_t& operator *=(const int40_t& b)
     {
         *this = (*this) * b;
         return *this;
     }
-    int48_t& operator /=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator *=(IntType b)
+    {
+        *this = (int64_t)(*this) * b;
+        return *this;
+    }
+    int40_t& operator /=(const int40_t& b)
     {
         *this = (*this) / b;
         return *this;
     }
-    int48_t& operator %=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator /=(IntType b)
+    {
+        *this = (int64_t)(*this) / b;
+        return *this;
+    }
+    int40_t& operator %=(const int40_t& b)
     {
         *this = (*this) % b;
         return *this;
     }
-    int48_t& operator &=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator %=(IntType b)
+    {
+        *this = (int64_t)(*this) % b;
+        return *this;
+    }
+    int40_t& operator &=(const int40_t& b)
     {
         *this = (*this) & b;
         return *this;
     }
-    int48_t& operator |=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator &=(IntType b)
+    {
+        *this = (int64_t)(*this) & b;
+        return *this;
+    }
+    int40_t& operator |=(const int40_t& b)
     {
         *this = (*this) | b;
         return *this;
     }
-    int48_t& operator ^=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator |=(IntType b)
+    {
+        *this = (int64_t)(*this) | b;
+        return *this;
+    }
+    int40_t& operator ^=(const int40_t& b)
     {
         *this = (*this) ^ b;
         return *this;
     }
-    int48_t& operator <<=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator ^=(IntType b)
+    {
+        *this = (int64_t)(*this) ^ b;
+        return *this;
+    }
+    int40_t& operator <<=(const int40_t& b)
     {
         *this = (*this) << b;
         return *this;
     }
-    int48_t& operator >>=(const int48_t& b)
+    template<class IntType>
+    int40_t& operator <<=(IntType b)
+    {
+        *this = (int64_t)(*this) << (unsigned)b;
+        return *this;
+    }
+    int40_t& operator >>=(const int40_t& b)
     {
         *this = (*this) >> b;
+        return *this;
+    }
+    template<class IntType>
+    int40_t& operator >>=(IntType b)
+    {
+        *this = (int64_t)(*this) >> b;
         return *this;
     }
     bool operator !() const
     {
         return !((int64_t)*this);
     }
-    int48_t operator -() const
+    int40_t operator -() const
     {
         return -((int64_t)*this);
     }
-    int48_t operator ~() const
+    int40_t operator ~() const
     {
         return ~(int64_t)(*this);
     }
@@ -293,18 +348,18 @@ NS_IZENELIB_AM_END
 
 namespace std
 {
-using izenelib::am::succinct::fm_index::int48_t;
+using izenelib::am::succinct::fm_index::int40_t;
 template<>
-class numeric_limits<int48_t>
+class numeric_limits<int40_t>
 {
 public:
-  static int48_t min() throw()
+  static int40_t min() throw()
   {
-      return int48_t(-0x7FFFFFFFFFFF - 1);
+      return int40_t(-0x7FFFFFFFFF - 1);
   }
-  static int48_t max() throw()
+  static int40_t max() throw()
   {
-      return int48_t(0x7FFFFFFFFFFF);
+      return int40_t(0x7FFFFFFFFF);
   }
 };
 }
