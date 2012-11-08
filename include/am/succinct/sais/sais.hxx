@@ -553,8 +553,8 @@ saisxx(string_type T, sarray_type SA, index_type n, index_type k = 256) {
 typedef typename std::iterator_traits<sarray_type>::value_type savalue_type;
   assert((std::numeric_limits<index_type>::min)() < 0);
   assert((std::numeric_limits<savalue_type>::min)() < 0);
-  assert((std::numeric_limits<savalue_type>::max)() == (std::numeric_limits<index_type>::max)());
-  assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
+  assert((std::numeric_limits<savalue_type>::max)() <= (std::numeric_limits<index_type>::max)());
+  assert((std::numeric_limits<savalue_type>::min)() >= (std::numeric_limits<index_type>::min)());
   if((n < 0) || (k <= 0)) { return -1; }
   if(n <= 1) { if(n == 1) { SA[0] = 0; } return 0; }
   return saisxx_private::suffixsort(T, SA, (index_type)0, n, k, false);
@@ -577,8 +577,8 @@ typedef typename std::iterator_traits<string_type>::value_type char_type;
   index_type i, pidx;
   assert((std::numeric_limits<index_type>::min)() < 0);
   assert((std::numeric_limits<savalue_type>::min)() < 0);
-  assert((std::numeric_limits<savalue_type>::max)() == (std::numeric_limits<index_type>::max)());
-  assert((std::numeric_limits<savalue_type>::min)() == (std::numeric_limits<index_type>::min)());
+  assert((std::numeric_limits<savalue_type>::max)() <= (std::numeric_limits<index_type>::max)());
+  assert((std::numeric_limits<savalue_type>::min)() >= (std::numeric_limits<index_type>::min)());
   if((n < 0) || (k <= 0)) { return -1; }
   if(n <= 1) { if(n == 1) { U[0] = T[0]; } return n; }
   pidx = saisxx_private::suffixsort(T, A, (index_type)0, n, k, true);
