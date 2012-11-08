@@ -4,6 +4,7 @@
 #include "wavelet_tree_huffman.hpp"
 #include "wavelet_tree_binary.hpp"
 #include "wavelet_matrix.hpp"
+#include "custom_int.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/sdarray/SDArray.hpp>
 #include <am/succinct/sais/sais.hxx>
@@ -26,6 +27,7 @@ public:
     typedef CharT char_type;
     typedef std::pair<size_t, size_t> FilterRangeT;
     typedef std::vector<uint32_t> FilterItemT;
+
     FMIndex();
     ~FMIndex();
 
@@ -46,14 +48,19 @@ public:
 
     bool getFilterRange(const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
 
-    void getMatchedTopKDocIdList(
+    inline void getTopKDocIdList(
             const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
             const std::vector<double> &max_match_list,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list,
-            std::vector<size_t> &doclen_list) const;
+            std::vector<size_t> &doclen_list) const
+    {
+        static const std::vector<std::pair<size_t, size_t> > empty_filter;
+        getTopKDocIdListByFilter(empty_filter, match_ranges_list, max_match_list,
+                max_docs, res_list, doclen_list);
+    }
 
-    void getMatchedTopKDocIdListByFilter(
+    void getTopKDocIdListByFilter(
             const std::vector<std::pair<size_t, size_t> > &filter_ranges,
             const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
             const std::vector<double> &max_match_list,
@@ -174,7 +181,7 @@ void FMIndex<CharT>::build()
     cout << "filter data total length: " << filter_doc_range_.getSum() - length_ << endl;
 
     std::vector<int32_t> sa(std::max(length_, (filter_doc_range_.getSum() * sizeof(uint32_t) - 1) / sizeof(int32_t) + 1));
-    if (saisxx(temp_text_.begin(), sa.begin(), (int32_t)length_, (int32_t)alphabet_num_) < 0)
+    if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
         std::vector<char_type>().swap(temp_text_);
         return;
@@ -477,20 +484,7 @@ void FMIndex<CharT>::load(std::istream &istr)
 }
 
 template <class CharT>
-void FMIndex<CharT>::getMatchedTopKDocIdList(
-        const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
-        const std::vector<double> &max_match_list,
-        size_t max_docs,
-        std::vector<std::pair<double, uint32_t> > &res_list,
-        std::vector<size_t> &doclen_list) const
-{
-    static const std::vector<std::pair<size_t, size_t> > empty_filter;
-    getMatchedTopKDocIdListByFilter(empty_filter, match_ranges_list, max_match_list,
-                                    max_docs, res_list, doclen_list);
-}
-
-template <class CharT>
-void FMIndex<CharT>::getMatchedTopKDocIdListByFilter(
+void FMIndex<CharT>::getTopKDocIdListByFilter(
         const std::vector<std::pair<size_t, size_t> > &filter_ranges,
         const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
         const std::vector<double> &max_match_list,
