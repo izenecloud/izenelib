@@ -56,27 +56,27 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
   INCLUDE(MacroSetBuildTypes)
   MACRO_SET_BUILD_TYPES(
     RelWithDebInfo
-    "-O2 -g -DNDEBUG"
+    "-march=native -mtune=native -O2 -g -DNDEBUG"
     "Flags used by the compiler during Release with Debug Info builds."
 
     Release
-    "-O3 -DNDEBUG"
+    "-march=native -mtune=native -O3 -DNDEBUG"
     "Flags used by the compiler during release builds"
 
     MinSizeRel
-    "-Os -DNDEBUG"
+    "-march=native -mtune=native -Os -DNDEBUG"
     "Flags used by the compiler during release minsize builds."
 
     Debug
-    "-g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline"
+    "-march=native -mtune=native -g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline"
     "Flags used by the compiler during debug builds."
 
     DebugFull
-    "-g3 -fno-inline"
+    "-march=native -mtune=native -g3 -fno-inline"
     "Debugfull build type"
 
     Profile
-    "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs"
+    "-march=native -mtune=native -g -O0 -fno-inline -ftest-coverage -fprofile-arcs"
     "Profile build type"
     )
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
