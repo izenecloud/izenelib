@@ -15,6 +15,7 @@
 #include <tcbdb.h>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace izenelib {
 namespace am {
