@@ -34,7 +34,7 @@ public:
     void clear();
 
     void addDoc(const char_type *text, size_t len);
-    void setOrigText(std::vector<char_type> &orig_text);
+    void swapOrigText(std::vector<char_type> &orig_text);
     void setAdditionFilterData(std::vector<FilterItemT> &filter_data);
 
     void build();
@@ -76,6 +76,9 @@ public:
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
+
+    void saveOriginalText(std::ostream &ostr) const;
+    void loadOriginalText(std::istream &istr);
 
 private:
     template <class T>
@@ -158,7 +161,7 @@ void FMIndex<CharT>::setAdditionFilterData(std::vector<FilterItemT> &filter_inve
 }
 
 template <class CharT>
-void FMIndex<CharT>::setOrigText(std::vector<char_type> &orig_text)
+void FMIndex<CharT>::swapOrigText(std::vector<char_type> &orig_text)
 {
     temp_text_.swap(orig_text);
 }
@@ -243,22 +246,11 @@ void FMIndex<CharT>::build()
 template <class CharT>
 void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text)
 {
-    orig_text.resize(length_);
-
-    size_t pos = 0;
-    char_type c;
-
-    for (size_t i = 0; i < length_; ++i)
-    {
-        c = bwt_tree_->access(pos, pos);
-        orig_text[length_ - i - 1] = c;
-        pos += bwt_tree_->getOcc(c);
-    }
-
     if (del_docid_list.empty() || del_docid_list[0] > doc_delim_.size()) return;
 
     size_t old_pos = doc_delim_.prefixSum(del_docid_list[0] - 1);
     size_t new_pos = doc_delim_.prefixSum(del_docid_list[0]) - 1;
+    size_t pos = 0;
 
     for (size_t i = 1; i < del_docid_list.size() && del_docid_list[i] <= doc_delim_.size(); ++i)
     {
@@ -481,6 +473,23 @@ void FMIndex<CharT>::load(std::istream &istr)
     bwt_tree_->load(istr);
     doc_array_ = getWaveletTree_<uint32_t>(docCount());
     doc_array_->load(istr);
+}
+
+template <class CharT>
+void FMIndex<CharT>::saveOriginalText(std::ostream &ostr) const
+{
+    size_t text_len = temp_text_.size();
+    ostr.write((const char *)&text_len,      sizeof(text_len));
+    ostr.write((const char *)&temp_text_[0], sizeof(temp_text_[0]) * text_len);
+}
+
+template <class CharT>
+void FMIndex<CharT>::loadOriginalText(std::istream &istr)
+{
+    size_t text_len = 0;
+    istr.read((char *)&text_len,      sizeof(text_len));
+    temp_text_.resize(text_len);
+    istr.read((char *)&temp_text_[0], sizeof(temp_text_[0]) * text_len);
 }
 
 template <class CharT>
