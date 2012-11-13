@@ -18,6 +18,7 @@ class WaveletTreeBinary : public WaveletTree<CharT>
 {
 public:
     typedef CharT char_type;
+    typedef WaveletTreeBinary<CharT> self_type;
 
     WaveletTreeBinary(size_t alphabet_num);
     ~WaveletTreeBinary();
@@ -409,9 +410,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
 {
     if (topK == 0) return;
 
-    boost::priority_deque<std::pair<RangeList *, size_t> > ranges_queue;
-    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    ranges_queue.push(std::make_pair(new RangeList(0, (char_type)0, nodes_[0], ranges), 0));
+    boost::priority_deque<std::pair<PatternList *, size_t> > ranges_queue;
+    ranges_queue.push(std::make_pair(new PatternList(0, (char_type)0, nodes_[0], ranges), 0));
 
     if (ranges_queue.top().first->score_ == 0.0)
     {
@@ -421,8 +421,11 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
     results.reserve(topK);
 
-    RangeList *top_ranges, *zero_ranges, *one_ranges;
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
+    const PatternList *top_ranges;
+    PatternList *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
+    const WaveletTreeNode *node;
 
     while (!ranges_queue.empty() && results.size() < topK)
     {
@@ -437,21 +440,21 @@ void WaveletTreeBinary<CharT>::topKUnion(
             continue;
         }
 
-        const WaveletTreeNode *node = top_ranges->node_;
+        node = top_ranges->node_;
 
-        zero_ranges = new RangeList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->ranges_.size());
-        one_ranges = new RangeList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->ranges_.size());
+        zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.size());
+        one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.size());
 
         before = node->bit_vector_.Rank1(start);
 
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
-                it != top_ranges->ranges_.end(); ++it)
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
+                it != top_ranges->patterns_.end(); ++it)
         {
             rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
             rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
 
-            zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
-            one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
+            zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
         delete top_ranges;
@@ -508,8 +511,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 {
     if (topK == 0) return;
 
-    boost::priority_deque<std::pair<FilteredRangeList *, size_t> > ranges_queue;
-    ranges_queue.push(std::make_pair(new FilteredRangeList(0, (char_type)0, nodes_[0], filters, ranges), 0));
+    boost::priority_deque<std::pair<FilteredPatternList *, size_t> > ranges_queue;
+    ranges_queue.push(std::make_pair(new FilteredPatternList(0, (char_type)0, nodes_[0], filters, ranges), 0));
 
     if (ranges_queue.top().first->score_ == 0.0)
     {
@@ -520,8 +523,10 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    FilteredRangeList *top_ranges, *zero_ranges, *one_ranges;
+    const FilteredPatternList *top_ranges;
+    FilteredPatternList *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
+    const WaveletTreeNode *node;
 
     while (!ranges_queue.empty() && results.size() < topK)
     {
@@ -536,12 +541,12 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        const WaveletTreeNode *node = top_ranges->node_;
+        node = top_ranges->node_;
 
         before = node->bit_vector_.Rank1(start);
 
-        zero_ranges = new FilteredRangeList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->ranges_.size());
-        one_ranges = new FilteredRangeList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->ranges_.size());
+        zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -569,19 +574,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->ranges_.begin();
-                it != top_ranges->ranges_.end(); ++it)
+        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
+                it != top_ranges->patterns_.end(); ++it)
         {
             rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
             rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
 
             if (zero_ranges)
             {
-                zero_ranges->addRange(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addRange(boost::make_tuple(rank_start, rank_end, it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
             }
         }
 

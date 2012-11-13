@@ -25,6 +25,7 @@ class FMIndex
 {
 public:
     typedef CharT char_type;
+    typedef FMIndex<CharT> self_type;
     typedef std::pair<size_t, size_t> FilterRangeT;
     typedef std::vector<uint32_t> FilterItemT;
 
@@ -102,7 +103,7 @@ private:
     sdarray::SDArray filter_doc_range_;
 
     WaveletTree<char_type> *bwt_tree_;
-    WaveletTree<uint32_t> *doc_array_;
+    WaveletMatrix<uint32_t> *doc_array_;
 
     std::vector<char_type> temp_text_;
     std::vector<FilterItemT> temp_filter_data_;
@@ -234,7 +235,7 @@ void FMIndex<CharT>::build()
         //cout << "filter data added, id: " << i << ", doclist size: " << item.size() << endl;
     }
     std::vector<FilterItemT>().swap(temp_filter_data_);
-    doc_array_ = getWaveletTree_<uint32_t>(docCount());
+    doc_array_ = new WaveletMatrix<uint32_t>(docCount());
     da = (uint32_t *)&sa[0];
     doc_array_->build(da, filter_doc_range_.getSum());
 
@@ -471,7 +472,7 @@ void FMIndex<CharT>::load(std::istream &istr)
     filter_doc_range_.load(istr);
     bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
     bwt_tree_->load(istr);
-    doc_array_ = getWaveletTree_<uint32_t>(docCount());
+    doc_array_ = new WaveletMatrix<uint32_t>(docCount());
     doc_array_->load(istr);
 }
 
