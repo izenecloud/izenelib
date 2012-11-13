@@ -617,10 +617,10 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    size_t level, rank_start, rank_end, zero_end;
     const AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
+    size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
 
     while (!ranges_queue.empty() && results.size() < topK)
