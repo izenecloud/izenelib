@@ -92,6 +92,30 @@ public:
         return (uint128_t(kmv_k_ - 1) * UINT64_MAX) / (uint128_t)top - reduce_num;
     }
 
+    size_t intersectCard(const BaseType* src) const
+    {
+        const ThisType* kmv_src = dynamic_cast<const ThisType*>(src);
+        if(kmv_src == NULL)
+            throw -1;
+        ThisType tmp_union = *this;
+        tmp_union.unionSketch(src);
+        KMVSketchT cursketch = sketch_;
+        size_t K = 0;
+        while(!cursketch.empty())
+        {
+            uint64_t top = cursketch.top();
+            if(kmv_src->exist_hashed_.find(top) != kmv_src->exist_hashed_.end())
+            {
+                if(tmp_union.exist_hashed_.find(top) != tmp_union.exist_hashed_.end())
+                {
+                    ++K;
+                }
+            }
+            cursketch.pop();
+        }
+        return (double)K/min(size(), src->size())*(double)tmp_union.getCardinate();
+    }
+
     void unionSketch(const BaseType* src)
     {
         if(src->size() == 0)
@@ -127,6 +151,7 @@ public:
             }
             tmp_src.pop();
         }
+        fillKMVSketch();
     }
 
 private:

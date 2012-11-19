@@ -24,6 +24,7 @@ public:
         : seed_(seed), 
         hll_k_(k)
     {
+        assert(hll_k_ <= 16 && hll_k_ >=4);
         int m = pow(2, hll_k_);
         if(hll_k_ == 4)
             alphaMM_ = 0.673 * m * m;
@@ -65,7 +66,7 @@ public:
         double estimate = alphaMM_ / sum;
         if( estimate <= (5.0/2.0)*cnt )
         {
-            double zeros = 0.0;
+            int zeros = 0;
             for(size_t i = 0; i < cnt; ++i)
             {
                 if(sketch_[i] == 0)
@@ -73,7 +74,7 @@ public:
             }
             if(zeros == 0)
                 return estimate;
-            return cnt * fastlog(cnt/zeros);
+            return cnt * fastlog(cnt/(double)zeros);
         }
         else if( estimate <= (1.0/30.0)*POW_2_32)
         {
@@ -112,7 +113,7 @@ public:
 private:
     inline uint32_t getBucketIndex(uint64_t hashvalue)
     {
-        // by the first hll_k_ bits to generate the index.
+        // use the first hll_k_ bits to generate the index.
         return hashvalue >> (64 - hll_k_);
     }
 
