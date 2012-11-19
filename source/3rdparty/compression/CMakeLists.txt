@@ -12,7 +12,7 @@ INCLUDE_DIRECTORIES(
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/minilzo
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/snappy
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lzend
-	
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/femtozip
 )
 
 FILE(GLOB compressor_SRC
@@ -21,6 +21,8 @@ FILE(GLOB compressor_SRC
 	"lzfx/*.c"
 	"minilzo/*.c"
 	"compressor.cpp"
+	"femtozip/*.cpp"
+	"femtozip/*.c"	
 )
 
 FILE(GLOB snappy_SRC
