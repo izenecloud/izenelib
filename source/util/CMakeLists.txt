@@ -91,11 +91,37 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/decGamma.cpp
     compression/int/decDelta.cpp
     compression/int/decUnary.cpp
-
+    
     compression/int/fastpfor/bitpackingaligned.cpp
     compression/int/fastpfor/bitpacking.cpp
     compression/int/fastpfor/bitpackingunaligned.cpp
     compression/int/fastpfor/bitpacksimd.cpp
+
+    compression/femtozip/femtozip.cpp
+    compression/femtozip/Codeword.cpp
+    compression/femtozip/CompressionModel.cpp
+    compression/femtozip/CStringDocumentList.cpp
+    compression/femtozip/DataIO.cpp
+    compression/femtozip/DecodeTable.cpp
+compression/femtozip/DictionaryOptimizer.cpp
+compression/femtozip/DocumentList.cpp
+compression/femtozip/FemtoZipCompressionModel.cpp
+compression/femtozip/FileDocumentList.cpp
+compression/femtozip/FileUtil.cpp
+compression/femtozip/FrequencyHuffmanModel.cpp
+#compression/femtozip/GZipCompressionModel.cpp
+#compression/femtozip/GZipDictionaryCompressionModel.cpp
+compression/femtozip/HuffmanDecoder.cpp
+compression/femtozip/HuffmanEncoder.cpp
+compression/femtozip/lcp.c
+compression/femtozip/PrefixHash.cpp
+compression/femtozip/PureHuffmanCompressionModel.cpp
+compression/femtozip/SamplingDocumentList.cpp
+compression/femtozip/sarray.c
+compression/femtozip/Substring.cpp
+compression/femtozip/SubstringPacker.cpp
+compression/femtozip/SubstringUnpacker.cpp
+compression/femtozip/VerboseStringConsumer.cpp
 
     compressed_vector/detail/Compressor.cpp
 
