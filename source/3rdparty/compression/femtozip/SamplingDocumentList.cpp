@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-#include <util/compression/femtozip/SamplingDocumentList.h>
+#include <femtozip/SamplingDocumentList.h>
 #include <algorithm>
 
 using namespace std;

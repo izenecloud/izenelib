@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include <util/compression/femtozip/SubstringPacker.h>
+#include <femtozip/SubstringPacker.h>
 
 using namespace std;
 

@@ -14,41 +14,23 @@
  *   limitations under the License.
  */
 /*
- * VerboseStringConsumer.cpp
+ * DocumentList.cpp
  *
- *  Created on: Mar 2, 2011
+ *  Created on: Feb 27, 2011
  *      Author: gtoubassi
  */
 
-#include <sstream>
-
-#include <util/compression/femtozip/VerboseStringConsumer.h>
-
-using namespace std;
+#include <femtozip/DocumentList.h>
 
 namespace femtozip {
 
-VerboseStringConsumer::VerboseStringConsumer() {
+DocumentList::DocumentList() {
+	// TODO Auto-generated constructor stub
+
 }
 
-VerboseStringConsumer::~VerboseStringConsumer() {
-}
-
-void VerboseStringConsumer::encodeLiteral(int aByte, void *context) {
-    output.append(1, (char)aByte);
-}
-
-void VerboseStringConsumer::encodeSubstring(int offset, int length, void *context) {
-    std::stringstream out;
-    out << "<" << offset << "," << length << ">";
-    output += out.str();
-}
-
-void VerboseStringConsumer::endEncoding(void *context) {
-}
-
-string VerboseStringConsumer::getOutput() {
-    return output;
+DocumentList::~DocumentList() {
+	// TODO Auto-generated destructor stub
 }
 
 }

@@ -13,28 +13,16 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-#include <iostream>
-#include <fstream>
-#include <util/compression/femtozip/FileUtil.h>
+/*
+ * Substring.cpp
+ *
+ *  Created on: Mar 1, 2011
+ *      Author: gtoubassi
+ */
 
-using namespace std;
+#include <femtozip/Substring.h>
 
 namespace femtozip {
 
-const char *FileUtil::readFully(const char *path, int& length) {
-    ifstream file(path, ios::in | ios::binary | ios::ate);
-    if (file.is_open()) {
-        streampos size = file.tellg();
-        char *buf = new char[size];
-        file.seekg(0, ios::beg);
-        file.read(buf, size);
-        file.close();
-
-        length = size;
-        return buf;
-    }
-    length = 0;
-    return 0;
-}
 
 }

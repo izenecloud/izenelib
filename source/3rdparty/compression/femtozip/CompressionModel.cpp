@@ -24,13 +24,13 @@
 #include <sstream>
 #include <stdexcept>
 #include <string.h>
-#include <util/compression/femtozip/CompressionModel.h>
-#include <util/compression/femtozip/DictionaryOptimizer.h>
-#include <util/compression/femtozip/PureHuffmanCompressionModel.h>
-#include <util/compression/femtozip/FemtoZipCompressionModel.h>
-//#include <util/compression/femtozip/GZipCompressionModel.h>
-//#include <util/compression/femtozip/GZipDictionaryCompressionModel.h>
-#include <util/compression/femtozip/SamplingDocumentList.h>
+#include <femtozip/CompressionModel.h>
+#include <femtozip/DictionaryOptimizer.h>
+#include <femtozip/PureHuffmanCompressionModel.h>
+#include <femtozip/FemtoZipCompressionModel.h>
+//#include <femtozip/GZipCompressionModel.h>
+//#include <femtozip/GZipDictionaryCompressionModel.h>
+#include <femtozip/SamplingDocumentList.h>
 
 using namespace std;
 

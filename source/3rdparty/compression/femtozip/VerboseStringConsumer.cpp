@@ -14,15 +14,41 @@
  *   limitations under the License.
  */
 /*
- * Substring.cpp
+ * VerboseStringConsumer.cpp
  *
- *  Created on: Mar 1, 2011
+ *  Created on: Mar 2, 2011
  *      Author: gtoubassi
  */
 
-#include <util/compression/femtozip/Substring.h>
+#include <sstream>
+
+#include <femtozip/VerboseStringConsumer.h>
+
+using namespace std;
 
 namespace femtozip {
 
+VerboseStringConsumer::VerboseStringConsumer() {
+}
+
+VerboseStringConsumer::~VerboseStringConsumer() {
+}
+
+void VerboseStringConsumer::encodeLiteral(int aByte, void *context) {
+    output.append(1, (char)aByte);
+}
+
+void VerboseStringConsumer::encodeSubstring(int offset, int length, void *context) {
+    std::stringstream out;
+    out << "<" << offset << "," << length << ">";
+    output += out.str();
+}
+
+void VerboseStringConsumer::endEncoding(void *context) {
+}
+
+string VerboseStringConsumer::getOutput() {
+    return output;
+}
 
 }

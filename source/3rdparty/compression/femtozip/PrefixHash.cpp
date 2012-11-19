@@ -16,7 +16,7 @@
 
 #include <iostream>
 #include <string.h>
-#include <util/compression/femtozip/PrefixHash.h>
+#include <femtozip/PrefixHash.h>
 
 using namespace std;
 

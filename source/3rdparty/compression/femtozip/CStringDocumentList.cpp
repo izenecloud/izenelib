@@ -23,7 +23,7 @@
 #include <iostream>
 #include <cstdarg>
 #include <string.h>
-#include <util/compression/femtozip/CStringDocumentList.h>
+#include <femtozip/CStringDocumentList.h>
 
 using namespace std;
 

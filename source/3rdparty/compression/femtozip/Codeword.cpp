@@ -20,7 +20,7 @@
  *      Author: gtoubassi
  */
 
-#include <util/compression/femtozip/Codeword.h>
+#include <femtozip/Codeword.h>
 
 namespace femtozip {
 

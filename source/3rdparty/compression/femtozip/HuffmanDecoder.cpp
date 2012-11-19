@@ -14,23 +14,16 @@
  *   limitations under the License.
  */
 /*
- * DocumentList.cpp
+ * HuffmanDecoder.cpp
  *
- *  Created on: Feb 27, 2011
+ *  Created on: Mar 4, 2011
  *      Author: gtoubassi
  */
 
-#include <util/compression/femtozip/DocumentList.h>
+#include <femtozip/HuffmanDecoder.h>
 
 namespace femtozip {
 
-DocumentList::DocumentList() {
-	// TODO Auto-generated constructor stub
 
-}
-
-DocumentList::~DocumentList() {
-	// TODO Auto-generated destructor stub
-}
 
 }

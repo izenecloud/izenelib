@@ -21,7 +21,7 @@
  */
 
 #include <iostream>
-#include <util/compression/femtozip/SubstringUnpacker.h>
+#include <femtozip/SubstringUnpacker.h>
 
 using namespace std;
 

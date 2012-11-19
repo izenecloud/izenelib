@@ -20,7 +20,7 @@
  *      Author: gtoubassi
  */
 
-#include <util/compression/femtozip/DecodeTable.h>
+#include <femtozip/DecodeTable.h>
 
 namespace femtozip {
 

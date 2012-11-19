@@ -13,17 +13,28 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-/*
- * HuffmanDecoder.cpp
- *
- *  Created on: Mar 4, 2011
- *      Author: gtoubassi
- */
+#include <iostream>
+#include <fstream>
+#include <femtozip/FileUtil.h>
 
-#include <util/compression/femtozip/HuffmanDecoder.h>
+using namespace std;
 
 namespace femtozip {
 
+const char *FileUtil::readFully(const char *path, int& length) {
+    ifstream file(path, ios::in | ios::binary | ios::ate);
+    if (file.is_open()) {
+        streampos size = file.tellg();
+        char *buf = new char[size];
+        file.seekg(0, ios::beg);
+        file.read(buf, size);
+        file.close();
 
+        length = size;
+        return buf;
+    }
+    length = 0;
+    return 0;
+}
 
 }

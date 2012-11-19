@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <util/compression/femtozip/sarray.h>
+#include <femtozip/sarray.h>
 
 /* 
    int *lcp(const int *a, const char *s, int n)

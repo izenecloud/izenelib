@@ -16,11 +16,11 @@
 
 #include <stdexcept>
 #include <vector>
-#include <util/compression/femtozip/FemtoZipCompressionModel.h>
-#include <util/compression/femtozip/HuffmanDecoder.h>
-#include <util/compression/femtozip/NoCopyReadOnlyStreamBuf.h>
-#include <util/compression/femtozip/SubstringUnpacker.h>
-#include <util/compression/femtozip/FemtoZipHuffmanModel.h>
+#include <femtozip/FemtoZipCompressionModel.h>
+#include <femtozip/HuffmanDecoder.h>
+#include <femtozip/NoCopyReadOnlyStreamBuf.h>
+#include <femtozip/SubstringUnpacker.h>
+#include <femtozip/FemtoZipHuffmanModel.h>
 
 using namespace std;
 

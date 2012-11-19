@@ -22,10 +22,10 @@
 
 #include <stdexcept>
 #include <streambuf>
-#include <util/compression/femtozip/PureHuffmanCompressionModel.h>
-#include <util/compression/femtozip/NoCopyReadOnlyStreamBuf.h>
-#include <util/compression/femtozip/HuffmanEncoder.h>
-#include <util/compression/femtozip/HuffmanDecoder.h>
+#include <femtozip/PureHuffmanCompressionModel.h>
+#include <femtozip/NoCopyReadOnlyStreamBuf.h>
+#include <femtozip/HuffmanEncoder.h>
+#include <femtozip/HuffmanDecoder.h>
 
 using namespace std;
 

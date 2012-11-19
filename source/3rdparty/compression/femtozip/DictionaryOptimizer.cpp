@@ -25,12 +25,12 @@
 #include <set>
 #include <algorithm>
 #include <string.h>
-#include <util/compression/femtozip/DictionaryOptimizer.h>
-#include <util/compression/femtozip/DocumentList.h>
-#include <util/compression/femtozip/Substring.h>
-#include <util/compression/femtozip/sarray.h>
-#include <util/compression/femtozip/Util.h>
-#include <util/compression/femtozip/IntSet.h>
+#include <femtozip/DictionaryOptimizer.h>
+#include <femtozip/DocumentList.h>
+#include <femtozip/Substring.h>
+#include <femtozip/sarray.h>
+#include <femtozip/Util.h>
+#include <femtozip/IntSet.h>
 
 using namespace std;
 

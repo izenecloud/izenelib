@@ -48,7 +48,7 @@ Return value
 
 #include <stdlib.h>
 #include <string.h>
-#include <util/compression/femtozip/sarray.h>
+#include <femtozip/sarray.h>
 
 #define pred(i, h) ((t=(i)-(h))<0?  t+n: t)
 #define succ(i, h) ((t=(i)+(h))>=n? t-n: t)

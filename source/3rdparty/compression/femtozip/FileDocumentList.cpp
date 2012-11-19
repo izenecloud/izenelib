@@ -23,8 +23,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <util/compression/femtozip/FileDocumentList.h>
-#include <util/compression/femtozip/FileUtil.h>
+#include <femtozip/FileDocumentList.h>
+#include <femtozip/FileUtil.h>
 
 using namespace std;
 

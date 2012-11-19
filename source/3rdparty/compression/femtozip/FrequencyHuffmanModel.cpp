@@ -22,7 +22,7 @@
 
 #include <algorithm>
 #include <limits>
-#include <util/compression/femtozip/FrequencyHuffmanModel.h>
+#include <femtozip/FrequencyHuffmanModel.h>
 
 using namespace std;
 

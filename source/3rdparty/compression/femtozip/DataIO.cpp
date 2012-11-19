@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-#include <util/compression/femtozip/DataIO.h>
+#include <femtozip/DataIO.h>
 
 namespace femtozip {
 

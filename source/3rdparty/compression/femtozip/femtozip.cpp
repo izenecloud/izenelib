@@ -20,10 +20,10 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string.h>
-#include <util/compression/femtozip/DataIO.h>
-#include <util/compression/femtozip/DocumentList.h>
-#include <util/compression/femtozip/CompressionModel.h>
-#include <util/compression/femtozip/femtozip.h>
+#include <femtozip/DataIO.h>
+#include <femtozip/DocumentList.h>
+#include <femtozip/CompressionModel.h>
+#include <femtozip/femtozip.h>
 
 using namespace std;
 using namespace femtozip;

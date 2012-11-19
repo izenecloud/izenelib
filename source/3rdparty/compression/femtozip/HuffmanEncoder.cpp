@@ -20,7 +20,7 @@
  *      Author: gtoubassi
  */
 
-#include <util/compression/femtozip/HuffmanEncoder.h>
+#include <femtozip/HuffmanEncoder.h>
 
 namespace femtozip {
 
