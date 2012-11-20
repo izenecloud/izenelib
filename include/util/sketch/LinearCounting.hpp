@@ -56,11 +56,7 @@ public:
         const LinearCountingSketchT& tmp_src = lc_src->sketch_;
         if(tmp_src.count() == 0)
             return;
-        for(size_t i = 0; i < sketch_.size(); ++i)
-        {
-            if(tmp_src.test(i))
-                sketch_.set(i);
-        }
+        sketch_ |= tmp_src;
     }
 
 private:
