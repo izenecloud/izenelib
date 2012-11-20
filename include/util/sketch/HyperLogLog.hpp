@@ -3,7 +3,6 @@
 
 #include "ICardinality.hpp"
 #include <util/hashFunction.h>
-#include <util/math.h>
 #include <common/type_defs.h>
 #include <vector>
 #include <stdint.h>
@@ -74,7 +73,7 @@ public:
             }
             if(zeros == 0)
                 return estimate;
-            return cnt * fastlog(cnt/(double)zeros);
+            return cnt * log(cnt/(double)zeros);
         }
         else if( estimate <= (1.0/30.0)*POW_2_32)
         {
@@ -82,7 +81,7 @@ public:
         }
         else if(estimate > (1.0/30.0) * POW_2_32)
         {
-            return (size_t)(NEGATIVE_POW_2_32 * fastlog(1 - estimate/POW_2_32));
+            return (size_t)(NEGATIVE_POW_2_32 * log(1 - estimate/POW_2_32));
         }
         return 0;
     }

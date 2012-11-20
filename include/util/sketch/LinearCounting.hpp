@@ -3,10 +3,10 @@
 
 #include "ICardinality.hpp"
 #include <util/hashFunction.h>
-#include <util/math.h>
 #include <common/type_defs.h>
 #include <bitset>
 #include <stdint.h>
+#include <math.h>
 
 #define BITSIZE  1000000
 NS_IZENELIB_UTIL_BEGIN
@@ -42,7 +42,7 @@ public:
     size_t getCardinate() const
     {
         size_t zero_num = sketch_.size() - sketch_.count();
-        return -BITSIZE*fastlog((double)zero_num/BITSIZE);
+        return -BITSIZE * log((double)zero_num/BITSIZE);
     }
 
     void unionSketch(const BaseType* src)
