@@ -31,6 +31,33 @@ public:
         return sketch_.size();
     }
 
+    void load(std::istream& is)
+    {
+        is.read((char*)&seed_, sizeof(seed_));
+        is.read((char*)&lc_k_, sizeof(lc_k_));
+        uint32_t bitsize = 0;
+        is.read((char*)&bitsize, sizeof(bitsize));
+        if(bitsize != BITSIZE)
+        {
+            cout << "the bitset data size is not compatible with the current size." << endl;
+            return;
+        }
+        char *data = new char[BITSIZE + 1];
+        is.read(data, BITSIZE);
+        data[BITSIZE] = '\0';
+        sketch_ = LinearCountingSketchT(std::string(data));
+        delete[] data;
+    }
+
+    void save(std::ostream& os) const
+    {
+        os.write((const char*)&seed_, sizeof(seed_));
+        os.write((const char*)&lc_k_, sizeof(lc_k_));
+        const uint32_t bitsize = BITSIZE;
+        os.write((const char*)&bitsize, sizeof(bitsize));
+        os.write(sketch_.to_string().data(), BITSIZE);
+    }
+
     void updateSketch(const DataTypeT& data)
     {
         uint64_t v = izenelib::util::MurmurHash64A(&data,

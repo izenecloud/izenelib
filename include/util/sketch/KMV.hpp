@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 #include <stdint.h>
+#include <iostream>
 
 # if __WORDSIZE == 64
 #  define __UINT64_C(c)	c ## UL
@@ -40,6 +41,35 @@ public:
     size_t size() const
     {
         return sketch_.size();
+    }
+
+    void load(std::istream& is)
+    {
+        is.read((char*)&seed_, sizeof(seed_));
+        is.read((char*)&kmv_k_, sizeof(kmv_k_));
+        sketch_ = KMVSketchT();
+        exist_hashed_.clear();
+        for(size_t i = 0; i < (size_t)kmv_k_; ++i)
+        {
+            uint64_t data;
+            is.read((char*)&data, sizeof(data));
+            sketch_.push(data);
+            exist_hashed_.insert(data);
+        }
+    }
+
+    void save(std::ostream& os) const
+    {
+        os.write((const char*)&seed_, sizeof(seed_));
+        os.write((const char*)&kmv_k_, sizeof(kmv_k_));
+        assert(sketch_.size() == kmv_k_);
+        KMVSketchT tmp_sketch = sketch_;
+        while(!tmp_sketch.empty())
+        {
+            uint64_t data = tmp_sketch.top();
+            os.write((const char*)&data, sizeof(data));
+            tmp_sketch.pop();
+        }
     }
 
     void updateSketch(const DataTypeT& data)
@@ -88,6 +118,7 @@ public:
                     break;
                 tmp_sketch.pop();
             }
+            reduce_num--;
         }
         return (uint128_t(kmv_k_ - 1) * UINT64_MAX) / (uint128_t)top - reduce_num;
     }
@@ -104,7 +135,7 @@ public:
         while(!cursketch.empty())
         {
             uint64_t top = cursketch.top();
-            if(kmv_src->exist_hashed_.find(top) != kmv_src->exist_hashed_.end())
+            if(top != UINT64_MAX && (kmv_src->exist_hashed_.find(top) != kmv_src->exist_hashed_.end()))
             {
                 if(tmp_union.exist_hashed_.find(top) != tmp_union.exist_hashed_.end())
                 {
@@ -114,6 +145,30 @@ public:
             cursketch.pop();
         }
         return (double)K/min(size(), src->size())*(double)tmp_union.getCardinate();
+    }
+
+    size_t intersectSketchK(const BaseType* src)
+    {
+        const ThisType* kmv_src = dynamic_cast<const ThisType*>(src);
+        if(kmv_src == NULL)
+            throw -1;
+        ThisType tmp_union = *this;
+        tmp_union.unionSketch(src);
+        KMVSketchT cursketch = sketch_;
+        size_t K = 0;
+        while(!cursketch.empty())
+        {
+            uint64_t top = cursketch.top();
+            if(top != UINT64_MAX && (kmv_src->exist_hashed_.find(top) != kmv_src->exist_hashed_.end()))
+            {
+                if(tmp_union.exist_hashed_.find(top) != tmp_union.exist_hashed_.end())
+                {
+                    ++K;
+                }
+            }
+            cursketch.pop();
+        }
+        return K;
     }
 
     void unionSketch(const BaseType* src)

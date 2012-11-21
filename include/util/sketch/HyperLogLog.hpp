@@ -41,6 +41,34 @@ public:
         return sketch_.size();
     }
 
+    void load(std::istream& is)
+    {
+        is.read((char*)&seed_, sizeof(seed_));
+        is.read((char*)&hll_k_, sizeof(hll_k_));
+        is.read((char*)&alphaMM_, sizeof(alphaMM_));
+        HyperLLSketchT().swap(sketch_);
+        int m = pow(2, hll_k_);
+        sketch_.reserve(m);
+        for(size_t i = 0; i < (size_t)m; ++i)
+        {
+            uint8_t data;
+            is.read((char*)&data, sizeof(data));
+            sketch_.push_back(data);
+        }
+    }
+
+    void save(std::ostream& os) const
+    {
+        os.write((const char*)&seed_, sizeof(seed_));
+        os.write((const char*)&hll_k_, sizeof(hll_k_));
+        os.write((const char*)&alphaMM_, sizeof(alphaMM_));
+        for(size_t i = 0; i < sketch_.size(); ++i)
+        {
+            uint8_t data = sketch_[i];
+            os.write((const char*)&data, sizeof(data));
+        }
+    }
+
     void updateSketch(const DataTypeT& data)
     {
         uint64_t v = izenelib::util::MurmurHash64A(&data,
@@ -50,7 +78,6 @@ public:
         assert(zero_rank <= 64 - hll_k_);
         sketch_[index] = max(sketch_[index], zero_rank);
     }
-
 
     size_t getCardinate() const
     {

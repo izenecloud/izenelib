@@ -2,6 +2,7 @@
 #define IZENELIB_UTIL_SKETCH_ICARDINALITY_H_
 
 #include <common/type_defs.h>
+#include <iostream>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -16,6 +17,8 @@ public:
     virtual void updateSketch(const DataTypeT& data) = 0;
     virtual size_t getCardinate() const = 0;
     virtual void unionSketch(const SelfType* src) = 0;
+    virtual void save(std::ostream& os) const = 0;
+    virtual void load(std::istream& is) = 0;
     virtual ~ICardinality(){}
 };
 
