@@ -2,7 +2,7 @@ SET(lzo_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true")
 MESSAGE(STATUS "lzo_DEFINITIONS=${lzo_DEFINITIONS}")
 ADD_DEFINITIONS("${lzo_DEFINITIONS}")
 
-ADD_DEFINITIONS("-fPIC")
+ADD_DEFINITIONS("-fPIC -msse2")
 
 INCLUDE_DIRECTORIES(
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression
@@ -13,6 +13,7 @@ INCLUDE_DIRECTORIES(
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/snappy
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/lzend
 	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/femtozip
+	${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/blosc	
 )
 
 FILE(GLOB compressor_SRC
@@ -23,6 +24,7 @@ FILE(GLOB compressor_SRC
 	"compressor.cpp"
 	"femtozip/*.cpp"
 	"femtozip/*.c"	
+	"blosc/*.c"		
 )
 
 FILE(GLOB snappy_SRC
