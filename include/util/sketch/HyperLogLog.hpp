@@ -2,6 +2,7 @@
 #define IZENELIB_UTIL_SKETCH_HYPERLOGLOG_H_
 
 #include "ICardinality.hpp"
+#include "Level2Sketch.hpp"
 #include <util/hashFunction.h>
 #include <common/type_defs.h>
 #include <vector>
@@ -18,6 +19,7 @@ public:
     typedef ElemType DataTypeT;
     typedef ICardinality<DataTypeT> BaseType;
     typedef HyperLL<DataTypeT> ThisType;
+    typedef Level2Sketch<DataTypeT>  Level2SketchT;
 
     HyperLL(uint64_t seed, int k)
         : seed_(seed), 
@@ -34,6 +36,9 @@ public:
         else
             alphaMM_ = (0.7213 / (1 + 1.079 / m)) * m * m;
         sketch_.assign(m, 0);
+        level2sketches_.resize(m);
+        for(size_t i = 0; i < (size_t)m; ++i)
+            level2sketches_[i].resize(sizeof(uint64_t)*8);
     }
 
     size_t size() const
@@ -49,11 +54,13 @@ public:
         HyperLLSketchT().swap(sketch_);
         int m = pow(2, hll_k_);
         sketch_.reserve(m);
+        level2sketches_.resize(m);
         for(size_t i = 0; i < (size_t)m; ++i)
         {
             uint8_t data;
             is.read((char*)&data, sizeof(data));
             sketch_.push_back(data);
+            level2sketches_[i].load(is);
         }
     }
 
@@ -66,6 +73,7 @@ public:
         {
             uint8_t data = sketch_[i];
             os.write((const char*)&data, sizeof(data));
+            level2sketches_[i].save(os);
         }
     }
 
@@ -77,6 +85,41 @@ public:
         uint8_t zero_rank = rankZero(v);
         assert(zero_rank <= 64 - hll_k_);
         sketch_[index] = max(sketch_[index], zero_rank);
+        level2sketches_[index].updateBucket(LSB(v), data);
+    }
+
+    size_t intersectCard(const BaseType* src) const
+    {
+        if(src->size() == 0 || size() == 0)
+            return 0;
+
+        const ThisType* hll_src = dynamic_cast<const ThisType*>(src);
+        if(hll_src == NULL)
+        {
+            throw -1;
+        }
+        assert(src->size() == size());
+        size_t sum = 0;
+        size_t count = 0;
+        ThisType tmp_union = *this;
+        tmp_union.unionSketch(src);
+        size_t union_card = tmp_union.getCardinate();
+        for(size_t i = 0; i < level2sketches_.size(); ++i)
+        {
+            //size_t index = std::ceil(std::log(2*union_card/(1 - E)));
+            size_t index = std::ceil(std::log(2*union_card/(level2sketches_.size()*(1 - E)*(1 - E))));
+            if(index > level2sketches_[i].size())
+                continue;
+            int atomic_estimate = level2sketches_[i].atomicIntersectEstimator(index, hll_src->level2sketches_[i]);
+            if(atomic_estimate != -1)
+            {
+                sum += atomic_estimate;
+                count++;
+            }
+        }
+        if(count == 0)
+            return 0;
+        return sum*union_card/count;
     }
 
     size_t getCardinate() const
@@ -133,6 +176,7 @@ public:
         for(size_t i = 0; i < sketch_.size(); ++i)
         {
             sketch_[i] = max(sketch_[i], tmp_src[i]);
+            level2sketches_[i].unionLevel2Sketch(hll_src->level2sketches_[i]);
         }
     }
 
@@ -163,13 +207,25 @@ private:
         return n;
     }
 
+    inline uint8_t LSB(uint64_t v)
+    {
+        for(uint8_t i = 0; i < 64; ++i)
+        {
+            if((v & ((uint64_t)1 << i)) != 0)
+                return i;
+        }
+        return 63;
+    }
+
     // the bits used for bucket index.
     uint64_t seed_;
     int hll_k_;
     double alphaMM_;
     HyperLLSketchT sketch_;
+    std::vector<Level2SketchT> level2sketches_;
     static const double POW_2_32 = 4294967296.0 ; 
     static const double NEGATIVE_POW_2_32 = -4294967296.0; 
+    static const double E = 0.618;
 };
 
 NS_IZENELIB_UTIL_END

@@ -66,6 +66,11 @@ public:
         sketch_.set(bit);
     }
 
+    size_t intersectCard(const BaseType* src) const
+    {
+        return 0;
+    }
+
     size_t getCardinate() const
     {
         size_t zero_num = sketch_.size() - sketch_.count();
