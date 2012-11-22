@@ -13,13 +13,13 @@
 using namespace std;
 typedef uint8_t byte;
 
-const uint8_t * fastunalignedunpack_8(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit) ;
-uint8_t * fastunalignedpackwithoutmask_8(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
-const uint8_t * fastunaligneduint8_tunpack_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
-uint8_t * fastunaligneduint8_tpackwithoutmask_8(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
-const uint8_t * fastunalignedunpack_16(const uint8_t *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit) ;
-uint8_t * fastunalignedpackwithoutmask_16(const uint32_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
-const uint8_t * fastunaligneduint8_tunpack_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
-uint8_t * fastunaligneduint8_tpackwithoutmask_16(const uint8_t *  __restrict__ in, uint8_t *  __restrict__  out, const uint32_t bit) ;
+const byte * fastunalignedunpack_8(const byte *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit) ;
+byte * fastunalignedpackwithoutmask_8(const uint32_t *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
+const byte * fastunalignedbyteunpack_8(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
+byte * fastunalignedbytepackwithoutmask_8(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
+const byte * fastunalignedunpack_16(const byte *  __restrict__ in, uint32_t *  __restrict__  out, const uint32_t bit) ;
+byte * fastunalignedpackwithoutmask_16(const uint32_t *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
+const byte * fastunalignedbyteunpack_16(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
+byte * fastunalignedbytepackwithoutmask_16(const byte *  __restrict__ in, byte *  __restrict__  out, const uint32_t bit) ;
 
 #endif // BITPACKINGUNALIGNED

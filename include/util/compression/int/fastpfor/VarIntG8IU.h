@@ -86,7 +86,7 @@ public:
     }
 
     void encodeArray(const uint32_t *in, const size_t length,
-                     uint32_t *out, size_t &nvalue)
+                     uint32_t *out, size_t &nvalue) const
     {
         const uint32_t * src = in;
         size_t srclength = length * 4;
@@ -100,11 +100,11 @@ public:
             compressed_size += encodeBlock(src, srclength, dst, nvalue);
         }
         //Ouput might not be a multiple of 4 so we make it so
-        nvalue = (compressed_size / 4) + (compressed_size % 4 && 1);
+        nvalue = ((compressed_size + 3 )/ 4);
     }
 
     const uint32_t * decodeArray(const uint32_t *in,
-                                 const size_t length, uint32_t *out, size_t &nvalue)
+                                 const size_t length, uint32_t *out, size_t &nvalue) const
     {
         size_t srclength = length * 4;
         const unsigned char* src = reinterpret_cast<const unsigned char*> (in);
