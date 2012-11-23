@@ -97,6 +97,12 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/fastpfor/bitpackingunaligned.cpp
     compression/int/fastpfor/bitpacksimd.cpp
 
+    compression/int/compressedset/Codec.cpp
+    compression/int/compressedset/CompressedDeltaChunk.cpp
+    compression/int/compressedset/CompressedSet.cpp
+    compression/int/compressedset/LazyAndSet.cpp
+    compression/int/compressedset/LazyOrSet.cpp
+    compression/int/compressedset/bitpacking/util.cpp
 
     compressed_vector/detail/Compressor.cpp
 

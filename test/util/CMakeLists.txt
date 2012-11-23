@@ -75,6 +75,7 @@ ADD_EXECUTABLE(t_compressor
   Runner.cpp 
   t_compressor.cpp
   t_fastpfor.cpp
+  t_compressedset.cpp
   ) 
 
 TARGET_LINK_LIBRARIES(t_compressor 
