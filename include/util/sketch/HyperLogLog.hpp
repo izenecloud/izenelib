@@ -85,7 +85,7 @@ public:
         uint8_t zero_rank = rankZero(v);
         assert(zero_rank <= 64 - hll_k_);
         sketch_[index] = max(sketch_[index], zero_rank);
-        level2sketches_[index].updateBucket(LSB(v), data);
+        level2sketches_[v % level2sketches_.size()].updateBucket(LSB(v / level2sketches_.size()), data);
     }
 
     size_t intersectCard(const BaseType* src) const
