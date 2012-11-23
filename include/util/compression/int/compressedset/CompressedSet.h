@@ -1,3 +1,15 @@
+/*
+* Effectively compressing sorted integer arrays and performing highly efficient operations on the compressed arrays.
+* Operation include : 
+*   -Fast sequential scanning (iteration) speed over the compressed lists. 
+*   -Fast random lookup of docIds on the compressed lists.
+*   -Fast finding intersections of the compressed lists. (lookup in combination of several bitmaps index)
+*  Based on
+*  SIMD-Based Decoding of Posting Lists  CIKM 2011
+*  Accelerating Search and Recognition Workloads with SSE 4.2 String and Text Processing Instructions
+*       Performance Analysis of Systems and Software (ISPASS), 2011 IEEE
+*  Fast Sorted-Set Intersection using SIMD Instructions ADMS 2011
+*/
 #ifndef IZENELIB_UTIL_COMPRESSION_COMPRESSED_SET_COMPRESSED_SET_H__
 #define IZENELIB_UTIL_COMPRESSION_COMPRESSED_SET_COMPRESSED_SET_H__
 
