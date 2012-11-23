@@ -40,7 +40,7 @@ public:
      * for *in and nvalue for *out).
      */
     virtual void encodeArray(const uint32_t *in, const size_t length,
-                             uint32_t *out, size_t &nvalue) const = 0;
+                             uint32_t *out, size_t &nvalue) = 0;
 
     /**
      * Usage is similar to decodeArray except that it returns a pointer
@@ -57,7 +57,7 @@ public:
      * overrun).
      */
     virtual const uint32_t * decodeArray(const uint32_t *in,
-                                         const size_t length, uint32_t *out, size_t &nvalue) const = 0;
+                                         const size_t length, uint32_t *out, size_t &nvalue)= 0;
     virtual ~IntegerCODEC()
     {
     }
@@ -134,7 +134,7 @@ class JustCopy: public IntegerCODEC
 {
 public:
     void encodeArray(const uint32_t * in, const size_t length, uint32_t * out,
-                     size_t &nvalue) const
+                     size_t &nvalue)
     {
         //if (length > nvalue)
         //    cerr << "It is possible we have a buffer overrun. " << endl;
@@ -149,7 +149,7 @@ public:
     }
 
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
-                                 uint32_t *out, size_t & nvalue) const
+                                 uint32_t *out, size_t & nvalue)
     {
         memcpy(out, in, sizeof(uint32_t) * length);
         nvalue = length;
@@ -172,7 +172,7 @@ public:
 
     enum {BlockSize=32};
     void encodeArray(const uint32_t *in, const size_t length, uint32_t *out,
-                     size_t &nvalue) const
+                     size_t &nvalue)
     {
         checkifdivisibleby(length, 32);
         const uint32_t b = maxbits(in, in + length);
@@ -186,7 +186,7 @@ public:
         nvalue = 2 + length * b / 32;
     }
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
-                                 uint32_t *out, size_t & nvalue) const
+                                 uint32_t *out, size_t & nvalue)
     {
         nvalue = in[0];
         const uint32_t b = in[1];

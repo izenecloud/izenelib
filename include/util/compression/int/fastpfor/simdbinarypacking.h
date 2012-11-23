@@ -36,7 +36,7 @@ public:
      * move the data around, you should preserve the alignment.
      */
     void encodeArray(const uint32_t *in, const size_t length, uint32_t *out,
-                     size_t &nvalue) const
+                     size_t &nvalue)
     {
         checkifdivisibleby(length, BlockSize);
         const uint32_t * const initout(out);
@@ -69,7 +69,7 @@ public:
     }
 
     const uint32_t * decodeArray(const uint32_t *in, const size_t /*length*/,
-                                 uint32_t *out, size_t & nvalue) const
+                                 uint32_t *out, size_t & nvalue)
     {
         const uint32_t actuallength = *in++;
         if(needPaddingTo128Bits(out)) throw runtime_error("bad initial output align");
@@ -120,7 +120,7 @@ public:
      * move the data around, you should preserve the alignment.
      */
     void encodeArray(const uint32_t *in, const size_t length, uint32_t *out,
-                     size_t &nvalue) const
+                     size_t &nvalue)
     {
         checkifdivisibleby(length, BlockSize);
         const uint32_t * const initout(out);
@@ -138,7 +138,7 @@ public:
     }
 
     const uint32_t * decodeArray(const uint32_t *in, const size_t /*length*/,
-                                 uint32_t *out, size_t & nvalue) const
+                                 uint32_t *out, size_t & nvalue)
     {
         const uint32_t actuallength = *in++;
         const uint32_t Bs = *in++;

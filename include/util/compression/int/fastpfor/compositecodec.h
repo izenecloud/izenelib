@@ -26,7 +26,7 @@ public:
     Codec1 codec1;
     Codec2 codec2;
     void encodeArray(const uint32_t * in, const size_t length, uint32_t * out,
-                     size_t &nvalue) const
+                     size_t &nvalue)
     {
         const size_t roundedlength = length / Codec1::BlockSize
                                      * Codec1::BlockSize;
@@ -47,7 +47,7 @@ public:
         }
     }
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
-                                 uint32_t *out, size_t & nvalue) const
+                                 uint32_t *out, size_t & nvalue)
     {
         //const uint32_t * const initin(in);
         size_t mynvalue1 = nvalue;
