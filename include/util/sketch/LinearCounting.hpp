@@ -68,7 +68,19 @@ public:
 
     size_t intersectCard(const BaseType* src) const
     {
-        return 0;
+        size_t dv = getCardinate();
+        size_t filter_dv = src->getCardinate();
+        const ThisType* lc_src = dynamic_cast<const ThisType*>(src);
+        if(lc_src == NULL)
+        {
+            throw -1;
+        }
+        ThisType tmp_union = *lc_src;
+        tmp_union.unionSketch(src);
+        size_t union_dv = tmp_union.getCardinate();
+        if(union_dv > dv + filter_dv)
+            return 0;
+        return dv + filter_dv - union_dv;
     }
 
     size_t getCardinate() const

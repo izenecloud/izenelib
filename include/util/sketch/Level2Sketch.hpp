@@ -294,7 +294,7 @@ int atomicUnionWithIntersectBucketEstimator(size_t index, const std::vector<Leve
     const std::vector<Level2Sketch<ElemType> >& union_sketches_2)
 {
     std::vector<Level2Sketch<ElemType> > all_sketches = union_sketches;
-    all_sketches.push_back(all_sketches.end(), union_sketches_2.begin(), union_sketches_2.end());
+    all_sketches.insert(all_sketches.end(), union_sketches_2.begin(), union_sketches_2.end());
     if(!singletonUnionBucket(all_sketches, index))
         return -1;
     int estimate = 0;

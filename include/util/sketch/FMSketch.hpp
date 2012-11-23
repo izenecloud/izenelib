@@ -25,7 +25,7 @@ public:
 
     FMSketch(uint64_t seed, int k)
         : seed_(seed), 
-        fm_k_(k)
+        fm_k_((size_t)k)
     {
         sketch_.resize(fm_k_);
         level2sketches_.resize(fm_k_);
@@ -45,7 +45,7 @@ public:
         FMSketchT().swap(sketch_);
         sketch_.reserve(fm_k_);
         level2sketches_.resize(fm_k_);
-        for(size_t i = 0; i < (size_t)fm_k_; ++i)
+        for(size_t i = 0; i < fm_k_; ++i)
         {
             char data[BITSET_SIZE + 1];
             is.read((char*)&data, BITSET_SIZE);
@@ -61,7 +61,7 @@ public:
         os.write((const char*)&fm_k_, sizeof(fm_k_));
         for(size_t i = 0; i < fm_k_; ++i)
         {
-            os.write((const char*)&sketch_[i].to_string().data(), BITSET_SIZE);
+            os.write((const char*)sketch_[i].to_string().data(), BITSET_SIZE);
             level2sketches_[i].save(os);
         }
     }
@@ -106,10 +106,10 @@ public:
 
     size_t setIntersectEstimator(const ThisType& src) const
     {
-        if(src->size() == 0 || size() == 0)
+        if(src.size() == 0 || size() == 0)
             return 0;
 
-        assert(src->size() == size());
+        assert(src.size() == size());
         size_t sum = 0;
         size_t count = 0;
         size_t union_card = setUnionEstimator(src);
@@ -131,76 +131,15 @@ public:
         return sum*union_card/count;
     }
 
-    static size_t setUnionEstimator(const std::vector<ThisType>& sketches)
-    {
-        double f = (1 + E) * sketches[0].size() / 8;
-        size_t index = 0;
-        while(index < BITSET_SIZE)
-        {
-            size_t count = 0;
-            for(size_t i = 0; i < sketches[0].size(); ++i)
-            {
-                std::vector<Level2SketchT> tmp_level2sketches;
-                for(size_t j = 0; j < sketches.size(); ++j)
-                {
-                    tmp_level2sketches.push_back(sketches[j].level2sketches_[i]);
-                }
-                if(atomicUnionBucketEstimator(index, tmp_level2sketches))
-                {
-                    count++;
-                }
-            }
-            if(count <= f)
-                break;
-            else
-                index++;
-        }
-        double p = count/sketches[0].size();
-        double R = pow(2, index + 1);
-        return log(1 - p)/log(1 - 1/R);
-    }
-
-    static size_t setUnionWithIntersectEstimator(const std::vector<ThisType>& union_sketch,
-        const std::vector<ThisType>& filter_sketch) 
-    {
-        size_t sum = 0;
-        size_t count = 0;
-        std::vector<ThisType> all_sketches = union_sketch;
-        all_sketches.insert(all_sketches.end(), filter_sketch.begin(), filter_sketch.end());
-        size_t union_card = setUnionEstimator(all_sketches);
-        for(size_t i = 0; i < union_sketch[0].size(); ++i)
-        {
-            size_t index = std::ceil(std::log(2*union_card/(1 - E)));
-            //size_t index = std::ceil(std::log(2*union_card/(level2sketches_.size()*(1 - E)*(1 - E))));
-            if(index > BITSET_SIZE)
-                continue;
-            std::vector<Level2SketchT> tmp_level2sketches;
-            for(size_t j = 0; j < union_sketch.size(); ++j)
-            {
-                tmp_level2sketches.push_back(union_sketch[j].level2sketches_[i]);
-            }
-            std::vector<Level2SketchT> tmpfilter_level2sketches;
-            for(size_t j = 0; j < filter_sketch.size(); ++j)
-            {
-                tmpfilter_level2sketches.push_back(filter_sketch[j].level2sketches_[i]);
-            }
-            int atomic_estimate = atomicUnionWithIntersectEstimator(index, tmp_level2sketches,
-                tmpfilter_level2sketches);
-            if(atomic_estimate != -1)
-            {
-                sum += atomic_estimate;
-                count++;
-            }
-        }
-        if(count == 0)
-            return 0;
-        return sum*union_card/count;
-
-    }
-
     size_t intersectCard(const BaseType* src) const
     {
-        return 0;
+        const ThisType* fm_src = dynamic_cast<const ThisType*>(src);
+        if(fm_src == NULL)
+        {
+            throw -1;
+        }
+
+        return setIntersectEstimator(*fm_src);
     }
 
     size_t getCardinate() const
@@ -245,6 +184,85 @@ public:
         }
     }
 
+    static size_t setUnionEstimator(const std::vector<ThisType>& sketches)
+    {
+        if(sketches.empty())
+            return 0;
+        size_t fm_k = sketches[0].fm_k_;
+        double f = (1 + E) * fm_k / 8;
+        size_t index = 0;
+        std::vector<Level2SketchT> tmp_level2sketches;
+        tmp_level2sketches.resize(sketches.size());
+        size_t count = 0;
+        while(index < BITSET_SIZE)
+        {
+            count = 0;
+            for(size_t i = 0; i < fm_k; ++i)
+            {
+                for(size_t j = 0; j < sketches.size(); ++j)
+                {
+                    tmp_level2sketches[j] = sketches[j].level2sketches_[i];
+                }
+                if(atomicUnionBucketEstimator(index, tmp_level2sketches))
+                {
+                    count++;
+                }
+            }
+            if(count <= f)
+                break;
+            else
+                index++;
+        }
+        double p = count/fm_k;
+        double R = pow(2, index + 1);
+        return log(1 - p)/log(1 - 1/R);
+    }
+
+    static size_t setUnionWithIntersectEstimator(const std::vector<ThisType>& union_sketch,
+        const std::vector<ThisType>& filter_sketch) 
+    {
+        if(union_sketch.empty() || filter_sketch.empty())
+            return 0;
+        size_t sum = 0;
+        size_t count = 0;
+        size_t fm_k = union_sketch[0].fm_k_;
+        std::vector<ThisType> all_sketches = union_sketch;
+        all_sketches.insert(all_sketches.end(), filter_sketch.begin(), filter_sketch.end());
+        size_t union_card = setUnionEstimator(all_sketches);
+
+        std::vector<Level2SketchT> tmp_level2sketches;
+        tmp_level2sketches.resize(union_sketch.size());
+        std::vector<Level2SketchT> tmpfilter_level2sketches;
+        tmpfilter_level2sketches.resize(filter_sketch.size());
+
+        for(size_t i = 0; i < fm_k; ++i)
+        {
+            size_t index = std::ceil(std::log(2*union_card/(1 - E)));
+            //size_t index = std::ceil(std::log(2*union_card/(level2sketches_.size()*(1 - E)*(1 - E))));
+            if(index > BITSET_SIZE)
+                continue;
+            for(size_t j = 0; j < union_sketch.size(); ++j)
+            {
+                tmp_level2sketches[j] = union_sketch[j].level2sketches_[i];
+            }
+            for(size_t j = 0; j < filter_sketch.size(); ++j)
+            {
+                tmpfilter_level2sketches[j] = filter_sketch[j].level2sketches_[i];
+            }
+            int atomic_estimate = atomicUnionWithIntersectBucketEstimator(index, tmp_level2sketches,
+                tmpfilter_level2sketches);
+            if(atomic_estimate != -1)
+            {
+                sum += atomic_estimate;
+                count++;
+            }
+        }
+        if(count == 0)
+            return 0;
+        return sum*union_card/count;
+    }
+
+
 private:
     inline uint8_t LSB(uint64_t v)
     {
@@ -258,7 +276,7 @@ private:
 
     // the bits used for bucket index.
     uint64_t seed_;
-    int fm_k_;
+    size_t fm_k_;
     FMSketchT sketch_;
     std::vector<Level2SketchT> level2sketches_;
     static const double E = 0.618;
