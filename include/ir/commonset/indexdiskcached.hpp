@@ -34,25 +34,25 @@ public:
 
     virtual ~IndexDiskCached() {}
 
-    bool getDocIDs( const TokenID& tokenid, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end ) const
+    bool getDocIDs( const TokenID& tokenid, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end )
     {
-        //unsigned int id = 0;
+        unsigned int id = 0;
 
-        bool ok = false;// = InvertedListOffsets<DocID,TokenID>::getInvertedListID( tokenid, id );
+        bool ok = InvertedListOffsets<DocID,TokenID>::getInvertedListID( tokenid, id );
 
-        return !ok;// ? false : getDocIDsFromInvertedListID( id, buffer, nbuffer_values, docid_ptrs, docid_ptrs_end );
+        return !ok ? false : getDocIDsFromInvertedListID( id, buffer, nbuffer_values, docid_ptrs, docid_ptrs_end );
     }
 
-    bool getDocIDs( const Query<TokenID>& query, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end ) const
+    bool getDocIDs( const Query<TokenID>& query, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end )
     {
-        //unsigned int id = 0;
+        unsigned int id = 0;
 
-        bool ok = false;// = InvertedListOffsets<DocID,TokenID>::getInvertedListID( query, id );
+        bool ok = InvertedListOffsets<DocID,TokenID>::getInvertedListID( query, id );
 
-        return !ok;// ? false : getDocIDsFromInvertedListID( id, buffer, nbuffer_values, docid_ptrs, docid_ptrs_end );
+        return !ok ? false : getDocIDsFromInvertedListID( id, buffer, nbuffer_values, docid_ptrs, docid_ptrs_end );
     }
 
-    bool getDocIDsFromInvertedListID( unsigned int invertedlistid, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end ) const
+    bool getDocIDsFromInvertedListID( unsigned int invertedlistid, DocID* buffer, unsigned int nbuffer_values, DocID*& docid_ptrs, DocID*& docid_ptrs_end )
     {
         unsigned int ndocids = InvertedListOffsets<DocID,TokenID>::getNDocIDs( invertedlistid );
 
@@ -62,8 +62,8 @@ public:
         if( !file.is_open() ) return false;
         file.read( reinterpret_cast<char*>(buffer), sizeof(DocID) * ndocids );
         file.close();
-
-        return InvertedListOffsets<DocID,TokenID>::convertOffsetsToPointers( invertedlistid, buffer, docid_ptrs, docid_ptrs_end );
+        //todo
+        return false;//InvertedListOffsets<DocID,TokenID>::convertOffsetsToPointers( invertedlistid, buffer, docid_ptrs, docid_ptrs_end );
     }
 
     static bool mapDocIDs( const std::map<DocID,DocID>& docids_map, DocID* docids, unsigned int ndocids )

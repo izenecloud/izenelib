@@ -128,7 +128,7 @@ private:
         return attribute_present_bitmap_[idoc]
     }
 
-           bool hasAttributeValue( unsigned idoc, unsigned int attribute, unsigned int value )
+    bool hasAttributeValue( unsigned idoc, unsigned int attribute, unsigned int value )
     {
         if( !hasAttribute( idoc, attribute ) || value >= nattribute_values_[attribute] ) return false;
         return attribute_value_bitmap_[attribute] && 1<<(value-idoc%sizeof_longlong_) ? true : false;

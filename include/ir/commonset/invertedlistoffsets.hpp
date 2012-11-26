@@ -52,7 +52,7 @@ public:
         offset_ptrs_(NULL)
     {
         readOffsets( filename );
-        computeOffsetPointers( inverted_list_data );
+        //computeOffsetPointers( inverted_list_data );
     }
 
     virtual ~InvertedListOffsets()
@@ -135,7 +135,7 @@ public:
         return true;
     }
 
-    unsigned int getNDocIDs( unsigned int invertedlistid )
+    unsigned int getNDocIDs( unsigned int invertedlistid ) const
     {
         if( invertedlistid >= ninvertedlists_ ) return 0;
         unsigned int ipos = 2 * invertedlistid ;
@@ -143,7 +143,7 @@ public:
         return (unsigned int) ( offset_ptrs_[ ipos + 2 ] - offset_ptrs_[ ipos ] );
     }
 
-    bool getDocIDs( unsigned int invertedlistid, DocID*& docidptr, DocID*& docidptr_end )
+    bool getDocIDs( unsigned int invertedlistid, DocID*& docidptr, DocID*& docidptr_end ) const
     {
         if( invertedlistid >= ninvertedlists_ || offset_ptrs_ == NULL ) return false;
 
@@ -156,17 +156,17 @@ public:
         return true;
     }
 
-    bool getInvertedListID( const TokenID& tokenid, unsigned int& id )
+    bool getInvertedListID( const TokenID& tokenid, unsigned int& id ) const
     {
-        typename std::map<TokenID,unsigned int>::iterator id_it;// = token_id_map_.find( tokenid );
+        typename std::map<TokenID,unsigned int>::const_iterator id_it = token_id_map_.find( tokenid );
         if( id_it == token_id_map_.end() ) return false;
         id = id_it->second;
         return true;
     }
 
-    bool getInvertedListID( const Query<TokenID>& query, unsigned int& id )
+    bool getInvertedListID( const Query<TokenID>& query, unsigned int& id ) const
     {
-        typename std::map<Query<TokenID>,unsigned int>::iterator id_it;// = query_id_map_.find( query );
+        typename std::map<Query<TokenID>,unsigned int>::const_iterator id_it;// = query_id_map_.find( query );
         if( id_it == query_id_map_.end() ) return false;
         id = id_it->second;
         return true;
@@ -210,8 +210,6 @@ private:
     std::map<TokenID,unsigned int> token_id_map_;
 
     std::map<Query<TokenID>,unsigned int> query_id_map_;
-
-
 
     unsigned int addInvertedListID( const TokenID& tokenid )
     {

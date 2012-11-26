@@ -28,7 +28,7 @@ public:
 
     virtual ~Index() {};
 
-    virtual bool getDocIDs( const TokenID& tokenid, DocID* buffer, unsigned int nbuffervalues_max, DocID*& docid_ptr, DocID*& docid_ptr_end ) const
+    virtual bool getDocIDs( const TokenID& tokenid, DocID* buffer, unsigned int nbuffervalues_max, DocID*& docid_ptr, DocID*& docid_ptr_end )
     {
         if( IndexMemoryCached<DocID,TokenID>::getDocIDs( tokenid, docid_ptr, docid_ptr_end ) ) return true;
 
@@ -37,7 +37,7 @@ public:
         return false;
     }
 
-    virtual bool getDocIDs( const Query<TokenID>& query, DocID* buffer, unsigned int nbuffervalues_max, DocID*& docid_ptr, DocID*& docid_ptr_end ) const
+    virtual bool getDocIDs( const Query<TokenID>& query, DocID* buffer, unsigned int nbuffervalues_max, DocID*& docid_ptr, DocID*& docid_ptr_end )
     {
         if( IndexMemoryCached<DocID,TokenID>::getDocIDs( query, docid_ptr, docid_ptr_end ) ) return true;
 
