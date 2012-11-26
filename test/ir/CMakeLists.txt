@@ -1,2 +1,3 @@
 ADD_SUBDIRECTORY(index_manager)
 ADD_SUBDIRECTORY(id_manager)
+ADD_SUBDIRECTORY(commonset)
