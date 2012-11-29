@@ -3,11 +3,15 @@
 
 #include <boost/random.hpp>
 #include <boost/random/random_device.hpp>
+#include <boost/shared_ptr.hpp>
 #include <cstring>
 
 #include <ir/commonset/index.hpp>
 #include <ir/commonset/query.hpp>
 #include <ir/commonset/commonset.hpp>
+#include <util/compression/int/compressedset/CompressedSet.h>
+#include <util/compression/int/compressedset/LazyAndSet.h>
+#include <am/succinct/fm-index/wavelet_matrix.hpp>
 
 namespace izenelib
 {
@@ -15,6 +19,9 @@ namespace ir
 {
 namespace commonset
 {
+
+using namespace izenelib::util::compression;
+using namespace izenelib::am::succinct::fm_index;
 
 class IndexSimple : public Index<>
 {
@@ -25,9 +32,14 @@ public:
     ~IndexSimple()
     {
         delete[] correct_docids_common_set_;
+        delete doc_array_;
     }
 
     bool checkResult( CommonSet<>& common_set );
+
+    void testCompressed();
+
+    void testWavelet(unsigned int maxCount);
 
     virtual bool getDocIDs( const unsigned int& tokenid, unsigned int* buffer, unsigned int nbuffer, unsigned int*& docid_ptr, unsigned int*& docid_ptr_end ) const;
 
@@ -45,6 +57,9 @@ protected:
 
     unsigned int ntokens_;
 
+    std::vector<boost::shared_ptr<Set> > compressed_sets_;
+
+    WaveletMatrix<uint32_t> *doc_array_;
 };
 
 IndexSimple::IndexSimple( unsigned int ndocids_total, unsigned int ntokens_cached, unsigned int ntokens_disk, unsigned int ndocuments_common, const std::vector<unsigned int>& ndocids, const std::string& directory, bool verbose ) :
@@ -155,6 +170,34 @@ IndexSimple::IndexSimple( unsigned int ndocids_total, unsigned int ntokens_cache
         }
     }
 
+    compressed_sets_.resize(ntokens_);
+    for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken )
+    {
+        compressed_sets_[itoken].reset(new CompressedSet);
+        for( unsigned int idocid = 0 ; idocid < ndocids_[itoken] ; ++idocid )
+            compressed_sets_[itoken]->addDoc(docids_[itoken][idocid]);
+
+        reinterpret_cast<CompressedSet*>(compressed_sets_[itoken].get())->flush();
+        reinterpret_cast<CompressedSet*>(compressed_sets_[itoken].get())->compact();
+    }
+
+    doc_array_ = new WaveletMatrix<uint32_t>(ndocids_total);
+    uint32_t docsum = 0;
+    for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken )
+        docsum += ndocids_[itoken];
+
+    uint32_t* docs = new uint32_t[docsum];
+    uint32_t * p = docs;
+    for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken )
+    {
+        memcpy(p, docids_[itoken], ndocids_[itoken]* sizeof(uint32_t));
+        p +=  ndocids_[itoken];
+    }
+    std::cout << "build WT.\n\n";
+
+    doc_array_->build(docs, docsum);
+    delete[] docs;
+
     std::cout << "done.\n\n";
 
     if(verbose)
@@ -170,6 +213,27 @@ IndexSimple::IndexSimple( unsigned int ndocids_total, unsigned int ntokens_cache
     for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken ) delete[] use[itoken];
     delete[] use;
     delete[] use_common;
+}
+
+void IndexSimple::testCompressed()
+{
+    std::vector<boost::shared_ptr<Set> > intersection_sets;
+    intersection_sets.push_back(compressed_sets_[0]);
+    intersection_sets.push_back(compressed_sets_[1]);	
+    LazyAndSet andSet(intersection_sets);
+    boost::shared_ptr<Set::Iterator> it = andSet.iterator();
+    while(it->nextDoc() != NO_MORE_DOCS)
+    {
+    
+    }
+}
+
+void IndexSimple::testWavelet(unsigned int maxCount)
+{
+    std::vector<std::pair<size_t, size_t> > ranges;
+    ranges.push_back(std::make_pair(0,doc_array_->length()));
+    std::vector<uint32_t> docid_list;
+    doc_array_->intersect(ranges, 1, maxCount, docid_list);
 }
 
 bool IndexSimple::checkResult( CommonSet<>& common_set )

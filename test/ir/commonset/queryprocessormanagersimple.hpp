@@ -41,7 +41,6 @@ public:
         delete[] buffer2_;
     }
 
-
     virtual void computeCommonSet()
     {
         Query<TokenID>& query = QueryProcessorManager<DocID,TokenID>::getQuery();

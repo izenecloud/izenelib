@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(index)
     unsigned int ndocuments_total = 12800000;
     unsigned int nblocks = 10000;
 
-    unsigned int ndocuments_common = 10000;
+    unsigned int ndocuments_common = 100000;
 
     ndocuments.push_back(1000000);
     ndocuments.push_back(1000000);
@@ -137,6 +137,36 @@ BOOST_AUTO_TEST_CASE(index)
     std::cout << "indextester.cpp : timing simple simd bitmap index query retrieval..." << std::flush;
 
     timer.reset();
+
+    timer.start();
+    indexsimple.testCompressed();
+    timer.stop();
+
+    std::cout << "done.\n\n";
+
+    t = timer.getElapsedTimeInSeconds();
+    dt = t;
+    std::cout << " took " << t << " s for " << 1 << " queries\n";
+
+    std::cout << "indextester.cpp : compressedset timing simplequery retrieval..." << std::flush;
+
+    timer.reset();
+
+
+    timer.start();
+    indexsimple.testWavelet(ndocuments_common);
+    timer.stop();
+
+    std::cout << "done.\n\n";
+
+    t = timer.getElapsedTimeInSeconds();
+    dt = t;
+    std::cout << " took " << t << " s for " << 1 << " queries\n";
+
+    std::cout << "indextester.cpp : wavelet-tree timing simplequery retrieval..." << std::flush;
+
+    timer.reset();
+
 
     timer.start();
     for( unsigned int i = 0 ; i < nquery_repeats ; ++i ) queryprocessormanager_simdbitmapsimple.computeCommonSet();

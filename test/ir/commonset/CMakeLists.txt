@@ -11,6 +11,8 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 SET(libs
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
+  izene_util
+  am
 )
 
 IF(Boost_FOUND)
