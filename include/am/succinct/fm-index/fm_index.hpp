@@ -36,7 +36,9 @@ public:
 
     void addDoc(const char_type *text, size_t len);
     void swapOrigText(std::vector<char_type> &orig_text);
-    void setAdditionFilterData(std::vector<FilterItemT> &filter_data);
+
+    void setFilterList(std::vector<FilterItemT> &filter_list);
+    void setAuxFilterList(std::vector<std::vector<FilterItemT> > &filter_list);
 
     void build();
     void reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text);
@@ -48,6 +50,7 @@ public:
     void getMatchedDocIdList(const std::vector<std::pair<size_t, size_t> > &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     bool getFilterRange(const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
+    bool getAuxFilterRange(size_t filter_id, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
 
     inline void getTopKDocIdList(
             const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
@@ -62,6 +65,16 @@ public:
     }
 
     void getTopKDocIdListByFilter(
+            const std::vector<std::pair<size_t, size_t> > &filter_ranges,
+            const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+            const std::vector<double> &max_match_list,
+            size_t max_docs,
+            std::vector<std::pair<double, uint32_t> > &res_list,
+            std::vector<size_t> &doclen_list) const;
+
+    void getTopKDocIdListByAuxFilter(
+            const std::vector<size_t> &filter_ids,
+            const std::vector<std::vector<std::pair<size_t, size_t> > > &aux_filter_ranges,
             const std::vector<std::pair<size_t, size_t> > &filter_ranges,
             const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
             const std::vector<double> &max_match_list,
@@ -100,13 +113,16 @@ private:
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
-    sdarray::SDArray filter_doc_range_;
+    sdarray::SDArray filter_delim_;
+    std::vector<sdarray::SDArray> aux_filter_delim_list_;
 
-    WaveletTree<char_type> *bwt_tree_;
+    WaveletTreeHuffman<char_type> *bwt_tree_;
     WaveletMatrix<uint32_t> *doc_array_;
+    std::vector<WaveletMatrix<uint32_t> *> filter_array_list_;
 
     std::vector<char_type> temp_text_;
-    std::vector<FilterItemT> temp_filter_data_;
+    std::vector<FilterItemT> temp_filter_list_;
+    std::vector<std::vector<FilterItemT> > temp_aux_filter_list_;
 };
 
 template <class CharT>
@@ -122,6 +138,12 @@ FMIndex<CharT>::~FMIndex()
 {
     if (bwt_tree_) delete bwt_tree_;
     if (doc_array_) delete doc_array_;
+
+    for (size_t i = 0; i < filter_array_list_.size(); ++i)
+    {
+        if (filter_array_list_[i])
+            delete filter_array_list_[i];
+    }
 }
 
 template <class CharT>
@@ -131,7 +153,8 @@ void FMIndex<CharT>::clear()
     alphabet_num_ = 0;
 
     doc_delim_.clear();
-    filter_doc_range_.clear();
+    filter_delim_.clear();
+    aux_filter_delim_list_.clear();
 
     if (bwt_tree_)
     {
@@ -144,8 +167,15 @@ void FMIndex<CharT>::clear()
         doc_array_ = NULL;
     }
 
+    for (size_t i = 0; i < filter_array_list_.size(); ++i)
+    {
+        delete filter_array_list_[i];
+    }
+    filter_array_list_.clear();
+
     std::vector<char_type>().swap(temp_text_);
-    std::vector<FilterItemT>().swap(temp_filter_data_);
+    std::vector<FilterItemT>().swap(temp_filter_list_);
+    std::vector<std::vector<FilterItemT> >().swap(temp_aux_filter_list_);
 }
 
 template <class CharT>
@@ -156,9 +186,15 @@ void FMIndex<CharT>::addDoc(const char_type *text, size_t len)
 }
 
 template <class CharT>
-void FMIndex<CharT>::setAdditionFilterData(std::vector<FilterItemT> &filter_inverted_data)
+void FMIndex<CharT>::setFilterList(std::vector<FilterItemT> &filter_list)
 {
-    temp_filter_data_.swap(filter_inverted_data);
+    temp_filter_list_.swap(filter_list);
+}
+
+template <class CharT>
+void FMIndex<CharT>::setAuxFilterList(std::vector<std::vector<FilterItemT> > &filter_list)
+{
+    temp_aux_filter_list_.swap(filter_list);
 }
 
 template <class CharT>
@@ -174,20 +210,20 @@ void FMIndex<CharT>::build()
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
-    filter_doc_range_.add(length_);
-    for (size_t i = 0; i < temp_filter_data_.size(); ++i)
+    filter_delim_.add(length_);
+    for (size_t i = 0; i < temp_filter_list_.size(); ++i)
     {
-        filter_doc_range_.add(temp_filter_data_[i].size());
-        for (size_t j = 0; j < temp_filter_data_[i].size(); ++j)
-            --temp_filter_data_[i][j];
+        filter_delim_.add(temp_filter_list_[i].size());
+        for (size_t j = 0; j < temp_filter_list_[i].size(); ++j)
+            --temp_filter_list_[i][j];
     }
-    filter_doc_range_.build();
-    cout << "filter data total length: " << filter_doc_range_.getSum() - length_ << endl;
+    filter_delim_.build();
+    cout << "filter data total length: " << filter_delim_.getSum() - length_ << endl;
 
-    std::vector<int32_t> sa(std::max(length_, (filter_doc_range_.getSum() * sizeof(uint32_t) - 1) / sizeof(int32_t) + 1));
+    std::vector<int32_t> sa(std::max(length_, (filter_delim_.getSum() * sizeof(uint32_t) - 1) / sizeof(int32_t) + 1));
     if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
-        std::vector<char_type>().swap(temp_text_);
+        clear();
         return;
     }
 
@@ -222,24 +258,44 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(temp_text_);
 
-    bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
+    bwt_tree_ = new WaveletTreeHuffman<char_type>(alphabet_num_);
     bwt_tree_->build(&bwt[0], length_);
 
     std::vector<char_type>().swap(bwt);
 
     // add the additional filter data to the doc_array_
-    for (size_t i = 0; i < temp_filter_data_.size(); ++i)
+    for (size_t i = 0; i < temp_filter_list_.size(); ++i)
     {
-        const FilterItemT &item = temp_filter_data_[i];
+        const FilterItemT &item = temp_filter_list_[i];
         da = std::copy(item.begin(), item.end(), da);
         //cout << "filter data added, id: " << i << ", doclist size: " << item.size() << endl;
     }
-    std::vector<FilterItemT>().swap(temp_filter_data_);
+    std::vector<FilterItemT>().swap(temp_filter_list_);
     doc_array_ = new WaveletMatrix<uint32_t>(docCount());
     da = (uint32_t *)&sa[0];
-    doc_array_->build(da, filter_doc_range_.getSum());
+    doc_array_->build(da, filter_delim_.getSum());
 
     std::vector<int32_t>().swap(sa);
+
+    aux_filter_delim_list_.resize(temp_aux_filter_list_.size());
+    for (size_t i = 0; i < temp_aux_filter_list_.size(); ++i)
+    {
+        std::vector<uint32_t> temp_docid_list;
+        for (size_t j = 0; j < temp_aux_filter_list_[i].size(); ++i)
+        {
+            FilterItemT &item = temp_aux_filter_list_[i][j];
+            for (size_t k = 0; k < item.size(); ++k)
+            {
+                temp_docid_list.push_back(--item[k]);
+            }
+            aux_filter_delim_list_[i].add(item.size());
+        }
+        aux_filter_delim_list_[i].build();
+
+        filter_array_list_.push_back(new WaveletMatrix<uint32_t>(docCount()));
+        filter_array_list_.back()->build(&temp_docid_list[0], temp_docid_list.size());
+    }
+    std::vector<std::vector<FilterItemT> >().swap(temp_aux_filter_list_);
 
     --length_;
 }
@@ -283,11 +339,20 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
 template <class CharT>
 bool FMIndex<CharT>::getFilterRange(const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
 {
-    if (//filter_id_range.first >= filter_doc_range_.size() ||
-            filter_id_range.second >= filter_doc_range_.size())
+    if (filter_id_range.second > filter_delim_.size())
         return false;
-    match_range.first = filter_doc_range_.prefixSum(filter_id_range.first + 1);
-    match_range.second = filter_doc_range_.prefixSum(filter_id_range.second + 1);
+    match_range.first = filter_delim_.prefixSum(filter_id_range.first + 1);
+    match_range.second = filter_delim_.prefixSum(filter_id_range.second + 1);
+    return true;
+}
+
+template <class CharT>
+bool FMIndex<CharT>::getAuxFilterRange(size_t filter_id, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
+{
+    if (filter_id >= aux_filter_delim_list_.size() || filter_id_range.second > aux_filter_delim_list_[filter_id].size())
+        return false;
+    match_range.first = aux_filter_delim_list_[filter_id].prefixSum(filter_id_range.first);
+    match_range.second = aux_filter_delim_list_[filter_id].prefixSum(filter_id_range.second);
     return true;
 }
 
@@ -457,9 +522,18 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
     doc_delim_.save(ostr);
-    filter_doc_range_.save(ostr);
+    filter_delim_.save(ostr);
+
     bwt_tree_->save(ostr);
     doc_array_->save(ostr);
+
+    size_t filter_count = aux_filter_delim_list_.size();
+    ostr.write((const char *)&filter_count, sizeof(filter_count));
+    for (size_t i = 0; i < filter_count; ++i)
+    {
+        aux_filter_delim_list_[i].save(ostr);
+        filter_array_list_[i]->save(ostr);
+    }
 }
 
 template <class CharT>
@@ -469,11 +543,23 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
     doc_delim_.load(istr);
-    filter_doc_range_.load(istr);
-    bwt_tree_ = getWaveletTree_<char_type>(alphabet_num_);
+    filter_delim_.load(istr);
+
+    bwt_tree_ = new WaveletTreeHuffman<char_type>(alphabet_num_);
     bwt_tree_->load(istr);
     doc_array_ = new WaveletMatrix<uint32_t>(docCount());
     doc_array_->load(istr);
+
+    size_t filter_count = 0;
+    istr.read((char *)&filter_count, sizeof(filter_count));
+    aux_filter_delim_list_.resize(filter_count);
+    filter_array_list_.resize(filter_count);
+    for (size_t i = 0; i < filter_count; ++i)
+    {
+        aux_filter_delim_list_[i].load(istr);
+        filter_array_list_[i] = new WaveletMatrix<uint32_t>(docCount());
+        filter_array_list_[i]->load(istr);
+    }
 }
 
 template <class CharT>
@@ -517,6 +603,52 @@ void FMIndex<CharT>::getTopKDocIdListByFilter(
     else
     {
         doc_array_->topKUnionWithFilters(filter_ranges, match_ranges, max_docs, res_list);
+    }
+
+    doclen_list.resize(res_list.size());
+    for (size_t i = 0; i < res_list.size(); ++i)
+    {
+        doclen_list[i] = doc_delim_.getVal(res_list[i].second++) - 1;
+    }
+}
+
+template <class CharT>
+void FMIndex<CharT>::getTopKDocIdListByAuxFilter(
+        const std::vector<size_t> &filter_ids,
+        const std::vector<std::vector<std::pair<size_t, size_t> > > &aux_filter_ranges,
+        const std::vector<std::pair<size_t, size_t> > &filter_ranges,
+        const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
+        const std::vector<double> &max_match_list,
+        size_t max_docs,
+        std::vector<std::pair<double, uint32_t> > &res_list,
+        std::vector<size_t> &doclen_list) const
+{
+    if (filter_ids.empty())
+    {
+        getTopKDocIdListByFilter(filter_ranges, match_ranges_list, max_match_list, max_docs, res_list, doclen_list);
+        return;
+    }
+
+    std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
+    for (size_t i = 0; i < match_ranges_list.size(); ++i)
+    {
+        match_ranges[i].get<0>() = match_ranges_list[i].first;
+        match_ranges[i].get<1>() = match_ranges_list[i].second;
+        match_ranges[i].get<2>() = max_match_list[i];
+    }
+
+    std::vector<FilterList<WaveletMatrix<uint32_t> > *> aux_filters(filter_ids.size());
+    for (size_t i = 0; i < filter_ids.size(); ++i)
+    {
+        WaveletMatrix<uint32_t> *wlt = filter_array_list_[filter_ids[i]];
+        aux_filters[i] = new FilterList<WaveletMatrix<uint32_t> >(wlt, wlt->getRoot(), aux_filter_ranges[i]);
+    }
+
+    doc_array_->topKUnionWithAuxFilters(aux_filters, filter_ranges, match_ranges, max_docs, res_list);
+
+    for (size_t i = 0; i < filter_ids.size(); ++i)
+    {
+        delete aux_filters[i];
     }
 
     doclen_list.resize(res_list.size());

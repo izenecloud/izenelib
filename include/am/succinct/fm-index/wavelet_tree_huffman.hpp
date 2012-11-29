@@ -57,6 +57,7 @@ public:
             std::vector<std::pair<double, char_type> > &results) const;
 
     size_t getOcc(char_type c) const;
+    WaveletTreeNode *getRoot() const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -872,6 +873,12 @@ template <class CharT>
 size_t WaveletTreeHuffman<CharT>::getOcc(char_type c) const
 {
     return occ_[c];
+}
+
+template <class CharT>
+WaveletTreeNode *WaveletTreeHuffman<CharT>::getRoot() const
+{
+    return root_;
 }
 
 template <class CharT>

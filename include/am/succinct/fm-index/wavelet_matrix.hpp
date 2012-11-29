@@ -56,6 +56,7 @@ public:
             std::vector<std::pair<double, char_type> > &results) const;
 
     size_t getOcc(char_type c) const;
+    WaveletTreeNode *getRoot() const;
 
     size_t length() const;
     size_t allocSize() const;
@@ -777,6 +778,13 @@ template <class CharT>
 size_t WaveletMatrix<CharT>::getOcc(char_type c) const
 {
     return occ_.prefixSum(c);
+}
+
+template <class CharT>
+WaveletTreeNode *WaveletMatrix<CharT>::getRoot() const
+{
+    if (nodes_.empty()) return NULL;
+    else return nodes_[0];
 }
 
 template <class CharT>
