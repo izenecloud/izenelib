@@ -281,7 +281,7 @@ void FMIndex<CharT>::build()
     for (size_t i = 0; i < temp_aux_filter_list_.size(); ++i)
     {
         std::vector<uint32_t> temp_docid_list;
-        for (size_t j = 0; j < temp_aux_filter_list_[i].size(); ++i)
+        for (size_t j = 0; j < temp_aux_filter_list_[i].size(); ++j)
         {
             FilterItemT &item = temp_aux_filter_list_[i][j];
             for (size_t k = 0; k < item.size(); ++k)
