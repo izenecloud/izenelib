@@ -258,6 +258,13 @@ public:
 
     void addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
     {
+        if (aux_filter)
+        {
+            if (!aux_filter->filters_.empty())
+                aux_filters_.push_back(aux_filter);
+            else
+                delete aux_filter;
+        }
     }
 
     void addPattern(const boost::tuple<size_t, size_t, double> &pattern)
