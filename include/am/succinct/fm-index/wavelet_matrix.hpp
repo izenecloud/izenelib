@@ -647,8 +647,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             zero_end = (*it)->tree_->zero_counts_[level];
             node = (*it)->node_;
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
+            zero_filter = new FilterList<self_type>((*it)->tree_, (*it)->tree_->nodes_[level + 1], (*it)->filters_.size());
+            one_filter = new FilterList<self_type>((*it)->tree_, (*it)->tree_->nodes_[level + 1], (*it)->filters_.size());
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
@@ -660,22 +660,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                 one_filter->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
             }
 
-            if (zero_filter->filters_.empty())
-            {
-                delete zero_filter;
-            }
-            else
-            {
-                zero_ranges->addAuxFilter(zero_filter);
-            }
-            if (one_filter->filters_.empty())
-            {
-                delete one_filter;
-            }
-            else
-            {
-                one_ranges->addAuxFilter(one_filter);
-            }
+            zero_ranges->addAuxFilter(zero_filter);
+            one_ranges->addAuxFilter(one_filter);
         }
 
         zero_end = zero_counts_[level];

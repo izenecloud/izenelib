@@ -141,8 +141,7 @@ FMIndex<CharT>::~FMIndex()
 
     for (size_t i = 0; i < filter_array_list_.size(); ++i)
     {
-        if (filter_array_list_[i])
-            delete filter_array_list_[i];
+        delete filter_array_list_[i];
     }
 }
 
@@ -284,13 +283,15 @@ void FMIndex<CharT>::build()
         for (size_t j = 0; j < temp_aux_filter_list_[i].size(); ++j)
         {
             FilterItemT &item = temp_aux_filter_list_[i][j];
-            for (size_t k = 0; k < item.size(); ++k)
-            {
-                temp_docid_list.push_back(--item[k]);
-            }
+            temp_docid_list.insert(temp_docid_list.end(), item.begin(), item.end());
             aux_filter_delim_list_[i].add(item.size());
         }
         aux_filter_delim_list_[i].build();
+
+        for (size_t j = 0; j < temp_docid_list.size(); ++j)
+        {
+            --temp_docid_list[j];
+        }
 
         cout << "aux filter " << i << " total length: " << aux_filter_delim_list_[i].getSum() << endl;
         filter_array_list_.push_back(new WaveletMatrix<uint32_t>(docCount()));
