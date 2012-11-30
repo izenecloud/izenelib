@@ -292,6 +292,7 @@ void FMIndex<CharT>::build()
         }
         aux_filter_delim_list_[i].build();
 
+        cout << "aux filter " << i << " total length: " << aux_filter_delim_list_[i].getSum() << endl;
         filter_array_list_.push_back(new WaveletMatrix<uint32_t>(docCount()));
         filter_array_list_.back()->build(&temp_docid_list[0], temp_docid_list.size());
     }
@@ -646,10 +647,11 @@ void FMIndex<CharT>::getTopKDocIdListByAuxFilter(
 
     doc_array_->topKUnionWithAuxFilters(aux_filters, filter_ranges, match_ranges, max_docs, res_list);
 
-    for (size_t i = 0; i < filter_ids.size(); ++i)
-    {
-        delete aux_filters[i];
-    }
+    // aux_filters will be deleted by topKUnionWithAuxFilters
+    //for (size_t i = 0; i < filter_ids.size(); ++i)
+    //{
+    //    delete aux_filters[i];
+    //}
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
