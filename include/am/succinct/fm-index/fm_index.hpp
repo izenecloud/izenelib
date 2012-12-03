@@ -1,6 +1,7 @@
 #ifndef _FM_INDEX_FM_INDEX_HPP
 #define _FM_INDEX_FM_INDEX_HPP
 
+#include "fm_external_filter.hpp"
 #include "wavelet_tree_huffman.hpp"
 #include "wavelet_tree_binary.hpp"
 #include "wavelet_matrix.hpp"
@@ -8,7 +9,6 @@
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/sdarray/SDArray.hpp>
 #include <am/succinct/sais/sais.hxx>
-#include <am/leveldb/Table.h>
 
 #include <algorithm>
 
@@ -114,15 +114,13 @@ private:
 
     sdarray::SDArray doc_delim_;
     sdarray::SDArray filter_delim_;
-    std::vector<sdarray::SDArray> aux_filter_delim_list_;
 
     WaveletTreeHuffman<char_type> *bwt_tree_;
     WaveletMatrix<uint32_t> *doc_array_;
-    std::vector<WaveletMatrix<uint32_t> *> filter_array_list_;
 
     std::vector<char_type> temp_text_;
     std::vector<FilterItemT> temp_filter_list_;
-    std::vector<std::vector<FilterItemT> > temp_aux_filter_list_;
+    FMExternalFilter<char_type>  external_filter_;
 };
 
 template <class CharT>
@@ -138,11 +136,6 @@ FMIndex<CharT>::~FMIndex()
 {
     if (bwt_tree_) delete bwt_tree_;
     if (doc_array_) delete doc_array_;
-
-    for (size_t i = 0; i < filter_array_list_.size(); ++i)
-    {
-        delete filter_array_list_[i];
-    }
 }
 
 template <class CharT>
@@ -153,7 +146,6 @@ void FMIndex<CharT>::clear()
 
     doc_delim_.clear();
     filter_delim_.clear();
-    aux_filter_delim_list_.clear();
 
     if (bwt_tree_)
     {
@@ -166,15 +158,9 @@ void FMIndex<CharT>::clear()
         doc_array_ = NULL;
     }
 
-    for (size_t i = 0; i < filter_array_list_.size(); ++i)
-    {
-        delete filter_array_list_[i];
-    }
-    filter_array_list_.clear();
-
     std::vector<char_type>().swap(temp_text_);
     std::vector<FilterItemT>().swap(temp_filter_list_);
-    std::vector<std::vector<FilterItemT> >().swap(temp_aux_filter_list_);
+    external_filter_.clear();
 }
 
 template <class CharT>
@@ -193,7 +179,7 @@ void FMIndex<CharT>::setFilterList(std::vector<FilterItemT> &filter_list)
 template <class CharT>
 void FMIndex<CharT>::setAuxFilterList(std::vector<std::vector<FilterItemT> > &filter_list)
 {
-    temp_aux_filter_list_.swap(filter_list);
+    external_filter_.setAuxFilterList(filter_list);
 }
 
 template <class CharT>
@@ -276,28 +262,8 @@ void FMIndex<CharT>::build()
 
     std::vector<int32_t>().swap(sa);
 
-    aux_filter_delim_list_.resize(temp_aux_filter_list_.size());
-    for (size_t i = 0; i < temp_aux_filter_list_.size(); ++i)
-    {
-        std::vector<uint32_t> temp_docid_list;
-        for (size_t j = 0; j < temp_aux_filter_list_[i].size(); ++j)
-        {
-            FilterItemT &item = temp_aux_filter_list_[i][j];
-            temp_docid_list.insert(temp_docid_list.end(), item.begin(), item.end());
-            aux_filter_delim_list_[i].add(item.size());
-        }
-        aux_filter_delim_list_[i].build();
-
-        for (size_t j = 0; j < temp_docid_list.size(); ++j)
-        {
-            --temp_docid_list[j];
-        }
-
-        cout << "aux filter " << i << " total length: " << aux_filter_delim_list_[i].getSum() << endl;
-        filter_array_list_.push_back(new WaveletMatrix<uint32_t>(docCount()));
-        filter_array_list_.back()->build(&temp_docid_list[0], temp_docid_list.size());
-    }
-    std::vector<std::vector<FilterItemT> >().swap(temp_aux_filter_list_);
+    external_filter_.setDocCount(docCount());
+    external_filter_.build();
 
     --length_;
 }
@@ -351,11 +317,7 @@ bool FMIndex<CharT>::getFilterRange(const FilterRangeT &filter_id_range, FilterR
 template <class CharT>
 bool FMIndex<CharT>::getAuxFilterRange(size_t filter_id, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
 {
-    if (filter_id >= aux_filter_delim_list_.size() || filter_id_range.second > aux_filter_delim_list_[filter_id].size())
-        return false;
-    match_range.first = aux_filter_delim_list_[filter_id].prefixSum(filter_id_range.first);
-    match_range.second = aux_filter_delim_list_[filter_id].prefixSum(filter_id_range.second);
-    return true;
+    return external_filter_.getAuxFilterRange(filter_id, filter_id_range, match_range);
 }
 
 template <class CharT>
@@ -528,14 +490,7 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
 
     bwt_tree_->save(ostr);
     doc_array_->save(ostr);
-
-    size_t filter_count = aux_filter_delim_list_.size();
-    ostr.write((const char *)&filter_count, sizeof(filter_count));
-    for (size_t i = 0; i < filter_count; ++i)
-    {
-        aux_filter_delim_list_[i].save(ostr);
-        filter_array_list_[i]->save(ostr);
-    }
+    external_filter_.save(ostr);
 }
 
 template <class CharT>
@@ -551,17 +506,8 @@ void FMIndex<CharT>::load(std::istream &istr)
     bwt_tree_->load(istr);
     doc_array_ = new WaveletMatrix<uint32_t>(docCount());
     doc_array_->load(istr);
-
-    size_t filter_count = 0;
-    istr.read((char *)&filter_count, sizeof(filter_count));
-    aux_filter_delim_list_.resize(filter_count);
-    filter_array_list_.resize(filter_count);
-    for (size_t i = 0; i < filter_count; ++i)
-    {
-        aux_filter_delim_list_[i].load(istr);
-        filter_array_list_[i] = new WaveletMatrix<uint32_t>(docCount());
-        filter_array_list_[i]->load(istr);
-    }
+    external_filter_.setDocCount(docCount());
+    external_filter_.load(istr);
 }
 
 template <class CharT>
@@ -642,7 +588,8 @@ void FMIndex<CharT>::getTopKDocIdListByAuxFilter(
     std::vector<FilterList<WaveletMatrix<uint32_t> > *> aux_filters(filter_ids.size());
     for (size_t i = 0; i < filter_ids.size(); ++i)
     {
-        WaveletMatrix<uint32_t> *wlt = filter_array_list_[filter_ids[i]];
+        assert(filter_ids[i] < external_filter_.filterNum());
+        const WaveletMatrix<uint32_t> *wlt = external_filter_.getAuxFilterArray(filter_ids[i]);
         aux_filters[i] = new FilterList<WaveletMatrix<uint32_t> >(wlt, wlt->getRoot(), aux_filter_ranges[i]);
     }
 
