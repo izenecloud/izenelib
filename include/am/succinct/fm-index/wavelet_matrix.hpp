@@ -677,12 +677,12 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             one_ranges->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
         }
 
-        if (zero_ranges->filters_.empty() && zero_ranges->aux_filters_.empty())
+        if (zero_ranges->aux_filters_.size() < top_ranges->aux_filters_.size())
         {
             delete zero_ranges;
             zero_ranges = NULL;
         }
-        if (one_ranges->filters_.empty() && one_ranges->aux_filters_.empty())
+        if (one_ranges->aux_filters_.size() < top_ranges->aux_filters_.size())
         {
             delete one_ranges;
             one_ranges = NULL;

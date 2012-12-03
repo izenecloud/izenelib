@@ -74,10 +74,14 @@ public:
 
     ~PatternList() {}
 
-    void addPattern(const boost::tuple<size_t, size_t, double> &pattern)
+    bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
+        {
             patterns_.push_back(pattern);
+            return true;
+        }
+        return false;
     }
 
     void calcScore()
@@ -136,16 +140,24 @@ public:
 
     ~FilteredPatternList() {}
 
-    void addFilter(const std::pair<size_t, size_t> &filter)
+    bool addFilter(const std::pair<size_t, size_t> &filter)
     {
         if (filter.first < filter.second)
+        {
             filters_.push_back(filter);
+            return true;
+        }
+        return false;
     }
 
-    void addPattern(const boost::tuple<size_t, size_t, double> &pattern)
+    bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
+        {
             patterns_.push_back(pattern);
+            return true;
+        }
+        return false;
     }
 
     void calcScore()
@@ -190,10 +202,14 @@ public:
 
     ~FilterList() {}
 
-    void addFilter(const std::pair<size_t, size_t> &filter)
+    bool addFilter(const std::pair<size_t, size_t> &filter)
     {
         if (filter.first < filter.second)
+        {
             filters_.push_back(filter);
+            return true;
+        }
+        return false;
     }
 
 public:
@@ -250,27 +266,41 @@ public:
         }
     }
 
-    void addFilter(const std::pair<size_t, size_t> &filter)
+    bool addFilter(const std::pair<size_t, size_t> &filter)
     {
         if (filter.first < filter.second)
+        {
             filters_.push_back(filter);
+            return true;
+        }
+        return false;
     }
 
-    void addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
+    bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
     {
         if (aux_filter)
         {
             if (!aux_filter->filters_.empty())
+            {
                 aux_filters_.push_back(aux_filter);
+                return true;
+            }
             else
+            {
                 delete aux_filter;
+            }
         }
+        return false;
     }
 
-    void addPattern(const boost::tuple<size_t, size_t, double> &pattern)
+    bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
+        {
             patterns_.push_back(pattern);
+            return true;
+        }
+        return false;
     }
 
     void calcScore()
