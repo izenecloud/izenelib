@@ -15,8 +15,8 @@ namespace util
 namespace compression
 {
 
-
 //baseListForOnlyCompBlocks
+Codec CompressedSet::codec;
 CompressedSet::CompressedSet(const CompressedSet& other)
     :  currentNoCompBlock(DEFAULT_BATCH_SIZE, 0)
 {
