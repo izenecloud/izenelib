@@ -28,7 +28,7 @@ static double getScore(const std::vector<boost::tuple<size_t, size_t, double> > 
 
     return score;
 }
-
+/*
 static struct InvalidRange
 {
     bool operator()(const std::pair<size_t, size_t> &range) const
@@ -41,7 +41,7 @@ static struct InvalidRange
         return range.get<0>() >= range.get<1>();
     }
 } InvalidRange;
-
+*/
 }
 
 class PatternList
@@ -226,18 +226,16 @@ public:
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
             const std::vector<FilterList<WaveletTreeType> *> &aux_filters,
-            const std::vector<std::pair<size_t, size_t> > &filters,
             const std::vector<boost::tuple<size_t, size_t, double> > &patterns)
         : level_(level)
         , sym_(sym)
         , score_()
         , node_(node)
         , aux_filters_(aux_filters)
-        , filters_(filters)
         , patterns_(patterns)
     {
 //      filters_.erase(std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange), filters_.end());
-        if (!aux_filters_.empty() || !filters_.empty())
+        if (!aux_filters_.empty())
         {
 //          patterns_.erase(std::remove_if(patterns_.begin(), patterns_.end(), detail::InvalidRange), patterns_.end());
             score_ = detail::getScore(patterns_);
@@ -247,14 +245,13 @@ public:
     AuxFilteredPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            size_t aux_filter_count, size_t filter_count, size_t pattern_count)
+            size_t aux_filter_count, size_t pattern_count)
         : level_(level)
         , sym_(sym)
         , score_()
         , node_(node)
     {
         aux_filters_.reserve(aux_filter_count);
-        filters_.reserve(filter_count);
         patterns_.reserve(pattern_count);
     }
 
@@ -264,16 +261,6 @@ public:
         {
             delete aux_filters_[i];
         }
-    }
-
-    bool addFilter(const std::pair<size_t, size_t> &filter)
-    {
-        if (filter.first < filter.second)
-        {
-            filters_.push_back(filter);
-            return true;
-        }
-        return false;
     }
 
     bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
@@ -319,7 +306,6 @@ public:
     double score_;
     const WaveletTreeNode *node_;
     std::vector<FilterList<WaveletTreeType> *> aux_filters_;
-    std::vector<std::pair<size_t, size_t> > filters_;
     std::vector<boost::tuple<size_t, size_t, double> > patterns_;
 };
 
