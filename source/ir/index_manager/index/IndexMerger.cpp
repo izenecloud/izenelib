@@ -279,7 +279,7 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                 {
                     //pFieldInfo = pColInfo->getFieldsInfo()->getField(fieldid);///get field information
                     pFieldInfo = pColInfo->getFieldsInfo()->next();
-                    if (pFieldInfo)
+                    if (pFieldInfo &&! pFieldInfo->isEmpty())
                     {
                         if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())///it's a index field
                         {
