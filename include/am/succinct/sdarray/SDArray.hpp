@@ -83,6 +83,14 @@ public:
 
     void save(std::ostream& os) const;
     void load(std::istream& is);
+    void swap(SDArray& other)
+    {
+        std::swap(size_, other.size_);
+        std::swap(sum_, other.sum_);
+        Ltable_.swap( other.Ltable_ );
+        B_.swap( other.B_ );
+        vals_.swap( other.vals_ );
+    }
 
 private:
     void packHighs_(size_t begPos, size_t width);
