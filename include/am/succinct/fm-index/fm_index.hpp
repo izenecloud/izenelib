@@ -60,7 +60,7 @@ public:
             std::vector<size_t> &doclen_list) const;
 
     void getTopKDocIdListByFilter(
-            const std::vector<size_t> &filter_ids,
+            const std::vector<size_t> &prop_ids,
             const std::vector<std::vector<std::pair<size_t, size_t> > > &filter_ranges,
             const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
             const std::vector<double> &max_match_list,
@@ -542,7 +542,7 @@ void FMIndex<CharT>::getTopKDocIdList(
 
 template <class CharT>
 void FMIndex<CharT>::getTopKDocIdListByFilter(
-        const std::vector<size_t> &filter_ids,
+        const std::vector<size_t> &prop_ids,
         const std::vector<std::vector<std::pair<size_t, size_t> > > &filter_ranges,
         const std::vector<std::pair<size_t, size_t> > &match_ranges_list,
         const std::vector<double> &max_match_list,
@@ -558,16 +558,16 @@ void FMIndex<CharT>::getTopKDocIdListByFilter(
         match_ranges[i].get<2>() = max_match_list[i];
     }
 
-    if (filter_ids.empty())
+    if (prop_ids.empty())
     {
         doc_array_->topKUnion(match_ranges, max_docs, res_list);
     }
     else
     {
-        std::vector<FilterList<WaveletMatrix<uint32_t> > *> filters(filter_ids.size());
-        for (size_t i = 0; i < filter_ids.size(); ++i)
+        std::vector<FilterList<WaveletMatrix<uint32_t> > *> filters(prop_ids.size());
+        for (size_t i = 0; i < prop_ids.size(); ++i)
         {
-            const WaveletMatrix<uint32_t> *wlt = filter_array_list_[filter_ids[i]].get();
+            const WaveletMatrix<uint32_t> *wlt = filter_array_list_[prop_ids[i]].get();
             filters[i] = new FilterList<WaveletMatrix<uint32_t> >(wlt, wlt->getRoot(), filter_ranges[i]);
         }
 
