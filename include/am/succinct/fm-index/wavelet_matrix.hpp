@@ -50,7 +50,6 @@ public:
 
     void topKUnionWithAuxFilters(
             const std::vector<FilterList<self_type> *> &aux_filters,
-            const std::vector<std::pair<size_t, size_t> > &filters,
             const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
@@ -599,7 +598,6 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
 template <class CharT>
 void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
         const std::vector<FilterList<self_type> *> &aux_filters,
-        const std::vector<std::pair<size_t, size_t> > &filters,
         const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
@@ -607,7 +605,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
     if (topK == 0) return;
 
     boost::priority_deque<AuxFilteredPatternList<self_type> *> ranges_queue;
-    ranges_queue.push(new AuxFilteredPatternList<self_type>(0, (char_type)0, nodes_[0], aux_filters, filters, ranges));
+    ranges_queue.push(new AuxFilteredPatternList<self_type>(0, (char_type)0, nodes_[0], aux_filters, ranges));
 
     if (ranges_queue.top()->score_ == 0.0)
     {
@@ -638,8 +636,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         level = top_ranges->level_;
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_ | (char_type)1 << level, top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
+        one_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_ | (char_type)1 << level, top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -647,8 +645,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             zero_end = (*it)->tree_->zero_counts_[level];
             node = (*it)->node_;
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, (*it)->tree_->nodes_[level + 1], (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, (*it)->tree_->nodes_[level + 1], (*it)->filters_.size());
+            zero_filter = new FilterList<self_type>((*it)->tree_, node->left_, (*it)->filters_.size());
+            one_filter = new FilterList<self_type>((*it)->tree_, node->right_, (*it)->filters_.size());
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
@@ -660,38 +658,26 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                 one_filter->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
             }
 
-            zero_ranges->addAuxFilter(zero_filter);
-            one_ranges->addAuxFilter(one_filter);
+            if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
+            {
+                delete zero_ranges;
+                zero_ranges = NULL;
+            }
+            if (one_ranges && !one_ranges->addAuxFilter(one_filter))
+            {
+                delete one_ranges;
+                one_ranges = NULL;
+            }
         }
 
-        zero_end = zero_counts_[level];
-        node = top_ranges->node_;
-
-        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
-                it != top_ranges->filters_.end(); ++it)
-        {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
-
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
-        }
-
-        if (zero_ranges->filters_.empty() && zero_ranges->aux_filters_.empty())
-        {
-            delete zero_ranges;
-            zero_ranges = NULL;
-        }
-        if (one_ranges->filters_.empty() && one_ranges->aux_filters_.empty())
-        {
-            delete one_ranges;
-            one_ranges = NULL;
-        }
         if (!zero_ranges && !one_ranges)
         {
             delete top_ranges;
             continue;
         }
+
+        zero_end = zero_counts_[level];
+        node = top_ranges->node_;
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
