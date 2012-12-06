@@ -69,6 +69,11 @@ public:
     {
         return main_docarray_list_.size();
     }
+    void swapMainDocArray(FMDocArrayMgr& other)
+    {
+        std::swap(doc_count_, other.doc_count_);
+        main_docarray_list_.swap(other.main_docarray_list_);
+    }
 
     void buildFilter();
 

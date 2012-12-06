@@ -64,6 +64,8 @@ public:
             std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
 
+    void getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const;
+
     sdarray::SDArray& getDocDelim()
     {
         return doc_delim_;
@@ -475,6 +477,16 @@ void FMIndex<CharT>::getTopKDocIdList(
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         doclen_list[i] = doc_delim_.getVal(res_list[i].second++) - 1;
+    }
+}
+
+template <class CharT>
+void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const
+{
+    doclen_list.resize(docid_list.size());
+    for (size_t i = 0; i < docid_list.size(); ++i)
+    {
+        doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
     }
 }
 
