@@ -141,6 +141,8 @@ public:
 
     bool isAnalyzed() { return FIELD_ANALYZED(fieldFlag_); }
 
+    bool isEmpty() { return indexOffset_ == -1;}
+
     void reset()
     {
         distTerms_ = 0;

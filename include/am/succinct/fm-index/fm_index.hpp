@@ -41,7 +41,6 @@ public:
 
     size_t backwardSearch(const char_type *pattern, size_t len, MatchRangeT &match_range) const;
     size_t longestSuffixMatch(const char_type *patter, size_t len, MatchRangeListT &match_ranges) const;
-
     size_t length() const;
     //size_t allocSize() const;
 
