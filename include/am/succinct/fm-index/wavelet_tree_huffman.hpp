@@ -153,7 +153,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
     {
-        if (leaves_[i])
+        if (leaves_[i] && leaves_[i]->parent_)
         {
             if (leaves_[i]->parent_->left_ == leaves_[i])
             {
