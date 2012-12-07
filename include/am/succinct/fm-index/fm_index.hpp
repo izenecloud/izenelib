@@ -145,6 +145,12 @@ size_t FMIndex<CharT>::docCount() const
 template <class CharT>
 void FMIndex<CharT>::build()
 {
+    if(temp_text_.empty())
+    {
+        cout << "empty text list!" << endl;
+        clear();
+        return;
+    }
     temp_text_.push_back('\0');
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
@@ -240,7 +246,7 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
 template <class CharT>
 size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, MatchRangeT &match_range) const
 {
-    if (len == 0) return 0;
+    if (len == 0 || bwt_tree_ == NULL) return 0;
 
     size_t orig_len = len;
 
@@ -273,7 +279,7 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, Matc
 template <class CharT>
 size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, MatchRangeListT &match_ranges) const
 {
-    if (len == 0) return 0;
+    if (len == 0 || bwt_tree_ == NULL) return 0;
 
     std::pair<size_t, size_t> match_range;
     std::vector<std::pair<size_t, size_t> > prune_bounds(len);
@@ -358,15 +364,17 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&length_,       sizeof(length_));
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    bwt_tree_->save(ostr);
+    if(docCount() == 0)
+        return;
+    doc_delim_.save(ostr);
+
+    if(bwt_tree_)
+        bwt_tree_->save(ostr);
     // the doc array may be managed by FMDocArrayMgr, so 
     // need check whether the doc array is valid.
     assert((doc_delim_.size() == 0 && doc_array_ == NULL) ||
         (doc_delim_.size() > 0 && doc_array_ != NULL));
 
-    if(docCount() == 0)
-        return;
-    doc_delim_.save(ostr);
     if(doc_array_)
         doc_array_->save(ostr);
 }
@@ -377,12 +385,12 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&length_,       sizeof(length_));
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
-    bwt_tree_->load(istr);
-
     doc_delim_.load(istr);
+
     if(docCount() > 0)
     {
+        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+        bwt_tree_->load(istr);
         doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
         doc_array_->load(istr);
     }
