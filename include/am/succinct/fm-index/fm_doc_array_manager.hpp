@@ -82,6 +82,7 @@ public:
 
     bool getFilterRange(size_t filter_index, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
 
+    void getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const;
     void getMatchedDocIdList(size_t match_index, bool match_in_filter, const FilterRangeT &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     void getMatchedDocIdList(size_t match_index, bool match_in_filter, const FilterRangeListT &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
@@ -469,6 +470,26 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         res_list[i].second++;
     }
 }
+
+template <class CharT>
+void FMDocArrayMgr<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const
+{
+    doclen_list.resize(docid_list.size(), 0);
+    for(size_t j= 0; j < main_docarray_list_.size(); ++j)
+    {
+        const DocArrayItemT& item = getDocArrayItem(j, false);
+        for (size_t i = 0; i < docid_list.size(); ++i)
+        {
+            if(docid_list[i] - 1 >= item.doc_delim.size())
+            {
+                cout << "docid is invalid : %d " << docid_list[i] << endl;
+                continue;
+            }
+            doclen_list[i] += item.doc_delim.getVal(docid_list[i] - 1) - 1;
+        }
+    }
+}
+
 
 }  // end of namespace fm_index
 } // end of namespace succinct
