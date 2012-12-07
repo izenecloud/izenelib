@@ -175,7 +175,6 @@ void FMIndex<CharT>::build()
     }
     doc_delim_.build();
 
-
     std::vector<char_type> bwt(length_);
     uint32_t *da = (uint32_t *)&sa[0];
     for (size_t i = 0; i < length_; ++i)
@@ -183,7 +182,7 @@ void FMIndex<CharT>::build()
         if (sa[i] == 0)
         {
             bwt[i] = temp_text_[length_ - 1];
-            da[i] = docCount();
+            da[i] = 0;
         }
         else
         {
@@ -434,6 +433,11 @@ void FMIndex<CharT>::getMatchedDocIdList(
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
+        if(docid_list[i] >= doc_delim_.size())
+        {
+            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            continue;
+        }
         doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
     }
 }
@@ -461,6 +465,11 @@ void FMIndex<CharT>::getMatchedDocIdList(
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
+        if(docid_list[i] >= doc_delim_.size())
+        {
+            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            continue;
+        }
         doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
     }
 }
@@ -488,6 +497,11 @@ void FMIndex<CharT>::getTopKDocIdList(
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
     {
+        if(res_list[i].second >= doc_delim_.size())
+        {
+            cout << "docid is invalid : %d " << res_list[i].second << endl;
+            continue;
+        }
         doclen_list[i] = doc_delim_.getVal(res_list[i].second++) - 1;
     }
 }
@@ -498,6 +512,11 @@ void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std:
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
+        if(docid_list[i] - 1 >= doc_delim_.size())
+        {
+            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            continue;
+        }
         doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;
     }
 }
