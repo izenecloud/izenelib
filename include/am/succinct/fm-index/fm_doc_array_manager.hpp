@@ -39,6 +39,7 @@ public:
     ~FMDocArrayMgr();
 
     void clear();
+    void clearMainDocArray();
     void setFilterList(std::vector<std::vector<FilterItemT> > &filter_list);
     inline size_t getDocCount() const 
     {
@@ -154,9 +155,15 @@ FMDocArrayMgr<CharT>::~FMDocArrayMgr()
 template <class CharT>
 void FMDocArrayMgr<CharT>::clear()
 {
-    doc_count_ = 0;
-    std::vector<std::vector<FilterItemT> >().swap(temp_filter_list_);
+    clearMainDocArray();
     filter_docarray_list_.clear();
+    std::vector<std::vector<FilterItemT> >().swap(temp_filter_list_);
+}
+
+template <class CharT>
+void FMDocArrayMgr<CharT>::clearMainDocArray()
+{
+    doc_count_ = 0;
     main_docarray_list_.clear();
 }
 
