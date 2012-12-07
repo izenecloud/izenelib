@@ -364,12 +364,13 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&length_,       sizeof(length_));
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    if(docCount() == 0)
-        return;
-    doc_delim_.save(ostr);
-
     if(bwt_tree_)
+    {
+        assert(length_ > 0 && alphabet_num_ > 0);
         bwt_tree_->save(ostr);
+    }
+
+    doc_delim_.save(ostr);
     // the doc array may be managed by FMDocArrayMgr, so 
     // need check whether the doc array is valid.
     assert((doc_delim_.size() == 0 && doc_array_ == NULL) ||
@@ -385,12 +386,15 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&length_,       sizeof(length_));
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
+    if(length_ > 0 && alphabet_num_ > 0)
+    {
+        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+        bwt_tree_->load(istr);
+    }
     doc_delim_.load(istr);
 
     if(docCount() > 0)
     {
-        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
-        bwt_tree_->load(istr);
         doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
         doc_array_->load(istr);
     }
