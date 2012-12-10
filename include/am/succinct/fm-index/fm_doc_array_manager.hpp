@@ -25,7 +25,7 @@ public:
     typedef std::pair<size_t, size_t> FilterRangeT;
     typedef std::vector<FilterRangeT> FilterRangeListT;
     typedef std::vector<uint32_t> FilterItemT;
-    typedef WaveletMatrix<uint32_t>  DocArrayWaveletT;
+    typedef WaveletMatrix<uint32_t> DocArrayWaveletT;
 
     struct DocArrayItemT
     {

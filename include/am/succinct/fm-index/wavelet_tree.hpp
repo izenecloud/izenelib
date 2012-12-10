@@ -67,14 +67,12 @@ public:
 
     virtual void save(std::ostream &ostr) const
     {
-        ostr.write((const char *)&alphabet_num_,     sizeof(alphabet_num_));
-        ostr.write((const char *)&alphabet_bit_num_, sizeof(alphabet_bit_num_));
+        ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
     }
 
     virtual void load(std::istream &istr)
     {
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
-        istr.read((char *)&alphabet_bit_num_, sizeof(alphabet_bit_num_));
     }
 
     static size_t getAlphabetNum(const char_type *char_seq, size_t len)
