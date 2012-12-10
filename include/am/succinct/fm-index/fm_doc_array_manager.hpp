@@ -345,7 +345,12 @@ void FMDocArrayMgr<CharT>::getMatchedDocIdList(
         return;
     doc_array_item.doc_array_ptr->intersect(ranges, 1, max_docs, docid_list);
 
-    doclen_list.resize(docid_list.size());
+    doclen_list.resize(docid_list.size(), 0);
+    if(match_in_filter)
+    {
+        // in filter doc array ,the doclen is not available
+        return;
+    }
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
         doclen_list[i] = doc_array_item.doc_delim.getVal(docid_list[i]++) - 1;
@@ -377,7 +382,13 @@ void FMDocArrayMgr<CharT>::getMatchedDocIdList(
     std::sort(docid_list.begin(), docid_list.end());
     docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
 
-    doclen_list.resize(docid_list.size());
+    doclen_list.resize(docid_list.size(), 0);
+
+    if(match_in_filter)
+    {
+        // in filter doc array ,the doclen is not available
+        return;
+    }
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
         doclen_list[i] = doc_array_item.doc_delim.getVal(docid_list[i]++) - 1;
@@ -410,7 +421,13 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
 
     doc_array_item.doc_array_ptr->topKUnion(match_ranges, max_docs, res_list);
 
-    doclen_list.resize(res_list.size());
+    doclen_list.resize(res_list.size(), 0);
+
+    if(match_in_filter)
+    {
+        // in filter doc array ,the doclen is not available
+        return;
+    }
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         doclen_list[i] = doc_array_item.doc_delim.getVal(res_list[i].second++) - 1;
