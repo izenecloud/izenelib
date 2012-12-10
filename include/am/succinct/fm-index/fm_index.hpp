@@ -516,7 +516,7 @@ void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std:
     doclen_list.resize(docid_list.size(), 0);
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        if (docid_list[i] > doc_delim_.size())
+        if (docid_list[i] - 1 >= doc_delim_.size())
         {
             std::cout << "docid is invalid : %d " << docid_list[i] << std::endl;
             continue;

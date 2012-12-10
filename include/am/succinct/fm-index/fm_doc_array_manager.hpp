@@ -286,11 +286,10 @@ void FMDocArrayMgr<CharT>::load(std::istream &istr)
     main_docarray_list_.resize(main_count);
     for (size_t i = 0; i < main_count; ++i)
     {
-        main_docarray_list_[i].doc_delim.load(istr);
+        main_docarray_list_[i].load(istr, doc_count_);
         assert(main_docarray_list_[i].doc_delim.size() == doc_count_);
         if (main_docarray_list_[i].doc_delim.size() != doc_count_)
             throw -1;
-        main_docarray_list_[i].load(istr, doc_count_);
     }
 }
 
