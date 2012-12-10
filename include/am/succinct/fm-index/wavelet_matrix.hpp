@@ -143,7 +143,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
         zero_counts_[i] = prev_begin_pos[bit_mask];
     }
 
-    for (size_t i = 1; i <= alphabet_num_; ++i)
+    for (size_t i = 1; i <= this->alphabet_num_; ++i)
     {
         occ_.add(node_begin_pos[i]);
     }
