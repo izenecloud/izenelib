@@ -75,7 +75,6 @@ private:
             std::vector<char_type> &results) const;
 
 private:
-    size_t alphabet_bit_num_;
     sdarray::SDArray occ_;
     std::vector<WaveletTreeNode *> nodes_;
 };
@@ -83,7 +82,6 @@ private:
 template <class CharT>
 WaveletTreeBinary<CharT>::WaveletTreeBinary(size_t alphabet_num)
     : WaveletTree<CharT>(alphabet_num)
-    , alphabet_bit_num_()
 {
 }
 
@@ -101,20 +99,20 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
 
-    alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
-    std::vector<std::vector<size_t> > beg_poses(alphabet_bit_num_ + 1);
+    std::vector<std::vector<size_t> > beg_poses(this->alphabet_bit_num_ + 1);
     beg_poses[0].resize(1);
     for (size_t i = 1; i < beg_poses.size(); ++i)
     {
-        beg_poses[i].resize(((this->alphabet_num_ - 1) >> (alphabet_bit_num_ - i)) + 2);
+        beg_poses[i].resize(((this->alphabet_num_ - 1) >> (this->alphabet_bit_num_ - i)) + 2);
     }
     for (size_t i = 0; i < len; ++i)
     {
         const char_type &c = char_seq[i];
         for (size_t j = 1; j < beg_poses.size(); ++j)
         {
-            ++beg_poses[j][(c >> (alphabet_bit_num_ - j)) + 1];
+            ++beg_poses[j][(c >> (this->alphabet_bit_num_ - j)) + 1];
         }
     }
     for (size_t i = 1; i < beg_poses.size() - 1; ++i)
@@ -133,8 +131,8 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
     beg_poses.pop_back();
     occ_.build();
 
-    nodes_.resize(alphabet_bit_num_);
-    for (size_t i = 0; i < alphabet_bit_num_; ++i)
+    nodes_.resize(this->alphabet_bit_num_);
+    for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
     {
         nodes_[i] = new WaveletTreeNode;
         nodes_[i]->resize(len);
@@ -142,11 +140,11 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
     for (size_t i = 0; i < len; ++i)
     {
         const char_type &c = char_seq[i];
-        nodes_[0]->changeBit(c >> (alphabet_bit_num_ - 1) & (char_type)1, beg_poses[0][0]++);
+        nodes_[0]->changeBit(c >> (this->alphabet_bit_num_ - 1) & (char_type)1, beg_poses[0][0]++);
         for (size_t j = 1; j < beg_poses.size(); ++j)
         {
-            nodes_[j]->changeBit(c >> (alphabet_bit_num_ - j - 1) & (char_type)1,
-                                beg_poses[j][c >> (alphabet_bit_num_ - j)]++);
+            nodes_[j]->changeBit(c >> (this->alphabet_bit_num_ - j - 1) & (char_type)1,
+                                 beg_poses[j][c >> (this->alphabet_bit_num_ - j)]++);
         }
     }
 
@@ -173,7 +171,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
     size_t optR, before;
 
     char_type c = 0;
-    char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -207,7 +205,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
     size_t optR, before;
 
     char_type c = 0;
-    char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -244,7 +242,7 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
     pos = std::min(pos, length());
 
     char_type masked = 0;
-    char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -278,7 +276,7 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 {
     size_t start, ones_start;
 
-    char_type mask = ((char_type)1 << alphabet_bit_num_) - 2;
+    char_type mask = ((char_type)1 << this->alphabet_bit_num_) - 2;
     char_type bit_mask = 1;
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
@@ -331,7 +329,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 {
     if (results.size() >= max_count) return;
 
-    if (level == alphabet_bit_num_)
+    if (level == this->alphabet_bit_num_)
     {
         results.push_back(symbol);
         return;
@@ -403,7 +401,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 
     if (has_ones)
     {
-        symbol |= (char_type)1 << (alphabet_bit_num_ - level - 1);
+        symbol |= (char_type)1 << (this->alphabet_bit_num_ - level - 1);
         start = occ_.prefixSum(symbol);
 
         doIntersect_(one_ranges, one_thres, max_count, level + 1, start, symbol, results);
@@ -452,7 +450,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
         before = node->bit_vector_.Rank1(start);
 
         zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.size());
-        one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.size());
+        one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.size());
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -552,7 +550,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         before = node->bit_vector_.Rank1(start);
 
         zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -689,7 +687,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         }
 
         zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_ | (char_type)1 << (alphabet_bit_num_ - zero_ranges->level_), top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
+        one_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -877,9 +875,9 @@ void WaveletTreeBinary<CharT>::load(std::istream &istr)
         if (nodes_[i]) delete nodes_[i];
     }
 
-    alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
-    nodes_.resize(alphabet_bit_num_);
+    nodes_.resize(this->alphabet_bit_num_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
         nodes_[i] = new WaveletTreeNode;

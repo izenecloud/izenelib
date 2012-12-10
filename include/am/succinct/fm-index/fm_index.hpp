@@ -10,6 +10,7 @@
 #include <am/succinct/sais/sais.hxx>
 
 #include <algorithm>
+#include <boost/shared_ptr.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -145,9 +146,9 @@ size_t FMIndex<CharT>::docCount() const
 template <class CharT>
 void FMIndex<CharT>::build()
 {
-    if(temp_text_.empty())
+    if (temp_text_.empty())
     {
-        cout << "empty text list!" << endl;
+        std::cout << "empty text list!" << std::endl;
         clear();
         return;
     }
@@ -245,7 +246,7 @@ void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list
 template <class CharT>
 size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, MatchRangeT &match_range) const
 {
-    if (len == 0 || bwt_tree_ == NULL) return 0;
+    if (len == 0 || !bwt_tree_) return 0;
 
     size_t orig_len = len;
 
@@ -278,7 +279,7 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, Matc
 template <class CharT>
 size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, MatchRangeListT &match_ranges) const
 {
-    if (len == 0 || bwt_tree_ == NULL) return 0;
+    if (len == 0 || !bwt_tree_) return 0;
 
     std::pair<size_t, size_t> match_range;
     std::vector<std::pair<size_t, size_t> > prune_bounds(len);
@@ -363,19 +364,19 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
     ostr.write((const char *)&length_,       sizeof(length_));
     ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    if(bwt_tree_)
+    if (bwt_tree_)
     {
         assert(length_ > 0 && alphabet_num_ > 0);
         bwt_tree_->save(ostr);
     }
 
     doc_delim_.save(ostr);
-    // the doc array may be managed by FMDocArrayMgr, so 
+    // the doc array may be managed by FMDocArrayMgr, so
     // need check whether the doc array is valid.
-    assert((doc_delim_.size() == 0 && doc_array_ == NULL) ||
-        (doc_delim_.size() > 0 && doc_array_ != NULL));
+    assert((doc_delim_.size() == 0 && !doc_array_) ||
+            (doc_delim_.size() > 0 && doc_array_));
 
-    if(doc_array_)
+    if (doc_array_)
         doc_array_->save(ostr);
 }
 
@@ -385,14 +386,14 @@ void FMIndex<CharT>::load(std::istream &istr)
     istr.read((char *)&length_,       sizeof(length_));
     istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    if(length_ > 0 && alphabet_num_ > 0)
+    if (length_ > 0 && alphabet_num_ > 0)
     {
         bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
         bwt_tree_->load(istr);
     }
     doc_delim_.load(istr);
 
-    if(docCount() > 0)
+    if (docCount() > 0)
     {
         doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
         doc_array_->load(istr);
@@ -423,8 +424,9 @@ void FMIndex<CharT>::getMatchedDocIdList(
     std::vector<uint32_t> &docid_list,
     std::vector<size_t> &doclen_list) const
 {
-    if(doc_array_ == NULL || docCount() == 0)
+    if (!doc_array_ || docCount() == 0)
         return;
+
     std::vector<std::pair<size_t, size_t> > ranges;
     ranges.push_back(match_range);
 
@@ -433,9 +435,9 @@ void FMIndex<CharT>::getMatchedDocIdList(
     doclen_list.resize(docid_list.size(), 0);
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        if(docid_list[i] >= doc_delim_.size())
+        if (docid_list[i] >= doc_delim_.size())
         {
-            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            std::cout << "docid is invalid : %d " << docid_list[i] << std::endl;
             continue;
         }
         doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
@@ -448,8 +450,9 @@ void FMIndex<CharT>::getMatchedDocIdList(
     size_t max_docs, std::vector<uint32_t> &docid_list,
     std::vector<size_t> &doclen_list) const
 {
-    if(doc_array_ == NULL || docCount() == 0)
+    if (!doc_array_ || docCount() == 0)
         return;
+
     std::vector<std::pair<size_t, size_t> > ranges(1);
     for (size_t i = 0; i < match_ranges.size(); ++i)
     {
@@ -465,9 +468,9 @@ void FMIndex<CharT>::getMatchedDocIdList(
     doclen_list.resize(docid_list.size(), 0);
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        if(docid_list[i] >= doc_delim_.size())
+        if (docid_list[i] >= doc_delim_.size())
         {
-            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            std::cout << "docid is invalid : %d " << docid_list[i] << std::endl;
             continue;
         }
         doclen_list[i] = doc_delim_.getVal(docid_list[i]++) - 1;
@@ -482,8 +485,9 @@ void FMIndex<CharT>::getTopKDocIdList(
     std::vector<std::pair<double, uint32_t> > &res_list,
     std::vector<size_t> &doclen_list) const
 {
-    if(doc_array_ == NULL || docCount() == 0)
+    if (!doc_array_ || docCount() == 0)
         return;
+
     std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
@@ -497,9 +501,9 @@ void FMIndex<CharT>::getTopKDocIdList(
     doclen_list.resize(res_list.size(), 0);
     for (size_t i = 0; i < res_list.size(); ++i)
     {
-        if(res_list[i].second >= doc_delim_.size())
+        if (res_list[i].second >= doc_delim_.size())
         {
-            cout << "docid is invalid : %d " << res_list[i].second << endl;
+            std::cout << "docid is invalid : %d " << res_list[i].second << std::endl;
             continue;
         }
         doclen_list[i] = doc_delim_.getVal(res_list[i].second++) - 1;
@@ -512,9 +516,9 @@ void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std:
     doclen_list.resize(docid_list.size(), 0);
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
-        if(docid_list[i] - 1 >= doc_delim_.size())
+        if (docid_list[i] > doc_delim_.size())
         {
-            cout << "docid is invalid : %d " << docid_list[i] << endl;
+            std::cout << "docid is invalid : %d " << docid_list[i] << std::endl;
             continue;
         }
         doclen_list[i] = doc_delim_.getVal(docid_list[i] - 1) - 1;

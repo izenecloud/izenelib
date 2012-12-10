@@ -116,7 +116,9 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
 
-    occ_.resize(this->alphabet_num_ + 1);
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+
+    occ_.resize(1 << this->alphabet_bit_num_);
     for (size_t i = 0; i < len; ++i)
     {
         ++occ_[char_seq[i] + 1];
@@ -908,7 +910,7 @@ void WaveletTreeHuffman<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
 
-    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
+    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
     ostr.write((const char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     if (root_)
@@ -943,8 +945,10 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
 
     if (root_) deleteTree_(root_);
 
-    occ_.resize(this->alphabet_num_ + 1);
-    istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+
+    occ_.resize(1 << this->alphabet_bit_num_);
+    istr.read((char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
     code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 

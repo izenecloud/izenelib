@@ -73,8 +73,6 @@ private:
             std::vector<char_type> &results) const;
 
 private:
-    size_t alphabet_bit_num_;
-    size_t leading_bit_num_;
     sdarray::SDArray occ_;
     std::vector<size_t> zero_counts_;
     std::vector<WaveletTreeNode *> nodes_;
@@ -83,8 +81,6 @@ private:
 template <class CharT>
 WaveletMatrix<CharT>::WaveletMatrix(size_t alphabet_num)
     : WaveletTree<CharT>(alphabet_num)
-    , alphabet_bit_num_()
-    , leading_bit_num_()
 {
 }
 
@@ -102,17 +98,16 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
 
-    alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
-    leading_bit_num_ = 64 - alphabet_bit_num_;
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
-    zero_counts_.resize(alphabet_bit_num_);
+    zero_counts_.resize(this->alphabet_bit_num_);
 
-    nodes_.resize(alphabet_bit_num_);
+    nodes_.resize(this->alphabet_bit_num_);
 
-    std::vector<uint64_t> prev_begin_pos(1), node_begin_pos;
+    std::vector<uint64_t> prev_begin_pos(1), node_begin_pos(1);
     char_type bit_mask, subscript;
 
-    for (size_t i = 0; i < alphabet_bit_num_; ++i)
+    for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
     {
         node_begin_pos.clear();
         node_begin_pos.resize((1ULL << (i + 1)) + 1);
@@ -148,8 +143,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
         zero_counts_[i] = prev_begin_pos[bit_mask];
     }
 
-    size_t end = min(this->alphabet_num_ + 1, node_begin_pos.size());
-    for (size_t i = 1; i < end; ++i)
+    for (size_t i = 1; i <= alphabet_num_; ++i)
     {
         occ_.add(node_begin_pos[i]);
     }
@@ -237,7 +231,7 @@ template <class CharT>
 size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 {
     size_t pos = rank + occ_.prefixSum(c);
-    char_type bit_mask = (char_type)1 << (alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
@@ -282,7 +276,7 @@ void WaveletMatrix<CharT>::doIntersect_(
 {
     if (results.size() >= max_count) return;
 
-    if (level == alphabet_bit_num_)
+    if (level == this->alphabet_bit_num_)
     {
         results.push_back(symbol);
         return;
@@ -801,13 +795,12 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
         if (nodes_[i]) delete nodes_[i];
     }
 
-    alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
-    leading_bit_num_ = 64 - alphabet_bit_num_;
+    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
-    zero_counts_.resize(alphabet_bit_num_);
+    zero_counts_.resize(this->alphabet_bit_num_);
     istr.read((char *)&zero_counts_[0], sizeof(zero_counts_[0]) * zero_counts_.size());
 
-    nodes_.resize(alphabet_bit_num_);
+    nodes_.resize(this->alphabet_bit_num_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
         nodes_[i] = new WaveletTreeNode;

@@ -26,14 +26,31 @@ public:
     typedef std::vector<FilterRangeT> FilterRangeListT;
     typedef std::vector<uint32_t> FilterItemT;
     typedef WaveletMatrix<uint32_t>  DocArrayWaveletT;
-    typedef struct S_DocArrayItem
+
+    struct DocArrayItemT
     {
-        S_DocArrayItem()
+        DocArrayItemT()
         {
         }
+
+        void save(std::ostream &ostr) const
+        {
+            doc_delim.save(ostr);
+            if (doc_array_ptr)
+                doc_array_ptr->save(ostr);
+        }
+
+        void load(std::istream &istr, size_t doc_count)
+        {
+            doc_delim.load(istr);
+            if (doc_delim.size() == 0) return;
+            doc_array_ptr.reset(new DocArrayWaveletT(doc_count));
+            doc_array_ptr->load(istr);
+        }
+
         sdarray::SDArray doc_delim;
         boost::shared_ptr<DocArrayWaveletT> doc_array_ptr;
-    } DocArrayItemT;
+    };
 
     FMDocArrayMgr();
     ~FMDocArrayMgr();
@@ -41,17 +58,20 @@ public:
     void clear();
     void clearMainDocArray();
     void setFilterList(std::vector<std::vector<FilterItemT> > &filter_list);
-    inline size_t getDocCount() const 
+
+    inline size_t getDocCount() const
     {
         return doc_count_;
     }
     inline bool setDocCount(size_t doc_count)
     {
-        if(doc_count_ == 0)
-            doc_count_ = doc_count;
-        else if(doc_count != doc_count_)
+        if (doc_count_ == 0)
         {
-            cout << "doc_count should be set only once!!" << endl;
+            doc_count_ = doc_count;
+        }
+        else if (doc_count != doc_count_)
+        {
+            std::cout << "doc_count should be set only once!!" << std::endl;
             return false;
         }
         return true;
@@ -63,7 +83,7 @@ public:
 
     DocArrayItemT& addMainDocArrayItem()
     {
-        main_docarray_list_.push_back(DocArrayItemT());
+        main_docarray_list_.resize(main_docarray_list_.size() + 1);
         return main_docarray_list_.back();
     }
     inline size_t mainDocArrayNum() const
@@ -80,7 +100,7 @@ public:
 
     void reconstructText(size_t match_index, const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text) const;
 
-    bool getFilterRange(size_t filter_index, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
+    bool getFilterRange(size_t prop_id, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const;
 
     void getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const;
     void getMatchedDocIdList(size_t match_index, bool match_in_filter, const FilterRangeT &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
@@ -89,7 +109,7 @@ public:
 
     void getTopKDocIdList(
             size_t match_index,
-            bool match_in_filter, 
+            bool match_in_filter,
             const FilterRangeListT &match_ranges_list,
             const std::vector<double> &max_match_list,
             size_t max_docs,
@@ -100,33 +120,33 @@ public:
             const std::vector<size_t> &prop_id_list,
             const std::vector<FilterRangeListT> &filter_ranges,
             size_t match_index,
-            bool match_in_filter, 
+            bool match_in_filter,
             const FilterRangeListT &match_ranges_list,
             const std::vector<double> &max_match_list,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
 
-    inline const DocArrayItemT& getFilterArrayItem(size_t filter_index) const
+    inline const DocArrayItemT& getFilterArrayItem(size_t prop_id) const
     {
-        if(filter_index >= filter_docarray_list_.size())
+        if (prop_id >= filter_docarray_list_.size())
             throw -1;
-        return filter_docarray_list_[filter_index];
+        return filter_docarray_list_[prop_id];
     }
-    inline const DocArrayItemT& getMainDocArrayItem(size_t main_index) const
+    inline const DocArrayItemT& getMainDocArrayItem(size_t prop_id) const
     {
-        if(main_index >= main_docarray_list_.size())
+        if (prop_id >= main_docarray_list_.size())
             throw -1;
-        return main_docarray_list_[main_index];
+        return main_docarray_list_[prop_id];
     }
     inline const DocArrayItemT& getDocArrayItem(size_t index, bool isfilter) const
     {
-        if(isfilter)
+        if (isfilter)
             return getFilterArrayItem(index);
         return getMainDocArrayItem(index);
     }
     inline bool checkItemIndex(size_t index, bool isfilter) const
     {
-        return isfilter?(index < filterNum()):(index < mainDocArrayNum());
+        return isfilter ? index < filterNum() : index < mainDocArrayNum();
     }
 
     void save(std::ostream &ostr) const;
@@ -134,17 +154,18 @@ public:
 
 private:
     DISALLOW_COPY_AND_ASSIGN(FMDocArrayMgr);
+
     size_t doc_count_;
 
-    std::vector<DocArrayItemT> filter_docarray_list_;
-    std::vector<std::vector<FilterItemT> > temp_filter_list_;
-
     std::vector<DocArrayItemT> main_docarray_list_;
+    std::vector<DocArrayItemT> filter_docarray_list_;
+
+    std::vector<std::vector<FilterItemT> > temp_filter_list_;
 };
 
 template <class CharT>
 FMDocArrayMgr<CharT>::FMDocArrayMgr()
-    : doc_count_(0) 
+    : doc_count_(0)
 {
 }
 
@@ -180,9 +201,9 @@ void FMDocArrayMgr<CharT>::buildFilter()
     filter_docarray_list_.resize(temp_filter_list_.size());
     for (size_t i = 0; i < temp_filter_list_.size(); ++i)
     {
-        if(temp_filter_list_[i].size() == 0)
+        if (temp_filter_list_[i].size() == 0)
         {
-            cout << "filter " << i << " is empty!" << endl;
+            std::cout << "filter " << i << " is empty!" << std::endl;
             sdarray::SDArray().swap(filter_docarray_list_[i].doc_delim);
             filter_docarray_list_[i].doc_array_ptr.reset();
             continue;
@@ -201,7 +222,7 @@ void FMDocArrayMgr<CharT>::buildFilter()
             --temp_docid_list[j];
         }
 
-        cout << "filter " << i << " total doc_delim length: " << filter_docarray_list_[i].doc_delim.getSum() << endl;
+        std::cout << "filter " << i << " total doc_delim length: " << filter_docarray_list_[i].doc_delim.getSum() << std::endl;
         assert(doc_count_ > 0);
         filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_));
         filter_docarray_list_[i].doc_array_ptr->build(&temp_docid_list[0], temp_docid_list.size());
@@ -211,40 +232,38 @@ void FMDocArrayMgr<CharT>::buildFilter()
 }
 
 template <class CharT>
-bool FMDocArrayMgr<CharT>::getFilterRange(size_t filter_index, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
+bool FMDocArrayMgr<CharT>::getFilterRange(size_t prop_id, const FilterRangeT &filter_id_range, FilterRangeT &match_range) const
 {
-    if (filter_index >= filter_docarray_list_.size() || filter_id_range.second > filter_docarray_list_[filter_index].doc_delim.size())
+    if (prop_id >= filter_docarray_list_.size() || filter_id_range.second > filter_docarray_list_[prop_id].doc_delim.size())
         return false;
-    match_range.first = filter_docarray_list_[filter_index].doc_delim.prefixSum(filter_id_range.first);
-    match_range.second = filter_docarray_list_[filter_index].doc_delim.prefixSum(filter_id_range.second);
+    match_range.first = filter_docarray_list_[prop_id].doc_delim.prefixSum(filter_id_range.first);
+    match_range.second = filter_docarray_list_[prop_id].doc_delim.prefixSum(filter_id_range.second);
     return true;
 }
 
 template <class CharT>
 void FMDocArrayMgr<CharT>::save(std::ostream &ostr) const
 {
+    assert(doc_count_ > 0);
     ostr.write((const char*)&doc_count_, sizeof(doc_count_));
 
     size_t filter_count = filter_docarray_list_.size();
     ostr.write((const char *)&filter_count, sizeof(filter_count));
     for (size_t i = 0; i < filter_count; ++i)
     {
-        filter_docarray_list_[i].doc_delim.save(ostr);
-        if(filter_docarray_list_[i].doc_array_ptr)
-            filter_docarray_list_[i].doc_array_ptr->save(ostr);
+        filter_docarray_list_[i].save(ostr);
     }
     size_t main_count = main_docarray_list_.size();
     ostr.write((const char *)&main_count, sizeof(main_count));
     for (size_t i = 0; i < main_count; ++i)
     {
         assert(main_docarray_list_[i].doc_delim.size() == doc_count_);
-        if(main_docarray_list_[i].doc_delim.size() != doc_count_)
+        if (main_docarray_list_[i].doc_delim.size() != doc_count_)
         {
-            cout << "the main doc delim length not match : " << main_docarray_list_[i].doc_delim.size() << endl;
+            std::cout << "the main doc delim length not match : " << main_docarray_list_[i].doc_delim.size() << std::endl;
             throw -1;
         }
-        main_docarray_list_[i].doc_delim.save(ostr);
-        main_docarray_list_[i].doc_array_ptr->save(ostr);
+        main_docarray_list_[i].save(ostr);
     }
 }
 
@@ -252,6 +271,7 @@ template <class CharT>
 void FMDocArrayMgr<CharT>::load(std::istream &istr)
 {
     istr.read((char *)&doc_count_, sizeof(doc_count_));
+    assert(doc_count_ > 0);
 
     size_t filter_count = 0;
     istr.read((char *)&filter_count, sizeof(filter_count));
@@ -259,11 +279,7 @@ void FMDocArrayMgr<CharT>::load(std::istream &istr)
     for (size_t i = 0; i < filter_count; ++i)
     {
         assert(doc_count_ > 0);
-        filter_docarray_list_[i].doc_delim.load(istr);
-        if(filter_docarray_list_[i].doc_delim.size() == 0)
-            continue;
-        filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_));
-        filter_docarray_list_[i].doc_array_ptr->load(istr);
+        filter_docarray_list_[i].load(istr, doc_count_);
     }
     size_t main_count = 0;
     istr.read((char *)&main_count, sizeof(main_count));
@@ -272,19 +288,18 @@ void FMDocArrayMgr<CharT>::load(std::istream &istr)
     {
         main_docarray_list_[i].doc_delim.load(istr);
         assert(main_docarray_list_[i].doc_delim.size() == doc_count_);
-        if(main_docarray_list_[i].doc_delim.size() != doc_count_)
+        if (main_docarray_list_[i].doc_delim.size() != doc_count_)
             throw -1;
-        main_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_));
-        main_docarray_list_[i].doc_array_ptr->load(istr);
+        main_docarray_list_[i].load(istr, doc_count_);
     }
 }
 
 template <class CharT>
 void FMDocArrayMgr<CharT>::reconstructText(size_t match_index, const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text) const
 {
-    if(!checkItemIndex(match_index, false))
+    if (!checkItemIndex(match_index, false))
     {
-        cout << "reconstructText main fm index not found" << endl;
+        std::cout << "reconstructText main fm index not found" << std::endl;
         return;
     }
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, false);
@@ -328,25 +343,26 @@ void FMDocArrayMgr<CharT>::reconstructText(size_t match_index, const std::vector
 
 template <class CharT>
 void FMDocArrayMgr<CharT>::getMatchedDocIdList(
-    size_t match_index,
-    bool match_in_filter, 
-    const FilterRangeT &match_range,
-    size_t max_docs,
-    std::vector<uint32_t> &docid_list,
-    std::vector<size_t> &doclen_list) const
+        size_t match_index,
+        bool match_in_filter,
+        const FilterRangeT &match_range,
+        size_t max_docs,
+        std::vector<uint32_t> &docid_list,
+        std::vector<size_t> &doclen_list) const
 {
-    if(!checkItemIndex(match_index, match_in_filter))
+    if (!checkItemIndex(match_index, match_in_filter))
         return;
+
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
     std::vector<std::pair<size_t, size_t> > ranges;
     ranges.push_back(match_range);
 
-    if(doc_array_item.doc_array_ptr == NULL)
+    if (!doc_array_item.doc_array_ptr)
         return;
     doc_array_item.doc_array_ptr->intersect(ranges, 1, max_docs, docid_list);
 
     doclen_list.resize(docid_list.size(), 0);
-    if(match_in_filter)
+    if (match_in_filter)
     {
         // in filter doc array ,the doclen is not available
         return;
@@ -359,16 +375,17 @@ void FMDocArrayMgr<CharT>::getMatchedDocIdList(
 
 template <class CharT>
 void FMDocArrayMgr<CharT>::getMatchedDocIdList(
-    size_t match_index,
-    bool match_in_filter, 
-    const FilterRangeListT &match_ranges,
-    size_t max_docs, std::vector<uint32_t> &docid_list,
-    std::vector<size_t> &doclen_list) const
+        size_t match_index,
+        bool match_in_filter,
+        const FilterRangeListT &match_ranges,
+        size_t max_docs, std::vector<uint32_t> &docid_list,
+        std::vector<size_t> &doclen_list) const
 {
-    if(!checkItemIndex(match_index, match_in_filter))
+    if (!checkItemIndex(match_index, match_in_filter))
         return;
+
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
-    if(doc_array_item.doc_array_ptr == NULL)
+    if (!doc_array_item.doc_array_ptr)
         return;
     std::vector<std::pair<size_t, size_t> > ranges(1);
     for (size_t i = 0; i < match_ranges.size(); ++i)
@@ -384,7 +401,7 @@ void FMDocArrayMgr<CharT>::getMatchedDocIdList(
 
     doclen_list.resize(docid_list.size(), 0);
 
-    if(match_in_filter)
+    if (match_in_filter)
     {
         // in filter doc array ,the doclen is not available
         return;
@@ -397,19 +414,20 @@ void FMDocArrayMgr<CharT>::getMatchedDocIdList(
 
 template <class CharT>
 void FMDocArrayMgr<CharT>::getTopKDocIdList(
-    size_t match_index,
-    bool match_in_filter, 
-    const FilterRangeListT &match_ranges_list,
-    const std::vector<double> &max_match_list,
-    size_t max_docs,
-    std::vector<std::pair<double, uint32_t> > &res_list,
-    std::vector<size_t> &doclen_list) const
+        size_t match_index,
+        bool match_in_filter,
+        const FilterRangeListT &match_ranges_list,
+        const std::vector<double> &max_match_list,
+        size_t max_docs,
+        std::vector<std::pair<double, uint32_t> > &res_list,
+        std::vector<size_t> &doclen_list) const
 {
-    if(!checkItemIndex(match_index, match_in_filter))
+    if (!checkItemIndex(match_index, match_in_filter))
         return;
+
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
 
-    if(doc_array_item.doc_array_ptr == NULL)
+    if (!doc_array_item.doc_array_ptr)
         return;
     std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
@@ -423,7 +441,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
 
     doclen_list.resize(res_list.size(), 0);
 
-    if(match_in_filter)
+    if (match_in_filter)
     {
         // in filter doc array ,the doclen is not available
         return;
@@ -445,10 +463,11 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         size_t max_docs,
         std::vector<std::pair<double, uint32_t> > &res_list) const
 {
-    if(!checkItemIndex(match_index, match_in_filter))
+    if (!checkItemIndex(match_index, match_in_filter))
         return;
+
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
-    if(doc_array_item.doc_array_ptr == NULL)
+    if (!doc_array_item.doc_array_ptr)
         return;
     std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
@@ -467,22 +486,22 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         aux_filters.reserve(prop_id_list.size());
         for (size_t i = 0; i < prop_id_list.size(); ++i)
         {
-            if(!checkItemIndex(prop_id_list[i], true))
+            if (!checkItemIndex(prop_id_list[i], true))
             {
-                cout << "filter index out of bound! " << endl;
-                for(size_t j = 0; j < aux_filters.size(); ++j)
+                std::cout << "filter index out of bound! " << std::endl;
+                for (size_t j = 0; j < aux_filters.size(); ++j)
                     delete aux_filters[j];
                 return;
             }
             const DocArrayWaveletT *wlt = getDocArrayItem(prop_id_list[i], true).doc_array_ptr.get();
-            if(wlt == NULL)
+            if (!wlt)
                 continue;
             aux_filters.push_back(new FilterList<DocArrayWaveletT>(wlt, wlt->getRoot(), filter_ranges[i]));
         }
 
         doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, match_ranges, max_docs, res_list);
     }
-    for(size_t i = 0; i < res_list.size(); ++i)
+    for (size_t i = 0; i < res_list.size(); ++i)
     {
         res_list[i].second++;
     }
@@ -492,14 +511,14 @@ template <class CharT>
 void FMDocArrayMgr<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const
 {
     doclen_list.resize(docid_list.size(), 0);
-    for(size_t j= 0; j < main_docarray_list_.size(); ++j)
+    for (size_t j = 0; j < main_docarray_list_.size(); ++j)
     {
         const DocArrayItemT& item = getDocArrayItem(j, false);
         for (size_t i = 0; i < docid_list.size(); ++i)
         {
-            if(docid_list[i] - 1 >= item.doc_delim.size())
+            if (docid_list[i] - 1 >= item.doc_delim.size())
             {
-                cout << "docid is invalid : %d " << docid_list[i] << endl;
+                std::cout << "docid is invalid : %d " << docid_list[i] << std::endl;
                 continue;
             }
             doclen_list[i] += item.doc_delim.getVal(docid_list[i] - 1) - 1;

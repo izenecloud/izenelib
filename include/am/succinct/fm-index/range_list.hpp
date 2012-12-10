@@ -28,20 +28,7 @@ static double getScore(const std::vector<boost::tuple<size_t, size_t, double> > 
 
     return score;
 }
-/*
-static struct InvalidRange
-{
-    bool operator()(const std::pair<size_t, size_t> &range) const
-    {
-        return range.first >= range.second;
-    }
 
-    bool operator()(const boost::tuple<size_t, size_t, double> &range) const
-    {
-        return range.get<0>() >= range.get<1>();
-    }
-} InvalidRange;
-*/
 }
 
 class PatternList
@@ -56,7 +43,6 @@ public:
         , node_(node)
         , patterns_(patterns)
     {
-//      patterns_.erase(std::remove_if(patterns_.begin(), patterns_.end(), detail::InvalidRange), patterns_.end());
         score_ = detail::getScore(patterns_);
     }
 
@@ -117,10 +103,8 @@ public:
         , filters_(filters)
         , patterns_(patterns)
     {
-//      filters_.erase(std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange), filters_.end());
         if (!filters_.empty())
         {
-//          patterns_.erase(std::remove_if(patterns_.begin(), patterns_.end(), detail::InvalidRange), patterns_.end());
             score_ = detail::getScore(patterns_);
         }
     }
@@ -189,7 +173,6 @@ public:
         : tree_(tree) , node_(node)
         , filters_(filters)
     {
-//      filters_.erase(std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange), filters_.end());
     }
 
     FilterList(
@@ -234,10 +217,8 @@ public:
         , aux_filters_(aux_filters)
         , patterns_(patterns)
     {
-//      filters_.erase(std::remove_if(filters_.begin(), filters_.end(), detail::InvalidRange), filters_.end());
         if (!aux_filters_.empty())
         {
-//          patterns_.erase(std::remove_if(patterns_.begin(), patterns_.end(), detail::InvalidRange), patterns_.end());
             score_ = detail::getScore(patterns_);
         }
     }

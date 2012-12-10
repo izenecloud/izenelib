@@ -19,8 +19,15 @@ class WaveletTree
 public:
     typedef CharT char_type;
 
-    WaveletTree(size_t alphabet_num) : alphabet_num_(alphabet_num) {}
-    virtual ~WaveletTree() {}
+    WaveletTree(size_t alphabet_num)
+        : alphabet_num_(alphabet_num)
+        , alphabet_bit_num_()
+    {
+    }
+
+    virtual ~WaveletTree()
+    {
+    }
 
     virtual void build(const char_type *char_seq, size_t len) = 0;
 
@@ -60,12 +67,14 @@ public:
 
     virtual void save(std::ostream &ostr) const
     {
-        ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
+        ostr.write((const char *)&alphabet_num_,     sizeof(alphabet_num_));
+        ostr.write((const char *)&alphabet_bit_num_, sizeof(alphabet_bit_num_));
     }
 
     virtual void load(std::istream &istr)
     {
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
+        istr.read((char *)&alphabet_bit_num_, sizeof(alphabet_bit_num_));
     }
 
     static size_t getAlphabetNum(const char_type *char_seq, size_t len)
@@ -81,6 +90,7 @@ public:
 
 protected:
     size_t alphabet_num_;
+    size_t alphabet_bit_num_;
 };
 
 }
