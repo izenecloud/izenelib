@@ -48,6 +48,12 @@ public:
             doc_array_ptr->load(istr);
         }
 
+        void swap(DocArrayItemT& other)
+        {
+            doc_delim.swap(other.doc_delim);
+            doc_array_ptr.swap(other.doc_array_ptr);
+        }
+
         sdarray::SDArray doc_delim;
         boost::shared_ptr<DocArrayWaveletT> doc_array_ptr;
     };
@@ -94,6 +100,13 @@ public:
     {
         std::swap(doc_count_, other.doc_count_);
         main_docarray_list_.swap(other.main_docarray_list_);
+    }
+
+    void swapFilterDocArray(size_t prop_id, FMDocArrayMgr& other)
+    {
+        if (prop_id >= filter_docarray_list_.size())
+            return;
+        filter_docarray_list_[prop_id].swap(other.filter_docarray_list_[prop_id]);
     }
 
     void buildFilter();
