@@ -432,7 +432,7 @@ void FMIndex<CharT>::getMatchedDocIdList(
 
     doc_array_->intersect(ranges, 1, max_docs, docid_list);
 
-    doclen_list.resize(docid_list.size(), 0);
+    doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
         if (docid_list[i] >= doc_delim_.size())
@@ -465,7 +465,7 @@ void FMIndex<CharT>::getMatchedDocIdList(
     std::sort(docid_list.begin(), docid_list.end());
     docid_list.erase(std::unique(docid_list.begin(), docid_list.end()), docid_list.end());
 
-    doclen_list.resize(docid_list.size(), 0);
+    doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
         if (docid_list[i] >= doc_delim_.size())
@@ -498,7 +498,7 @@ void FMIndex<CharT>::getTopKDocIdList(
 
     doc_array_->topKUnion(match_ranges, max_docs, res_list);
 
-    doclen_list.resize(res_list.size(), 0);
+    doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         if (res_list[i].second >= doc_delim_.size())
@@ -513,7 +513,7 @@ void FMIndex<CharT>::getTopKDocIdList(
 template <class CharT>
 void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const
 {
-    doclen_list.resize(docid_list.size(), 0);
+    doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)
     {
         if (docid_list[i] - 1 >= doc_delim_.size())

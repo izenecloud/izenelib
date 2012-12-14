@@ -874,7 +874,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 template <class CharT>
 size_t WaveletTreeHuffman<CharT>::getOcc(char_type c) const
 {
-    return occ_[c];
+    if (c < occ_.size()) return occ_[c];
+    return occ_.back();
 }
 
 template <class CharT>
