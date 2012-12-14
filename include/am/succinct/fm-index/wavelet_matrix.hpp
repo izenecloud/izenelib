@@ -744,7 +744,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 template <class CharT>
 size_t WaveletMatrix<CharT>::getOcc(char_type c) const
 {
-    return occ_.prefixSum(c);
+    if (c <= occ_.size()) return occ_.prefixSum(c);
+    return occ_.getSum();
 }
 
 template <class CharT>
