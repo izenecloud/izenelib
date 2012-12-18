@@ -33,11 +33,8 @@ namespace ux
 
 typedef uint64_t id_t;
 
-enum
-{
-    NOTFOUND      = 0xFFFFFFFFU,
-    LIMIT_DEFAULT = 0xFFFFFFFFU
-};
+static const uint32_t NOTFOUND = 0xFFFFFFFFU;
+static const uint32_t LIMIT_DEFAULT = 0xFFFFFFFFU;
 
 
 /**
