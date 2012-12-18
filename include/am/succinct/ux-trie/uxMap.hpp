@@ -117,7 +117,7 @@ public:
     {
         size_t retLen = 0;
         id_t id = trie_.prefixSearch(str, len, retLen);
-        if (id == NOTFOUND)
+        if (id == izenelib::am::succinct::ux::NOTFOUND)
         {
             return -1;
         }
@@ -136,7 +136,7 @@ public:
     {
         size_t retLen = 0;
         id_t id = trie_.prefixSearch(str, len, retLen);
-        if (id == NOTFOUND)
+        if (id == izenelib::am::succinct::ux::NOTFOUND)
         {
             return -1;
         }
@@ -155,7 +155,7 @@ public:
     int prefixSearch(const char* str, size_t len, size_t& retLen, V& v) const
     {
         id_t id = trie_.prefixSearch(str, len, retLen);
-        if (id == NOTFOUND)
+        if (id == izenelib::am::succinct::ux::NOTFOUND)
         {
             return -1;
         }
