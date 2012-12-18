@@ -121,6 +121,7 @@ IF(izene_util_SHOULD_BUILD)
     timestamp.cpp
     MemPool.cpp
     kv2string.cpp
+    csv.cpp
 
     driver/Keys.cpp
     driver/Request.cpp
