@@ -75,12 +75,14 @@ ZooKeeperRouter::loadTopology() {
     strvector clusters;
     client->getZNodeChildren(ROOT_NODE, clusters, ZooKeeper::WATCH);
     
-    DLOG(INFO) << "Scanning root node ...";
+    LOG(INFO) << "Scanning root node ...";
     BOOST_FOREACH(const string& s, clusters) {
         if (boost::regex_match(s, NODE_REGEX)) { // this is a SF1 node
-            DLOG(INFO) << "node: " << s;
+            LOG(INFO) << "node: " << s;
             addSearchTopology(s + TOPOLOGY);
         }
+        else
+            LOG(INFO) << "not sf1r node : " << s;
     }
     LOG(INFO) << "found (" << topology->count() << ") active nodes";
 }
@@ -89,7 +91,7 @@ ZooKeeperRouter::loadTopology() {
 void
 ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
     if (client->isZNodeExists(searchTopology, ZooKeeper::WATCH)) {
-        DLOG(INFO) << "found search topology: " << searchTopology;
+        LOG(INFO) << "found search topology: " << searchTopology;
         
         DLOG(INFO) << "Searching for replicas ...";
         strvector replicas;
@@ -101,7 +103,7 @@ ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
         }
         
         BOOST_FOREACH(const string& replica, replicas) {
-            DLOG(INFO) << "replica: " << replica;
+            LOG(INFO) << "replica: " << replica;
             
             DLOG(INFO) << "Searching for nodes ...";
             strvector nodes;
@@ -109,7 +111,7 @@ ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
 
             if (nodes.empty()) {
                 DLOG(INFO) << "no node found";
-                return;
+                continue;
             }
             
             BOOST_FOREACH(const string& path, nodes) {
