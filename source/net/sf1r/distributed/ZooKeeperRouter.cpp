@@ -306,7 +306,7 @@ ZooKeeperRouter::getConnection(const string& collection) {
     boost::lock_guard<boost::mutex> lock(mutex);
     
     const Sf1Node& node = resolve(collection);
-    DLOG(INFO) << "Resolved to node: " << node.getPath();
+    LOG(INFO) << "Resolved to node: " << node.getPath();
     
     // get a connection from the node
     ConnectionPool* pool = pools.find(node.getPath())->second;

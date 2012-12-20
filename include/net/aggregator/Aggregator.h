@@ -60,6 +60,8 @@ public:
 
     const std::string& collection() const { return collection_; }
 
+    virtual bool isNeedDistribute() const = 0;
+
 protected:
     std::string collection_;
 };
@@ -162,6 +164,11 @@ public:
         const In2& in2,
         Out& out,
         workerid_t workerid);
+
+    bool isNeedDistribute() const
+    {
+        return !(hasLocalWorker_ && workerSessionList_.empty());
+    }
 
 protected:
     session_t getMsgPackSession_(const WorkerSessionPtr& workerSessionPtr);
