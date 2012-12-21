@@ -309,7 +309,19 @@ ZooKeeperRouter::getConnection(const string& collection) {
     LOG(INFO) << "Resolved to node: " << node.getPath();
     
     // get a connection from the node
-    ConnectionPool* pool = pools.find(node.getPath())->second;
+    PoolContainer::const_iterator cit = pools.find(node.getPath());
+    if (cit == pools.end())
+    {
+        LOG(INFO) << "no pools for the connection, add new node : " << node.getPath();
+        addSf1Node(node.getPath());
+        cit = pools.find(node.getPath());
+        if (cit == pools.end())
+        {
+            LOG(ERROR) << "get connection failed for : " << node.getPath();
+            throw RoutingError("no ConnectionPool for " + collection);
+        }
+    }
+    ConnectionPool* pool = cit->second;
     CHECK(pool) << "NULL pool";
     return pool->acquire();
 }
