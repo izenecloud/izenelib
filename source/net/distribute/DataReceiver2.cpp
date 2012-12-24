@@ -47,10 +47,10 @@ DataReceiver2::~DataReceiver2() {
 
 void
 DataReceiver2::start() {
+    startAccept();
     LOG(INFO) << "starting loop thread ...";
     boost::thread(boost::bind(&ba::io_service::run, &service));
     LOG(INFO) << "starting data-receiving service ...";
-    startAccept();
     running = true;
     LOG(INFO) << "started.";
 }

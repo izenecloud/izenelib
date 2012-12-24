@@ -20,7 +20,8 @@ NS_IZENELIB_DISTRIBUTE_BEGIN
 
 DataTransfer2::DataTransfer2(const string& host_, const unsigned& port_,
             const size_t& bufferSize_)
-        : host(host_), port(port_), bufferSize(bufferSize_), socket(service) {
+        : host(host_), port(port_), bufferSize(bufferSize_), socket(service)
+{
     LOG(INFO) << "DataTransfer to " << host << ":" << port;
     buffer = new char[bufferSize_];
     DLOG(INFO) << "instantiated";
@@ -66,14 +67,13 @@ DataTransfer2::probe() {
 
 void
 DataTransfer2::connect() {
-    DLOG(INFO) << "connecting ...";
+    LOG(INFO) << "connecting ...";
     socket.close();
     tcp::resolver resolver(service);
     tcp::resolver::query query(host, boost::lexical_cast<string>(port));
     tcp::resolver::iterator endpoint = resolver.resolve(query);
     ba::connect(socket, endpoint);
 }
-
 
 bool
 DataTransfer2::sendFile(const string& file, const string& destination) {
@@ -93,7 +93,7 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     }
     
     // 1. send head
-    DLOG(INFO) << "sending request header ...";
+    LOG(INFO) << "sending request header ...";
     
     bfs::path filepath(file);
     size_t fileSize = bfs::file_size(filepath);
@@ -115,7 +115,7 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
     }
     
     // 2. receive ack
-    DLOG(INFO) << "receiving header ack ...";
+    LOG(INFO) << "receiving header ack ...";
     
     n = socket.read_some(ba::buffer(buffer, bufferSize), error);
     if (error) {
