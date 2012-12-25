@@ -27,8 +27,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cassert>
-
-
+using namespace std;
 namespace wat_array
 {
 
@@ -240,6 +239,11 @@ public:
      * @param is The input stream where the status is saved
      */
     void Load(std::istream& is);
+
+    //add qian wang
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, uint64_t k, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+
+    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const;
 
 private:
     uint64_t GetAlphabetNum(const std::vector<uint64_t>& array) const;
