@@ -631,8 +631,22 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         level = top_ranges->level_;
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_ | (char_type)1 << level, top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
+        if (top_ranges->node_->left_)
+        {
+            zero_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
+        }
+        else
+        {
+            zero_ranges = NULL;
+        }
+        if (top_ranges->node_->right_)
+        {
+            one_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_ | (char_type)1 << level, top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
+        }
+        else
+        {
+            one_ranges = NULL;
+        }
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
