@@ -34,7 +34,9 @@ typedef vector<string> strvector;
 
 
 ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, 
-        const string& hosts, int timeout) : factory(poolFactory) {
+        const string& hosts, int timeout, const std::string& match_master_name)
+    : factory(poolFactory), match_master_name_(match_master_name)
+{
     // 0. connect to ZooKeeper
     LOG(INFO) << "Connecting to ZooKeeper servers: " << hosts;
     client.reset(new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT));
@@ -143,6 +145,15 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     if (not parser.hasKey(MASTERPORT_KEY)) {
         DLOG(INFO) << "Not a master node, skipping";
         return;
+    }
+
+    if (!match_master_name_.empty())
+    {
+        std::string mastername = parser.getStrValue(MASTER_NAME_KEY);
+        if(mastername != match_master_name_) { //match special master SF1 node
+            LOG(INFO) << "ignore not matched master : " << mastername;
+            return;
+        }
     }
     
     // add node into topology

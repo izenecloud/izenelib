@@ -66,6 +66,7 @@ const std::string     BAPORT_KEY = "baport";
  */
 const std::string MASTERPORT_KEY = "masterport";
 
+const std::string MASTER_NAME_KEY = "mastername";
 /**
  * Noda data key for the collection.
  */

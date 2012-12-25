@@ -42,7 +42,7 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
     if (router.get() == NULL) {
         try {
             LOG(INFO) << "Initializing routing";
-            router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout));
+            router.reset(new ZooKeeperRouter(factory.get(), hosts, config.timeout, config.match_master_name));
         } catch (izenelib::zookeeper::ZooKeeperException& e) {
             LOG(ERROR) << e.what();
             throw NetworkError(e.what());

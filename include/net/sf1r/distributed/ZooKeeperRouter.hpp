@@ -50,7 +50,7 @@ public:
      * @throw ZooKeeperException if cannot connect to ZooKeeper.
      */
     ZooKeeperRouter(PoolFactory* poolFactory,
-            const std::string& hosts, const int timeout);
+            const std::string& hosts, const int timeout, const std::string& match_master_name);
     
     /**
      * Destructor.
@@ -157,6 +157,7 @@ private:
     /// Connection pools.
     PoolContainer pools;
     
+    std::string match_master_name_;
 };
 
 NS_IZENELIB_SF1R_END

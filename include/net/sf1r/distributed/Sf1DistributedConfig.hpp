@@ -37,6 +37,7 @@ struct Sf1DistributedConfig : public Sf1Config {
     
     uint32_t zkTimeout;             ///< ZooKeeper session timeout.
     
+    std::string match_master_name;
     /**
      * Add a broadcast routing policy.
      * @param regex A matching regular expression for the request URI.
