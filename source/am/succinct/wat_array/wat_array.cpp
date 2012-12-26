@@ -256,12 +256,12 @@ void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uin
     uint64_t beg_node = 0;
     uint64_t end_node = length_;
     size_t i = 0;
-    uint64_t k=0;
-    QuantileRangeEach(begin_pos, end_pos, k, i,beg_node ,end_node, val,ret);
+    //uint64_t k=0;
+    QuantileRangeEach(begin_pos, end_pos, i,beg_node ,end_node, val,ret);
 
 
 }
-void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, uint64_t k, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
+void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
 {
    // cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
     if(i==bit_arrays_.size())
@@ -282,12 +282,14 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, uint64_t 
 
         
            // end_node = boundary;
+            
+           // val       = val << 1;
+        
+        if (end_zero - beg_zero >0)
+        {   
             begin_pos = beg_node + beg_zero - beg_node_zero;
             end_pos   = beg_node + end_zero - beg_node_zero;
-           // val       = val << 1;
-        if (end_zero - beg_zero >0)
-        {
-            QuantileRangeEach(begin_pos, end_pos, k, i+1,beg_node ,boundary, (val<<1),ret);
+            QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret);
         }
         else
         {
@@ -298,7 +300,9 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, uint64_t 
         }
         if (end_one - beg_one >0)
         {
-            QuantileRangeEach(begin_pos, end_pos, k, i+1,boundary ,end_node, (val << 1) + 1,ret);
+            begin_pos = boundary + beg_one - beg_node_one;
+            end_pos   = boundary + end_one - beg_node_one;
+            QuantileRangeEach(begin_pos, end_pos, i+1,boundary ,end_node, (val << 1) + 1,ret);
         }
         else
         {

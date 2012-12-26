@@ -241,9 +241,40 @@ public:
     void Load(std::istream& is);
 
     //add qian wang
-    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, uint64_t k, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
 
     void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const;
+
+
+    void ListRangeRandom(uint64_t min_c,   uint64_t max_c,
+                   uint64_t beg_pos, uint64_t end_pos,
+                   uint64_t num,     std::vector<ListResult>& res) const
+    {
+        res.clear();
+        if (end_pos > length_ || beg_pos >= end_pos) return;
+
+        std::queue<QueryOnNode> qons;
+        qons.push(QueryOnNode(0, length_, beg_pos, end_pos, 0, 0));
+
+        while (res.size() < num && !qons.empty())
+        {
+            QueryOnNode qon = qons.front();
+            qons.pop();
+            if (qon.depth >= alphabet_bit_num_)
+            {
+                res.push_back(ListResult(qon.prefix_char, qon.end_pos - qon.beg_pos));
+            }
+            else
+            {
+                std::vector<QueryOnNode> next;
+                ExpandNode(min_c, max_c, qon, next);
+                for (size_t i = 0; i < next.size(); ++i)
+                {
+                    qons.push(next[i]);
+                }
+            }
+        }
+    }
 
 private:
     uint64_t GetAlphabetNum(const std::vector<uint64_t>& array) const;
@@ -317,6 +348,7 @@ private:
             }
         }
     }
+
 
     bool CheckPrefix(uint64_t prefix, uint64_t depth, uint64_t min_c, uint64_t max_c) const;
     void ExpandNode(uint64_t min_c, uint64_t max_c,
