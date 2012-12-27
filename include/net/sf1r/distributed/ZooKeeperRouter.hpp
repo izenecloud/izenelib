@@ -115,7 +115,7 @@ private:
     void addSearchTopology(const std::string& path);
     
     /** Add a new SF1 node in the topology. */
-    void addSf1Node(const std::string& path);
+    bool addSf1Node(const std::string& path);
     
     /** Updates the SF1 node information. */
     void updateNodeData(const std::string& path);

@@ -37,6 +37,11 @@ RoundRobinPolicy::resetCounter() {
 }
 
 
+void RoundRobinPolicy::updateNodes()
+{
+    updateCollections();
+}
+
 void
 RoundRobinPolicy::updateCollections() {
     DLOG(INFO) << "updating collections map due to topology changes";
@@ -61,7 +66,7 @@ RoundRobinPolicy::getNode() {
 
 
 const Sf1Node& 
-RoundRobinPolicy::getNodeFor(const std::string collection) {
+RoundRobinPolicy::getNodeFor(const std::string& collection) {
     const NodeCollectionsList& list = collections.at(collection);
     size_t index = ccounter[collection]++ % list.size();
     DLOG(INFO) << "index[" << collection << "] = " << index;
