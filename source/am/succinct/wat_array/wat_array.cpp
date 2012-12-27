@@ -21,6 +21,7 @@
 
 #include <queue>
 #include <algorithm>
+#include <stack>
 
 using namespace std;
 
@@ -280,13 +281,13 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,
         uint64_t end_one   = end_pos - end_zero;
         uint64_t boundary  = beg_node + end_node_zero - beg_node_zero;
 
-        
+
            // end_node = boundary;
-            
+
            // val       = val << 1;
-        
+
         if (end_zero - beg_zero >0)
-        {   
+        {
             begin_pos = beg_node + beg_zero - beg_node_zero;
             end_pos   = beg_node + end_zero - beg_node_zero;
             QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret);
@@ -308,14 +309,80 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,
         {
              if (end_one - beg_one ==0)
              {
-                ret.push_back(val); 
+                ret.push_back(val);
              }
         }
-        
+
     }
 
-    
+
 }
+
+void WatArray::QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
+{
+   // cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
+    stack<Parameter> Params;
+    Parameter MyParam;
+    Params.push(Parameter(begin_pos, end_pos, i, beg_node, end_node, val));
+
+    while(!Params.empty())
+    {
+        MyParam = Params.top();
+        Params.pop();
+        if(MyParam.i==bit_arrays_.size())
+        {
+            ret.push_back(val);
+        }
+        else
+        {
+            const BitArray& ba = bit_arrays_[i];
+            uint64_t beg_node_zero = ba.Rank(0, MyParam.beg_node);
+            uint64_t end_node_zero = ba.Rank(0, MyParam.end_node);
+            uint64_t beg_node_one  = MyParam.beg_node - beg_node_zero;
+            uint64_t beg_zero  = ba.Rank(0, MyParam.begin_pos);
+            uint64_t end_zero  = ba.Rank(0, MyParam.end_pos);
+            uint64_t beg_one   = MyParam.begin_pos - beg_zero;
+            uint64_t end_one   = MyParam.end_pos - end_zero;
+            uint64_t boundary  = MyParam.beg_node + end_node_zero - beg_node_zero;
+
+
+            if (end_zero - beg_zero >0)
+            {
+                Params.push(Parameter(beg_node + beg_zero - beg_node_zero,
+                            beg_node + end_zero - beg_node_zero,
+                            i+1,
+                            beg_node,
+                            boundary,
+                            (val<<1)
+                            ));
+            }
+            else if (end_zero - beg_zero ==0)
+            {
+                ret.push_back(val);
+            }
+
+            if (end_one - beg_one >0)
+            {
+                Params.push(Parameter(boundary + beg_one - beg_node_one,
+                            boundary + end_one - beg_node_one,
+                            i+1,
+                            boundary,
+                            end_node,
+                            (val << 1) + 1
+                            ));
+            }
+            else if (end_one - beg_one ==0)
+            {
+                ret.push_back(val);
+            }
+
+        }
+
+    }
+
+}
+
+
 
 class WatArray::ListModeComparator
 {

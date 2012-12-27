@@ -52,6 +52,28 @@ struct ListResult
     }
 };
 
+class Parameter
+{
+public:
+    Parameter()
+    {
+    }
+    Parameter(uint64_t bp, uint64_t ep, size_t ii,uint64_t bn ,uint64_t en, uint64_t v)
+    :begin_pos(bp), end_pos(ep), i(ii), beg_node(bn), end_node(en), val(v)
+    {
+    }
+    ~Parameter()
+    {
+    }
+public:
+    uint64_t begin_pos;
+    uint64_t end_pos;
+    size_t i;
+    uint64_t beg_node;
+    uint64_t end_node;
+    uint64_t val;
+};
+
 class WatArray
 {
 public:
@@ -242,6 +264,8 @@ public:
 
     //add qian wang
     void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+
+    void QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
 
     void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const;
 
