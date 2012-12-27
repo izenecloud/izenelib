@@ -40,9 +40,15 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     // 0. connect to ZooKeeper
     LOG(INFO) << "Connecting to ZooKeeper servers: " << hosts;
     client.reset(new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT));
-    if (not client->isConnected()) {
-        // XXX: this should be done in the ZooKeeper client
-        throw iz::ZooKeeperException("Not connected to (servers): " + hosts);
+
+    while (not client->isConnected()) {
+        timeout -= 100;
+        if (timeout < 0)
+        {
+            // XXX: this should be done in the ZooKeeper client
+            throw iz::ZooKeeperException("Not connected to (servers): " + hosts);
+        }
+        usleep(100*1000);
     }
     
     // 1. register a watcher that will control the Sf1Driver instances
