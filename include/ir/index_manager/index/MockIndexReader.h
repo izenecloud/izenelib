@@ -62,7 +62,36 @@ public:
 
     void reopen() {}
 
-    size_t docLength(docid_t docId, fieldid_t fid) {return 1;}
+    void setPropertiesAndIDs(std::vector<std::string> virtualPropreties, std::vector<unsigned int> propertyIdList)
+    {
+        if (virtualPropreties.size() != propertyIdList.size())
+            return;
+        for (uint32_t i = 0; i < virtualPropreties.size(); ++i)
+        {
+            field_string_map_.insert(std::make_pair(propertyIdList[i], virtualPropreties[i]));
+        }
+    }
+
+    size_t docLength(docid_t docId, fieldid_t fieldId) 
+    {
+        std::string property;
+        std::map<fieldid_t, std::string>::iterator iter1;
+        iter1 = field_string_map_.find(fieldId);
+        if (iter1 != field_string_map_.end())
+        {
+            property = iter1->second;
+        }
+        else
+            return 0;
+        std::map<std::pair<docid_t, std::string>, uint32_t>::iterator iter = 
+        fieldLen_.find(std::make_pair(docId, property));
+        if ( iter != fieldLen_.end())
+        {
+            return iter->second;
+        }
+        else
+            return 0;
+    }
     /**
      * @param colID ignored
      */
@@ -95,8 +124,12 @@ public:
     bool insertDoc(docid_t docid , const std::string& property,
             std::vector<termid_t>& terms)
     {
-        if( !forward_.insert( std::make_pair(docid, std::make_pair(property, terms)) ).second )
-            return false;
+        /**
+        Here should allowed each docs has different properties;
+        */
+        forward_.insert( std::make_pair(docid, std::make_pair(property, terms)));
+        
+        fieldLen_.insert(std::make_pair( std::make_pair(docid, property), terms.size()));
 
         for(size_t i  =0; i< terms.size(); i++ ) {
             // get postings
@@ -132,11 +165,13 @@ private:
 
     std::map<docid_t, std::pair<std::string, std::vector<termid_t> > > forward_;
 
-    /// <field, term> --> <docid, tf, docLen, positions>
     std::map<std::pair<std::string, termid_t>, MockPostings> inverted_;
 
     MockTermReader* reader_;
 
+    std::map<std::pair<docid_t, std::string>, uint32_t> fieldLen_;
+
+    std::map<fieldid_t, std::string> field_string_map_;
 };
 
 typedef MockIndexReaderWriter::MockPosting MockPosting;
