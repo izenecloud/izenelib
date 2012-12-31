@@ -2,6 +2,7 @@
 #include <ir/index_manager/store/FSDirectory.h>
 
 #include <boost/thread.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <util/ThreadModel.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -293,7 +294,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 
     barrelName_ = barrelname;
 
-    IndexInput* pVocInput = pDirectory->openInput(barrelName_ + ".voc");
+    boost::scoped_ptr<IndexInput> pVocInput(pDirectory->openInput(barrelName_ + ".voc"));
     pVocInput->seek(fieldInfo_.getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
     nVersion_ = pVocInput->readInt();
@@ -345,7 +346,6 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
             sparseTermTable_[i>>9].ti.set(df,ctf,maxTF,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
         }
     }
-    delete pVocInput;
 
     pInputDescriptor_ = new InputDescriptor(true);
     if(dynamic_cast<FSDirectory*>(pDirectory)->isMMapEnable())
