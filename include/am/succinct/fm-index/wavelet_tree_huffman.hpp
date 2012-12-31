@@ -549,8 +549,9 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            delete ranges_queue.bottom();
+            PatternList * bottom = ranges_queue.bottom();
             ranges_queue.pop_bottom();
+            delete bottom;
         }
     }
 
@@ -685,8 +686,9 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            delete ranges_queue.bottom();
+            FilteredPatternList * bottom = ranges_queue.bottom();
             ranges_queue.pop_bottom();
+            delete bottom;
         }
     }
 
@@ -861,8 +863,9 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            delete ranges_queue.bottom();
+            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom();
             ranges_queue.pop_bottom();
+            delete bottom;
         }
     }
 
