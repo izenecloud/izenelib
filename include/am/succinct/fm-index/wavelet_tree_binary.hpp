@@ -496,9 +496,9 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            std::pair<PatternList *, size_t>& bottom = ranges_queue.bottom();
+            PatternList * bottom = ranges_queue.bottom().first;
             ranges_queue.pop_bottom();
-            delete bottom.first;
+            delete bottom;
         }
     }
 
@@ -635,9 +635,9 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            std::pair<FilteredPatternList *, size_t>& bottom = ranges_queue.bottom();
+            FilteredPatternList * bottom = ranges_queue.bottom().first;
             ranges_queue.pop_bottom();
-            delete bottom.first;
+            delete bottom;
         }
     }
 
@@ -814,9 +814,9 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            std::pair<AuxFilteredPatternList<self_type> *, size_t>& bottom = ranges_queue.bottom();
+            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom().first;
             ranges_queue.pop_bottom();
-            delete bottom.first;
+            delete bottom;
         }
     }
 
