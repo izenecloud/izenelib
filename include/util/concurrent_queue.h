@@ -60,6 +60,20 @@ public:
         std::remove_if(queue_.begin(), queue_.end(), pred);
     }
 
+    template<typename IfPredicate, typename WhenPredicate>
+    bool remove_if_when(IfPredicate ifPred, WhenPredicate whenPred)
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+
+        if (whenPred())
+        {
+            std::remove_if(queue_.begin(), queue_.end(), ifPred);
+            return true;
+        }
+
+        return false;
+    }
+
     std::size_t size()
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
