@@ -243,7 +243,7 @@ void WatArray::QuantileRange(uint64_t begin_pos, uint64_t end_pos, uint64_t k, u
     uint64_t rank = begin_pos - beg_node;
     pos = Select(val, rank + 1);
 }
-void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const
+void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret,const BitTrie& filter) const
 {
     uint64_t val;
     if (end_pos > length_ || begin_pos >= end_pos)
@@ -258,13 +258,16 @@ void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uin
     uint64_t end_node = length_;
     size_t i = 0;
     //uint64_t k=0;
-    QuantileRangeEach(begin_pos, end_pos, i,beg_node ,end_node, val,ret);
+
+    QuantileRangeEach(begin_pos, end_pos, i,beg_node ,end_node, val,ret,filter.Root_);
+
+    //QuantileRangeEach_NonRecursive(begin_pos, end_pos, i,beg_node ,end_node, val,ret);
 
 
 }
-void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
+void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret,BitNode* node) const
 {
-   // cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
+    //cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<"grade"<<node->grade_<<endl;
     if(i==bit_arrays_.size())
     {
         ret.push_back(val);
@@ -290,26 +293,28 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,
         {
             begin_pos = beg_node + beg_zero - beg_node_zero;
             end_pos   = beg_node + end_zero - beg_node_zero;
-            QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret);
+            if(node->ZNext_)
+            QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret,node->ZNext_);//
         }
         else
         {
              if (end_zero - beg_zero ==0)
              {
-                ret.push_back(val);
+                //ret.push_back(val);
              }
         }
         if (end_one - beg_one >0)
         {
             begin_pos = boundary + beg_one - beg_node_one;
             end_pos   = boundary + end_one - beg_node_one;
-            QuantileRangeEach(begin_pos, end_pos, i+1,boundary ,end_node, (val << 1) + 1,ret);
+            if(node->ONext_)
+            QuantileRangeEach(begin_pos, end_pos, i+1,boundary ,end_node, (val << 1) + 1,ret,node->ONext_);//
         }
         else
         {
              if (end_one - beg_one ==0)
              {
-                ret.push_back(val);
+                //ret.push_back(val);
              }
         }
 
