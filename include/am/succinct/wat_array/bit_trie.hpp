@@ -5,35 +5,33 @@
 #include <stdint.h>
 #include <vector>
 #include <iostream>
-using namespace std;
+
 namespace wat_array
 {
 
 class BitNode
 {
 public:
-     BitNode* ZNext_;
-     BitNode* ONext_;
-     int grade_;
+    int grade_;
+    BitNode* ZNext_;
+    BitNode* ONext_;
 public:
-     BitNode(int grade);
-     ~BitNode();
-
+    BitNode(int grade);
+    ~BitNode();
 };
 
 class BitTrie
 {
-
-     int height_;
+    int height_;
 public:
-     BitNode* Root_;
-     BitTrie(int alphbatNum);
-     ~BitTrie();
-     void insert(int val);
-     bool exist(int val);
+    BitNode* Root_;
+    BitTrie(int alphbatNum);
+    ~BitTrie();
+    void insert(int val);
+    bool exist(int val);
 
 };
 
 
 };
-#endif 
+#endif
