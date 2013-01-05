@@ -27,8 +27,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cassert>
-
-
+using namespace std;
 namespace wat_array
 {
 
@@ -51,6 +50,28 @@ struct ListResult
         if (c != lr.c) return c < lr.c;
         return freq < lr.freq;
     }
+};
+
+class Parameter
+{
+public:
+    Parameter()
+    {
+    }
+    Parameter(uint64_t bp, uint64_t ep, size_t ii,uint64_t bn ,uint64_t en, uint64_t v)
+    :begin_pos(bp), end_pos(ep), i(ii), beg_node(bn), end_node(en), val(v)
+    {
+    }
+    ~Parameter()
+    {
+    }
+public:
+    uint64_t begin_pos;
+    uint64_t end_pos;
+    size_t i;
+    uint64_t beg_node;
+    uint64_t end_node;
+    uint64_t val;
 };
 
 class WatArray
@@ -241,6 +262,44 @@ public:
      */
     void Load(std::istream& is);
 
+    //add qian wang
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+
+    void QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+
+    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const;
+
+
+    void ListRangeRandom(uint64_t min_c,   uint64_t max_c,
+                   uint64_t beg_pos, uint64_t end_pos,
+                   uint64_t num,     std::vector<ListResult>& res) const
+    {
+        res.clear();
+        if (end_pos > length_ || beg_pos >= end_pos) return;
+
+        std::queue<QueryOnNode> qons;
+        qons.push(QueryOnNode(0, length_, beg_pos, end_pos, 0, 0));
+
+        while (res.size() < num && !qons.empty())
+        {
+            QueryOnNode qon = qons.front();
+            qons.pop();
+            if (qon.depth >= alphabet_bit_num_)
+            {
+                res.push_back(ListResult(qon.prefix_char, qon.end_pos - qon.beg_pos));
+            }
+            else
+            {
+                std::vector<QueryOnNode> next;
+                ExpandNode(min_c, max_c, qon, next);
+                for (size_t i = 0; i < next.size(); ++i)
+                {
+                    qons.push(next[i]);
+                }
+            }
+        }
+    }
+
 private:
     uint64_t GetAlphabetNum(const std::vector<uint64_t>& array) const;
     uint64_t Log2(uint64_t x) const;
@@ -313,6 +372,7 @@ private:
             }
         }
     }
+
 
     bool CheckPrefix(uint64_t prefix, uint64_t depth, uint64_t min_c, uint64_t max_c) const;
     void ExpandNode(uint64_t min_c, uint64_t max_c,

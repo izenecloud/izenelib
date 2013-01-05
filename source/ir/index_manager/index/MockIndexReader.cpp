@@ -66,8 +66,10 @@ namespace indexmanager {
     {
         typedef std::map<std::pair<std::string, termid_t>, MockPostings>::iterator Iter;
         Iter it = index_->inverted_.find(std::make_pair(std::string(term->getField()), term->getValue()));
-        if(it == index_->inverted_.end()) return NULL;
-
+        if(it == index_->inverted_.end()) 
+        {
+            return NULL;
+        }
         if(termInfo_ == NULL)
             termInfo_ = new TermInfo;
         termInfo_->set(it->second.size(), it->second.size(),0, -1,-1,0,-1,0,-1,0);
