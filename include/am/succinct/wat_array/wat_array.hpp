@@ -21,7 +21,7 @@
 #define WATARRAY_WATARRAY_HPP_
 
 #include "bit_array.hpp"
-
+#include "bit_trie.hpp"
 #include <vector>
 #include <queue>
 #include <stdint.h>
@@ -263,11 +263,11 @@ public:
     void Load(std::istream& is);
 
     //add qian wang
-    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret,BitNode* node) const;
 
     void QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
 
-    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const;
+    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret,const BitTrie& filter) const;
 
 
     void ListRangeRandom(uint64_t min_c,   uint64_t max_c,

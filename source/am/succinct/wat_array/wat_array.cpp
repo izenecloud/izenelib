@@ -243,7 +243,7 @@ void WatArray::QuantileRange(uint64_t begin_pos, uint64_t end_pos, uint64_t k, u
     uint64_t rank = begin_pos - beg_node;
     pos = Select(val, rank + 1);
 }
-void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret) const
+void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret,const BitTrie& filter) const
 {
     uint64_t val;
     if (end_pos > length_ || begin_pos >= end_pos)
@@ -258,13 +258,16 @@ void WatArray::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uin
     uint64_t end_node = length_;
     size_t i = 0;
     //uint64_t k=0;
-    QuantileRangeEach(begin_pos, end_pos, i,beg_node ,end_node, val,ret);
+
+    QuantileRangeEach(begin_pos, end_pos, i,beg_node ,end_node, val,ret,filter.Root_);
+
+    //QuantileRangeEach_NonRecursive(begin_pos, end_pos, i,beg_node ,end_node, val,ret);
 
 
 }
-void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
+void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret,BitNode* node) const
 {
-   // cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
+    //cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<"grade"<<node->grade_<<endl;
     if(i==bit_arrays_.size())
     {
         ret.push_back(val);
@@ -290,26 +293,28 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,
         {
             begin_pos = beg_node + beg_zero - beg_node_zero;
             end_pos   = beg_node + end_zero - beg_node_zero;
-            QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret);
+            if(node->ZNext_)
+            QuantileRangeEach(begin_pos, end_pos, i+1,beg_node ,boundary, (val<<1),ret,node->ZNext_);//
         }
         else
         {
              if (end_zero - beg_zero ==0)
              {
-                ret.push_back(val);
+                //ret.push_back(val);
              }
         }
         if (end_one - beg_one >0)
         {
             begin_pos = boundary + beg_one - beg_node_one;
             end_pos   = boundary + end_one - beg_node_one;
-            QuantileRangeEach(begin_pos, end_pos, i+1,boundary ,end_node, (val << 1) + 1,ret);
+            if(node->ONext_)
+            QuantileRangeEach(begin_pos, end_pos, i+1,boundary ,end_node, (val << 1) + 1,ret,node->ONext_);//
         }
         else
         {
              if (end_one - beg_one ==0)
              {
-                ret.push_back(val);
+                //ret.push_back(val);
              }
         }
 
@@ -320,60 +325,67 @@ void WatArray::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,
 
 void WatArray::QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const
 {
-   // cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
+    //cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"beg_node"<<beg_node<<"end_node"<<end_node<<"val"<<val<<"ret"<<ret.size()<<endl;
     stack<Parameter> Params;
-    Parameter MyParam;
     Params.push(Parameter(begin_pos, end_pos, i, beg_node, end_node, val));
 
     while(!Params.empty())
     {
-        MyParam = Params.top();
+        Parameter &MyParam = Params.top();
+        //cout<<"QuantileRangeEach "<<" begin_pos: "<<MyParam.begin_pos<<" end_pos: "<<MyParam.end_pos<<" i: "<<MyParam.i<<" beg_node: "<<MyParam.beg_node<<" end_node: "<<MyParam.end_node<<" val: "<<MyParam.val<<" ret: "<<ret.size()<<endl;
+
+        uint64_t param_begin_pos = MyParam.begin_pos;
+        uint64_t param_end_pos = MyParam.end_pos;
+        uint64_t param_val = MyParam.val;
+        size_t param_i = MyParam.i;
+        uint64_t param_beg_node = MyParam.beg_node;
+        uint64_t param_end_node = MyParam.end_node;
         Params.pop();
-        if(MyParam.i==bit_arrays_.size())
+
+        if(param_i==bit_arrays_.size())
         {
-            ret.push_back(val);
+            ret.push_back(param_val);
         }
         else
         {
-            const BitArray& ba = bit_arrays_[i];
-            uint64_t beg_node_zero = ba.Rank(0, MyParam.beg_node);
-            uint64_t end_node_zero = ba.Rank(0, MyParam.end_node);
-            uint64_t beg_node_one  = MyParam.beg_node - beg_node_zero;
-            uint64_t beg_zero  = ba.Rank(0, MyParam.begin_pos);
-            uint64_t end_zero  = ba.Rank(0, MyParam.end_pos);
-            uint64_t beg_one   = MyParam.begin_pos - beg_zero;
-            uint64_t end_one   = MyParam.end_pos - end_zero;
-            uint64_t boundary  = MyParam.beg_node + end_node_zero - beg_node_zero;
-
+            const BitArray& ba = bit_arrays_[param_i];
+            uint64_t beg_node_zero = ba.Rank(0, param_beg_node);
+            uint64_t end_node_zero = ba.Rank(0, param_end_node);
+            uint64_t beg_node_one  = param_beg_node - beg_node_zero;
+            uint64_t beg_zero  = ba.Rank(0, param_begin_pos);
+            uint64_t end_zero  = ba.Rank(0, param_end_pos);
+            uint64_t beg_one   = param_begin_pos - beg_zero;
+            uint64_t end_one   = param_end_pos - end_zero;
+            uint64_t boundary  = param_beg_node + end_node_zero - beg_node_zero;
 
             if (end_zero - beg_zero >0)
             {
-                Params.push(Parameter(beg_node + beg_zero - beg_node_zero,
-                            beg_node + end_zero - beg_node_zero,
-                            i+1,
-                            beg_node,
+                Params.push(Parameter(param_beg_node + beg_zero - beg_node_zero,
+                            param_beg_node + end_zero - beg_node_zero,
+                            param_i+1,
+                            param_beg_node,
                             boundary,
-                            (val<<1)
+                            (param_val<<1)
                             ));
             }
             else if (end_zero - beg_zero ==0)
             {
-                ret.push_back(val);
+                ret.push_back(param_val);
             }
 
             if (end_one - beg_one >0)
             {
                 Params.push(Parameter(boundary + beg_one - beg_node_one,
                             boundary + end_one - beg_node_one,
-                            i+1,
+                            param_i+1,
                             boundary,
-                            end_node,
-                            (val << 1) + 1
+                            param_end_node,
+                            (param_val << 1) + 1
                             ));
             }
             else if (end_one - beg_one ==0)
             {
-                ret.push_back(val);
+                ret.push_back(param_val);
             }
 
         }
