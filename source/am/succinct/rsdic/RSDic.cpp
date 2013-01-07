@@ -43,7 +43,7 @@ void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
 {
     pointer_blocks_.reserve(len / kLargeBlockSize + 1);
     rank_blocks_.reserve(len / kLargeBlockSize + 1);
-    rank_small_blocks_.reserve(Util::Ceiling(len, kSmallBlockSize));
+    rank_small_blocks_.reserve(len / kSmallBlockSize + 1);
 
     pointer_blocks_.push_back(0);
     rank_blocks_.push_back(0);
@@ -62,10 +62,7 @@ void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
             rank_blocks_.push_back(one_num_);
         }
     }
-    if (offset > 0)
-    {
-        BuildBlock_(bv[index] & ((1LLU << offset) - 1), offset, global_offset);
-    }
+    BuildBlock_(bv[index] & ((1LLU << offset) - 1), offset, global_offset);
 
     if (bits_.capacity() > bits_.size())
     {
