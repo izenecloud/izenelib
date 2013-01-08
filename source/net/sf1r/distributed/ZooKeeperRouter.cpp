@@ -221,8 +221,6 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     }
 #endif
 
-    if(policy)
-        policy->updateNodes();
     // remove its pool
     const PoolContainer::iterator& it = pools.find(path);
     CHECK(pools.end() != it) << "pool not found";
@@ -267,8 +265,6 @@ ZooKeeperRouter::watchChildren(const string& path) {
             watchChildren(s);
         }
     }
-    if (need_update && policy)
-        policy->updateNodes();
 }
 
 
@@ -337,19 +333,17 @@ ZooKeeperRouter::getConnection(const string& collection) {
     if (cit == pools.end())
     {
         LOG(INFO) << "no pools for the connection, add new node : " << node.getPath();
-        if(!addSf1Node(node.getPath()))
+        //if(!addSf1Node(node.getPath()))
         {
             LOG(ERROR) << "get connection failed for : " << node.getPath();
             throw RoutingError("no ConnectionPool for " + collection);
         }
-        if(policy)
-            policy->updateNodes();
-        cit = pools.find(node.getPath());
-        if (cit == pools.end())
-        {
-            LOG(ERROR) << "get connection failed for : " << node.getPath();
-            throw RoutingError("no ConnectionPool for " + collection);
-        }
+        //cit = pools.find(node.getPath());
+        //if (cit == pools.end())
+        //{
+        //    LOG(ERROR) << "get connection failed for : " << node.getPath();
+        //    throw RoutingError("no ConnectionPool for " + collection);
+        //}
     }
     ConnectionPool* pool = cit->second;
     CHECK(pool) << "NULL pool";

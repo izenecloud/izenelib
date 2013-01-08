@@ -35,8 +35,6 @@ public:
     /// Get a node hosting the given collection using a round-robin policy.
     const Sf1Node& getNodeFor(const std::string& collection);
 
-    void updateNodes();
-
 private:  
     
     /// Reset the index counter.

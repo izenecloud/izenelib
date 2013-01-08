@@ -45,8 +45,6 @@ public:
      */
     virtual const Sf1Node& getNodeFor(const std::string& collection) = 0;
     
-    virtual void updateNodes() = 0;
-
 protected:
     
     Sf1Topology& topology;

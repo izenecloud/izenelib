@@ -37,11 +37,6 @@ RoundRobinPolicy::resetCounter() {
 }
 
 
-void RoundRobinPolicy::updateNodes()
-{
-    updateCollections();
-}
-
 void
 RoundRobinPolicy::updateCollections() {
     DLOG(INFO) << "updating collections map due to topology changes";
@@ -50,6 +45,8 @@ RoundRobinPolicy::updateCollections() {
     BOOST_FOREACH(const string& collection, topology.getCollectionIndex()) {
         NodeCollectionsRange range = topology.getNodesFor(collection);
         string k(collection);
+        //for(NodeCollectionsIterator it = range.first; it != range.second; ++it)
+        //    LOG(INFO) << "collection: " << k << ", node : " << (*it).second.getPath();
         collections.insert(k, new NodeCollectionsList(range.first, range.second));
         ccounter[collection] = 0;
     }
