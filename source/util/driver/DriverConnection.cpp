@@ -168,9 +168,12 @@ void DriverConnection::handleRequest(
 
                         izenelib::util::ClockTimer processTimer;
 
-                        handler->invoke(context->request,
-                                        context->response,
-                                        poller_);
+                        handler->invoke(
+                            context->request.controller(),
+                            context->request.action(),
+                            context->request,
+                            context->response,
+                            poller_);
 
                         if (asBool(context->request.header()[driver::Keys::check_time]))
                         {

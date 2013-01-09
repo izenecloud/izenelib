@@ -19,7 +19,7 @@ public:
     virtual ~ActionHandlerBase()
     {}
 
-    virtual void invoke(Request& request, Response& response, Poller poller) = 0;
+    virtual void invoke(const std::string& controller, const std::string& action, Request& request, Response& response, Poller poller) = 0;
 };
 
 
@@ -34,10 +34,10 @@ public:
     : prototype_(prototype), handler_(handler)
     {}
 
-    void invoke(Request& request, Response& response, Poller poller)
+    void invoke(const std::string& controller_name, const std::string& action, Request& request, Response& response, Poller poller)
     {
         ControllerType controller(prototype_);
-        controller.initializeRequestContext(request, response);
+        controller.initializeRequestContext(controller_name, action, request, response);
         controller.setPoller(poller);
         if (controller.preprocess())
         {
