@@ -47,6 +47,8 @@ void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
 
     pointer_blocks_.push_back(0);
     rank_blocks_.push_back(0);
+    select_one_inds_.push_back(0);
+    select_zero_inds_.push_back(0);
 
     uint64_t global_offset = 0;
     uint64_t index = len / kSmallBlockSize;
