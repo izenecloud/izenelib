@@ -231,11 +231,10 @@ template <class CharT>
 size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 {
     size_t pos = rank + occ_.prefixSum(c);
-    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        if (c & bit_mask)
+        if (pos >= zero_counts_[i])
         {
             pos = nodes_[i]->bit_vector_.Select1(pos - zero_counts_[i]);
         }
@@ -245,8 +244,6 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
         }
 
         if (pos == (size_t)-1) return -1;
-
-        bit_mask >>= 1;
     }
 
     return pos;
