@@ -4,10 +4,10 @@
 #include "wavelet_tree.hpp"
 #include "utils.hpp"
 #include <am/succinct/sdarray/SDArray.hpp>
-
-
+#include <vector>
+#include <am/succinct/wat_array/bit_trie.hpp>
 NS_IZENELIB_AM_BEGIN
-
+using namespace wat_array;
 namespace succinct
 {
 namespace fm_index
@@ -20,7 +20,7 @@ public:
     typedef CharT char_type;
     typedef WaveletMatrix<CharT> self_type;
 
-    WaveletMatrix(size_t alphabet_num);
+    WaveletMatrix(size_t alphabet_num=2731460);
     ~WaveletMatrix();
 
     void build(const char_type *char_seq, size_t len);
@@ -62,6 +62,14 @@ public:
 
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
+
+    void Init(const std::vector<char_type>& array);
+    size_t Freq(char_type c) const;
+    size_t Rank(char_type c, size_t pos) const;
+    CharT Lookup(size_t pos) const;
+    size_t Select(char_type c, size_t rank) const;
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, char_type val,int k,vector<char_type>& ret,BitNode* node) const;
+    void QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const;
 
 private:
     void doIntersect_(
@@ -243,7 +251,7 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
         {
             pos = nodes_[i]->bit_vector_.Select0(pos);
         }
-
+        //pos++;
         if (pos == (size_t)-1) return -1;
 
         bit_mask >>= 1;
@@ -817,6 +825,86 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
         nodes_[i - 1]->right_ = nodes_[i];
     }
 }
+
+
+template <class CharT>
+void WaveletMatrix<CharT>::Init(const std::vector<char_type>& array)
+{
+    build(&array[0], array.size());
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Freq(char_type c) const
+{
+    return getOcc(c+1)-getOcc(c);
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Rank(CharT c, size_t pos) const
+{
+    return rank(c, pos);
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Select(CharT c, size_t rank) const
+{
+    return select(c, rank);
+}
+template <class CharT>
+CharT WaveletMatrix<CharT>::Lookup(size_t pos) const
+{
+    return access(pos);
+}
+template <class CharT>
+void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, CharT val,int k,vector<char_type>& ret,BitNode* node) const
+{   
+    if(i==this->alphabet_bit_num_)
+    {
+        ret.push_back(val);
+    }
+    else
+    {
+        const rsdic::RSDic& ba =nodes_[i]->bit_vector_;
+        uint64_t begin_zero, end_zero;
+        begin_zero = ba.Rank(0, begin_pos);
+        end_zero = ba.Rank(0, end_pos);
+        uint64_t zero_bits = end_zero - begin_zero;
+        if (zero_bits>0)
+        {
+            if(node->ZNext_)
+            QuantileRangeEach(begin_zero, end_zero, i+1, (val << 1) ,zero_bits,ret,node->ZNext_);//
+        }     
+        if (k-zero_bits>0)
+        {
+            begin_pos += zero_counts_[i] - begin_zero;
+            end_pos += zero_counts_[i] - end_zero;
+            if(node->ONext_)
+            QuantileRangeEach(begin_pos, end_pos, i+1, (val << 1) + 1,k-zero_bits, ret,node->ONext_);//
+        }
+       
+    }
+  
+}
+template <class CharT>
+void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const
+{
+    uint64_t val;
+    if ((end_pos > this->length() || begin_pos >= end_pos))
+    {
+      //pos = NOTFOUND;
+      //val = NOTFOUND;
+      return;
+    }
+   
+    val = 0;
+
+    size_t i = 0;
+    //uint64_t k=0;Schema
+    bool from_zero = (begin_pos == 0);
+    bool to_end = (end_pos ==this->length());
+    //cout<<"alphabet_bit_num_"<<alphabet_bit_num_<<endl;
+    QuantileRangeEach(begin_pos, end_pos, i,val, end_pos - begin_pos-1,ret,filter.Root_);
+
+}
+
+
 
 }
 }
