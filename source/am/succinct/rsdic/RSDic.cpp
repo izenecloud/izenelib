@@ -47,6 +47,8 @@ void RSDic::Build(const vector<uint64_t>& bv, uint64_t len)
 
     pointer_blocks_.push_back(0);
     rank_blocks_.push_back(0);
+    select_one_inds_.push_back(0);
+    select_zero_inds_.push_back(0);
 
     uint64_t global_offset = 0;
     uint64_t index = len / kSmallBlockSize;
@@ -82,13 +84,15 @@ void RSDic::BuildBlock_(uint64_t block, uint64_t offset, uint64_t& global_offset
 {
     uint64_t rank_sb = Util::PopCount(block);
 
-    if (one_num_ % kSelectBlockSize + rank_sb > kSelectBlockSize)
+    if (rank_sb > 0 && one_num_ % kSelectBlockSize + rank_sb >= kSelectBlockSize)
     {
-        select_one_inds_.push_back(num_ / kLargeBlockSize);
+        size_t remain = EnumCoder::SelectRaw(block, kSelectBlockSize - one_num_ % kSelectBlockSize);
+        select_one_inds_.push_back((num_ + remain) / kLargeBlockSize);
     }
-    if ((num_ - one_num_) % kSelectBlockSize + offset - rank_sb > kSelectBlockSize)
+    if (offset - rank_sb > 0 && (num_ - one_num_) % kSelectBlockSize + offset - rank_sb >= kSelectBlockSize)
     {
-        select_zero_inds_.push_back(num_ / kLargeBlockSize);
+        size_t remain = EnumCoder::SelectRaw(~block, kSelectBlockSize - (num_ - one_num_) % kSelectBlockSize);
+        select_zero_inds_.push_back((num_ + remain) / kLargeBlockSize);
     }
     num_ += offset;
     one_num_ += rank_sb;
