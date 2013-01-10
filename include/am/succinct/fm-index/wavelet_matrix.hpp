@@ -900,7 +900,7 @@ void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos,
     bool from_zero = (begin_pos == 0);
     bool to_end = (end_pos ==this->length());
     //cout<<"alphabet_bit_num_"<<alphabet_bit_num_<<endl;
-    QuantileRangeEach(begin_pos, end_pos, i,val, end_pos - begin_pos-1,ret,filter.Root_);
+    QuantileRangeEach(begin_pos, end_pos, i,val, end_pos - begin_pos,ret,filter.Root_);
 
 }
 
