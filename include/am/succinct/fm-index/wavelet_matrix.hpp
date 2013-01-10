@@ -21,7 +21,7 @@ public:
     typedef CharT char_type;
     typedef WaveletMatrix<CharT> self_type;
 
-    WaveletMatrix(size_t alphabet_num=2731460);
+    WaveletMatrix(size_t alphabet_num, bool support_select, bool dense);
     ~WaveletMatrix();
 
     void build(const char_type *char_seq, size_t len);
@@ -69,8 +69,10 @@ public:
     size_t Rank(char_type c, size_t pos) const;
     CharT Lookup(size_t pos) const;
     size_t Select(char_type c, size_t rank) const;
-    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, char_type val,int k,vector<char_type>& ret,BitNode* node) const;
-    void QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const;
+
+    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, char_type val, int k, std::vector<char_type>& ret,BitNode* node) const;
+    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, std::vector<char_type>& ret,const BitTrie& filter) const;
+
 private:
     void doIntersect_(
             const std::vector<std::pair<size_t, size_t> > &ranges,
@@ -87,8 +89,8 @@ private:
 };
 
 template <class CharT>
-WaveletMatrix<CharT>::WaveletMatrix(size_t alphabet_num)
-    : WaveletTree<CharT>(alphabet_num)
+WaveletMatrix<CharT>::WaveletMatrix(size_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
 {
 }
 
@@ -112,7 +114,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
 
     nodes_.resize(this->alphabet_bit_num_);
 
-    std::vector<uint64_t> prev_begin_pos(1), node_begin_pos(1);
+    std::vector<size_t> prev_begin_pos(1), node_begin_pos(1);
     char_type bit_mask, subscript;
 
     for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
@@ -120,7 +122,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
         node_begin_pos.clear();
         node_begin_pos.resize((1ULL << (i + 1)) + 1);
 
-        nodes_[i] = new WaveletTreeNode;
+        nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
 
         bit_mask = (char_type)1 << i;
@@ -175,7 +177,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        if (nodes_[i]->bit_vector_.GetBit(pos, pos))
+        if (nodes_[i]->access(pos, pos))
         {
             c |= bit_mask;
             pos += zero_counts_[i];
@@ -197,7 +199,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos, size_t &rank) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        if (nodes_[i]->bit_vector_.GetBit(pos, pos))
+        if (nodes_[i]->access(pos, pos))
         {
             c |= bit_mask;
             pos += zero_counts_[i];
@@ -222,11 +224,11 @@ size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
     {
         if (c & bit_mask)
         {
-            pos = nodes_[i]->bit_vector_.Rank1(pos) + zero_counts_[i];
+            pos = nodes_[i]->rank1(pos) + zero_counts_[i];
         }
         else
         {
-            pos -= nodes_[i]->bit_vector_.Rank1(pos);
+            pos -= nodes_[i]->rank1(pos);
         }
 
         bit_mask <<= 1;
@@ -244,11 +246,11 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
     {
         if (pos >= zero_counts_[i])
         {
-            pos = nodes_[i]->bit_vector_.Select1(pos - zero_counts_[i]);
+            pos = nodes_[i]->select1(pos - zero_counts_[i]);
         }
         else
         {
-            pos = nodes_[i]->bit_vector_.Select0(pos);
+            pos = nodes_[i]->select0(pos);
         }
         //pos++;
         if (pos == (size_t)-1) return -1;
@@ -294,15 +296,15 @@ void WaveletMatrix<CharT>::doIntersect_(
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
-    const rsdic::RSDic &bv = nodes_[level]->bit_vector_;
+    const WaveletTreeNode *node = nodes_[level];
 
     size_t rank_start, rank_end;
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
             it != ranges.end(); ++it)
     {
-        rank_start = bv.Rank1(it->first);
-        rank_end = bv.Rank1(it->second);
+        rank_start = node->rank1(it->first);
+        rank_end = node->rank1(it->second);
 
         if (has_zeros)
         {
@@ -405,8 +407,8 @@ void WaveletMatrix<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
@@ -506,8 +508,8 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
+            rank_start = node->rank1(it->first);
+            rank_end = node->rank1(it->second);
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
@@ -532,8 +534,8 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -653,8 +655,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->bit_vector_.Rank1(fit->first);
-                rank_end = node->bit_vector_.Rank1(fit->second);
+                rank_start = node->rank1(fit->first);
+                rank_end = node->rank1(fit->second);
 
                 zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
                 one_filter->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
@@ -684,8 +686,8 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -812,7 +814,7 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
     nodes_.resize(this->alphabet_bit_num_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        nodes_[i] = new WaveletTreeNode;
+        nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->load(istr);
     }
     for (size_t i = 1; i < nodes_.size(); ++i)
@@ -852,8 +854,8 @@ CharT WaveletMatrix<CharT>::Lookup(size_t pos) const
 
 
 template <class CharT>
-void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, CharT val,int k,vector<char_type>& ret,BitNode* node) const
-{   
+void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, CharT val, int k, std::vector<char_type>& ret,BitNode* node) const
+{
     //cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"val"<<val<<"ret"<<ret.size()<<endl;
     if(i==this->alphabet_bit_num_)
     {
@@ -872,7 +874,7 @@ void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_po
         {
             if(node->ZNext_)
             QuantileRangeEach(begin_zero, end_zero, i+1, val ,zero_bits,ret,node->ZNext_);//
-        }     
+        }
         if (k-zero_bits>0)
         {
             begin_pos += zero_counts_[i] - begin_zero;
@@ -880,16 +882,16 @@ void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_po
             if(node->ONext_)
             QuantileRangeEach(begin_pos, end_pos, i+1, val|(1 << i) ,k-zero_bits, ret,node->ONext_);//
         }
-       
+
     }
-  
+
 }
 
 
 template <class CharT>
-void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const
+void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, std::vector<char_type>& ret, const BitTrie& filter) const
 {
-    
+
     //uint64_t val;
     if ((end_pos > this->length() || begin_pos > end_pos))
     {
@@ -897,12 +899,12 @@ void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos,
       //val = NOTFOUND;
       return;
     }
-    
+
     size_t i = 0;
     bool from_zero = (begin_pos == 0);
     bool to_end = (end_pos ==this->length());
     QuantileRangeEach(begin_pos, end_pos, i,0, end_pos - begin_pos,ret,filter.Root_);
-    
+
 }
 
 

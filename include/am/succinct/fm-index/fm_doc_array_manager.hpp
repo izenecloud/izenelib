@@ -44,7 +44,7 @@ public:
         {
             doc_delim.load(istr);
             if (doc_delim.size() == 0) return;
-            doc_array_ptr.reset(new DocArrayWaveletT(doc_count));
+            doc_array_ptr.reset(new DocArrayWaveletT(doc_count, false, false));
             doc_array_ptr->load(istr);
         }
 
@@ -237,7 +237,7 @@ void FMDocArrayMgr<CharT>::buildFilter()
 
         std::cout << "filter " << i << " total doc_delim length: " << filter_docarray_list_[i].doc_delim.getSum() << std::endl;
         assert(doc_count_ > 0);
-        filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_));
+        filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_, false, false));
         filter_docarray_list_[i].doc_array_ptr->build(&temp_docid_list[0], temp_docid_list.size());
         std::vector<FilterItemT>().swap(temp_filter_list_[i]);
     }

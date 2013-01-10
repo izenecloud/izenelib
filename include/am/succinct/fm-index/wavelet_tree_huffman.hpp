@@ -21,7 +21,7 @@ public:
     typedef CharT char_type;
     typedef WaveletTreeHuffman<CharT> self_type;
 
-    WaveletTreeHuffman(size_t alphabet_num);
+    WaveletTreeHuffman(size_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeHuffman();
 
     void build(const char_type *char_seq, size_t len);
@@ -91,8 +91,8 @@ private:
 };
 
 template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(size_t alphabet_num)
-    : WaveletTree<CharT>(alphabet_num)
+WaveletTreeHuffman<CharT>::WaveletTreeHuffman(size_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
     , root_()
 {
 }
@@ -131,7 +131,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
     {
         if (occ_[i + 1])
         {
-            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1]);
+            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1], this->support_select_, this->dense_);
             node_queue.push((leaves_[i]));
         }
     }
@@ -144,7 +144,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         WaveletTreeNode *right = node_queue.top();
         node_queue.pop();
 
-        node_queue.push(new WaveletTreeNode(left, right));
+        node_queue.push(new WaveletTreeNode(left, right, this->support_select_, this->dense_));
     }
 
     root_ = node_queue.top();
@@ -243,7 +243,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_) walk = walk->right_;
             else return walk->c1_;
@@ -265,7 +265,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_)
             {
@@ -309,24 +309,24 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
         {
             if (walk->right_)
             {
-                pos = walk->bit_vector_.Rank1(pos);
+                pos = walk->rank1(pos);
                 walk = walk->right_;
             }
             else
             {
-                return walk->bit_vector_.Rank1(pos);
+                return walk->rank1(pos);
             }
         }
         else
         {
             if (walk->left_)
             {
-                pos = walk->bit_vector_.Rank0(pos);
+                pos = walk->rank0(pos);
                 walk = walk->left_;
             }
             else
             {
-                return walk->bit_vector_.Rank0(pos);
+                return walk->rank0(pos);
             }
         }
     }
@@ -346,13 +346,13 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 
     for (; walk->parent_; walk = walk->parent_)
     {
-        if ((rank = walk->bit_vector_.Select(rank, bit)) == (size_t)-1)
+        if ((rank = walk->select(rank, bit)) == (size_t)-1)
             return -1;
 
         bit = (walk == walk->parent_->right_);
     }
 
-    return walk->bit_vector_.Select(rank, bit);
+    return walk->select(rank, bit);
 }
 
 template <class CharT>
@@ -385,15 +385,13 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
-    const rsdic::RSDic &bv = node->bit_vector_;
-
     size_t rank_start, rank_end;
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
             it != ranges.end(); ++it)
     {
-        rank_start = bv.Rank1(it->first);
-        rank_end = bv.Rank1(it->second);
+        rank_start = node->rank1(it->first);
+        rank_end = node->rank1(it->second);
 
         if (has_zeros)
         {
@@ -508,8 +506,8 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
@@ -607,8 +605,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
+            rank_start = node->rank1(it->first);
+            rank_end = node->rank1(it->second);
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start, rank_end));
@@ -633,8 +631,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -754,8 +752,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->bit_vector_.Rank1(fit->first);
-                rank_end = node->bit_vector_.Rank1(fit->second);
+                rank_start = node->rank1(fit->first);
+                rank_end = node->rank1(fit->second);
 
                 zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
                 one_filter->addFilter(std::make_pair(rank_start, rank_end));
@@ -784,8 +782,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
+            rank_start = node->rank1(it->first);
+            rank_end = node->rank1(it->second);
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start, rank_end));
@@ -810,8 +808,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -961,7 +959,7 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
     istr.read((char *)&flag, sizeof(flag));
     if (flag)
     {
-        root_ = new WaveletTreeNode;
+        root_ = new WaveletTreeNode(this->support_select_, this->dense_);
         leaves_.resize(this->alphabet_num_);
         loadTree_(istr, root_);
     }
@@ -977,7 +975,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 1U)
     {
-        node->left_ = new WaveletTreeNode;
+        node->left_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->left_->parent_ = node;
         loadTree_(istr, node->left_);
     }
@@ -988,7 +986,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 2U)
     {
-        node->right_ = new WaveletTreeNode;
+        node->right_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->right_->parent_ = node;
         loadTree_(istr, node->right_);
     }

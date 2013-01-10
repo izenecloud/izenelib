@@ -20,7 +20,7 @@ public:
     typedef CharT char_type;
     typedef WaveletTreeBinary<CharT> self_type;
 
-    WaveletTreeBinary(size_t alphabet_num);
+    WaveletTreeBinary(size_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeBinary();
 
     void build(const char_type *char_seq, size_t len);
@@ -80,8 +80,8 @@ private:
 };
 
 template <class CharT>
-WaveletTreeBinary<CharT>::WaveletTreeBinary(size_t alphabet_num)
-    : WaveletTree<CharT>(alphabet_num)
+WaveletTreeBinary<CharT>::WaveletTreeBinary(size_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
 {
 }
 
@@ -134,7 +134,7 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
     nodes_.resize(this->alphabet_bit_num_);
     for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
     {
-        nodes_[i] = new WaveletTreeNode;
+        nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
     }
     for (size_t i = 0; i < len; ++i)
@@ -175,11 +175,11 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
+        const WaveletTreeNode *node = nodes_[i];
 
-        before = bv.Rank1(start);
+        before = node->rank1(start);
 
-        if (bv.GetBit(pos, optR))
+        if (node->access(pos, optR))
         {
             c |= bit_mask;
             start = occ_.prefixSum(c);
@@ -209,11 +209,11 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
+        const WaveletTreeNode *node = nodes_[i];
 
-        before = bv.Rank1(start);
+        before = node->rank1(start);
 
-        if (bv.GetBit(pos, optR))
+        if (node->access(pos, optR))
         {
             c |= bit_mask;
             start = occ_.prefixSum(c);
@@ -246,20 +246,20 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
+        const WaveletTreeNode *node = nodes_[i];
 
-        before = bv.Rank1(start);
+        before = node->rank1(start);
 
         if (c & bit_mask)
         {
             masked |= bit_mask;
             start = occ_.prefixSum(masked);
-            rank = bv.Rank1(pos) - before;
+            rank = node->rank1(pos) - before;
             pos = start + rank;
         }
         else
         {
-            pos = pos - bv.Rank1(pos) + before;
+            pos = pos - node->rank1(pos) + before;
             rank = pos - start;
         }
 
@@ -281,18 +281,18 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        const rsdic::RSDic &bv = nodes_[i]->bit_vector_;
+        const WaveletTreeNode *node = nodes_[i];
 
         start = occ_.prefixSum(c & mask);
-        ones_start = bv.Rank1(start);
+        ones_start = node->rank1(start);
 
         if (c & bit_mask)
         {
-            rank = bv.Select1(ones_start + rank) - start;
+            rank = node->select1(ones_start + rank) - start;
         }
         else
         {
-            rank = bv.Select0(start - ones_start + rank) - start;
+            rank = node->select0(start - ones_start + rank) - start;
         }
 
         if (rank == (size_t)-1) return -1;
@@ -342,16 +342,16 @@ void WaveletTreeBinary<CharT>::doIntersect_(
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
-    const rsdic::RSDic &bv = nodes_[level]->bit_vector_;
+    const WaveletTreeNode *node = nodes_[level];
 
-    size_t before = bv.Rank1(start);
+    size_t before = node->rank1(start);
     size_t rank_start, rank_end;
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
             it != ranges.end(); ++it)
     {
-        rank_start = bv.Rank1(start + it->first);
-        rank_end = bv.Rank1(start + it->second);
+        rank_start = node->rank1(start + it->first);
+        rank_end = node->rank1(start + it->second);
 
         if (has_zeros)
         {
@@ -447,7 +447,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
         }
 
         node = top_ranges->node_;
-        before = node->bit_vector_.Rank1(start);
+        before = node->rank1(start);
 
         zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.size());
         one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.size());
@@ -455,8 +455,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
-            rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
+            rank_start = node->rank1(start + it->get<0>()) - before;
+            rank_end = node->rank1(start + it->get<1>()) - before;
 
             zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
@@ -548,7 +548,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         }
 
         node = top_ranges->node_;
-        before = node->bit_vector_.Rank1(start);
+        before = node->rank1(start);
 
         zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
         one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
@@ -556,8 +556,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(start + it->first) - before;
-            rank_end = node->bit_vector_.Rank1(start + it->second) - before;
+            rank_start = node->rank1(start + it->first) - before;
+            rank_end = node->rank1(start + it->second) - before;
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start, rank_end));
@@ -582,8 +582,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
-            rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
+            rank_start = node->rank1(start + it->get<0>()) - before;
+            rank_end = node->rank1(start + it->get<1>()) - before;
 
             if (zero_ranges)
             {
@@ -696,7 +696,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         {
             node = (*it)->node_;
             filter_start = (*it)->tree_->occ_.prefixSum(top_ranges->sym_);
-            before = node->bit_vector_.Rank1(filter_start);
+            before = node->rank1(filter_start);
 
             zero_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
             one_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
@@ -704,8 +704,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->bit_vector_.Rank1(filter_start + fit->first) - before;
-                rank_end = node->bit_vector_.Rank1(filter_start + fit->second) - before;
+                rank_start = node->rank1(filter_start + fit->first) - before;
+                rank_end = node->rank1(filter_start + fit->second) - before;
 
                 zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
                 one_filter->addFilter(std::make_pair(rank_start, rank_end));
@@ -730,13 +730,13 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         }
 
         node = top_ranges->node_;
-        before = node->bit_vector_.Rank1(start);
+        before = node->rank1(start);
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(start + it->first) - before;
-            rank_end = node->bit_vector_.Rank1(start + it->second) - before;
+            rank_start = node->rank1(start + it->first) - before;
+            rank_end = node->rank1(start + it->second) - before;
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start, rank_end));
@@ -761,8 +761,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(start + it->get<0>()) - before;
-            rank_end = node->bit_vector_.Rank1(start + it->get<1>()) - before;
+            rank_start = node->rank1(start + it->get<0>()) - before;
+            rank_end = node->rank1(start + it->get<1>()) - before;
 
             if (zero_ranges)
             {
@@ -884,7 +884,7 @@ void WaveletTreeBinary<CharT>::load(std::istream &istr)
     nodes_.resize(this->alphabet_bit_num_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
-        nodes_[i] = new WaveletTreeNode;
+        nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->load(istr);
     }
     for (size_t i = 1; i < nodes_.size(); ++i)

@@ -82,11 +82,11 @@ private:
     {
         if (charset_size <= 65536)
         {
-            return new WaveletTreeHuffman<T>(charset_size);
+            return new WaveletTreeHuffman<T>(charset_size, false, false);
         }
         else
         {
-            return new WaveletMatrix<T>(charset_size);
+            return new WaveletMatrix<T>(charset_size, false, false);
         }
     }
 
@@ -156,7 +156,7 @@ void FMIndex<CharT>::build()
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
-    std::vector<int32_t> sa(length_);
+    std::vector<int40_t> sa(length_);
     if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
         clear();
@@ -194,15 +194,15 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(temp_text_);
 
-    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
     bwt_tree_->build(&bwt[0], length_);
 
     std::vector<char_type>().swap(bwt);
 
-    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
+    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, false));
     doc_array_->build(da, length_);
 
-    std::vector<int32_t>().swap(sa);
+    std::vector<int40_t>().swap(sa);
 
     --length_;
 }
@@ -388,14 +388,14 @@ void FMIndex<CharT>::load(std::istream &istr)
 
     if (length_ > 0 && alphabet_num_ > 0)
     {
-        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
         bwt_tree_->load(istr);
     }
     doc_delim_.load(istr);
 
     if (docCount() > 0)
     {
-        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
+        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, false));
         doc_array_->load(istr);
     }
 }

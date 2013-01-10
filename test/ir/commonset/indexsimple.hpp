@@ -181,7 +181,7 @@ IndexSimple::IndexSimple( unsigned int ndocids_total, unsigned int ntokens_cache
         reinterpret_cast<CompressedSet*>(compressed_sets_[itoken].get())->compact();
     }
 
-    doc_array_ = new WaveletMatrix<uint32_t>(ndocids_total);
+    doc_array_ = new WaveletMatrix<uint32_t>(ndocids_total, false, false);
     uint32_t docsum = 0;
     for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken )
         docsum += ndocids_[itoken];
@@ -219,12 +219,12 @@ void IndexSimple::testCompressed()
 {
     std::vector<boost::shared_ptr<Set> > intersection_sets;
     intersection_sets.push_back(compressed_sets_[0]);
-    intersection_sets.push_back(compressed_sets_[1]);	
+    intersection_sets.push_back(compressed_sets_[1]);
     LazyAndSet andSet(intersection_sets);
     boost::shared_ptr<Set::Iterator> it = andSet.iterator();
     while(it->nextDoc() != NO_MORE_DOCS)
     {
-    
+
     }
 }
 

@@ -18,7 +18,7 @@
  */
 
 #include <am/succinct/rsdic/EnumCoder.hpp>
-#include <am/succinct/rsdic/Util.hpp>
+#include <am/succinct/utils.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -28,10 +28,10 @@ namespace succinct
 namespace rsdic
 {
 
-uint64_t EnumCoder::Encode(uint64_t val, uint64_t rank_sb)
+uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
     uint64_t code = 0;
-    for (uint64_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kSmallBlockSize; ++i)
     {
         if (val >> i & 1LLU)
         {
@@ -42,11 +42,11 @@ uint64_t EnumCoder::Encode(uint64_t val, uint64_t rank_sb)
     return code;
 }
 
-uint64_t EnumCoder::Decode(uint64_t code, uint64_t rank_sb)
+uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 {
     uint64_t ret = 0;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kSmallBlockSize; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -59,13 +59,13 @@ uint64_t EnumCoder::Decode(uint64_t code, uint64_t rank_sb)
     return ret;
 }
 
-bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos)
+bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 {
     if (Len(rank_sb) == kSmallBlockSize)
         return code >> pos & 1LLU;
 
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -77,17 +77,17 @@ bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos)
     return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
 }
 
-bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& rank)
+bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
     if (Len(rank_sb) == kSmallBlockSize)
     {
-        rank = Util::PopCount(code & ((1LLU << pos) - 1));
+        rank = SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
         return code >> pos & 1LLU;
     }
 
     rank = rank_sb;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -100,14 +100,14 @@ bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& 
     return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
 }
 
-uint64_t EnumCoder::Rank(uint64_t code, uint64_t rank_sb, uint64_t pos)
+size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
     if (Len(rank_sb) == kSmallBlockSize)
-        return Util::PopCount(code & ((1LLU << pos) - 1));
+        return SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
 
-    uint64_t cur_rank = rank_sb;
+    size_t cur_rank = rank_sb;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][cur_rank];
         if (code >= zero_case_num)
@@ -119,10 +119,10 @@ uint64_t EnumCoder::Rank(uint64_t code, uint64_t rank_sb, uint64_t pos)
     return rank_sb - cur_rank;
 }
 
-uint64_t EnumCoder::SelectRaw(uint64_t code, uint64_t num)
+size_t EnumCoder::SelectRaw(uint64_t code, size_t num)
 {
-    uint64_t offset = 0;
-    uint64_t r;
+    size_t offset = 0;
+    size_t r;
     for (; offset < kSmallBlockSize; offset += 8)
     {
         r = kPopCount_[code >> offset & 0xFFLLU];
@@ -133,13 +133,14 @@ uint64_t EnumCoder::SelectRaw(uint64_t code, uint64_t num)
     return 0;
 }
 
-uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
+size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 {
+    assert(num <= rank_sb);
     if (Len(rank_sb) == kSmallBlockSize)
         return SelectRaw(~code, num);
 
     uint64_t zero_case_num;
-    for (uint64_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
@@ -156,14 +157,14 @@ uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
     return 0;
 }
 
-uint64_t EnumCoder::Select1(uint64_t code, uint64_t rank_sb, uint64_t num)
+size_t EnumCoder::Select1(uint64_t code, size_t rank_sb, size_t num)
 {
     assert(num <= rank_sb);
     if (Len(rank_sb) == kSmallBlockSize)
         return SelectRaw(code, num);
 
     uint64_t zero_case_num;
-    for (uint64_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
@@ -177,7 +178,7 @@ uint64_t EnumCoder::Select1(uint64_t code, uint64_t rank_sb, uint64_t num)
     return 0;
 }
 
-uint64_t EnumCoder::Select(uint64_t code, uint64_t rank_sb, uint64_t num, bool bit)
+size_t EnumCoder::Select(uint64_t code, size_t rank_sb, size_t num, bool bit)
 {
     if (num == 0) return 0;
     if (bit) return Select1(code, rank_sb, num);

@@ -19,9 +19,11 @@ class WaveletTree
 public:
     typedef CharT char_type;
 
-    WaveletTree(size_t alphabet_num)
+    WaveletTree(size_t alphabet_num, bool support_select, bool dense)
         : alphabet_num_(alphabet_num)
         , alphabet_bit_num_()
+        , support_select_(support_select)
+        , dense_(dense)
     {
     }
 
@@ -65,14 +67,33 @@ public:
         return alphabet_num_;
     }
 
+    inline size_t getAlphabetBitNum() const
+    {
+        return alphabet_bit_num_;
+    }
+
+    inline bool supportSelect() const
+    {
+        return support_select_;
+    }
+
+    inline bool isDense() const
+    {
+        return dense_;
+    }
+
     virtual void save(std::ostream &ostr) const
     {
         ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
+        ostr.write((const char *)&support_select_, sizeof(support_select_));
+        ostr.write((const char *)&dense_, sizeof(dense_));
     }
 
     virtual void load(std::istream &istr)
     {
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
+        istr.read((char *)&support_select_, sizeof(support_select_));
+        istr.read((char *)&dense_, sizeof(dense_));
     }
 
     static size_t getAlphabetNum(const char_type *char_seq, size_t len)
@@ -89,6 +110,8 @@ public:
 protected:
     size_t alphabet_num_;
     size_t alphabet_bit_num_;
+    bool support_select_;
+    bool dense_;
 };
 
 }
