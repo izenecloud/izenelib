@@ -11,8 +11,6 @@
 
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_btree/sdb_bptree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 
 #include <util/ThreadModel.h>
@@ -52,7 +50,7 @@ template<
 typename KeyType =string,
 typename ValueType=NullType,
 typename LockType =NullLock,
-typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,
+typename ContainerType=izenelib::am::tc_hash<KeyType, ValueType, LockType>,
 typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class SequentialDB
 {
 public:
