@@ -27,13 +27,11 @@ public:
         poller_ = poller;
     }
 
-    void initializeRequestContext(const std::string& controller,
-        const std::string& action, Request& request, Response& response)
+    void initializeRequestContext(Request& request,
+                                  Response& response)
     {
         request_ = &request;
         response_ = &response;
-        controller_name_ = controller;
-        action_name_ = action;
     }
 
     /// @brief hook for steps should be performed before the handler.
@@ -59,22 +57,6 @@ protected:
         return poller_;
     }
 
-    std::string& controller_name()
-    {
-        return controller_name_;
-    }
-    const std::string& controller_name() const
-    {
-        return controller_name_;
-    }
-    std::string& action_name()
-    {
-        return action_name_;
-    }
-    const std::string& action_name() const
-    {
-        return action_name_;
-    }
     Request& request()
     {
         BOOST_ASSERT(request_);
@@ -101,8 +83,6 @@ private:
     Poller poller_;
     Request* request_;
     Response* response_;
-    std::string controller_name_;
-    std::string action_name_;
 };
 
 // helper macros
