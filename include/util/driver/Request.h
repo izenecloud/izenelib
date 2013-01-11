@@ -19,6 +19,13 @@ class Request : public RestrictedObjectValue
 public:
     static const std::string kDefaultAction;
 
+    enum kCallType
+    {
+        FromAPI,
+        FromDistribute,
+        FromLog,
+    };
+
     Request();
     Request(const Request& other);
     Request& operator=(const Request& other);
@@ -80,6 +87,15 @@ public:
         return aclTokens_;
     }
 
+    void setCallType(kCallType calltype)
+    {
+        calltype_ = calltype;
+    }
+    kCallType callType() const
+    {
+        return calltype_;
+    }
+
 private:
     void updateHeaderPtr()
     {
@@ -92,6 +108,7 @@ private:
     Value::StringType controller_;
     Value::StringType action_;
     Value::StringType aclTokens_;
+    kCallType calltype_;
 };
 
 inline void swap(Request& a, Request& b)
