@@ -23,6 +23,7 @@ public:
     {
         FromAPI,
         FromDistribute,
+        FromPrimaryWorker,
         FromLog,
     };
 
@@ -47,6 +48,8 @@ public:
         swap(controller_, other.controller_);
         swap(action_, other.action_);
         swap(aclTokens_, other.aclTokens_);
+        swap(calltype_, other.calltype_);
+        swap(addition_from_primary_, other.addition_from_primary_);
         updateHeaderPtr();
         other.updateHeaderPtr();
     }
@@ -95,6 +98,14 @@ public:
     {
         return calltype_;
     }
+    void setPrimaryAddition(const std::string& data)
+    {
+        addition_from_primary_ = data;
+    }
+    const std::string& primaryAddition() const
+    {
+        return addition_from_primary_;
+    }
 
 private:
     void updateHeaderPtr()
@@ -109,6 +120,7 @@ private:
     Value::StringType action_;
     Value::StringType aclTokens_;
     kCallType calltype_;
+    std::string addition_from_primary_;
 };
 
 inline void swap(Request& a, Request& b)
