@@ -21,7 +21,6 @@
 #define WATARRAY_WATARRAY_HPP_
 
 #include "bit_array.hpp"
-#include "bit_trie.hpp"
 #include <vector>
 #include <queue>
 #include <stdint.h>
@@ -59,7 +58,7 @@ public:
     {
     }
     Parameter(uint64_t bp, uint64_t ep, size_t ii,uint64_t bn ,uint64_t en, uint64_t v)
-    :begin_pos(bp), end_pos(ep), i(ii), beg_node(bn), end_node(en), val(v)
+        :begin_pos(bp), end_pos(ep), i(ii), beg_node(bn), end_node(en), val(v)
     {
     }
     ~Parameter()
@@ -262,17 +261,9 @@ public:
      */
     void Load(std::istream& is);
 
-    //add qian wang
-    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret,BitNode* node) const;
-
-    void QuantileRangeEach_NonRecursive(uint64_t begin_pos, uint64_t end_pos, size_t i,uint64_t beg_node ,uint64_t end_node, uint64_t val,vector<uint64_t>& ret) const;
-
-    void QuantileRangeAll(uint64_t begin_pos, uint64_t end_pos, vector<uint64_t>& ret,const BitTrie& filter) const;
-
-
     void ListRangeRandom(uint64_t min_c,   uint64_t max_c,
-                   uint64_t beg_pos, uint64_t end_pos,
-                   uint64_t num,     std::vector<ListResult>& res) const
+                         uint64_t beg_pos, uint64_t end_pos,
+                         uint64_t num,     std::vector<ListResult>& res) const
     {
         res.clear();
         if (end_pos > length_ || beg_pos >= end_pos) return;
@@ -300,7 +291,7 @@ public:
         }
     }
 
-private:
+protected:
     uint64_t GetAlphabetNum(const std::vector<uint64_t>& array) const;
     uint64_t Log2(uint64_t x) const;
     uint64_t PrefixCode(uint64_t x, uint64_t len, uint64_t total_len) const;

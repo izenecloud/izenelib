@@ -2,13 +2,12 @@
 #define _FM_INDEX_WAVELET_MATRIX_HPP
 
 #include "wavelet_tree.hpp"
-#include <am/succinct/wat_array/bit_trie.hpp>
 #include "utils.hpp"
 #include <am/succinct/sdarray/SDArray.hpp>
 #include <vector>
 
 NS_IZENELIB_AM_BEGIN
-using namespace wat_array;
+
 namespace succinct
 {
 namespace fm_index
@@ -69,8 +68,6 @@ public:
     size_t Rank(char_type c, size_t pos) const;
     CharT Lookup(size_t pos) const;
     size_t Select(char_type c, size_t rank) const;
-    void QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, char_type val,int k,vector<char_type>& ret,BitNode* node) const;
-    void QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const;
 private:
     void doIntersect_(
             const std::vector<std::pair<size_t, size_t> > &ranges,
@@ -849,63 +846,6 @@ CharT WaveletMatrix<CharT>::Lookup(size_t pos) const
 {
     return access(pos);
 }
-
-
-template <class CharT>
-void WaveletMatrix<CharT>::QuantileRangeEach(uint64_t begin_pos, uint64_t end_pos, size_t i, CharT val,int k,vector<char_type>& ret,BitNode* node) const
-{   
-    //cout<<"QuantileRangeEach"<<"begin_pos"<<begin_pos<<"end_pos"<<end_pos<<"i"<<i<<"val"<<val<<"ret"<<ret.size()<<endl;
-    if(i==this->alphabet_bit_num_)
-    {
-        ret.push_back(val);
-    }
-    else
-    {
-        const rsdic::RSDic& ba =nodes_[i]->bit_vector_;
-        uint64_t begin_zero, end_zero;
-        begin_zero = ba.Rank0(begin_pos);
-        end_zero = ba.Rank0(end_pos);
-       // ba.GetBit(begin_pos, begin_zero);
-       // ba.GetBit(end_pos, end_zero);
-        uint64_t zero_bits = end_zero - begin_zero;
-        if (zero_bits>0)
-        {
-            if(node->ZNext_)
-            QuantileRangeEach(begin_zero, end_zero, i+1, val ,zero_bits,ret,node->ZNext_);//
-        }     
-        if (k-zero_bits>0)
-        {
-            begin_pos += zero_counts_[i] - begin_zero;
-            end_pos += zero_counts_[i] - end_zero;
-            if(node->ONext_)
-            QuantileRangeEach(begin_pos, end_pos, i+1, val|(1 << i) ,k-zero_bits, ret,node->ONext_);//
-        }
-       
-    }
-  
-}
-
-
-template <class CharT>
-void WaveletMatrix<CharT>::QuantileRangeAll(uint64_t begin_pos,uint64_t end_pos, vector<char_type>& ret,const BitTrie& filter) const
-{
-    
-    //uint64_t val;
-    if ((end_pos > this->length() || begin_pos > end_pos))
-    {
-      //pos = NOTFOUND;
-      //val = NOTFOUND;
-      return;
-    }
-    
-    size_t i = 0;
-    bool from_zero = (begin_pos == 0);
-    bool to_end = (end_pos ==this->length());
-    QuantileRangeEach(begin_pos, end_pos, i,0, end_pos - begin_pos,ret,filter.Root_);
-    
-}
-
-
 
 }
 }
