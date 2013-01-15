@@ -39,8 +39,14 @@ public:
     void clear();
     void push_back(const izenelib::util::UString &doc);
     void build(char end_marker = 1, uint64_t ddic = 64, bool is_msg = false);
-    uint64_t length() const { return wt_.length(); }
-    uint64_t docLength() const { return doctails_.length(); }
+    uint64_t length() const
+    {
+        return wt_.length();
+    }
+    uint64_t docLength() const
+    {
+        return doctails_.length();
+    }
     uint64_t GetRows(const izenelib::util::UString &key) const;
     uint64_t GetRows(const izenelib::util::UString &key, uint64_t &first, uint64_t &last) const;
     uint64_t GetPosition(uint64_t i) const;
@@ -71,8 +77,14 @@ public:
     ~BWTransform();
     void clear();
     void build(const uint16_t *str, size_t len);
-    uint64_t length() const { return length_; }
-    uint64_t head() const { return head_; }
+    uint64_t length() const
+    {
+        return length_;
+    }
+    uint64_t head() const
+    {
+        return head_;
+    }
     uint16_t get(uint64_t i) const;
     void get(izenelib::util::UString &str) const;
 

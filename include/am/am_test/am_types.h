@@ -14,16 +14,12 @@
 
 //file based
 #include <am/sdb_hash/sdb_hash.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_btree/sdb_bptree.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
 #include <am/sdb_btree/sdb_fixedbtree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 #include <am/tokyo_cabinet/tc_btree.h>
 #include <am/tc/Hash.h>
 #include <am/tc/BTree.h>
-#include <am/sdb_storage/sdb_storage.h>
-#include <am/sdb_storage/sdb_storage_mm.h>
 
 #endif /*AM_TYPES_H_*/
 
