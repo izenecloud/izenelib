@@ -63,12 +63,6 @@ public:
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
 
-    void Init(const std::vector<char_type>& array);
-    size_t Freq(char_type c) const;
-    size_t Rank(char_type c, size_t pos) const;
-    CharT Lookup(size_t pos) const;
-    size_t Select(char_type c, size_t rank) const;
-
 private:
     void doIntersect_(
             const std::vector<std::pair<size_t, size_t> > &ranges,
@@ -85,7 +79,7 @@ private:
 };
 
 template <class CharT>
-WaveletMatrix<CharT>::WaveletMatrix(size_t alphabet_num, bool support_select, bool dense)
+WaveletMatrix<CharT>::WaveletMatrix(uint64_t alphabet_num, bool support_select, bool dense)
     : WaveletTree<CharT>(alphabet_num, support_select, dense)
 {
 }
@@ -819,33 +813,6 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
         nodes_[i - 1]->left_ = nodes_[i];
         nodes_[i - 1]->right_ = nodes_[i];
     }
-}
-
-
-template <class CharT>
-void WaveletMatrix<CharT>::Init(const std::vector<char_type>& array)
-{
-    build(&array[0], array.size());
-}
-template <class CharT>
-size_t WaveletMatrix<CharT>::Freq(char_type c) const
-{
-    return getOcc(c+1)-getOcc(c);
-}
-template <class CharT>
-size_t WaveletMatrix<CharT>::Rank(CharT c, size_t pos) const
-{
-    return rank(c, pos);
-}
-template <class CharT>
-size_t WaveletMatrix<CharT>::Select(CharT c, size_t rank) const
-{
-    return select(c, rank);
-}
-template <class CharT>
-CharT WaveletMatrix<CharT>::Lookup(size_t pos) const
-{
-    return access(pos);
 }
 
 }

@@ -171,6 +171,7 @@ size_t WaveletTreeNode::allocSize() const
 {
     return sizeof(WaveletTreeNode)
         + bit_vector_.GetUsageBytes() - sizeof(rsdic::RSDic)
+        + dense_bit_vector_.allocSize() - sizeof(dense::DBitV)
         + sizeof(raw_array_[0]) * raw_array_.size();
 }
 

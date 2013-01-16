@@ -16,7 +16,7 @@ class WaveletTreeNode
 {
 public:
     WaveletTreeNode(bool support_select, bool dense);
-    WaveletTreeNode(size_t c, size_t freq, bool support_select, bool dense);
+    WaveletTreeNode(uint64_t c, size_t freq, bool support_select, bool dense);
     WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right, bool support_select, bool dense);
 
     ~WaveletTreeNode();
@@ -57,8 +57,8 @@ public:
     WaveletTreeNode *right_;
     WaveletTreeNode *parent_;
 
-    size_t c0_;
-    size_t c1_;
+    uint64_t c0_;
+    uint64_t c1_;
 
     rsdic::RSDic bit_vector_;
     dense::DBitV dense_bit_vector_;
@@ -67,7 +67,7 @@ private:
     bool dense_;
     size_t freq_;
     size_t len_;
-    std::vector<size_t> raw_array_;
+    std::vector<uint64_t> raw_array_;
 };
 
 }

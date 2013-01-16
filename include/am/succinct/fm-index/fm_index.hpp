@@ -77,20 +77,6 @@ public:
     }
 
 private:
-    template <class T>
-    WaveletTree<T> *getWaveletTree_(size_t charset_size) const
-    {
-        if (charset_size <= 65536)
-        {
-            return new WaveletTreeHuffman<T>(charset_size, false, false);
-        }
-        else
-        {
-            return new WaveletMatrix<T>(charset_size, false, false);
-        }
-    }
-
-private:
     size_t length_;
     size_t alphabet_num_;
 
@@ -199,7 +185,7 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(bwt);
 
-    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, false));
+    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
     doc_array_->build(da, length_);
 
     std::vector<int40_t>().swap(sa);
@@ -395,7 +381,7 @@ void FMIndex<CharT>::load(std::istream &istr)
 
     if (docCount() > 0)
     {
-        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, false));
+        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
         doc_array_->load(istr);
     }
 }

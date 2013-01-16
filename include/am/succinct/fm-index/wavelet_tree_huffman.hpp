@@ -21,7 +21,7 @@ public:
     typedef CharT char_type;
     typedef WaveletTreeHuffman<CharT> self_type;
 
-    WaveletTreeHuffman(size_t alphabet_num, bool support_select, bool dense);
+    WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeHuffman();
 
     void build(const char_type *char_seq, size_t len);
@@ -66,7 +66,7 @@ public:
     void load(std::istream &istr);
 
 private:
-    void makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node);
+    void makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node);
 
     void deleteTree_(WaveletTreeNode *node);
     void buildTreeNodes_(WaveletTreeNode *node);
@@ -85,13 +85,13 @@ private:
 
 private:
     std::vector<size_t> occ_;
-    std::vector<size_t> code_map_;
+    std::vector<uint64_t> code_map_;
     WaveletTreeNode *root_;
     std::vector<WaveletTreeNode *> leaves_;
 };
 
 template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(size_t alphabet_num, bool support_select, bool dense)
+WaveletTreeHuffman<CharT>::WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense)
     : WaveletTree<CharT>(alphabet_num, support_select, dense)
     , root_()
 {
@@ -150,7 +150,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
     root_ = node_queue.top();
     node_queue.pop();
 
-    code_map_.resize(1 << this->alphabet_bit_num_, (size_t)-1);
+    code_map_.resize(1 << this->alphabet_bit_num_, (uint64_t)-1);
     makeCodeMap_(0, 0, root_);
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
@@ -181,7 +181,8 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         occ_[i] += occ_[i - 1];
     }
 
-    size_t code, level;
+    uint64_t code;
+    size_t level;
     WaveletTreeNode *walk;
 
     for (size_t i = 0; i < len; ++i)
@@ -212,7 +213,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 }
 
 template <class CharT>
-void WaveletTreeHuffman<CharT>::makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node)
+void WaveletTreeHuffman<CharT>::makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node)
 {
     if (node->left_)
     {
@@ -297,15 +298,15 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
     if (!leaves_[c]) return 0;
 
-    size_t code = code_map_[c];
-    if (code == (size_t)-1) return 0;
+    uint64_t code = code_map_[c];
+    if (code == (uint64_t)-1) return 0;
 
     pos = std::min(pos, length());
     WaveletTreeNode *walk = root_;
 
     for (size_t level = 0; pos > 0; ++level)
     {
-        if (code & 1U << level)
+        if (code & 1ULL << level)
         {
             if (walk->right_)
             {

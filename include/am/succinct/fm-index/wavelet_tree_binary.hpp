@@ -20,7 +20,7 @@ public:
     typedef CharT char_type;
     typedef WaveletTreeBinary<CharT> self_type;
 
-    WaveletTreeBinary(size_t alphabet_num, bool support_select, bool dense);
+    WaveletTreeBinary(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeBinary();
 
     void build(const char_type *char_seq, size_t len);
@@ -80,7 +80,7 @@ private:
 };
 
 template <class CharT>
-WaveletTreeBinary<CharT>::WaveletTreeBinary(size_t alphabet_num, bool support_select, bool dense)
+WaveletTreeBinary<CharT>::WaveletTreeBinary(uint64_t alphabet_num, bool support_select, bool dense)
     : WaveletTree<CharT>(alphabet_num, support_select, dense)
 {
 }

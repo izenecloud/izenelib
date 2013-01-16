@@ -36,22 +36,27 @@ public:
     void save(std::ostream &os) const;
     void load(std::istream &is);
 
-    inline size_t length() const
-    {
-        return len_;
-    }
-    inline size_t bsize() const
-    {
-        return bits_.size();
-    }
     inline size_t one_count() const
     {
         return one_count_;
     }
+
     inline size_t zero_count() const
     {
         return len_ - one_count_;
     }
+
+    inline size_t length() const
+    {
+        return len_;
+    }
+
+    inline size_t bsize() const
+    {
+        return bits_.size();
+    }
+
+    size_t allocSize() const;
 
 private:
     void buildBlock_(uint64_t block, size_t offset, size_t &rank_lb);
@@ -59,7 +64,7 @@ private:
     template <class T>
     void save(std::ostream &os, const std::vector<T> &vs) const
     {
-        uint64_t size = vs.size();
+        size_t size = vs.size();
         os.write((const char *)&size, sizeof(size));
         os.write((const char *)&vs[0], sizeof(vs[0]) * size);
     }
@@ -67,7 +72,7 @@ private:
     template <class T>
     void load(std::istream &is, std::vector<T> &vs)
     {
-        uint64_t size = 0;
+        size_t size = 0;
         is.read((char *)&size, sizeof(size));
         vs.resize(size);
         is.read((char *)&vs[0], sizeof(vs[0]) * size);

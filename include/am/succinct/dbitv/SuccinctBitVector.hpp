@@ -123,20 +123,20 @@ public:
         return size_ - none_;
     }
 
-    void save(std::ostream& ostr) const
-    {
-        ostr.write((const char*)&size_, sizeof(size_));
-        ostr.write((const char*)&none_, sizeof(none_));
-        ostr.write((const char*)&B_[0], sizeof(B_[0]) * B_.size());
-    }
+//  void save(std::ostream& ostr) const
+//  {
+//      ostr.write((const char*)&size_, sizeof(size_));
+//      ostr.write((const char*)&none_, sizeof(none_));
+//      ostr.write((const char*)&B_[0], sizeof(B_[0]) * B_.size());
+//  }
 
-    void load(std::istream& istr)
-    {
-        istr.read((char*)&size_, sizeof(size_));
-        istr.read((char*)&none_, sizeof(none_));
-        B_.resize((size_ + BSIZE - 1) / BSIZE);
-        istr.read((char*)&B_[0], sizeof(B_[0]) * B_.size());
-    }
+//  void load(std::istream& istr)
+//  {
+//      istr.read((char*)&size_, sizeof(size_));
+//      istr.read((char*)&none_, sizeof(none_));
+//      B_.resize((size_ + BSIZE - 1) / BSIZE);
+//      istr.read((char*)&B_[0], sizeof(B_[0]) * B_.size());
+//  }
 
 private:
     size_t size_;
@@ -196,18 +196,18 @@ public:
         return rblk_[idx];
     }
 
-    void save(std::ostream& ostr) const
-    {
-        ostr.write((const char*)&size_, sizeof(size_));
-        ostr.write((const char*)&rblk_[0], sizeof(rblk_[0]) * rblk_.size());
-    }
+//  void save(std::ostream& ostr) const
+//  {
+//      ostr.write((const char*)&size_, sizeof(size_));
+//      ostr.write((const char*)&rblk_[0], sizeof(rblk_[0]) * rblk_.size());
+//  }
 
-    void load(std::istream& istr)
-    {
-        istr.read((char*)&size_, sizeof(size_));
-        rblk_.resize(size_ / PRESUM_SZ + 1);
-        istr.read((char*)&rblk_[0], sizeof(rblk_[0]) * rblk_.size());
-    }
+//  void load(std::istream& istr)
+//  {
+//      istr.read((char*)&size_, sizeof(size_));
+//      rblk_.resize(size_ / PRESUM_SZ + 1);
+//      istr.read((char*)&rblk_[0], sizeof(rblk_[0]) * rblk_.size());
+//  }
 
 private:
     /*--- Private functions below ---*/
@@ -273,19 +273,19 @@ public:
         return rpos * PRESUM_SZ + rb + SuccinctUtils::selectBlock1(blk, rem);
     }
 
-    void save(std::ostream& ostr) const
-    {
-        ostr.write((const char*)&bit_, sizeof(bit_));
-        ostr.write((const char*)&size_, sizeof(size_));
-        if (rkQ_) rkQ_->save(ostr);
-    }
+//  void save(std::ostream& ostr) const
+//  {
+//      ostr.write((const char*)&bit_, sizeof(bit_));
+//      ostr.write((const char*)&size_, sizeof(size_));
+//      if (rkQ_) rkQ_->save(ostr);
+//  }
 
-    void load(std::istream& istr)
-    {
-        istr.read((char*)&bit_, sizeof(bit_));
-        istr.read((char*)&size_, sizeof(size_));
-        rkQ_->load(istr);
-    }
+//  void load(std::istream& istr)
+//  {
+//      istr.read((char*)&bit_, sizeof(bit_));
+//      istr.read((char*)&size_, sizeof(size_));
+//      rkQ_->load(istr);
+//  }
 
 private:
     /*--- Private functions below ---*/
@@ -462,28 +462,28 @@ public:
         return bv_.length();
     }
 
-    void save(std::ostream& ostr) const
-    {
-        bv_.save(ostr);
-        if (bv_.length() == 0) return;
+//  void save(std::ostream& ostr) const
+//  {
+//      bv_.save(ostr);
+//      if (bv_.length() == 0) return;
 
-        rk_->save(ostr);
-        st0_->save(ostr);
-        st1_->save(ostr);
-    }
+//      rk_->save(ostr);
+//      st0_->save(ostr);
+//      st1_->save(ostr);
+//  }
 
-    void load(std::istream& istr)
-    {
-        bv_.load(istr);
-        if (bv_.length() == 0) return;
+//  void load(std::istream& istr)
+//  {
+//      bv_.load(istr);
+//      if (bv_.length() == 0) return;
 
-        rk_.reset(new SuccinctRank(bv_));
-        st0_.reset(new SuccinctSelect(bv_, rk_, false));
-        st1_.reset(new SuccinctSelect(bv_, rk_, true));
-        rk_->load(istr);
-        st0_->load(istr);
-        st1_->load(istr);
-    }
+//      rk_.reset(new SuccinctRank(bv_));
+//      st0_.reset(new SuccinctSelect(bv_, rk_, false));
+//      st1_.reset(new SuccinctSelect(bv_, rk_, true));
+//      rk_->load(istr);
+//      st0_->load(istr);
+//      st1_->load(istr);
+//  }
 
 private:
     /* A sequence of bit-array */

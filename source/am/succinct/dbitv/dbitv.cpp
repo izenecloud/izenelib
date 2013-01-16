@@ -26,6 +26,11 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
     rank_small_blocks_.reserve(len / kSmallBlockSize + 1);
 
     rank_blocks_.push_back(0);
+    if (support_select_)
+    {
+        select_one_inds_.push_back(0);
+        select_zero_inds_.push_back(0);
+    }
 
     size_t index = len / kSmallBlockSize;
     size_t offset = len % kSmallBlockSize;
@@ -35,7 +40,7 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
     {
         buildBlock_(bv[i], kSmallBlockSize, rank_lb);
 
-        if ((i + 1) % kSmallBlockPerLargeBlock == 0)
+        if ((i + 1) % kSmallBlockPerHugeBlock == 0)
         {
             rank_blocks_.push_back(one_count_);
             rank_lb = 0;
@@ -116,7 +121,7 @@ size_t DBitV::rank1(size_t pos) const
     size_t sblock = pos / kSmallBlockSize;
     size_t offset = pos % kSmallBlockSize;
 
-    return rank_blocks_[pos / kHugeBlockSize] + rank_small_blocks_[sblock] + offset ? SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << offset) - 1)) : 0;
+    return rank_blocks_[pos / kHugeBlockSize] + rank_small_blocks_[sblock] + (offset ? SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << offset) - 1)) : 0);
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const
@@ -198,6 +203,16 @@ void DBitV::load(std::istream &is)
         load(is, select_one_inds_);
         load(is, select_zero_inds_);
     }
+}
+
+size_t DBitV::allocSize() const
+{
+    return sizeof(DBitV)
+        + sizeof(bits_[0]) * bits_.size()
+        + sizeof(rank_blocks_[0]) * rank_blocks_.size()
+        + sizeof(rank_small_blocks_[0]) * rank_small_blocks_.size()
+        + sizeof(select_one_inds_[0]) * select_one_inds_.size()
+        + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
 }
 
 }
