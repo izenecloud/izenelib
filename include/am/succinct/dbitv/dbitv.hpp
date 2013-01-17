@@ -85,9 +85,6 @@ private:
     std::vector<uint64_t> bits_;
     std::vector<size_t> rank_blocks_;
     std::vector<uint16_t> rank_small_blocks_;
-
-    std::vector<size_t> select_one_inds_;
-    std::vector<size_t> select_zero_inds_;
 };
 
 }
