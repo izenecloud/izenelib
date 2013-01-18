@@ -43,15 +43,6 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
     }
 
     buildBlock_(offset ? bv[index] & ((1LLU << offset) - 1) : 0, offset, rank_lb);
-
-    if (select_one_inds_.capacity() > select_one_inds_.size())
-    {
-        std::vector<size_t>(select_one_inds_).swap(select_one_inds_);
-    }
-    if (select_zero_inds_.capacity() > select_zero_inds_.size())
-    {
-        std::vector<size_t>(select_zero_inds_).swap(select_zero_inds_);
-    }
 }
 
 void DBitV::buildBlock_(uint64_t block, size_t offset, size_t &rank_lb)
@@ -73,8 +64,6 @@ void DBitV::clear()
     std::vector<uint64_t>().swap(bits_);
     std::vector<size_t>().swap(rank_blocks_);
     std::vector<uint16_t>().swap(rank_small_blocks_);
-    std::vector<size_t>().swap(select_one_inds_);
-    std::vector<size_t>().swap(select_zero_inds_);
 }
 
 bool DBitV::lookup(size_t pos) const
@@ -155,9 +144,7 @@ size_t DBitV::allocSize() const
     return sizeof(DBitV)
         + sizeof(bits_[0]) * bits_.size()
         + sizeof(rank_blocks_[0]) * rank_blocks_.size()
-        + sizeof(rank_small_blocks_[0]) * rank_small_blocks_.size()
-        + sizeof(select_one_inds_[0]) * select_one_inds_.size()
-        + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
+        + sizeof(rank_small_blocks_[0]) * rank_small_blocks_.size();
 }
 
 }
