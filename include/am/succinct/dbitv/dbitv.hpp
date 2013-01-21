@@ -61,6 +61,8 @@ public:
 private:
     void buildBlock_(uint64_t block, size_t offset, size_t &rank_lb);
 
+    inline size_t rankOutOfSmallBlock_(size_t sblock) const;
+
     template <class T>
     void save(std::ostream &os, const std::vector<T> &vs) const
     {
@@ -85,6 +87,9 @@ private:
     std::vector<uint64_t> bits_;
     std::vector<size_t> rank_blocks_;
     std::vector<uint16_t> rank_small_blocks_;
+
+    std::vector<size_t> select_one_inds_;
+    std::vector<size_t> select_zero_inds_;
 };
 
 }
