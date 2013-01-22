@@ -165,6 +165,28 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     }
 }
 
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<uint32_t>& docs)
+{
+    if(!checkType_(property_name, key)) return;
+    if (pFilter_)
+    {
+        std::vector<docid_t> docList;    
+        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
+        std::vector<docid_t> tmpIdList;
+        for(size_t i = 0; i < docList.size(); i++)
+        {
+            if(!pFilter_->test(docList[i]))
+                tmpIdList.push_back(docList[i]);
+        }
+        docList.swap(tmpIdList);
+        std::sort(docList.begin(), docList.end());
+        for(unsigned i = 0; i < docList.size(); ++i)
+            docs.set(docList[i]);
+    }
+    else
+        izenelib::util::boost_variant_visit(boost::bind(mget_ewah_visitor(), this, property_name, _1, boost::ref(docs)), key);
+}
+
 void BTreeIndexerManager::getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs)
 {
     if(!checkType_(property_name, key1)) return;
