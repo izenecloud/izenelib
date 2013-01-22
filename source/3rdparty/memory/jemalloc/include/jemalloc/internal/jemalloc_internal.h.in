@@ -55,7 +55,7 @@ typedef intptr_t ssize_t;
 #include <fcntl.h>
 
 #define	JEMALLOC_NO_DEMANGLE
-#include "../jemalloc.h"
+#include "../jemalloc@install_suffix@.h"
 
 #ifdef JEMALLOC_UTRACE
 #include <sys/ktrace.h>
