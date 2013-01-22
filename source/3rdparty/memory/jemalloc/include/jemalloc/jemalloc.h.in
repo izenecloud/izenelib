@@ -7,14 +7,14 @@ extern "C" {
 #include <limits.h>
 #include <strings.h>
 
-#define	JEMALLOC_VERSION "3.2.0-0-g87499f6748ebe4817571e817e9f680ccb5bf54a9"
-#define	JEMALLOC_VERSION_MAJOR 3
-#define	JEMALLOC_VERSION_MINOR 2
-#define	JEMALLOC_VERSION_BUGFIX 0
-#define	JEMALLOC_VERSION_NREV 0
-#define	JEMALLOC_VERSION_GID "87499f6748ebe4817571e817e9f680ccb5bf54a9"
+#define	JEMALLOC_VERSION "@jemalloc_version@"
+#define	JEMALLOC_VERSION_MAJOR @jemalloc_version_major@
+#define	JEMALLOC_VERSION_MINOR @jemalloc_version_minor@
+#define	JEMALLOC_VERSION_BUGFIX @jemalloc_version_bugfix@
+#define	JEMALLOC_VERSION_NREV @jemalloc_version_nrev@
+#define	JEMALLOC_VERSION_GID "@jemalloc_version_gid@"
 
-#include "jemalloc_defs.h"
+#include "jemalloc_defs@install_suffix@.h"
 
 #ifdef JEMALLOC_EXPERIMENTAL
 #define	ALLOCM_LG_ALIGN(la)	(la)

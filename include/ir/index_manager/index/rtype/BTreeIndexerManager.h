@@ -82,6 +82,8 @@ public:
 
     void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
 
+    void getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<uint32_t>& docs);
+
     void getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs);
 
     void getValueLess(const std::string& property_name, const PropertyType& key, BitVector& docs);
@@ -311,6 +313,17 @@ class mget2_visitor : public boost::static_visitor<void>
 public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
+    {
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        pindexer->getValue(v, docs);
+    }
+};
+
+class mget_ewah_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, EWAHBoolArray<uint32_t>& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
