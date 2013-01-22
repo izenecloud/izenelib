@@ -58,29 +58,27 @@ public:
     {
         return (num + div - 1) / div;
     }
-    static size_t selectBlock1(uint64_t blk, size_t r)
+
+    static size_t selectBlock(uint64_t blk, size_t r)
     {
-        __assert(r < sizeof(uint64_t) * 8);
+        __assert(r < kSmallBlockSize);
 
-        size_t nblock = 0;
-        size_t cnt = 0;
-
-        while (nblock < sizeof(uint64_t))
+        for (size_t nblock = 0; nblock < kSmallBlockSize; nblock += 8)
         {
-            cnt = popcount64((blk >> nblock * 8) & 0xff);
+            size_t cnt = popcount64(blk >> nblock & 0xff);
 
-            if (r < cnt) break;
-
-            r -= cnt;
-            ++nblock;
+            if (r < cnt)
+            {
+                return nblock + kSelectPos_[r * 256 + (blk >> nblock & 0xff)];
+            }
+            else
+            {
+                r -= cnt;
+            }
         }
 
-        return nblock * 8 + kSelectPos_[r * 256 + ((blk >> nblock * 8) & 0xff)];
-    }
-
-    static size_t selectBlock0(uint64_t blk, size_t r)
-    {
-        return selectBlock1(~blk, r);
+        __assert(false);
+        return kSmallBlockSize;
     }
 
 #if defined(__GNUC__) && __GNUC_PREREQ(2, 2)

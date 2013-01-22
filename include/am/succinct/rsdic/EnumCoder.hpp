@@ -45,15 +45,12 @@ public:
         return kEnumCodeLength_[rank_sb];
     }
 
-    static size_t SelectRaw(uint64_t code, size_t num);
     static size_t Select0(uint64_t code, size_t rank_sb, size_t num);
     static size_t Select1(uint64_t code, size_t rank_sb, size_t num);
 
 private:
-    static const uint8_t kPopCount_[256];
-    static const uint8_t kNthSetBit_[256][8];
-    static const uint64_t kCombinationTable64_[65][65];
     static const uint8_t kEnumCodeLength_[65];
+    static const uint64_t kCombinationTable64_[65][65];
 };
 
 }

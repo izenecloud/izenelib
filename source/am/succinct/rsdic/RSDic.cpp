@@ -89,15 +89,13 @@ void RSDic::BuildBlock_(uint64_t block, size_t offset, size_t& global_offset)
 
     if (support_select_)
     {
-        if (rank_sb > 0 && one_num_ % kSelectBlockSize + rank_sb >= kSelectBlockSize)
+        if (one_num_ % kSelectBlockSize + rank_sb >= kSelectBlockSize)
         {
-            size_t remain = EnumCoder::SelectRaw(block, kSelectBlockSize - one_num_ % kSelectBlockSize);
-            select_one_inds_.push_back((num_ + remain) / kLargeBlockSize);
+            select_one_inds_.push_back(num_ / kLargeBlockSize);
         }
-        if (offset - rank_sb > 0 && (num_ - one_num_) % kSelectBlockSize + offset - rank_sb >= kSelectBlockSize)
+        if ((num_ - one_num_) % kSelectBlockSize + offset - rank_sb >= kSelectBlockSize)
         {
-            size_t remain = EnumCoder::SelectRaw(~block, kSelectBlockSize - (num_ - one_num_) % kSelectBlockSize);
-            select_zero_inds_.push_back((num_ + remain) / kLargeBlockSize);
+            select_zero_inds_.push_back(num_ / kLargeBlockSize);
         }
     }
 
@@ -140,6 +138,8 @@ void RSDic::Clear()
 
 bool RSDic::GetBit(size_t pos) const
 {
+    __assert(pos < num_);
+
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
     size_t sblock = pos / kSmallBlockSize;
@@ -155,6 +155,8 @@ bool RSDic::GetBit(size_t pos) const
 
 bool RSDic::GetBit(size_t pos, size_t& rank) const
 {
+    __assert(pos < num_);
+
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
     size_t sblock = pos / kSmallBlockSize;
@@ -189,6 +191,8 @@ size_t RSDic::Rank0(size_t pos) const
 
 size_t RSDic::Rank1(size_t pos) const
 {
+    __assert(pos <= num_);
+
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
     size_t sblock = pos / kSmallBlockSize;
@@ -215,7 +219,7 @@ size_t RSDic::Rank(size_t pos, bool bit) const
 
 size_t RSDic::Select0(size_t ind) const
 {
-    if (!support_select_ || ind >= num_ - one_num_) return -1;
+    __assert(support_select_ && ind < num_ - one_num_);
 
     size_t select_ind = ind / kSelectBlockSize;
     size_t lblock = select_zero_inds_[select_ind];
@@ -227,7 +231,7 @@ size_t RSDic::Select0(size_t ind) const
 
     size_t sblock = lblock * kSmallBlockPerLargeBlock;
     size_t pointer = pointer_blocks_[lblock];
-    size_t remain = ind - lblock * kLargeBlockSize + rank_blocks_[lblock] + 1;
+    size_t remain = ind - lblock * kLargeBlockSize + rank_blocks_[lblock];
 
     size_t rank_sb;
     for (; sblock < rank_small_blocks_.size(); ++sblock)
@@ -244,7 +248,7 @@ size_t RSDic::Select0(size_t ind) const
 
 size_t RSDic::Select1(size_t ind) const
 {
-    if (!support_select_ || ind >= one_num_) return -1;
+    __assert(support_select_ && ind < one_num_);
 
     size_t select_ind = ind / kSelectBlockSize;
     size_t lblock = select_one_inds_[select_ind];
@@ -256,7 +260,7 @@ size_t RSDic::Select1(size_t ind) const
 
     size_t sblock = lblock * kSmallBlockPerLargeBlock;
     size_t pointer = pointer_blocks_[lblock];
-    size_t remain = ind - rank_blocks_[lblock] + 1;
+    size_t remain = ind - rank_blocks_[lblock];
 
     size_t rank_sb;
     for (; sblock < rank_small_blocks_.size(); ++sblock)

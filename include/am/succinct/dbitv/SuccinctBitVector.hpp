@@ -270,7 +270,7 @@ public:
             rem -= cumltv(rblk.b0sum, BSIZE);
         }
 
-        return rpos * PRESUM_SZ + rb + SuccinctUtils::selectBlock1(blk, rem);
+        return rpos * PRESUM_SZ + rb + SuccinctUtils::selectBlock(blk, rem);
     }
 
 //  void save(std::ostream& ostr) const
