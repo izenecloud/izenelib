@@ -692,13 +692,18 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             zero_end = (*it)->tree_->zero_counts_[level];
             node = (*it)->node_;
 
-            zero_filter = zero_ranges->recyc_aux_filters_.back();
-            zero_filter->reset((*it)->tree_, node->left_);
-            zero_ranges->recyc_aux_filters_.pop_back();
-
-            one_filter = one_ranges->recyc_aux_filters_.back();
-            one_filter->reset((*it)->tree_, node->right_);
-            one_ranges->recyc_aux_filters_.pop_back();
+            if (zero_ranges)
+            {
+                zero_filter = zero_ranges->recyc_aux_filters_.back();
+                zero_filter->reset((*it)->tree_, node->left_);
+                zero_ranges->recyc_aux_filters_.pop_back();
+            }
+            if (one_ranges)
+            {
+                one_filter = one_ranges->recyc_aux_filters_.back();
+                one_filter->reset((*it)->tree_, node->right_);
+                one_ranges->recyc_aux_filters_.pop_back();
+            }
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
@@ -706,19 +711,27 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                 rank_start = node->rank1(fit->first);
                 rank_end = node->rank1(fit->second);
 
-                zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
-                one_filter->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
+                if (zero_ranges)
+                {
+                    zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
+                }
+                if (one_ranges)
+                {
+                    one_filter->addFilter(std::make_pair(rank_start + zero_end, rank_end + zero_end));
+                }
             }
 
             if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
             {
                 recyc_ranges.push_back(zero_ranges);
                 zero_ranges = NULL;
+                if (!one_ranges) break;
             }
             if (one_ranges && !one_ranges->addAuxFilter(one_filter))
             {
                 recyc_ranges.push_back(one_ranges);
                 one_ranges = NULL;
+                if (!zero_ranges) break;
             }
         }
 
