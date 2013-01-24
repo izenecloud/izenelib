@@ -370,7 +370,15 @@ void WaveletMatrix<CharT>::topKUnion(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const PatternList *top_ranges;
+
+    std::vector<PatternList *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new PatternList(0, 0, NULL, ranges.size()));
+    }
+
+    PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
@@ -383,7 +391,7 @@ void WaveletMatrix<CharT>::topKUnion(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
@@ -391,8 +399,13 @@ void WaveletMatrix<CharT>::topKUnion(
         zero_end = zero_counts_[level];
         node = top_ranges->node_;
 
-        zero_ranges = new PatternList(level + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.size());
-        one_ranges = new PatternList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(level + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+        recyc_ranges.pop_back();
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -404,17 +417,17 @@ void WaveletMatrix<CharT>::topKUnion(
             one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, it->get<2>()));
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         zero_ranges->calcScore();
         if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
         {
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
         }
         else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
         {
             results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
         }
         else
         {
@@ -424,12 +437,12 @@ void WaveletMatrix<CharT>::topKUnion(
         one_ranges->calcScore();
         if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
         {
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
         }
         else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
         {
             results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
         }
         else
         {
@@ -438,15 +451,19 @@ void WaveletMatrix<CharT>::topKUnion(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            PatternList * bottom = ranges_queue.bottom();
+            recyc_ranges.push_back(ranges_queue.bottom());
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 
@@ -471,7 +488,15 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const FilteredPatternList *top_ranges;
+
+    std::vector<FilteredPatternList *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size()));
+    }
+
+    FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
     size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
@@ -484,7 +509,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
@@ -492,8 +517,13 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         zero_end = zero_counts_[level];
         node = top_ranges->node_;
 
-        zero_ranges = new FilteredPatternList(level + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new FilteredPatternList(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(level + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+        recyc_ranges.pop_back();
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -507,17 +537,17 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
 
         if (zero_ranges->filters_.empty())
         {
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
             zero_ranges = NULL;
         }
         if (one_ranges->filters_.empty())
         {
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
             one_ranges = NULL;
         }
         if (!zero_ranges && !one_ranges)
         {
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
@@ -537,19 +567,19 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
             }
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         if (zero_ranges)
         {
             zero_ranges->calcScore();
             if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
             {
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
             {
                 results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else
             {
@@ -562,12 +592,12 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
             one_ranges->calcScore();
             if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
             {
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
             {
                 results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else
             {
@@ -577,15 +607,19 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            FilteredPatternList * bottom = ranges_queue.bottom();
+            recyc_ranges.push_back(ranges_queue.bottom());
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 
@@ -610,7 +644,20 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const AuxFilteredPatternList<self_type> *top_ranges;
+    size_t max_filter_size = 0;
+    for (size_t i = 0; i < aux_filters.size(); ++i)
+    {
+        max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
+    }
+
+    std::vector<AuxFilteredPatternList<self_type> *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size));
+    }
+
+    AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
     size_t level, rank_start, rank_end, zero_end;
@@ -624,14 +671,19 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
         level = top_ranges->level_;
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(level + 1, top_ranges->sym_ | (char_type)1 << level, top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(level + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+        recyc_ranges.pop_back();
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -639,8 +691,13 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             zero_end = (*it)->tree_->zero_counts_[level];
             node = (*it)->node_;
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, node->left_, (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, node->right_, (*it)->filters_.size());
+            zero_filter = zero_ranges->recyc_aux_filters_.back();
+            zero_filter->reset((*it)->tree_, node->left_);
+            zero_ranges->recyc_aux_filters_.pop_back();
+
+            one_filter = one_ranges->recyc_aux_filters_.back();
+            one_filter->reset((*it)->tree_, node->right_);
+            one_ranges->recyc_aux_filters_.pop_back();
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
@@ -654,19 +711,19 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
             if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
             {
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
                 zero_ranges = NULL;
             }
             if (one_ranges && !one_ranges->addAuxFilter(one_filter))
             {
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
                 one_ranges = NULL;
             }
         }
 
         if (!zero_ranges && !one_ranges)
         {
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
@@ -689,19 +746,19 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             }
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         if (zero_ranges)
         {
             zero_ranges->calcScore();
             if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
             {
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
             {
                 results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else
             {
@@ -714,12 +771,12 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             one_ranges->calcScore();
             if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
             {
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
             {
                 results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else
             {
@@ -729,15 +786,19 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom();
+            recyc_ranges.push_back(ranges_queue.bottom());
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 

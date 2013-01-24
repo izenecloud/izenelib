@@ -428,7 +428,15 @@ void WaveletTreeBinary<CharT>::topKUnion(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const PatternList *top_ranges;
+
+    std::vector<PatternList *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new PatternList(0, 0, NULL, ranges.size()));
+    }
+
+    PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
     const WaveletTreeNode *node;
@@ -442,15 +450,20 @@ void WaveletTreeBinary<CharT>::topKUnion(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.size());
-        one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+        recyc_ranges.pop_back();
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -462,17 +475,17 @@ void WaveletTreeBinary<CharT>::topKUnion(
             one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         zero_ranges->calcScore();
         if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
         {
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
         }
         else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top().first->score_))
         {
             results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
         }
         else
         {
@@ -482,12 +495,12 @@ void WaveletTreeBinary<CharT>::topKUnion(
         one_ranges->calcScore();
         if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
         {
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
         }
         else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top().first->score_))
         {
             results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
         }
         else
         {
@@ -496,15 +509,19 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            PatternList * bottom = ranges_queue.bottom().first;
+            recyc_ranges.push_back(ranges_queue.bottom().first);
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i).first;
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 
@@ -529,7 +546,15 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const FilteredPatternList *top_ranges;
+
+    std::vector<FilteredPatternList *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size()));
+    }
+
+    FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
     size_t start, before, rank_start, rank_end;
     const WaveletTreeNode *node;
@@ -543,15 +568,20 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+        recyc_ranges.pop_back();
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -565,17 +595,17 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (zero_ranges->filters_.empty())
         {
-            delete zero_ranges;
+            recyc_ranges.push_back(zero_ranges);
             zero_ranges = NULL;
         }
         if (one_ranges->filters_.empty())
         {
-            delete one_ranges;
+            recyc_ranges.push_back(one_ranges);
             one_ranges = NULL;
         }
         if (!zero_ranges && !one_ranges)
         {
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
@@ -595,19 +625,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             }
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         if (zero_ranges)
         {
             zero_ranges->calcScore();
             if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
             {
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top().first->score_))
             {
                 results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else
             {
@@ -620,12 +650,12 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             one_ranges->calcScore();
             if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
             {
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top().first->score_))
             {
                 results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else
             {
@@ -635,15 +665,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            FilteredPatternList * bottom = ranges_queue.bottom().first;
+            recyc_ranges.push_back(ranges_queue.bottom().first);
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i).first;
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 
@@ -669,7 +703,20 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const AuxFilteredPatternList<self_type> *top_ranges;
+    size_t max_filter_size = 0;
+    for (size_t i = 0; i < aux_filters.size(); ++i)
+    {
+        max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
+    }
+
+    std::vector<AuxFilteredPatternList<self_type> *> recyc_ranges;
+    recyc_ranges.reserve(max_queue_size + 2);
+    for (size_t i = 0; i < max_queue_size + 1; ++i)
+    {
+        recyc_ranges.push_back(new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size));
+    }
+
+    AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
     size_t start, filter_start, before, rank_start, rank_end;
@@ -684,12 +731,17 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_ranges.push_back(top_ranges);
             continue;
         }
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_, top_ranges->node_->left_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), top_ranges->node_->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_ranges.back();
+        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+        recyc_ranges.pop_back();
+
+        one_ranges = recyc_ranges.back();
+        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+        recyc_ranges.pop_back();
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -698,8 +750,13 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             filter_start = (*it)->tree_->occ_.prefixSum(top_ranges->sym_);
             before = node->rank1(filter_start);
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
+            zero_filter = zero_ranges->recyc_aux_filters_.back();
+            zero_filter->reset((*it)->tree_, node->left_);
+            zero_ranges->recyc_aux_filters_.pop_back();
+
+            one_filter = one_ranges->recyc_aux_filters_.back();
+            one_filter->reset((*it)->tree_, node->right_);
+            one_ranges->recyc_aux_filters_.pop_back();
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
@@ -711,52 +768,26 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
                 one_filter->addFilter(std::make_pair(rank_start, rank_end));
             }
 
-            if (zero_filter->filters_.empty())
+            if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
             {
-                delete zero_filter;
+                recyc_ranges.push_back(zero_ranges);
+                zero_ranges = NULL;
             }
-            else
+            if (one_ranges && !one_ranges->addAuxFilter(one_filter))
             {
-                zero_ranges->addAuxFilter(zero_filter);
+                recyc_ranges.push_back(one_ranges);
+                one_ranges = NULL;
             }
-            if (one_filter->filters_.empty())
-            {
-                delete one_filter;
-            }
-            else
-            {
-                one_ranges->addAuxFilter(one_filter);
-            }
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_ranges.push_back(top_ranges);
+            continue;
         }
 
         node = top_ranges->node_;
         before = node->rank1(start);
-
-        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
-                it != top_ranges->filters_.end(); ++it)
-        {
-            rank_start = node->rank1(start + it->first) - before;
-            rank_end = node->rank1(start + it->second) - before;
-
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
-        }
-
-        if (zero_ranges->filters_.empty() && zero_ranges->aux_filters_.empty())
-        {
-            delete zero_ranges;
-            zero_ranges = NULL;
-        }
-        if (one_ranges->filters_.empty() && one_ranges->aux_filters_.empty())
-        {
-            delete one_ranges;
-            one_ranges = NULL;
-        }
-        if (!zero_ranges && !one_ranges)
-        {
-            delete top_ranges;
-            continue;
-        }
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -774,19 +805,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             }
         }
 
-        delete top_ranges;
+        recyc_ranges.push_back(top_ranges);
 
         if (zero_ranges)
         {
             zero_ranges->calcScore();
             if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom().first->score_))
             {
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top().first->score_))
             {
                 results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                recyc_ranges.push_back(zero_ranges);
             }
             else
             {
@@ -799,12 +830,12 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             one_ranges->calcScore();
             if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom().first->score_))
             {
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top().first->score_))
             {
                 results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                recyc_ranges.push_back(one_ranges);
             }
             else
             {
@@ -814,15 +845,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (ranges_queue.size() > max_queue_size)
         {
-            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom().first;
+            recyc_ranges.push_back(ranges_queue.bottom().first);
             ranges_queue.pop_bottom();
-            delete bottom;
         }
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i).first;
+    }
+
+    for (size_t i = 0; i < recyc_ranges.size(); ++i)
+    {
+        delete recyc_ranges[i];
     }
 }
 
