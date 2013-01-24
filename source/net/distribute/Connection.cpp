@@ -137,7 +137,7 @@ Connection::createFile() {
     
     string destination(request.getDestination());
     if (not destination.empty()) {
-        outputpath = basedir/bfs::path(destination)/bfs::path(request.getFileName()).filename();
+        outputpath = bfs::path(destination)/bfs::path(request.getFileName()).filename();
     } else {
         outputpath = basedir/bfs::path(request.getFileName());
     }
