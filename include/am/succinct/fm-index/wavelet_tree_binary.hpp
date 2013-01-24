@@ -735,6 +735,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             continue;
         }
 
+        node = top_ranges->node_;
+
         zero_ranges = recyc_ranges.back();
         zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
         recyc_ranges.pop_back();

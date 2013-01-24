@@ -676,6 +676,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
         }
 
         level = top_ranges->level_;
+        node = top_ranges->node_;
 
         zero_ranges = recyc_ranges.back();
         zero_ranges->reset(level + 1, top_ranges->sym_, node->left_);
