@@ -69,7 +69,7 @@ public:
 
             if (r < cnt)
             {
-                return nblock + kSelectPos_[r * 256 + (blk >> nblock & 0xff)];
+                return nblock + kSelectPos_[r][blk >> nblock & 0xff];
             }
             else
             {
@@ -115,7 +115,7 @@ public:
 #endif /* __USE_POSIX_MEMALIGN__ */
 
 private:
-    static const uint8_t kSelectPos_[];
+    static const uint8_t kSelectPos_[8][256];
 };
 
 }
