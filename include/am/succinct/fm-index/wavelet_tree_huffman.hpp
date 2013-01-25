@@ -150,7 +150,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
     root_ = node_queue.top();
     node_queue.pop();
 
-    code_map_.resize(1 << this->alphabet_bit_num_, (uint64_t)-1);
+    code_map_.resize(this->alphabet_num_);
     makeCodeMap_(0, 0, root_);
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
@@ -190,21 +190,17 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         code = code_map_[char_seq[i]];
         walk = root_;
 
-        for (level = 0;; ++level)
+        for (level = 0; walk; ++level)
         {
             if (code & 1ULL << level)
             {
                 walk->append1();
-
                 walk = walk->right_;
-                if (!walk) break;
             }
             else
             {
                 walk->append0();
-
                 walk = walk->left_;
-                if (!walk) break;
             }
         }
     }
@@ -298,10 +294,9 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
     if (!leaves_[c]) return 0;
 
-    uint64_t code = code_map_[c];
-    if (code == (uint64_t)-1) return 0;
-
     pos = std::min(pos, length());
+
+    uint64_t code = code_map_[c];
     WaveletTreeNode *walk = root_;
 
     for (size_t level = 0; pos > 0; ++level)
@@ -962,7 +957,7 @@ void WaveletTreeHuffman<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
 
-    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
+    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     ostr.write((const char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     if (root_)
@@ -1000,8 +995,8 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
     this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
-    istr.read((char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
-    code_map_.resize(1 << this->alphabet_bit_num_);
+    istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
+    code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     uint32_t flag = 0;
