@@ -52,7 +52,8 @@ namespace aggregator{
 class AggregatorBase
 {
 public:
-    AggregatorBase(const std::string& collection) : collection_(collection) {}
+    AggregatorBase(const std::string& service, const std::string& collection)
+        : service_(service), collection_(collection) {}
 
     virtual ~AggregatorBase(){}
 
@@ -60,9 +61,12 @@ public:
 
     const std::string& collection() const { return collection_; }
 
+    const std::string& service() const {return service_;}
+
     virtual bool isNeedDistribute() const = 0;
 
 protected:
+    std::string service_;
     std::string collection_;
 };
 
@@ -84,6 +88,7 @@ public:
     Aggregator(
         MergerProxy* mergerProxy,
         LocalWorkerProxy* localWorkerProxy = NULL,
+        const std::string& service = "",
         const std::string& collection = "");
 
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig);
@@ -218,8 +223,9 @@ template <class MergerProxy, class LocalWorkerProxy>
 Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
     MergerProxy* mergerProxy,
     LocalWorkerProxy* localWorkerProxy,
+    const std::string& service,
     const std::string& collection)
-: AggregatorBase(collection)
+: AggregatorBase(service, collection)
 , debug_(false)
 , hasLocalWorker_(false)
 , localWorkerId_(0)
