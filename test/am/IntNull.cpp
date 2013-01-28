@@ -15,10 +15,6 @@ typedef boost::mpl::list<
     , sdb_hash<int, NullType>
     , sdb_btree<int, NullType>
     , sdb_fixedhash<int, NullType>
-    , sdb_fixedbtree<int, NullType>
-    , sdb_bptree<int, NullType>
-   // , sdb_storage<int, NullType>
-   //, sdb_storage_mm<int, NullType>
 > test_types;
 
 namespace { // {anonymous}

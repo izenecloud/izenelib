@@ -17,7 +17,8 @@ IF(am_SHOULD_BUILD)
     "vsynonym/*.cpp"
     "trie/*.cpp"
     "succinct/*.cpp"
-    "succinct/*.c"    
+    "succinct/*.cc"    
+    "succinct/*.c"        
     )
 
   INCLUDE_DIRECTORIES(

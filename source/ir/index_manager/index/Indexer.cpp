@@ -587,6 +587,13 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property,
     return true;
 }
 
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, EWAHBoolArray<uint32_t>& docs)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    pBTreeIndexer_->getValue(property, value, docs);
+    return true;
+}
+
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);

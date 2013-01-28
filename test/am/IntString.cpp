@@ -17,10 +17,6 @@ typedef boost::mpl::list<
     , tc::BTree<int, std::string>
     , tc::BTree<int, std::string, tc::BTreeLessCmp<int> >
     , sdb_hash<int, std::string>
-    , sdb_btree<int, std::string>
-    , sdb_bptree<int, std::string>
-    //, sdb_storage<int, std::string>
-    //, sdb_storage_mm<int, std::string>
     //, BTreeFile<int, std::string>
     //, cccr_hash<int, std::string>
     //, sdb_storage<int, std::string>

@@ -159,17 +159,17 @@ public:
     bool getValue(const KeyType& key, std::vector<docid_t>& docs)
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return getValue_(key, docs);
+    }
 
+    bool getValue(const KeyType& key, EWAHBoolArray<uint32_t>& docs)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
         ValueType value;
-        bool b_db = getDbValue_(key, value);
-        CacheValueType cache_value;
-        bool b_cache = getCacheValue_(key, cache_value);
-        if (!b_db && !b_cache) return false;
-        if (b_cache)
-        {
-            applyCacheValue_(value, cache_value);
-        }
-        docs.swap(value);
+        if(!getValue_(key, value)) return false;
+        std::sort(value.begin(), value.end());
+        for(unsigned i = 0; i < value.size(); ++i)
+            docs.set(value[i]);
         return true;
     }
 
@@ -550,6 +550,20 @@ private:
         }
         return true;
     }
+
+    bool getValue_(const KeyType& key, ValueType& value)
+    {
+        bool b_db = getDbValue_(key, value);
+        CacheValueType cache_value;
+        bool b_cache = getCacheValue_(key, cache_value);
+        if (!b_db && !b_cache) return false;
+        if (b_cache)
+        {
+            applyCacheValue_(value, cache_value);
+        }
+        return true;
+    }
+
 
 
     static void decompress_(const ValueType& compressed, BitVector& value)

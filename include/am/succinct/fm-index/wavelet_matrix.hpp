@@ -4,7 +4,7 @@
 #include "wavelet_tree.hpp"
 #include "utils.hpp"
 #include <am/succinct/sdarray/SDArray.hpp>
-
+#include <vector>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -20,7 +20,7 @@ public:
     typedef CharT char_type;
     typedef WaveletMatrix<CharT> self_type;
 
-    WaveletMatrix(size_t alphabet_num);
+    WaveletMatrix(size_t alphabet_num=2731460);
     ~WaveletMatrix();
 
     void build(const char_type *char_seq, size_t len);
@@ -63,6 +63,11 @@ public:
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
 
+    void Init(const std::vector<char_type>& array);
+    size_t Freq(char_type c) const;
+    size_t Rank(char_type c, size_t pos) const;
+    CharT Lookup(size_t pos) const;
+    size_t Select(char_type c, size_t rank) const;
 private:
     void doIntersect_(
             const std::vector<std::pair<size_t, size_t> > &ranges,
@@ -231,11 +236,10 @@ template <class CharT>
 size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 {
     size_t pos = rank + occ_.prefixSum(c);
-    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        if (c & bit_mask)
+        if (pos >= zero_counts_[i])
         {
             pos = nodes_[i]->bit_vector_.Select1(pos - zero_counts_[i]);
         }
@@ -243,10 +247,8 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
         {
             pos = nodes_[i]->bit_vector_.Select0(pos);
         }
-
+        //pos++;
         if (pos == (size_t)-1) return -1;
-
-        bit_mask >>= 1;
     }
 
     return pos;
@@ -816,6 +818,33 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
         nodes_[i - 1]->left_ = nodes_[i];
         nodes_[i - 1]->right_ = nodes_[i];
     }
+}
+
+
+template <class CharT>
+void WaveletMatrix<CharT>::Init(const std::vector<char_type>& array)
+{
+    build(&array[0], array.size());
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Freq(char_type c) const
+{
+    return getOcc(c+1)-getOcc(c);
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Rank(CharT c, size_t pos) const
+{
+    return rank(c, pos);
+}
+template <class CharT>
+size_t WaveletMatrix<CharT>::Select(CharT c, size_t rank) const
+{
+    return select(c, rank);
+}
+template <class CharT>
+CharT WaveletMatrix<CharT>::Lookup(size_t pos) const
+{
+    return access(pos);
 }
 
 }
