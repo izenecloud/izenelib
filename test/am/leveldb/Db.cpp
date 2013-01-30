@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(Simple_test)
     typedef Table<int,int> LevelDBType;
     LevelDBType table(db_dir_str+"/LevelDB_test");
     BOOST_CHECK(table.open());
-    int size = 100;
+    int size = 100000;
     int i;
     for (i = 1; i <= size; ++i) {
         //Int2String key(i);
@@ -93,6 +93,11 @@ BOOST_AUTO_TEST_CASE(Simple_test)
 	   //cout<<"i "<<i<<" value "<<value<<" data "<<int_data[i]<<endl;
         BOOST_CHECK_EQUAL(value, i*100);
     }
+    cout << "waiting begin flush" << endl;
+    sleep(30);
+    table.flush();
+    cout << "flush finished" << endl;
+    sleep(40);
     cout<<"start iterating"<<endl;
 
     typedef AMIterator<LevelDBType > AMIteratorType;
@@ -116,7 +121,7 @@ BOOST_AUTO_TEST_CASE(Simple_test)
         ++iterStep;
     }
     BOOST_CHECK_EQUAL(iterStep, size);
-    table.clear();
+    //table.clear();
     destroy_data();
 }
 

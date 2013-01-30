@@ -87,9 +87,9 @@ public:
      */
     Aggregator(
         MergerProxy* mergerProxy,
-        LocalWorkerProxy* localWorkerProxy = NULL,
-        const std::string& service = "",
-        const std::string& collection = "");
+        LocalWorkerProxy* localWorkerProxy,
+        const std::string& service,
+        const std::string& collection);
 
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig);
 

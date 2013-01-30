@@ -78,7 +78,7 @@ public:
     {
         if (db_)
         {
-            flush();
+            checkHandle_(db_);
             delete db_;
             db_ = NULL;
         }
@@ -98,7 +98,8 @@ public:
 
     bool flush()
     {
-        return checkHandle_(db_);
+        // reopen to flush cached data.
+        return checkHandle_(db_) && open();
     }
 
     size_type size() const
