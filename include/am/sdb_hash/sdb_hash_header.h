@@ -23,6 +23,7 @@ struct ShFileHeader
 
     ShFileHeader()
     {
+        ::memset((char*)&magic, 0x00, sizeof(ShFileHeader));
         magic = 0x061561;
         bucketSize = 1024;
         //directorySize =8192*8;
