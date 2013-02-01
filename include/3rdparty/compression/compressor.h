@@ -63,8 +63,10 @@ public:
     virtual bool compress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t& destLen);
 
     virtual bool decompress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t destLen);
+
+    virtual int compressBound(int size);
 };
 
-typedef LzoCompressor DocumentCompressor;
+typedef SnappyCompressor DocumentCompressor;
 
 #endif

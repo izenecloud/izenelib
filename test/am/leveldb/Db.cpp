@@ -94,10 +94,10 @@ BOOST_AUTO_TEST_CASE(Simple_test)
         BOOST_CHECK_EQUAL(value, i*100);
     }
     cout << "waiting begin flush" << endl;
-    sleep(30);
+    //sleep(30);
     table.flush();
     cout << "flush finished" << endl;
-    sleep(40);
+    //sleep(40);
     cout<<"start iterating"<<endl;
 
     typedef AMIterator<LevelDBType > AMIteratorType;

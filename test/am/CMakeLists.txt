@@ -83,6 +83,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     ${CMAKE_THREAD_LIBS_INIT}
     am
     compressor
+    snappy
     febird
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
