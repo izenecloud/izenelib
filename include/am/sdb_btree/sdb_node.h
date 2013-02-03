@@ -262,7 +262,10 @@ typename Alloc> sdb_node_< KeyType, ValueType, LockType, fixed, Alloc>::sdb_node
     _overflowPageCount = 0;
 
     keys = new KeyType[_fh.maxKeys];
+    ::memset(keys, 0x00, sizeof(KeyType)*_fh.maxKeys);
     values = new ValueType[_fh.maxKeys];
+    ::memset(values, 0x00, sizeof(ValueType)*_fh.maxKeys);
+
     children = new sdb_node_*[_fh.maxKeys+1];
     for (size_t i=0; i<_fh.maxKeys+1; i++)
         children[i] = NULL;
@@ -328,9 +331,15 @@ Alloc>::read(FILE* f)
     isLeaf = (leafFlag == 1);
 
     if (keys == NULL)
+    {
         keys = new KeyType[_fh.maxKeys];
+        ::memset(keys, 0x00, sizeof(KeyType)*_fh.maxKeys);
+    }
     if (values == NULL)
+    {
         values = new ValueType[_fh.maxKeys];
+        ::memset(values, 0x00, sizeof(ValueType)*_fh.maxKeys);
+    }
 
     //cout<<"read leafFlag ="<<isLeaf<<endl;
     //cout<<" read objCount="<<objCount<<endl;

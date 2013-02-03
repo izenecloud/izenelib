@@ -67,6 +67,6 @@ public:
     virtual int compressBound(int size);
 };
 
-typedef SnappyCompressor DocumentCompressor;
+typedef Lz4Compressor DocumentCompressor;
 
 #endif
