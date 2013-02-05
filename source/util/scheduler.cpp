@@ -28,6 +28,11 @@ public:
         return Timer::start(due_time_, period_);
     }
 
+    bool startNow()
+    {
+        return Timer::start(0, period_);
+    }
+
     virtual void signaled()
     {
         callback_(arg_);
@@ -42,6 +47,7 @@ private:
 
 struct ScheduleOP
 {
+    std::string name;
     uint32_t default_interval;
     uint32_t delay_start;
     boost::function<void (void)> callback;
@@ -84,6 +90,7 @@ public:
             return false;
 
         ScheduleOP newjob;
+        newjob.name = name;
         newjob.default_interval = default_interval;
         newjob.delay_start = delay_start;
         newjob.callback = func;
@@ -117,6 +124,22 @@ public:
         }
     }
 
+    bool runJobImmediatly(const std::string& name)
+    {
+        boost::mutex::scoped_lock l(mutex_);
+        std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
+        if (itr == jobs_.end())
+        {
+            return false;
+        }
+        ScheduleOP *job = &itr->second;
+        if (job && job->timer)
+        {
+            return job->timer->startNow();
+        }
+        return false;
+    }
+
     bool removeJob(const std::string &name)
     {
         boost::mutex::scoped_lock l(mutex_);
@@ -145,6 +168,7 @@ private:
         if (job->running)
             return;
         job->running = true;
+        
         job->callback();
         job->running = false;
     }
@@ -167,6 +191,11 @@ bool Scheduler::removeJob(const string &name)
 void Scheduler::removeAllJobs()
 {
     Singleton<SchedulerImpl>::get()->removeAllJobs();
+}
+
+bool Scheduler::runJobImmediatly(const std::string& name)
+{
+    return Singleton<SchedulerImpl>::get()->runJobImmediatly(name);
 }
 
 }

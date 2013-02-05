@@ -29,6 +29,7 @@ public:
     static bool addJob(const std::string &name, uint32_t default_interval,
                        uint32_t delay_start, const boost::function<void (void)>& func);
 
+    static bool runJobImmediatly(const std::string& name);
     // stop scheduled job
     static bool removeJob(const std::string &name);
 
