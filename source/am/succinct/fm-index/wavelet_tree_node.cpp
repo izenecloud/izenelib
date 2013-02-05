@@ -1,4 +1,5 @@
 #include <am/succinct/fm-index/wavelet_tree_node.hpp>
+#include <am/succinct/constants.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -35,6 +36,7 @@ WaveletTreeNode::WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right, 
     , dense_bit_vector_(support_select)
     , dense_(dense)
     , freq_(left->freq_ + right->freq_), len_()
+    , raw_array_((freq_ + kSmallBlockSize - 1) / kSmallBlockSize)
 {
     left->parent_ = this;
     right->parent_ = this;
@@ -47,33 +49,29 @@ WaveletTreeNode::~WaveletTreeNode()
 void WaveletTreeNode::resize(size_t len)
 {
     len_ = len;
-    size_t index = len_ / 64;
-    if (index >= raw_array_.size())
-        raw_array_.resize(index + 1);
+    raw_array_.resize((len_ + kSmallBlockSize - 1) / kSmallBlockSize);
 }
 
 void WaveletTreeNode::setBit(size_t pos)
 {
-    size_t index = pos / 64, offset = pos % 64;
-    if (pos >= len_)
-    {
-        len_ = pos + 1;
-        if (index >= raw_array_.size())
-            raw_array_.resize(index + 1);
-    }
-    raw_array_[index] |= 1LLU << offset;
+    assert(pos < len_);
+//  if (pos >= len_)
+//  {
+//      len_ = pos + 1;
+//      raw_array_.resize(pos / kSmallBlockSize + 1);
+//  }
+    raw_array_[pos / kSmallBlockSize] |= 1LLU << (pos % kSmallBlockSize);
 }
 
 void WaveletTreeNode::unsetBit(size_t pos)
 {
-    size_t index = pos / 64/*, offset = pos % 64*/;
-    if (pos >= len_)
-    {
-        len_ = pos + 1;
-        if (index >= raw_array_.size())
-            raw_array_.resize(index + 1);
-    }
-//  raw_array_[index] &= ~(1LLU << offset);
+    assert(pos < len_);
+//  if (pos >= len_)
+//  {
+//      len_ = pos + 1;
+//      raw_array_.resize(pos / kSmallBlockSize + 1);
+//  }
+//  raw_array_[pos / kSmallBlockSize] &= ~(1LLU << (pos % kSmallBlockSize));
 }
 
 void WaveletTreeNode::changeBit(bool bit, size_t pos)
@@ -84,19 +82,17 @@ void WaveletTreeNode::changeBit(bool bit, size_t pos)
 
 void WaveletTreeNode::append0()
 {
-    size_t index = len_ / 64/*, offset = len_ % 64*/;
-    if (index >= raw_array_.size())
-        raw_array_.resize(index + 1);
-//  raw_array_[index] &= ~(1LLU << offset);
+    assert(len_ / kSmallBlockSize < raw_array_.size());
+//  raw_array_.resize(len_ / kSmallBlockSize + 1);
+//  raw_array_[len_ / kSmallBlockSize] &= ~(1LLU << (len_ % kSmallBlockSize));
     ++len_;
 }
 
 void WaveletTreeNode::append1()
 {
-    size_t index = len_ / 64, offset = len_ % 64;
-    if (index >= raw_array_.size())
-        raw_array_.resize(index + 1);
-    raw_array_[index] |= 1LLU << offset;
+    assert(len_ / kSmallBlockSize < raw_array_.size());
+//  raw_array_.resize(len_ / kSmallBlockSize + 1);
+    raw_array_[len_ / kSmallBlockSize] |= 1LLU << (len_ % kSmallBlockSize);
     ++len_;
 }
 
