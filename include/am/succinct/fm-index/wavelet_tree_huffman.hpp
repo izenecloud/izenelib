@@ -484,7 +484,6 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         recyc_queue[i] = new PatternList(0, 0, NULL, ranges.size());
     }
     std::deque<PatternList *> top_queue;
-    top_queue.reserve(max_queue_size + 1);
 
     PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
@@ -647,7 +646,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
         recyc_queue[i] = new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size());
     }
     std::deque<FilteredPatternList *> top_queue;
-    top_queue.reserve(max_queue_size + 1);
 
     FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
@@ -854,7 +852,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         recyc_queue[i] = new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size);
     }
     std::deque<AuxFilteredPatternList<self_type> *> top_queue;
-    top_queue.reserve(max_queue_size + 1);
 
     AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
