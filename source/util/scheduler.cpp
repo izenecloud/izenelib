@@ -124,7 +124,7 @@ public:
         }
     }
 
-    bool runJobImmediatly(const std::string& name)
+    bool runJobImmediatly(const std::string& name, bool sync)
     {
         boost::mutex::scoped_lock l(mutex_);
         std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
@@ -134,8 +134,20 @@ public:
         }
         ScheduleOP *job = &itr->second;
         if (job && job->timer)
-        {
-            return job->timer->startNow();
+	{
+	    if (sync)
+	    {
+		if (job->running)
+		    return false;
+		job->running = true;
+		job->callback();
+		job->running = false;
+		return true;
+	    }
+	    else
+	    {
+		return job->timer->startNow();
+	    }
         }
         return false;
     }
@@ -193,9 +205,9 @@ void Scheduler::removeAllJobs()
     Singleton<SchedulerImpl>::get()->removeAllJobs();
 }
 
-bool Scheduler::runJobImmediatly(const std::string& name)
+bool Scheduler::runJobImmediatly(const std::string& name, bool sync)
 {
-    return Singleton<SchedulerImpl>::get()->runJobImmediatly(name);
+    return Singleton<SchedulerImpl>::get()->runJobImmediatly(name, sync);
 }
 
 }
