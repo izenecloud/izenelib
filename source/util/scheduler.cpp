@@ -50,9 +50,10 @@ struct ScheduleOP
     std::string name;
     uint32_t default_interval;
     uint32_t delay_start;
-    boost::function<void (void)> callback;
+    boost::function<void (int)> callback;
     QueueTimer* timer;
     bool running;
+    int calltype;
 };
 
 class SchedulerImpl
@@ -82,7 +83,7 @@ public:
     }
 
     bool addJob(const string &name, uint32_t default_interval,
-                uint32_t delay_start, const boost::function<void (void)>& func)
+                uint32_t delay_start, const boost::function<void (int)>& func)
     {
         boost::mutex::scoped_lock l(mutex_);
         std::map<string, ScheduleOP>::iterator find_itr = jobs_.find(name);
@@ -91,6 +92,7 @@ public:
 
         ScheduleOP newjob;
         newjob.name = name;
+        newjob.calltype = 0;
         newjob.default_interval = default_interval;
         newjob.delay_start = delay_start;
         newjob.callback = func;
@@ -124,7 +126,7 @@ public:
         }
     }
 
-    bool runJobImmediatly(const std::string& name, bool sync)
+    bool runJobImmediatly(const std::string& name, int calltype, bool sync)
     {
         boost::mutex::scoped_lock l(mutex_);
         std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
@@ -135,13 +137,15 @@ public:
         ScheduleOP *job = &itr->second;
         if (job && job->timer)
 	{
+	    job->calltype = calltype;
 	    if (sync)
 	    {
 		if (job->running)
 		    return false;
 		job->running = true;
-		job->callback();
+		job->callback(calltype);
 		job->running = false;
+		job->calltype = 0;
 		return true;
 	    }
 	    else
@@ -181,8 +185,9 @@ private:
             return;
         job->running = true;
         
-        job->callback();
+        job->callback(job->calltype);
         job->running = false;
+	job->calltype = 0;
     }
 
     std::map<std::string, ScheduleOP> jobs_;
@@ -190,7 +195,7 @@ private:
 };
 
 bool Scheduler::addJob(const string &name, uint32_t default_interval,
-                       uint32_t delay_start, const boost::function<void (void)>& func)
+                       uint32_t delay_start, const boost::function<void (int)>& func)
 {
     return Singleton<SchedulerImpl>::get()->addJob(name, default_interval, delay_start, func);
 }
@@ -205,9 +210,9 @@ void Scheduler::removeAllJobs()
     Singleton<SchedulerImpl>::get()->removeAllJobs();
 }
 
-bool Scheduler::runJobImmediatly(const std::string& name, bool sync)
+bool Scheduler::runJobImmediatly(const std::string& name, int calltype, bool sync)
 {
-    return Singleton<SchedulerImpl>::get()->runJobImmediatly(name, sync);
+    return Singleton<SchedulerImpl>::get()->runJobImmediatly(name, calltype, sync);
 }
 
 }

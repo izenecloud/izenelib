@@ -257,7 +257,7 @@ void IndexWriter::optimizeIndex()
     pIndexMergeManager_->optimizeIndex();
 }
 
-void IndexWriter::lazyOptimizeIndex()
+void IndexWriter::lazyOptimizeIndex(int calltype)
 {
     using namespace boost::posix_time;
     using namespace boost::gregorian;
@@ -290,7 +290,7 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
     Scheduler::removeJob(optimizeJob);
 
     optimizeJobDesc_ = optimizeJob;
-    boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
+    boost::function<void (int)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this, _1);
     Scheduler::addJob(optimizeJob, 60*1000, 0, task);
 }
 

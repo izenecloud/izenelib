@@ -79,7 +79,7 @@ public:
 private:
     
     /// optimize index offline
-    void lazyOptimizeIndex();
+    void lazyOptimizeIndex(int calltype);
 private:
     Indexer* pIndexer_;
 

@@ -27,9 +27,9 @@ public:
     // return false if timer is already existed.
     // job will start after delay_start msec
     static bool addJob(const std::string &name, uint32_t default_interval,
-                       uint32_t delay_start, const boost::function<void (void)>& func);
+                       uint32_t delay_start, const boost::function<void (int)>& func);
 
-    static bool runJobImmediatly(const std::string& name, bool sync = false);
+    static bool runJobImmediatly(const std::string& name, int calltype = 0, bool sync = false);
     // stop scheduled job
     static bool removeJob(const std::string &name);
 
