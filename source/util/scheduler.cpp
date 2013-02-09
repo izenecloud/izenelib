@@ -1,6 +1,7 @@
 #include <util/singleton.h>
 #include <util/scheduler.h>
 #include <util/timer.h>
+#include <iostream>
 
 #include <map>
 #include <boost/thread.hpp>
@@ -132,6 +133,7 @@ public:
         std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
         if (itr == jobs_.end())
         {
+ 	    std::cout << "schedule job not found:" << name << std::endl;
             return false;
         }
         ScheduleOP *job = &itr->second;
@@ -141,7 +143,10 @@ public:
 	    if (sync)
 	    {
 		if (job->running)
+		{
+		    std::cout << "schedule job already running:" << name << std::endl;
 		    return false;
+		}
 		job->running = true;
 		job->callback(calltype);
 		job->running = false;
@@ -153,6 +158,7 @@ public:
 		return job->timer->startNow();
 	    }
         }
+	std::cout << "schedule job timer null:" << name << std::endl;
         return false;
     }
 
