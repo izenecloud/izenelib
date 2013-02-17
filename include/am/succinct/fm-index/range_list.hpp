@@ -60,6 +60,15 @@ public:
 
     ~PatternList() {}
 
+    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    {
+        level_ = level;
+        sym_ = sym;
+        score_ = 0.0;
+        node_ = node;
+        patterns_.clear();
+    }
+
     bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
@@ -124,6 +133,16 @@ public:
 
     ~FilteredPatternList() {}
 
+    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    {
+        level_ = level;
+        sym_ = sym;
+        score_ = 0.0;
+        node_ = node;
+        filters_.clear();
+        patterns_.clear();
+    }
+
     bool addFilter(const std::pair<size_t, size_t> &filter)
     {
         if (filter.first < filter.second)
@@ -185,6 +204,13 @@ public:
 
     ~FilterList() {}
 
+    void reset(const WaveletTreeType *tree, const WaveletTreeNode *node)
+    {
+        tree_ = tree;
+        node_ = node;
+        filters_.clear();
+    }
+
     bool addFilter(const std::pair<size_t, size_t> &filter)
     {
         if (filter.first < filter.second)
@@ -220,13 +246,14 @@ public:
         if (!aux_filters_.empty())
         {
             score_ = detail::getScore(patterns_);
+            recyc_aux_filters_.reserve(aux_filters_.size());
         }
     }
 
     AuxFilteredPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            size_t aux_filter_count, size_t pattern_count)
+            size_t aux_filter_count, size_t pattern_count, size_t filter_count)
         : level_(level)
         , sym_(sym)
         , score_()
@@ -234,6 +261,12 @@ public:
     {
         aux_filters_.reserve(aux_filter_count);
         patterns_.reserve(pattern_count);
+
+        recyc_aux_filters_.resize(aux_filter_count);
+        for (size_t i = 0; i < recyc_aux_filters_.size(); ++i)
+        {
+            recyc_aux_filters_[i] = new FilterList<WaveletTreeType>(NULL, NULL, filter_count);
+        }
     }
 
     ~AuxFilteredPatternList()
@@ -242,23 +275,40 @@ public:
         {
             delete aux_filters_[i];
         }
+
+        for (size_t i = 0; i < recyc_aux_filters_.size(); ++i)
+        {
+            delete recyc_aux_filters_[i];
+        }
+    }
+
+    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    {
+        level_ = level;
+        sym_ = sym;
+        score_ = 0.0;
+        node_ = node;
+        recyc_aux_filters_.insert(recyc_aux_filters_.end(), aux_filters_.begin(), aux_filters_.end());
+        aux_filters_.clear();
+        patterns_.clear();
     }
 
     bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
     {
-        if (aux_filter)
+        if (!aux_filter)
         {
-            if (!aux_filter->filters_.empty())
-            {
-                aux_filters_.push_back(aux_filter);
-                return true;
-            }
-            else
-            {
-                delete aux_filter;
-            }
+            return false;
         }
-        return false;
+        else if (aux_filter->filters_.empty())
+        {
+            recyc_aux_filters_.push_back(aux_filter);
+            return false;
+        }
+        else
+        {
+            aux_filters_.push_back(aux_filter);
+            return true;
+        }
     }
 
     bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
@@ -288,6 +338,7 @@ public:
     const WaveletTreeNode *node_;
     std::vector<FilterList<WaveletTreeType> *> aux_filters_;
     std::vector<boost::tuple<size_t, size_t, double> > patterns_;
+    std::vector<FilterList<WaveletTreeType> *> recyc_aux_filters_;
 };
 
 }

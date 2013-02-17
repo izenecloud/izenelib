@@ -20,7 +20,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     raw/Buffer.cpp
     b-trie/t_btrie_en.cpp
     b-trie/t_btrie_cjk.cpp
-    
+
     tc/String.cpp
     tc/Iter.cpp
     tc/Db.cpp
