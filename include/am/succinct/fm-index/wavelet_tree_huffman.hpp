@@ -292,7 +292,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 template <class CharT>
 size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
-    if (!leaves_[c]) return 0;
+    if (c >= leaves_.size() || !leaves_[c]) return 0;
 
     pos = std::min(pos, length());
 
