@@ -19,7 +19,6 @@
 #include <array.h>
 #include <util.h>
 #include <data.h>
-#include <boost/filesystem.hpp>
 #ifdef LUXIO_HAVE_LIBPTHREAD
 #include <pthread.h>
 #endif
@@ -48,35 +47,6 @@ Array::Array(db_index_t index_type, uint8_t data_size)
         exit(-1);
     }
 #endif
-}
-Array::Array(std::string db_name, db_index_t index_type, uint8_t data_size)
-    : map_(NULL),
-      dt_(NULL),
-      smode_(Padded),
-      pmode_(RATIO),
-      padding_(20),
-      lock_type_(NO_LOCK),
-      index_type_(index_type),
-      data_size_(index_type == NONCLUSTER ? sizeof(data_ptr_t) : data_size)
-{
-#ifdef LUXIO_HAVE_LIBPTHREAD
-    if (pthread_rwlock_init(&rwlock_, NULL) != 0)
-    {
-        error_log("pthread_rwlock_init failed.");
-        exit(-1);
-    }
-#endif
-    set_noncluster_params(Lux::IO::Linked);
-    set_lock_type(Lux::IO::LOCK_THREAD);
-    //open(db_name.c_str(), Lux::IO::DB_CREAT);
-    if ( !boost::filesystem::exists(db_name+"_Autofill_") )
-    {
-        open((db_name+"_Autofill_").c_str(), Lux::IO::DB_CREAT);
-    }
-    else
-    {
-        open((db_name+"_Autofill_").c_str(), Lux::IO::DB_RDWR);
-    }
 }
 
 Array::~Array(void)
