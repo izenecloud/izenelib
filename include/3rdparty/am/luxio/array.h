@@ -40,7 +40,6 @@ typedef struct
     uint8_t data_size; // for fixed length value in cluster index
     uint32_t num_resized;
 } array_header_t;
-
 /*
  * Class Array
  */
@@ -49,6 +48,9 @@ class Array
 public:
     Array(db_index_t index_type = CLUSTER,
           uint8_t data_size = sizeof(uint32_t));
+    Array(std::string db_name, db_index_t index_type = Lux::IO::NONCLUSTER,
+          uint8_t data_size = sizeof(uint32_t));
+
     ~Array(void);
     bool open(std::string db_name, db_flags_t oflags);
     bool close(void);
@@ -67,6 +69,31 @@ public:
     static void clean_data(data_t *d);
     void show_db_header(void);
     size_t num_items(void);
+
+    /// add interface for AutofillIDManager;
+    void flush()
+    {}
+    void display()
+    {}
+
+    bool put(const uint32_t& NameID, const std::string& NameString)
+    {
+        uint32_t len = NameString.length();
+        char* str = new char[len];
+        for (unsigned int i = 0; i < len ; i++)
+            str[i] = NameString[i];
+        return put(NameID, (void*)str, len, Lux::IO::OVERWRITE);
+    }
+
+    bool get(const unsigned int& NameID, std::string& NameString)
+    {
+        data_t* Namedata = get(NameID);
+        if (Namedata == NULL)
+            return false;
+        std::string namestr((char*)Namedata->data, Namedata->size);
+        NameString = namestr;
+        return true;
+    }
 
 private:
     int fd_;
