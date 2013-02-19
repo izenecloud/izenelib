@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( EmptyRegexpHandler )
 
     clean("regexp1");
 }
-
+/*
 BOOST_AUTO_TEST_CASE( DiskRegexpHandler )
 {
     {
@@ -130,5 +130,5 @@ BOOST_AUTO_TEST_CASE( DiskRegexpHandler )
 
     clean("regexp2");
 } // end - BOOST_AUTO_TEST_CASE( TestCase3 )
-
+*/
 BOOST_AUTO_TEST_SUITE_END()
