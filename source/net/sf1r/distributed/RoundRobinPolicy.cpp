@@ -66,6 +66,20 @@ const Sf1Node&
 RoundRobinPolicy::getNodeFor(const std::string& collection) {
     const NodeCollectionsList& list = collections.at(collection);
     size_t index = ccounter[collection]++ % list.size();
+    size_t trynext = 0;
+    while(trynext < list.size())
+    {
+        if (list[index].second.getServiceState() == "ReadyForRead")
+            break;
+        ++trynext;
+        index = ccounter[collection]++ % list.size();
+    }
+
+    if (trynext == list.size())
+    {
+        LOG(INFO) << "!!!! all node is BusyForWrite, just choose any one !!!!!!";
+    }
+
     DLOG(INFO) << "index[" << collection << "] = " << index;
     
     return list[index].second;

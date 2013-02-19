@@ -31,26 +31,28 @@ NS_IZENELIB_SF1R_BEGIN
 const std::string ROOT_NODE = "/";
 
 /** Topology namespace within a node. */
-const std::string  TOPOLOGY = "/SearchTopology";
+const std::string  TOPOLOGY = "/Topology";
 
 /**
  * Regular expression matching a topology namespace. 
  * Example: /SF1R-host23
  */
-const boost::regex NODE_REGEX("\\/SF1R-\\w+\\d?");
+const boost::regex SF1R_ROOT_REGEX("\\/SF1R-\\w+\\d?");
 
 /**
  * Regular expression matching a search topologu namespace. 
  * Example: /SF1R-host23/SearchTopology
  */
-const boost::regex SEARCH_TOPOLOGY_REGEX("\\/SF1R-\\w+\\d?\\/SearchTopology");
+const boost::regex TOPOLOGY_REGEX("\\/SF1R-\\w+\\d?\\/Topology");
 
 /**
  * Regular expression matching a SF1 node on search topology.
  * Example: /SF1R-host23/SearchTopology/Replica1/Node1
  */
-const boost::regex SEARCH_NODE_REGEX("\\/SF1R-\\w+\\d*\\/SearchTopology\\/Replica\\d+\\/Node\\d+");
+const boost::regex SF1R_NODE_REGEX("\\/SF1R-\\w+\\d*\\/Topology\\/Replica\\d+\\/Node\\d+");
 
+const std::string SearchService = "search";
+const std::string RecommendService = "recommend";
 /**
  * Noda data key for the host.
  */
@@ -71,6 +73,8 @@ const std::string MASTER_NAME_KEY = "mastername";
  * Noda data key for the collection.
  */
 const std::string COLLECTION_KEY = "collection";
+const std::string SERVICE_STATE_KEY = "service_state";
+const std::string SERVICE_NAMES_KEY = "service_names";
 
 /**
  * Noda data delimiter character.

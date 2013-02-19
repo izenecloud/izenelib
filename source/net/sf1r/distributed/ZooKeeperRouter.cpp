@@ -85,7 +85,7 @@ ZooKeeperRouter::loadTopology() {
     
     LOG(INFO) << "Scanning root node ...";
     BOOST_FOREACH(const string& s, clusters) {
-        if (boost::regex_match(s, NODE_REGEX)) { // this is a SF1 node
+        if (boost::regex_match(s, SF1R_ROOT_REGEX)) { // this is a SF1 node
             LOG(INFO) << "node: " << s;
             addSearchTopology(s + TOPOLOGY);
         }
@@ -137,7 +137,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     LOG(INFO) << "adding SF1 node: [" << path << "]";
     
     if (topology->isPresent(path)) {
-        DLOG(INFO) << "node already exists, skipping";
+        LOG(INFO) << "node already exists, skipping";
         return true;
     }
     
@@ -149,7 +149,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     parser.loadKvString(data);
     
     if (not parser.hasKey(MASTERPORT_KEY)) {
-        DLOG(INFO) << "Not a master node, skipping";
+        LOG(INFO) << "Not a master node, skipping";
         return false;
     }
 
@@ -161,7 +161,15 @@ ZooKeeperRouter::addSf1Node(const string& path) {
             return false;
         }
     }
-    
+
+    // check for search service
+    std::string service_names;
+    service_names = parser.getStrValue(SERVICE_NAMES_KEY);
+    if (service_names.find(SearchService) == std::string::npos)
+    {
+        LOG(INFO) << "current node has no search service : " << path;
+        return false;
+    }
     // add node into topology
     topology->addNode(path, data);
 
@@ -242,7 +250,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
     if (not client->isZNodeExists(path, ZooKeeper::WATCH)) {
         DLOG(INFO) << "node [" << path << "] does not exist";
         boost::smatch what;
-        CHECK(boost::regex_search(path, what, NODE_REGEX));
+        CHECK(boost::regex_search(path, what, SF1R_ROOT_REGEX));
         CHECK(not what.empty());
         
         DLOG(INFO) << "recurse to [" << what[0] << "] ...";
@@ -256,11 +264,11 @@ ZooKeeperRouter::watchChildren(const string& path) {
     bool need_update = false;
     BOOST_FOREACH(const string& s, children) {
         DLOG(INFO) << "child: " << s;
-        if (boost::regex_match(s, SEARCH_NODE_REGEX)) {
+        if (boost::regex_match(s, SF1R_NODE_REGEX)) {
             DLOG(INFO) << "Adding node: " << s;
             if(addSf1Node(s))
                 need_update = true;
-        } else if (boost::regex_search(s, NODE_REGEX)) {
+        } else if (boost::regex_search(s, SF1R_ROOT_REGEX)) {
             DLOG(INFO) << "recurse";
             watchChildren(s);
         }

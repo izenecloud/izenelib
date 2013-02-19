@@ -68,6 +68,9 @@ public:
         return port;
     }
     
+    std::string getServiceState() const {
+        return service_state;
+    }
    /**
      * @return The collections associated to this node.
      */
@@ -110,6 +113,7 @@ private:
     std::string path;
     std::string host;
     uint32_t port;
+    std::string service_state;
     std::vector<std::string> collections;
     
 };
