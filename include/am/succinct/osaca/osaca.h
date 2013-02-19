@@ -8,12 +8,14 @@
 #include <stdint.h>
 #include <iterator>
 #include <iostream>
+#include "custom_int.hpp"
+#include "custom_uint.hpp"
 
-using namespace std;
-
+namespace izenelib{ namespace am{ namespace succinct{ 
+namespace osaca{
 namespace osaca_private {
     // get s[i] at level>=0
-    #define chr(i) ((level==0)?((char_type *)s)[i]:MASK0&((level_type *)s)[i])
+    #define chr(i) ((level==0)?(uint64_t)(((char_type *)s)[i]):(uint64_t)(MASK0&((level_type *)s)[i]))
 
     // get s[i] at level>0
     #define chr1(i) (MASK0&((savalue_type *)s)[i])
@@ -47,7 +49,7 @@ namespace osaca_private {
         //cout << "putSuffix0 "<<endl;
         typedef typeof(*s) char_type;
         typedef typeof(*SA) savalue_type;
-        level=0;
+        typedef typeof(level) l_type;
 
         level_type i;
         level_type j;
@@ -88,14 +90,14 @@ namespace osaca_private {
 
         for(i=0; i<n; i++)
         {
-            if(SA[i]!=EMPTY && SA[i]!=0)
+            if(SA[i]!=EMPTY && SA[i]!=(savalue_type)0)
             {
                 j=SA[i]-1;
                 if(s[j]>=s[j+1])
                 {
                     SA[bkt[s[j]]] = j;
                     bkt[s[j]]++;
-                    if(!suffix && i>0) SA[i] = EMPTY;
+                    if(!suffix && i>(savalue_type)0) SA[i] = EMPTY;
                 }
             }
         }
@@ -118,9 +120,9 @@ namespace osaca_private {
         //find the end of each bucket
         getBuckets(s, bkt, n, k, true);
 
-        for(i=n-1; i>0; i--)
+        for(i=n-1; i>(savalue_type)0; i--)
         {
-            if(SA[i]!=EMPTY && SA[i]!=0)
+            if(SA[i]!=EMPTY && SA[i]!=(savalue_type)0)
             {
                 j=SA[i]-1;
                 if(s[j]<=s[j+1] && bkt[s[j]]<i)
@@ -153,12 +155,12 @@ namespace osaca_private {
         for(i=0; i<n; i++)SA[i]=EMPTY;
 
         succ_t=0; // s[n-2] must be L - type
-        for(i=n-2; i>0; i--)
+        for(i=n-2; i>(index_type)0; i--)
         {
             cur_t = (s[i-1]<s[i] ||
-                    (s[i-1]==s[i] && succ_t ==1)
+                    (s[i-1]==s[i] && succ_t ==(index_type)1)
                     )?1:0;
-            if(cur_t==0 && succ_t ==1) SA[bkt[s[i]]--]=i;
+            if(cur_t==(index_type)0 && succ_t ==(index_type)1) SA[bkt[s[i]]--]=i;
             succ_t = cur_t;
         }
 
@@ -525,7 +527,7 @@ namespace osaca_private {
             }
             else
             SA[name]++; // count this name.
-            j=(pos%2==0)?pos/2:(pos-1)/2;
+            j=(pos%2==(index_type)0)?pos/2:(pos-1)/2;
             SA[n1+j]=name;
         }
 
@@ -538,10 +540,10 @@ namespace osaca_private {
         //   interim s1 as the end of its bucket
         //   to produce the final s1.
         succ_t=1;
-        for(i=n1-1; i>0; i--) {
+        for(i=n1-1; i>(index_type)0; i--) {
             level_type ch=MASK0&s1[i], ch1=MASK0&s1[i-1];
-            cur_t=(ch1< ch || (ch1==ch && succ_t==1))?1:0;
-            if(cur_t==1) {
+            cur_t=(ch1< ch || (ch1==ch && succ_t==(index_type)1))?1:0;
+            if(cur_t==(index_type)1) {
             s1[i-1]+=SA[s1[i-1]]-1;
             s1[i-1]|=EMPTY; // set s1[i-1] as S-type.
             }
@@ -568,11 +570,11 @@ namespace osaca_private {
 
         j=n1-1; s1[j--] = n-1;
         succ_t = 0;
-        for(i=n-2; i>0; i--)
+        for(i=n-2; i>(index_type)0; i--)
         {
             cur_t=(chr(i-1) < chr(i) ||
-                    (chr(i-1) == chr(i) && succ_t==1))?1:0;
-            if(cur_t==0 && succ_t==1) s1[j--]=i;
+                    (chr(i-1) == chr(i) && succ_t==(index_type)1))?1:0;
+            if(cur_t==(index_type)0 && succ_t==(index_type)1) s1[j--]=i;
             succ_t=cur_t;
         }
 
@@ -676,6 +678,8 @@ osacaxx(string_type s, sarray_type SA, index_type n, index_type k)
         else if(sizeof(savalue_type) == 5)
         {
             //TODO
+            uint40_t *sa = (uint40_t *)&SA[0];
+            return osaca_private::osaca(S, sa, (uint40_t)n, (uint40_t)n, (int40_t)0, (uint40_t)k);
         }
         else if(sizeof(savalue_type) == 8)
         {
@@ -694,6 +698,8 @@ osacaxx(string_type s, sarray_type SA, index_type n, index_type k)
         else if(sizeof(savalue_type) == 5)
         {
             //TODO
+//            uint40_t *sa = (uint40_t *)&SA[0];
+//            return osaca_private::osaca(S, sa, (uint40_t)n, (uint40_t)n, (int40_t)0, (uint40_t)k);
         }
         else if(sizeof(savalue_type) == 8)
         {
@@ -705,5 +711,10 @@ osacaxx(string_type s, sarray_type SA, index_type n, index_type k)
 
     return -1;
 }
+
+} /*namespace osaca*/
+} /*namespace succinct*/
+
+}}
 
 #endif //_OSACA_H_

@@ -18,7 +18,7 @@
  */
 
 #include <am/succinct/rsdic/EnumCoder.hpp>
-#include <am/succinct/rsdic/Util.hpp>
+#include <am/succinct/utils.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -28,10 +28,10 @@ namespace succinct
 namespace rsdic
 {
 
-uint64_t EnumCoder::Encode(uint64_t val, uint64_t rank_sb)
+uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
     uint64_t code = 0;
-    for (uint64_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kSmallBlockSize; ++i)
     {
         if (val >> i & 1LLU)
         {
@@ -42,11 +42,11 @@ uint64_t EnumCoder::Encode(uint64_t val, uint64_t rank_sb)
     return code;
 }
 
-uint64_t EnumCoder::Decode(uint64_t code, uint64_t rank_sb)
+uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 {
     uint64_t ret = 0;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kSmallBlockSize; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -59,13 +59,13 @@ uint64_t EnumCoder::Decode(uint64_t code, uint64_t rank_sb)
     return ret;
 }
 
-bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos)
+bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 {
     if (Len(rank_sb) == kSmallBlockSize)
         return code >> pos & 1LLU;
 
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -77,17 +77,17 @@ bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos)
     return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
 }
 
-bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& rank)
+bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
     if (Len(rank_sb) == kSmallBlockSize)
     {
-        rank = Util::PopCount(code & ((1LLU << pos) - 1));
+        rank = SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
         return code >> pos & 1LLU;
     }
 
     rank = rank_sb;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
@@ -100,14 +100,14 @@ bool EnumCoder::GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& 
     return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
 }
 
-uint64_t EnumCoder::Rank(uint64_t code, uint64_t rank_sb, uint64_t pos)
+size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
     if (Len(rank_sb) == kSmallBlockSize)
-        return Util::PopCount(code & ((1LLU << pos) - 1));
+        return SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
 
-    uint64_t cur_rank = rank_sb;
+    size_t cur_rank = rank_sb;
     uint64_t zero_case_num;
-    for (uint64_t i = 0; i < pos; ++i)
+    for (size_t i = 0; i < pos; ++i)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][cur_rank];
         if (code >= zero_case_num)
@@ -119,27 +119,14 @@ uint64_t EnumCoder::Rank(uint64_t code, uint64_t rank_sb, uint64_t pos)
     return rank_sb - cur_rank;
 }
 
-uint64_t EnumCoder::SelectRaw(uint64_t code, uint64_t num)
+size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 {
-    uint64_t offset = 0;
-    uint64_t r;
-    for (; offset < kSmallBlockSize; offset += 8)
-    {
-        r = kPopCount_[code >> offset & 0xFFLLU];
-        if (num > r) num -= r;
-        else return offset + kNthSetBit_[code >> offset & 0xFFLLU][num - 1];
-    }
-    assert(false);
-    return 0;
-}
-
-uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
-{
+    __assert(num < rank_sb);
     if (Len(rank_sb) == kSmallBlockSize)
-        return SelectRaw(~code, num);
+        return SuccinctUtils::selectBlock(~code, num);
 
     uint64_t zero_case_num;
-    for (uint64_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
@@ -149,37 +136,38 @@ uint64_t EnumCoder::Select0(uint64_t code, uint64_t rank_sb, uint64_t num)
         }
         else
         {
-            if (--num == 0) return offset;
+            if (num == 0) return offset;
+            --num;
         }
     }
-    assert(false);
+    __assert(false);
     return 0;
 }
 
-uint64_t EnumCoder::Select1(uint64_t code, uint64_t rank_sb, uint64_t num)
+size_t EnumCoder::Select1(uint64_t code, size_t rank_sb, size_t num)
 {
-    assert(num <= rank_sb);
+    __assert(num < rank_sb);
     if (Len(rank_sb) == kSmallBlockSize)
-        return SelectRaw(code, num);
+        return SuccinctUtils::selectBlock(code, num);
 
     uint64_t zero_case_num;
-    for (uint64_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
     {
         zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
         {
-            if (--num == 0) return offset;
+            if (num == 0) return offset;
+            --num;
             code -= zero_case_num;
             --rank_sb;
         }
     }
-    assert(false);
+    __assert(false);
     return 0;
 }
 
-uint64_t EnumCoder::Select(uint64_t code, uint64_t rank_sb, uint64_t num, bool bit)
+size_t EnumCoder::Select(uint64_t code, size_t rank_sb, size_t num, bool bit)
 {
-    if (num == 0) return 0;
     if (bit) return Select1(code, rank_sb, num);
     else return Select0(code, rank_sb, num);
 }
@@ -191,94 +179,6 @@ const uint8_t EnumCoder::kEnumCodeLength_[65] =
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
     64, 64, 46, 44, 42, 40, 38, 35, 33, 30, 27, 23, 20, 16, 11, 6,
     0
-};
-
-const uint8_t EnumCoder::kPopCount_[256] =
-{
-    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
-};
-
-const uint8_t EnumCoder::kNthSetBit_[256][8] =
-{
-    { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 }, { 1, 0, 0, 0, 0, 0, 0, 0 }, { 0, 1, 0, 0, 0, 0, 0, 0 },
-    { 2, 0, 0, 0, 0, 0, 0, 0 }, { 0, 2, 0, 0, 0, 0, 0, 0 }, { 1, 2, 0, 0, 0, 0, 0, 0 }, { 0, 1, 2, 0, 0, 0, 0, 0 },
-    { 3, 0, 0, 0, 0, 0, 0, 0 }, { 0, 3, 0, 0, 0, 0, 0, 0 }, { 1, 3, 0, 0, 0, 0, 0, 0 }, { 0, 1, 3, 0, 0, 0, 0, 0 },
-    { 2, 3, 0, 0, 0, 0, 0, 0 }, { 0, 2, 3, 0, 0, 0, 0, 0 }, { 1, 2, 3, 0, 0, 0, 0, 0 }, { 0, 1, 2, 3, 0, 0, 0, 0 },
-    { 4, 0, 0, 0, 0, 0, 0, 0 }, { 0, 4, 0, 0, 0, 0, 0, 0 }, { 1, 4, 0, 0, 0, 0, 0, 0 }, { 0, 1, 4, 0, 0, 0, 0, 0 },
-    { 2, 4, 0, 0, 0, 0, 0, 0 }, { 0, 2, 4, 0, 0, 0, 0, 0 }, { 1, 2, 4, 0, 0, 0, 0, 0 }, { 0, 1, 2, 4, 0, 0, 0, 0 },
-    { 3, 4, 0, 0, 0, 0, 0, 0 }, { 0, 3, 4, 0, 0, 0, 0, 0 }, { 1, 3, 4, 0, 0, 0, 0, 0 }, { 0, 1, 3, 4, 0, 0, 0, 0 },
-    { 2, 3, 4, 0, 0, 0, 0, 0 }, { 0, 2, 3, 4, 0, 0, 0, 0 }, { 1, 2, 3, 4, 0, 0, 0, 0 }, { 0, 1, 2, 3, 4, 0, 0, 0 },
-    { 5, 0, 0, 0, 0, 0, 0, 0 }, { 0, 5, 0, 0, 0, 0, 0, 0 }, { 1, 5, 0, 0, 0, 0, 0, 0 }, { 0, 1, 5, 0, 0, 0, 0, 0 },
-    { 2, 5, 0, 0, 0, 0, 0, 0 }, { 0, 2, 5, 0, 0, 0, 0, 0 }, { 1, 2, 5, 0, 0, 0, 0, 0 }, { 0, 1, 2, 5, 0, 0, 0, 0 },
-    { 3, 5, 0, 0, 0, 0, 0, 0 }, { 0, 3, 5, 0, 0, 0, 0, 0 }, { 1, 3, 5, 0, 0, 0, 0, 0 }, { 0, 1, 3, 5, 0, 0, 0, 0 },
-    { 2, 3, 5, 0, 0, 0, 0, 0 }, { 0, 2, 3, 5, 0, 0, 0, 0 }, { 1, 2, 3, 5, 0, 0, 0, 0 }, { 0, 1, 2, 3, 5, 0, 0, 0 },
-    { 4, 5, 0, 0, 0, 0, 0, 0 }, { 0, 4, 5, 0, 0, 0, 0, 0 }, { 1, 4, 5, 0, 0, 0, 0, 0 }, { 0, 1, 4, 5, 0, 0, 0, 0 },
-    { 2, 4, 5, 0, 0, 0, 0, 0 }, { 0, 2, 4, 5, 0, 0, 0, 0 }, { 1, 2, 4, 5, 0, 0, 0, 0 }, { 0, 1, 2, 4, 5, 0, 0, 0 },
-    { 3, 4, 5, 0, 0, 0, 0, 0 }, { 0, 3, 4, 5, 0, 0, 0, 0 }, { 1, 3, 4, 5, 0, 0, 0, 0 }, { 0, 1, 3, 4, 5, 0, 0, 0 },
-    { 2, 3, 4, 5, 0, 0, 0, 0 }, { 0, 2, 3, 4, 5, 0, 0, 0 }, { 1, 2, 3, 4, 5, 0, 0, 0 }, { 0, 1, 2, 3, 4, 5, 0, 0 },
-    { 6, 0, 0, 0, 0, 0, 0, 0 }, { 0, 6, 0, 0, 0, 0, 0, 0 }, { 1, 6, 0, 0, 0, 0, 0, 0 }, { 0, 1, 6, 0, 0, 0, 0, 0 },
-    { 2, 6, 0, 0, 0, 0, 0, 0 }, { 0, 2, 6, 0, 0, 0, 0, 0 }, { 1, 2, 6, 0, 0, 0, 0, 0 }, { 0, 1, 2, 6, 0, 0, 0, 0 },
-    { 3, 6, 0, 0, 0, 0, 0, 0 }, { 0, 3, 6, 0, 0, 0, 0, 0 }, { 1, 3, 6, 0, 0, 0, 0, 0 }, { 0, 1, 3, 6, 0, 0, 0, 0 },
-    { 2, 3, 6, 0, 0, 0, 0, 0 }, { 0, 2, 3, 6, 0, 0, 0, 0 }, { 1, 2, 3, 6, 0, 0, 0, 0 }, { 0, 1, 2, 3, 6, 0, 0, 0 },
-    { 4, 6, 0, 0, 0, 0, 0, 0 }, { 0, 4, 6, 0, 0, 0, 0, 0 }, { 1, 4, 6, 0, 0, 0, 0, 0 }, { 0, 1, 4, 6, 0, 0, 0, 0 },
-    { 2, 4, 6, 0, 0, 0, 0, 0 }, { 0, 2, 4, 6, 0, 0, 0, 0 }, { 1, 2, 4, 6, 0, 0, 0, 0 }, { 0, 1, 2, 4, 6, 0, 0, 0 },
-    { 3, 4, 6, 0, 0, 0, 0, 0 }, { 0, 3, 4, 6, 0, 0, 0, 0 }, { 1, 3, 4, 6, 0, 0, 0, 0 }, { 0, 1, 3, 4, 6, 0, 0, 0 },
-    { 2, 3, 4, 6, 0, 0, 0, 0 }, { 0, 2, 3, 4, 6, 0, 0, 0 }, { 1, 2, 3, 4, 6, 0, 0, 0 }, { 0, 1, 2, 3, 4, 6, 0, 0 },
-    { 5, 6, 0, 0, 0, 0, 0, 0 }, { 0, 5, 6, 0, 0, 0, 0, 0 }, { 1, 5, 6, 0, 0, 0, 0, 0 }, { 0, 1, 5, 6, 0, 0, 0, 0 },
-    { 2, 5, 6, 0, 0, 0, 0, 0 }, { 0, 2, 5, 6, 0, 0, 0, 0 }, { 1, 2, 5, 6, 0, 0, 0, 0 }, { 0, 1, 2, 5, 6, 0, 0, 0 },
-    { 3, 5, 6, 0, 0, 0, 0, 0 }, { 0, 3, 5, 6, 0, 0, 0, 0 }, { 1, 3, 5, 6, 0, 0, 0, 0 }, { 0, 1, 3, 5, 6, 0, 0, 0 },
-    { 2, 3, 5, 6, 0, 0, 0, 0 }, { 0, 2, 3, 5, 6, 0, 0, 0 }, { 1, 2, 3, 5, 6, 0, 0, 0 }, { 0, 1, 2, 3, 5, 6, 0, 0 },
-    { 4, 5, 6, 0, 0, 0, 0, 0 }, { 0, 4, 5, 6, 0, 0, 0, 0 }, { 1, 4, 5, 6, 0, 0, 0, 0 }, { 0, 1, 4, 5, 6, 0, 0, 0 },
-    { 2, 4, 5, 6, 0, 0, 0, 0 }, { 0, 2, 4, 5, 6, 0, 0, 0 }, { 1, 2, 4, 5, 6, 0, 0, 0 }, { 0, 1, 2, 4, 5, 6, 0, 0 },
-    { 3, 4, 5, 6, 0, 0, 0, 0 }, { 0, 3, 4, 5, 6, 0, 0, 0 }, { 1, 3, 4, 5, 6, 0, 0, 0 }, { 0, 1, 3, 4, 5, 6, 0, 0 },
-    { 2, 3, 4, 5, 6, 0, 0, 0 }, { 0, 2, 3, 4, 5, 6, 0, 0 }, { 1, 2, 3, 4, 5, 6, 0, 0 }, { 0, 1, 2, 3, 4, 5, 6, 0 },
-    { 7, 0, 0, 0, 0, 0, 0, 0 }, { 0, 7, 0, 0, 0, 0, 0, 0 }, { 1, 7, 0, 0, 0, 0, 0, 0 }, { 0, 1, 7, 0, 0, 0, 0, 0 },
-    { 2, 7, 0, 0, 0, 0, 0, 0 }, { 0, 2, 7, 0, 0, 0, 0, 0 }, { 1, 2, 7, 0, 0, 0, 0, 0 }, { 0, 1, 2, 7, 0, 0, 0, 0 },
-    { 3, 7, 0, 0, 0, 0, 0, 0 }, { 0, 3, 7, 0, 0, 0, 0, 0 }, { 1, 3, 7, 0, 0, 0, 0, 0 }, { 0, 1, 3, 7, 0, 0, 0, 0 },
-    { 2, 3, 7, 0, 0, 0, 0, 0 }, { 0, 2, 3, 7, 0, 0, 0, 0 }, { 1, 2, 3, 7, 0, 0, 0, 0 }, { 0, 1, 2, 3, 7, 0, 0, 0 },
-    { 4, 7, 0, 0, 0, 0, 0, 0 }, { 0, 4, 7, 0, 0, 0, 0, 0 }, { 1, 4, 7, 0, 0, 0, 0, 0 }, { 0, 1, 4, 7, 0, 0, 0, 0 },
-    { 2, 4, 7, 0, 0, 0, 0, 0 }, { 0, 2, 4, 7, 0, 0, 0, 0 }, { 1, 2, 4, 7, 0, 0, 0, 0 }, { 0, 1, 2, 4, 7, 0, 0, 0 },
-    { 3, 4, 7, 0, 0, 0, 0, 0 }, { 0, 3, 4, 7, 0, 0, 0, 0 }, { 1, 3, 4, 7, 0, 0, 0, 0 }, { 0, 1, 3, 4, 7, 0, 0, 0 },
-    { 2, 3, 4, 7, 0, 0, 0, 0 }, { 0, 2, 3, 4, 7, 0, 0, 0 }, { 1, 2, 3, 4, 7, 0, 0, 0 }, { 0, 1, 2, 3, 4, 7, 0, 0 },
-    { 5, 7, 0, 0, 0, 0, 0, 0 }, { 0, 5, 7, 0, 0, 0, 0, 0 }, { 1, 5, 7, 0, 0, 0, 0, 0 }, { 0, 1, 5, 7, 0, 0, 0, 0 },
-    { 2, 5, 7, 0, 0, 0, 0, 0 }, { 0, 2, 5, 7, 0, 0, 0, 0 }, { 1, 2, 5, 7, 0, 0, 0, 0 }, { 0, 1, 2, 5, 7, 0, 0, 0 },
-    { 3, 5, 7, 0, 0, 0, 0, 0 }, { 0, 3, 5, 7, 0, 0, 0, 0 }, { 1, 3, 5, 7, 0, 0, 0, 0 }, { 0, 1, 3, 5, 7, 0, 0, 0 },
-    { 2, 3, 5, 7, 0, 0, 0, 0 }, { 0, 2, 3, 5, 7, 0, 0, 0 }, { 1, 2, 3, 5, 7, 0, 0, 0 }, { 0, 1, 2, 3, 5, 7, 0, 0 },
-    { 4, 5, 7, 0, 0, 0, 0, 0 }, { 0, 4, 5, 7, 0, 0, 0, 0 }, { 1, 4, 5, 7, 0, 0, 0, 0 }, { 0, 1, 4, 5, 7, 0, 0, 0 },
-    { 2, 4, 5, 7, 0, 0, 0, 0 }, { 0, 2, 4, 5, 7, 0, 0, 0 }, { 1, 2, 4, 5, 7, 0, 0, 0 }, { 0, 1, 2, 4, 5, 7, 0, 0 },
-    { 3, 4, 5, 7, 0, 0, 0, 0 }, { 0, 3, 4, 5, 7, 0, 0, 0 }, { 1, 3, 4, 5, 7, 0, 0, 0 }, { 0, 1, 3, 4, 5, 7, 0, 0 },
-    { 2, 3, 4, 5, 7, 0, 0, 0 }, { 0, 2, 3, 4, 5, 7, 0, 0 }, { 1, 2, 3, 4, 5, 7, 0, 0 }, { 0, 1, 2, 3, 4, 5, 7, 0 },
-    { 6, 7, 0, 0, 0, 0, 0, 0 }, { 0, 6, 7, 0, 0, 0, 0, 0 }, { 1, 6, 7, 0, 0, 0, 0, 0 }, { 0, 1, 6, 7, 0, 0, 0, 0 },
-    { 2, 6, 7, 0, 0, 0, 0, 0 }, { 0, 2, 6, 7, 0, 0, 0, 0 }, { 1, 2, 6, 7, 0, 0, 0, 0 }, { 0, 1, 2, 6, 7, 0, 0, 0 },
-    { 3, 6, 7, 0, 0, 0, 0, 0 }, { 0, 3, 6, 7, 0, 0, 0, 0 }, { 1, 3, 6, 7, 0, 0, 0, 0 }, { 0, 1, 3, 6, 7, 0, 0, 0 },
-    { 2, 3, 6, 7, 0, 0, 0, 0 }, { 0, 2, 3, 6, 7, 0, 0, 0 }, { 1, 2, 3, 6, 7, 0, 0, 0 }, { 0, 1, 2, 3, 6, 7, 0, 0 },
-    { 4, 6, 7, 0, 0, 0, 0, 0 }, { 0, 4, 6, 7, 0, 0, 0, 0 }, { 1, 4, 6, 7, 0, 0, 0, 0 }, { 0, 1, 4, 6, 7, 0, 0, 0 },
-    { 2, 4, 6, 7, 0, 0, 0, 0 }, { 0, 2, 4, 6, 7, 0, 0, 0 }, { 1, 2, 4, 6, 7, 0, 0, 0 }, { 0, 1, 2, 4, 6, 7, 0, 0 },
-    { 3, 4, 6, 7, 0, 0, 0, 0 }, { 0, 3, 4, 6, 7, 0, 0, 0 }, { 1, 3, 4, 6, 7, 0, 0, 0 }, { 0, 1, 3, 4, 6, 7, 0, 0 },
-    { 2, 3, 4, 6, 7, 0, 0, 0 }, { 0, 2, 3, 4, 6, 7, 0, 0 }, { 1, 2, 3, 4, 6, 7, 0, 0 }, { 0, 1, 2, 3, 4, 6, 7, 0 },
-    { 5, 6, 7, 0, 0, 0, 0, 0 }, { 0, 5, 6, 7, 0, 0, 0, 0 }, { 1, 5, 6, 7, 0, 0, 0, 0 }, { 0, 1, 5, 6, 7, 0, 0, 0 },
-    { 2, 5, 6, 7, 0, 0, 0, 0 }, { 0, 2, 5, 6, 7, 0, 0, 0 }, { 1, 2, 5, 6, 7, 0, 0, 0 }, { 0, 1, 2, 5, 6, 7, 0, 0 },
-    { 3, 5, 6, 7, 0, 0, 0, 0 }, { 0, 3, 5, 6, 7, 0, 0, 0 }, { 1, 3, 5, 6, 7, 0, 0, 0 }, { 0, 1, 3, 5, 6, 7, 0, 0 },
-    { 2, 3, 5, 6, 7, 0, 0, 0 }, { 0, 2, 3, 5, 6, 7, 0, 0 }, { 1, 2, 3, 5, 6, 7, 0, 0 }, { 0, 1, 2, 3, 5, 6, 7, 0 },
-    { 4, 5, 6, 7, 0, 0, 0, 0 }, { 0, 4, 5, 6, 7, 0, 0, 0 }, { 1, 4, 5, 6, 7, 0, 0, 0 }, { 0, 1, 4, 5, 6, 7, 0, 0 },
-    { 2, 4, 5, 6, 7, 0, 0, 0 }, { 0, 2, 4, 5, 6, 7, 0, 0 }, { 1, 2, 4, 5, 6, 7, 0, 0 }, { 0, 1, 2, 4, 5, 6, 7, 0 },
-    { 3, 4, 5, 6, 7, 0, 0, 0 }, { 0, 3, 4, 5, 6, 7, 0, 0 }, { 1, 3, 4, 5, 6, 7, 0, 0 }, { 0, 1, 3, 4, 5, 6, 7, 0 },
-    { 2, 3, 4, 5, 6, 7, 0, 0 }, { 0, 2, 3, 4, 5, 6, 7, 0 }, { 1, 2, 3, 4, 5, 6, 7, 0 }, { 0, 1, 2, 3, 4, 5, 6, 7 },
 };
 
 const uint64_t EnumCoder::kCombinationTable64_[65][65] =

@@ -1,6 +1,6 @@
 /*
  *  Copyright (c) 2012 Daisuke Okanohara
-  *
+ *
  *   Redistribution and use in source and binary forms, with or without
  *   modification, are permitted provided that the following conditions
  *   are met:
@@ -238,4 +238,3 @@ uint64_t PrefixSum::Find(uint64_t val) const
 }
 
 NS_IZENELIB_AM_END
-
