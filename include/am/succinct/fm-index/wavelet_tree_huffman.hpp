@@ -21,7 +21,7 @@ public:
     typedef CharT char_type;
     typedef WaveletTreeHuffman<CharT> self_type;
 
-    WaveletTreeHuffman(size_t alphabet_num);
+    WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeHuffman();
 
     void build(const char_type *char_seq, size_t len);
@@ -66,7 +66,7 @@ public:
     void load(std::istream &istr);
 
 private:
-    void makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node);
+    void makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node);
 
     void deleteTree_(WaveletTreeNode *node);
     void buildTreeNodes_(WaveletTreeNode *node);
@@ -85,14 +85,14 @@ private:
 
 private:
     std::vector<size_t> occ_;
-    std::vector<size_t> code_map_;
+    std::vector<uint64_t> code_map_;
     WaveletTreeNode *root_;
     std::vector<WaveletTreeNode *> leaves_;
 };
 
 template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(size_t alphabet_num)
-    : WaveletTree<CharT>(alphabet_num)
+WaveletTreeHuffman<CharT>::WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
     , root_()
 {
 }
@@ -131,7 +131,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
     {
         if (occ_[i + 1])
         {
-            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1]);
+            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1], this->support_select_, this->dense_);
             node_queue.push((leaves_[i]));
         }
     }
@@ -144,13 +144,13 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         WaveletTreeNode *right = node_queue.top();
         node_queue.pop();
 
-        node_queue.push(new WaveletTreeNode(left, right));
+        node_queue.push(new WaveletTreeNode(left, right, this->support_select_, this->dense_));
     }
 
     root_ = node_queue.top();
     node_queue.pop();
 
-    code_map_.resize(1 << this->alphabet_bit_num_, (size_t)-1);
+    code_map_.resize(this->alphabet_num_);
     makeCodeMap_(0, 0, root_);
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
@@ -181,7 +181,8 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         occ_[i] += occ_[i - 1];
     }
 
-    size_t code, level;
+    uint64_t code;
+    size_t level;
     WaveletTreeNode *walk;
 
     for (size_t i = 0; i < len; ++i)
@@ -189,21 +190,17 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         code = code_map_[char_seq[i]];
         walk = root_;
 
-        for (level = 0;; ++level)
+        for (level = 0; walk; ++level)
         {
             if (code & 1ULL << level)
             {
                 walk->append1();
-
                 walk = walk->right_;
-                if (!walk) break;
             }
             else
             {
                 walk->append0();
-
                 walk = walk->left_;
-                if (!walk) break;
             }
         }
     }
@@ -212,7 +209,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 }
 
 template <class CharT>
-void WaveletTreeHuffman<CharT>::makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node)
+void WaveletTreeHuffman<CharT>::makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node)
 {
     if (node->left_)
     {
@@ -243,7 +240,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_) walk = walk->right_;
             else return walk->c1_;
@@ -265,7 +262,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_)
             {
@@ -295,38 +292,37 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 template <class CharT>
 size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
-    if (!leaves_[c]) return 0;
-
-    size_t code = code_map_[c];
-    if (code == (size_t)-1) return 0;
+    if (c >= leaves_.size() || !leaves_[c]) return 0;
 
     pos = std::min(pos, length());
+
+    uint64_t code = code_map_[c];
     WaveletTreeNode *walk = root_;
 
     for (size_t level = 0; pos > 0; ++level)
     {
-        if (code & 1U << level)
+        if (code & 1ULL << level)
         {
             if (walk->right_)
             {
-                pos = walk->bit_vector_.Rank1(pos);
+                pos = walk->rank1(pos);
                 walk = walk->right_;
             }
             else
             {
-                return walk->bit_vector_.Rank1(pos);
+                return walk->rank1(pos);
             }
         }
         else
         {
             if (walk->left_)
             {
-                pos = walk->bit_vector_.Rank0(pos);
+                pos = walk->rank0(pos);
                 walk = walk->left_;
             }
             else
             {
-                return walk->bit_vector_.Rank0(pos);
+                return walk->rank0(pos);
             }
         }
     }
@@ -346,13 +342,13 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 
     for (; walk->parent_; walk = walk->parent_)
     {
-        if ((rank = walk->bit_vector_.Select(rank, bit)) == (size_t)-1)
+        if ((rank = walk->select(rank, bit)) == (size_t)-1)
             return -1;
 
         bit = (walk == walk->parent_->right_);
     }
 
-    return walk->bit_vector_.Select(rank, bit);
+    return walk->select(rank, bit);
 }
 
 template <class CharT>
@@ -385,15 +381,13 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
-    const rsdic::RSDic &bv = node->bit_vector_;
-
     size_t rank_start, rank_end;
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
             it != ranges.end(); ++it)
     {
-        rank_start = bv.Rank1(it->first);
-        rank_end = bv.Rank1(it->second);
+        rank_start = node->rank1(it->first);
+        rank_end = node->rank1(it->second);
 
         if (has_zeros)
         {
@@ -483,49 +477,79 @@ void WaveletTreeHuffman<CharT>::topKUnion(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const PatternList *top_ranges;
+
+    std::vector<PatternList *> recyc_queue(max_queue_size + 1);
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        recyc_queue[i] = new PatternList(0, 0, NULL, ranges.size());
+    }
+    std::deque<PatternList *> top_queue;
+
+    PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_queue.empty())
+        {
+            top_ranges = ranges_queue.top();
+            ranges_queue.pop_top();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new PatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.size());
-        one_ranges = new PatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.size());
+        zero_ranges = recyc_queue.back();
+        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+        recyc_queue.pop_back();
+
+        one_ranges = recyc_queue.back();
+        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+        recyc_queue.pop_back();
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
-        delete top_ranges;
-
         zero_ranges->calcScore();
-        if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+        if (zero_ranges->score_ == 0.0)
         {
-            delete zero_ranges;
+            recyc_queue.push_back(zero_ranges);
         }
-        else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+        else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_)))
         {
-            results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-            delete zero_ranges;
+            if (zero_ranges->node_)
+            {
+                top_queue.push_back(zero_ranges);
+            }
+            else
+            {
+                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                recyc_queue.push_back(zero_ranges);
+            }
         }
         else
         {
@@ -533,31 +557,64 @@ void WaveletTreeHuffman<CharT>::topKUnion(
         }
 
         one_ranges->calcScore();
-        if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+        if (one_ranges->score_ == 0.0)
         {
-            delete one_ranges;
+            recyc_queue.push_back(one_ranges);
         }
-        else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+        else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_)))
         {
-            results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-            delete one_ranges;
+            if (one_ranges->node_)
+            {
+                top_queue.push_back(one_ranges);
+
+                if (top_queue.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(top_queue.front());
+                    top_queue.pop_front();
+                }
+                else if (top_queue.size() + ranges_queue.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_queue.bottom());
+                    ranges_queue.pop_bottom();
+                }
+            }
+            else
+            {
+                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                recyc_queue.push_back(one_ranges);
+            }
+        }
+        else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_queue.size() == max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+        {
+            recyc_queue.push_back(one_ranges);
         }
         else
         {
             ranges_queue.push(one_ranges);
+
+            if (top_queue.size() + ranges_queue.size() > max_queue_size)
+            {
+                recyc_queue.push_back(ranges_queue.bottom());
+                ranges_queue.pop_bottom();
+            }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            PatternList * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
     }
 }
 
@@ -582,33 +639,58 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const FilteredPatternList *top_ranges;
+
+    std::vector<FilteredPatternList *> recyc_queue(max_queue_size + 1);
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        recyc_queue[i] = new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size());
+    }
+    std::deque<FilteredPatternList *> top_queue;
+
+    FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_queue.empty())
+        {
+            top_ranges = ranges_queue.top();
+            ranges_queue.pop_top();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new FilteredPatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_queue.back();
+        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+        recyc_queue.pop_back();
+
+        one_ranges = recyc_queue.back();
+        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+        recyc_queue.pop_back();
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
+            rank_start = node->rank1(it->first);
+            rank_end = node->rank1(it->second);
 
             zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
             one_ranges->addFilter(std::make_pair(rank_start, rank_end));
@@ -616,25 +698,25 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
         if (zero_ranges->filters_.empty())
         {
-            delete zero_ranges;
+            recyc_queue.push_back(zero_ranges);
             zero_ranges = NULL;
         }
         if (one_ranges->filters_.empty())
         {
-            delete one_ranges;
+            recyc_queue.push_back(one_ranges);
             one_ranges = NULL;
         }
         if (!zero_ranges && !one_ranges)
         {
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -646,19 +728,24 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
             }
         }
 
-        delete top_ranges;
-
         if (zero_ranges)
         {
             zero_ranges->calcScore();
-            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+            if (zero_ranges->score_ == 0.0)
             {
-                delete zero_ranges;
+                recyc_queue.push_back(zero_ranges);
             }
-            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_)))
             {
-                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(zero_ranges);
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
             }
             else
             {
@@ -669,32 +756,65 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
         if (one_ranges)
         {
             one_ranges->calcScore();
-            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            if (one_ranges->score_ == 0.0)
             {
-                delete one_ranges;
+                recyc_queue.push_back(one_ranges);
             }
-            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_)))
             {
-                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(one_ranges);
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front());
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_queue.bottom());
+                        ranges_queue.pop_bottom();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_queue.size() == max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            {
+                recyc_queue.push_back(one_ranges);
             }
             else
             {
                 ranges_queue.push(one_ranges);
+
+                if (top_queue.size() + ranges_queue.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_queue.bottom());
+                    ranges_queue.pop_bottom();
+                }
             }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            FilteredPatternList * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
     }
 }
 
@@ -720,98 +840,120 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
     results.reserve(topK);
 
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const AuxFilteredPatternList<self_type> *top_ranges;
+    size_t max_filter_size = 0;
+    for (size_t i = 0; i < aux_filters.size(); ++i)
+    {
+        max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
+    }
+
+    std::vector<AuxFilteredPatternList<self_type> *> recyc_queue(max_queue_size + 1);
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        recyc_queue[i] = new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size);
+    }
+    std::deque<AuxFilteredPatternList<self_type> *> top_queue;
+
+    AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_queue.empty())
+        {
+            top_ranges = ranges_queue.top();
+            ranges_queue.pop_top();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c1_, node->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
+        zero_ranges = recyc_queue.back();
+        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+        recyc_queue.pop_back();
+
+        one_ranges = recyc_queue.back();
+        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+        recyc_queue.pop_back();
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
         {
             node = (*it)->node_;
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
+            if (zero_ranges)
+            {
+                zero_filter = zero_ranges->recyc_aux_filters_.back();
+                zero_filter->reset((*it)->tree_, node->left_);
+                zero_ranges->recyc_aux_filters_.pop_back();
+            }
+            if (one_ranges)
+            {
+                one_filter = one_ranges->recyc_aux_filters_.back();
+                one_filter->reset((*it)->tree_, node->right_);
+                one_ranges->recyc_aux_filters_.pop_back();
+            }
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->bit_vector_.Rank1(fit->first);
-                rank_end = node->bit_vector_.Rank1(fit->second);
+                rank_start = node->rank1(fit->first);
+                rank_end = node->rank1(fit->second);
 
-                zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
-                one_filter->addFilter(std::make_pair(rank_start, rank_end));
+                if (zero_ranges)
+                {
+                    zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
+                }
+                if (one_ranges)
+                {
+                    one_filter->addFilter(std::make_pair(rank_start, rank_end));
+                }
             }
 
-            if (zero_filter->filters_.empty())
+            if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
             {
-                delete zero_filter;
+                recyc_queue.push_back(zero_ranges);
+                zero_ranges = NULL;
+                if (!one_ranges) break;
             }
-            else
+            if (one_ranges && !one_ranges->addAuxFilter(one_filter))
             {
-                zero_ranges->addAuxFilter(zero_filter);
+                recyc_queue.push_back(one_ranges);
+                one_ranges = NULL;
+                if (!zero_ranges) break;
             }
-            if (one_filter->filters_.empty())
-            {
-                delete one_filter;
-            }
-            else
-            {
-                one_ranges->addAuxFilter(one_filter);
-            }
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_queue.push_back(top_ranges);
+            continue;
         }
 
         node = top_ranges->node_;
 
-        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
-                it != top_ranges->filters_.end(); ++it)
-        {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
-
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
-        }
-
-        if (zero_ranges->filters_.empty() && zero_ranges->aux_filters_.empty())
-        {
-            delete zero_ranges;
-            zero_ranges = NULL;
-        }
-        if (one_ranges->filters_.empty() && one_ranges->aux_filters_.empty())
-        {
-            delete one_ranges;
-            one_ranges = NULL;
-        }
-        if (!zero_ranges && !one_ranges)
-        {
-            delete top_ranges;
-            continue;
-        }
-
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -823,19 +965,24 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
             }
         }
 
-        delete top_ranges;
-
         if (zero_ranges)
         {
             zero_ranges->calcScore();
-            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+            if (zero_ranges->score_ == 0.0)
             {
-                delete zero_ranges;
+                recyc_queue.push_back(zero_ranges);
             }
-            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_)))
             {
-                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(zero_ranges);
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
             }
             else
             {
@@ -846,32 +993,65 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         if (one_ranges)
         {
             one_ranges->calcScore();
-            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            if (one_ranges->score_ == 0.0)
             {
-                delete one_ranges;
+                recyc_queue.push_back(one_ranges);
             }
-            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_)))
             {
-                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(one_ranges);
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front());
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_queue.bottom());
+                        ranges_queue.pop_bottom();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_queue.size() == max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            {
+                recyc_queue.push_back(one_ranges);
             }
             else
             {
                 ranges_queue.push(one_ranges);
+
+                if (top_queue.size() + ranges_queue.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_queue.bottom());
+                    ranges_queue.pop_bottom();
+                }
             }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
     }
 
     for (size_t i = 0; i < ranges_queue.size(); ++i)
     {
         delete ranges_queue.get(i);
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
     }
 }
 
@@ -915,7 +1095,7 @@ void WaveletTreeHuffman<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
 
-    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
+    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     ostr.write((const char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     if (root_)
@@ -953,15 +1133,15 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
     this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
-    istr.read((char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
-    code_map_.resize(1 << this->alphabet_bit_num_);
+    istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
+    code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     uint32_t flag = 0;
     istr.read((char *)&flag, sizeof(flag));
     if (flag)
     {
-        root_ = new WaveletTreeNode;
+        root_ = new WaveletTreeNode(this->support_select_, this->dense_);
         leaves_.resize(this->alphabet_num_);
         loadTree_(istr, root_);
     }
@@ -977,7 +1157,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 1U)
     {
-        node->left_ = new WaveletTreeNode;
+        node->left_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->left_->parent_ = node;
         loadTree_(istr, node->left_);
     }
@@ -988,7 +1168,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 2U)
     {
-        node->right_ = new WaveletTreeNode;
+        node->right_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->right_->parent_ = node;
         loadTree_(istr, node->right_);
     }

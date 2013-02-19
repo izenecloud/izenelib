@@ -20,7 +20,7 @@
 #ifndef RSDIC_ENUM_CODER_HPP_
 #define RSDIC_ENUM_CODER_HPP_
 
-#include "Const.hpp"
+#include <types.h>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -33,27 +33,24 @@ namespace rsdic
 class EnumCoder
 {
 public:
-    static uint64_t Encode(uint64_t val, uint64_t rank_sb);
-    static uint64_t Decode(uint64_t code, uint64_t rank_sb);
-    static bool GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos);
-    static bool GetBit(uint64_t code, uint64_t rank_sb, uint64_t pos, uint64_t& rank);
-    static uint64_t Rank(uint64_t code, uint64_t rank_sb, uint64_t pos);
-    static uint64_t Select(uint64_t code, uint64_t rank_sb, uint64_t num, bool bit);
+    static uint64_t Encode(uint64_t val, size_t rank_sb);
+    static uint64_t Decode(uint64_t code, size_t rank_sb);
+    static bool GetBit(uint64_t code, size_t rank_sb, size_t pos);
+    static bool GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank);
+    static size_t Rank(uint64_t code, size_t rank_sb, size_t pos);
+    static size_t Select(uint64_t code, size_t rank_sb, size_t num, bool bit);
 
-    static uint64_t Len(uint64_t rank_sb)
+    static uint8_t Len(size_t rank_sb)
     {
         return kEnumCodeLength_[rank_sb];
     }
 
-    static uint64_t SelectRaw(uint64_t code, uint64_t num);
-    static uint64_t Select0(uint64_t code, uint64_t rank_sb, uint64_t num);
-    static uint64_t Select1(uint64_t code, uint64_t rank_sb, uint64_t num);
+    static size_t Select0(uint64_t code, size_t rank_sb, size_t num);
+    static size_t Select1(uint64_t code, size_t rank_sb, size_t num);
 
 private:
-    static const uint8_t kPopCount_[256];
-    static const uint8_t kNthSetBit_[256][8];
-    static const uint64_t kCombinationTable64_[65][65];
     static const uint8_t kEnumCodeLength_[65];
+    static const uint64_t kCombinationTable64_[65][65];
 };
 
 }

@@ -159,15 +159,14 @@ size_t SDArray::prefixSum(size_t pos) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
-    size_t sum    = Ltable_[bpos * 2];
 
     if (offset == 0)
     {
-        return sum;
+        return Ltable_[bpos * 2];
     }
     else
     {
-        return sum + selectBlock_(offset, Ltable_[bpos * 2 + 1]);
+        return Ltable_[bpos * 2] + selectBlock_(offset, Ltable_[bpos * 2 + 1]);
     }
 }
 
@@ -223,7 +222,7 @@ size_t SDArray::find(size_t val) const
     size_t mid;
     while (low < high)
     {
-        mid = low + (high - low) / 2;
+        mid = (low + high) / 2;
         if (val < Ltable_[mid * 2])
             high = mid;
         else
@@ -239,11 +238,11 @@ size_t SDArray::find(size_t val) const
     }
     if (low == 0) return 0;
 
-    size_t bpos = low - 1;
-    assert(Ltable_[bpos * 2] <= val);
-    assert((bpos + 1) * 2 >= Ltable_.size() || val < Ltable_[(bpos + 1) * 2]);
+    --low;
+    assert(Ltable_[low * 2] <= val);
+    assert((low + 1) * 2 >= Ltable_.size() || val < Ltable_[(low + 1) * 2]);
 
-    return bpos * BLOCK_SIZE + rankBlock_(val - Ltable_[bpos * 2], Ltable_[bpos * 2 + 1]);
+    return low * BLOCK_SIZE + rankBlock_(val - Ltable_[low * 2], Ltable_[low * 2 + 1]);
 }
 
 size_t SDArray::getSum() const

@@ -1,15 +1,13 @@
-#ifndef _FM_INDEX_CUSTOM_INT_HPP
-#define _FM_INDEX_CUSTOM_INT_HPP
+#ifndef _OSACA_CUSTOM_INT_HPP
+#define _OSACA_CUSTOM_INT_HPP
 
 #include <types.h>
 #include <string>
 #include <limits>
+#include "custom_uint.hpp"
 
-NS_IZENELIB_AM_BEGIN
-
-namespace succinct
-{
-namespace fm_index
+namespace izenelib{ namespace am{ namespace succinct{
+namespace osaca
 {
 
 #pragma pack(push,1)
@@ -34,6 +32,11 @@ public:
         lower32 = (uint32_t)in_trunc;
     }
 
+    int40_t(const uint40_t& o)
+    {
+        upper8 = char(o >> 32);
+        lower32 = (uint32_t)o;
+    }
     operator int64_t() const //!Implicit, to make use of the type similarly automatic to that of builtin ints
     {
         return (int64_t)lower32 | (int64_t)upper8 << 32;
@@ -67,6 +70,12 @@ public:
         return *this;
     }
     int40_t& operator =(const int64_t i)
+    {
+        upper8 = char(i >> 32);
+        lower32 = (uint32_t)i;
+        return *this;
+    }
+    int40_t& operator =(const osaca::uint40_t i)
     {
         upper8 = char(i >> 32);
         lower32 = (uint32_t)i;
@@ -344,24 +353,6 @@ public:
 }
 }
 
-NS_IZENELIB_AM_END
-
-namespace std
-{
-using izenelib::am::succinct::fm_index::int40_t;
-template<>
-class numeric_limits<int40_t>
-{
-public:
-  static int40_t min() throw()
-  {
-      return int40_t(-0x7FFFFFFFFF - 1);
-  }
-  static int40_t max() throw()
-  {
-      return int40_t(0x7FFFFFFFFF);
-  }
-};
-}
+}}
 
 #endif

@@ -74,4 +74,3 @@ uint64_t DyBitVecNode::LeafNum() const
 }
 
 NS_IZENELIB_AM_END
-
