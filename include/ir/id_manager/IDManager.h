@@ -493,7 +493,7 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
 
 typedef _IDManager<std::string, std::string, uint32_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<std::string, uint32_t>,
+                   EmptyWildcardQueryHandler<std::string, uint32_t>,
                    HashIDGenerator<std::string, uint32_t>,
                    EmptyIDStorage<std::string, uint32_t>,
                    UniqueIDGenerator<std::string, uint32_t>,
