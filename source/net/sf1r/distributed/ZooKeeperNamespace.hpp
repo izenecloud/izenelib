@@ -37,19 +37,19 @@ const std::string  TOPOLOGY = "/Topology";
  * Regular expression matching a topology namespace. 
  * Example: /SF1R-host23
  */
-const boost::regex SF1R_ROOT_REGEX("\\/SF1R-\\w+\\d?");
+const boost::regex SF1R_ROOT_REGEX("\\/SF1R-[^\\/]+");
 
 /**
  * Regular expression matching a search topologu namespace. 
  * Example: /SF1R-host23/SearchTopology
  */
-const boost::regex TOPOLOGY_REGEX("\\/SF1R-\\w+\\d?\\/Topology");
+const boost::regex TOPOLOGY_REGEX("\\/SF1R-[^\\/]+\\/Topology");
 
 /**
  * Regular expression matching a SF1 node on search topology.
  * Example: /SF1R-host23/SearchTopology/Replica1/Node1
  */
-const boost::regex SF1R_NODE_REGEX("\\/SF1R-\\w+\\d*\\/Topology\\/Replica\\d+\\/Node\\d+");
+const boost::regex SF1R_NODE_REGEX("\\/SF1R-[^\\/]+\\/Topology\\/Replica\\d+\\/Node\\d+");
 
 const std::string SearchService = "search";
 const std::string RecommendService = "recommend";

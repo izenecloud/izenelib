@@ -191,7 +191,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
 void 
 ZooKeeperRouter::updateNodeData(const string& path) {
-    boost::lock_guard<boost::mutex> lock(mutex);
+    boost::unique_lock<boost::mutex> lock(mutex);
 
     if (not topology->isPresent(path)) {
         LOG(INFO) << "Node not in topology, skipping";
@@ -204,7 +204,34 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
     LOG(INFO) << "node data: [" << data << "]";
     
-    topology->updateNode(path, data);
+    if (data.empty())
+    {
+        LOG(INFO) << "update node data is empty, remove it." << path;
+        // remove node from topology
+        topology->removeNode(path);
+
+#ifdef ENABLE_ZK_TEST
+        if (factory == NULL) { // Should be NULL only in tests
+            LOG(WARNING) << "factory is NULL, is this a test?";
+            return;
+        }
+#endif
+        // remove its pool
+        const PoolContainer::iterator& it = pools.find(path);
+        CHECK(pools.end() != it) << "pool not found";
+        ConnectionPool* pool = it->second;
+        CHECK_NOTNULL(pool);
+
+        while (pool->isBusy()) {
+            DLOG(INFO) << "pool is currently in use, waiting";
+            condition.wait(lock);
+        }
+        DLOG(INFO) << "removing pool";
+        CHECK_EQ(1, pools.erase(path));
+        delete pool;
+    }
+    else
+        topology->updateNode(path, data);
 }
 
 
@@ -261,13 +288,11 @@ ZooKeeperRouter::watchChildren(const string& path) {
     strvector children;
     client->getZNodeChildren(path, children, ZooKeeper::WATCH);
     DLOG(INFO) << "Watching children of: " << path;
-    bool need_update = false;
     BOOST_FOREACH(const string& s, children) {
         DLOG(INFO) << "child: " << s;
         if (boost::regex_match(s, SF1R_NODE_REGEX)) {
             DLOG(INFO) << "Adding node: " << s;
-            if(addSf1Node(s))
-                need_update = true;
+            addSf1Node(s);
         } else if (boost::regex_search(s, SF1R_ROOT_REGEX)) {
             DLOG(INFO) << "recurse";
             watchChildren(s);

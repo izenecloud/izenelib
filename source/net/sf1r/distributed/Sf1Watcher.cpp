@@ -30,13 +30,13 @@ Sf1Watcher::~Sf1Watcher() {
 
 void 
 Sf1Watcher::process(ZooKeeperEvent& zkEvent) {
-    DLOG(INFO) << zkEvent.toString();
+    LOG(INFO) << zkEvent.toString();
 }
 
 
 void 
 Sf1Watcher::onNodeCreated(const string& path) {
-    DLOG(INFO) << "created: " << path;
+    LOG(INFO) << "created: " << path;
     if (boost::regex_match(path, TOPOLOGY_REGEX)) {
         LOG(INFO) << "adding " << path << " ...";
         router.addSearchTopology(path);
@@ -45,7 +45,7 @@ Sf1Watcher::onNodeCreated(const string& path) {
 
 void 
 Sf1Watcher::onNodeDeleted(const string& path) {
-    DLOG(INFO) << "deleted: " << path;
+    LOG(INFO) << "deleted: " << path;
     if (boost::regex_match(path, SF1R_NODE_REGEX)) {
         LOG(INFO) << "removing " << path << " ...";
         router.removeSf1Node(path);
@@ -70,6 +70,8 @@ void
 Sf1Watcher::onChildrenChanged(const string& path) {
     DLOG(INFO) << "children changed: " << path;
     if (not boost::regex_match(path, SF1R_ROOT_REGEX)) {
+        router.watchChildren(path);
+    } else if (boost::regex_match(path, TOPOLOGY_REGEX)) {
         router.watchChildren(path);
     }
 }
