@@ -75,10 +75,7 @@ public:
 
     void insert(const value_type& value)
     {
-        if (size_ == capacity_)
-        {
-            return;
-        }
+        if (size_ == capacity_) return;
 
         // insert into the root
         if (size_ < 2)
@@ -214,7 +211,7 @@ public:
             if (!compare_(elem, container_[child].second)) break;
 
             container_[crt].second = container_[child].second;
-            if (elem<container_[child].first)
+            if (compare_(elem, container_[child].first))
                 std::swap(elem, container_[child].first);
 
             crt = child;
