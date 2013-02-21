@@ -18,6 +18,9 @@
  * @date 2009-08-07
  *
  * ==============
+ * Use LuxIO instead of SDB in AutoFillIDManager
+ * @author Hongliang Zhao
+ * @date 2013-02-15
  */
 
 #ifndef _ID_MANAGER_
@@ -31,6 +34,7 @@
 
 #include <types.h>
 #include <util/ustring/UString.h>
+#include <3rdparty/am/luxio/array.h>
 
 /**
  * @brief a class to manage all kinds of operations about ID.
@@ -485,7 +489,15 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
                    HashIDGenerator<izenelib::util::UString, uint64_t>,
                    EmptyIDStorage<izenelib::util::UString, uint64_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint64_t>,
-                   HDBIDStorage<izenelib::util::UString, uint64_t> > AutoFillIDManager;
+                   HDBIDStorage<izenelib::util::UString, uint64_t> > AutoFillIDManager_old;
+
+typedef _IDManager<std::string, std::string, uint32_t,
+                   izenelib::util::NullLock,
+                   EmptyWildcardQueryHandler<std::string, uint32_t>,
+                   HashIDGenerator<std::string, uint32_t>,
+                   EmptyIDStorage<std::string, uint32_t>,
+                   UniqueIDGenerator<std::string, uint32_t>,
+                   Lux::IO::Array > AutoFillIDManager;
 
 } // end - namespace idmanager
 
