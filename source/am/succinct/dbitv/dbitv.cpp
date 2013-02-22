@@ -67,7 +67,7 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 
 void DBitV::buildBlock_(uint64_t block, size_t offset, size_t &rank_lb)
 {
-    size_t rank_sb = SuccinctUtils::popcount64(block);
+    size_t rank_sb = SuccinctUtils::popcount(block);
 
     bits_.push_back(block);
     rank_small_blocks_.push_back(rank_lb);
@@ -120,11 +120,11 @@ bool DBitV::lookup(size_t pos, size_t &r) const
 
     if (bit)
     {
-        r = rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        r = rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
     }
     else
     {
-        r = pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        r = pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
     }
 
     return bit;
@@ -136,7 +136,7 @@ size_t DBitV::rank0(size_t pos) const
 
     size_t sblock = pos / kSmallBlockSize;
 
-    return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+    return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
 }
 
 size_t DBitV::rank1(size_t pos) const
@@ -145,7 +145,7 @@ size_t DBitV::rank1(size_t pos) const
 
     size_t sblock = pos / kSmallBlockSize;
 
-    return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+    return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const
@@ -156,11 +156,11 @@ size_t DBitV::rank(size_t pos, bool bit) const
 
     if (bit)
     {
-        return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
     }
     else
     {
-        return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount64(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
     }
 }
 

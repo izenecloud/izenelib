@@ -81,7 +81,7 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
     if (Len(rank_sb) == kSmallBlockSize)
     {
-        rank = SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
+        rank = SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
         return code >> pos & 1LLU;
     }
 
@@ -103,7 +103,7 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
     if (Len(rank_sb) == kSmallBlockSize)
-        return SuccinctUtils::popcount64(code & ((1LLU << pos) - 1));
+        return SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
 
     size_t cur_rank = rank_sb;
     uint64_t zero_case_num;

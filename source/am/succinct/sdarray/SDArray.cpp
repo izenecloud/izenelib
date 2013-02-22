@@ -18,6 +18,7 @@
  */
 
 #include <am/succinct/sdarray/SDArray.hpp>
+#include <am/succinct/utils.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -28,54 +29,6 @@ namespace sdarray
 {
 
 const size_t SDArray::BLOCK_SIZE = 64;
-
-inline size_t log2(size_t x)
-{
-    return 64 - __builtin_clzl(x);
-}
-
-inline size_t popCount(size_t x)
-{
-    return __builtin_popcountl(x);
-}
-
-size_t select(size_t x, size_t r)
-{
-    assert(r != 0);
-    size_t x1 = x - ((x >> 1) & 0x5555555555555555LLU);
-    size_t x2 = (x1 & 0x3333333333333333LLU) + ((x1 >> 2) & 0x3333333333333333LLU);
-    size_t x3 = (x2 + (x2 >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
-
-    size_t pos = 0;
-    for (;;  pos += 8)
-    {
-        size_t b = (x3 >> pos) & 0xFFLLU;
-        if (r <= b) break;
-        r -= b;
-    }
-
-    size_t v2 = (x2 >> pos) & 0xFLLU;
-    if (r > v2)
-    {
-        r -= v2;
-        pos += 4;
-    }
-
-    size_t v1 = (x1 >> pos) & 0x3LLU;
-    if (r > v1)
-    {
-        r -= v1;
-        pos += 2;
-    }
-
-    size_t v0  = (x >> pos) & 0x1LLU;
-    if (r > v0)
-    {
-        pos += 1;
-    }
-
-    return pos;
-}
 
 inline size_t getBits(size_t x, size_t beg, size_t num)
 {
@@ -128,7 +81,7 @@ void SDArray::build()
     }
     else
     {
-        size_t width = log2(vals_.back() / vals_.size());
+        size_t width = SuccinctUtils::log2(vals_.back() / vals_.size());
         assert(width < (1LLU << 7));
 
         // All zero special case
@@ -137,7 +90,7 @@ void SDArray::build()
         packLows_(begPos, width);
 
         header |= (width << 49);
-        size_t firstSum_ = popCount(B_[begPos]);
+        size_t firstSum_ = SuccinctUtils::popcount(B_[begPos]);
         assert(firstSum_ < (1LLU << 8));
 
         header |= firstSum_ << 56;
@@ -166,7 +119,7 @@ size_t SDArray::prefixSum(size_t pos) const
     }
     else
     {
-        return Ltable_[bpos * 2] + selectBlock_(offset, Ltable_[bpos * 2 + 1]);
+        return Ltable_[bpos * 2] + selectBlock_(offset - 1, Ltable_[bpos * 2 + 1]);
     }
 }
 
@@ -183,10 +136,10 @@ size_t SDArray::prefixSumLookup(size_t pos, size_t& val) const
     }
     else
     {
-        prev = selectBlock_(offset, Ltable_[bpos * 2 + 1]);
+        prev = selectBlock_(offset - 1, Ltable_[bpos * 2 + 1]);
     }
 
-    val = selectBlock_(offset + 1, Ltable_[bpos * 2 + 1]) - prev;
+    val = selectBlock_(offset, Ltable_[bpos * 2 + 1]) - prev;
 
     return sum + prev;
 }
@@ -199,11 +152,11 @@ size_t SDArray::getVal(size_t pos) const
 
     if (offset == 0)
     {
-        return selectBlock_(offset + 1, header);
+        return selectBlock_(offset, header);
     }
     else
     {
-        return selectBlock_(offset + 1, header) - selectBlock_(offset, header);
+        return selectBlock_(offset, header) - selectBlock_(offset - 1, header);
     }
 }
 
@@ -334,16 +287,16 @@ size_t SDArray::selectBlock_(size_t offset, size_t header) const
     size_t firstSum = getBits(header, 56,  8);
 
     size_t high;
-    if (offset <= firstSum)
+    if (offset < firstSum)
     {
-        high = (select(B_[begPos], offset) + 1 - offset) << width;
+        high = (SuccinctUtils::selectBlock(B_[begPos], offset) - offset) << width;
     }
     else
     {
-        high = (select(B_[begPos + 1], offset - firstSum) + 1 - offset + BLOCK_SIZE) << width;
+        high = (SuccinctUtils::selectBlock(B_[begPos + 1], offset - firstSum) - offset + BLOCK_SIZE) << width;
     }
 
-    return high + getLow_(begPos, offset - 1, width);
+    return high + getLow_(begPos, offset, width);
 }
 
 size_t SDArray::rankBlock_(size_t val, size_t header) const
@@ -373,7 +326,7 @@ size_t SDArray::rankBlock_(size_t val, size_t header) const
     }
     if (high > 0)
     {
-        size_t skipNum = select(~B_[highPos / BLOCK_SIZE], high) + 1;
+        size_t skipNum = SuccinctUtils::selectBlock(~B_[highPos / BLOCK_SIZE], high - 1) + 1;
         highPos += skipNum;
         assert(skipNum >= high);
         valNum += skipNum - high;

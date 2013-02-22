@@ -3,7 +3,6 @@
 
 #include "const.hpp"
 #include "range_list.hpp"
-#include <3rdparty/boost/priority_deque.hpp>
 
 
 NS_IZENELIB_AM_BEGIN

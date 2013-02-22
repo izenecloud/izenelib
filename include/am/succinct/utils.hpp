@@ -21,9 +21,14 @@ namespace succinct
 class SuccinctUtils
 {
 public:
-    static inline size_t popcount64(uint64_t b)
+    static inline size_t popcount(uint64_t b)
     {
-        return __builtin_popcountll(b);
+        return __builtin_popcountl(b);
+    }
+
+    static inline size_t log2(uint64_t n)
+    {
+        return 64 - __builtin_clzl(n);
     }
 
     static uint64_t GetSlice(const std::vector<uint64_t>& bits,
@@ -65,7 +70,7 @@ public:
 
         for (size_t nblock = 0; nblock < kSmallBlockSize; nblock += 8)
         {
-            size_t cnt = popcount64(blk >> nblock & 0xff);
+            size_t cnt = popcount(blk >> nblock & 0xff);
 
             if (r < cnt)
             {
