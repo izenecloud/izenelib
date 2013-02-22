@@ -431,7 +431,8 @@ public:
 
     void flush()
     {
-        saveFujimap_();
+        if (fujimapStatus_)
+            saveFujimap_();
         saveNewId_();
         idFinder_.flush();
     }
@@ -439,18 +440,22 @@ public:
     void close()
     {
         flush();
-        fujimap_.clear();
+        coolDown();
         idFinder_.close();
     }
 
     void warmUp()
     {
+        if (fujimapStatus_)
+            return;
         fujimapStatus_ = true;
         loadFujimap_();
     }
 
     void coolDown()
     {
+        if (fujimapStatus_)
+            saveFujimap_();
         fujimapStatus_ = false;
         fujimap_.clear();
     }
@@ -592,6 +597,8 @@ inline bool UniqueIDGenerator<NameString, NameID,
         }
     }
 
+    if (!fujimapStatus_)
+        warmUp();
     nameID = fujimap_.getInteger(nameString);
     if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
@@ -634,6 +641,8 @@ inline void UniqueIDGenerator<NameString, NameID,
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
+    if (!fujimapStatus_)
+        warmUp();
     fujimap_.setInteger(nameString, updatedID, true);
     idFinder_.update(nameString, updatedID);
     mutex_.release_write_lock();
