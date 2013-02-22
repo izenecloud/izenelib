@@ -1,14 +1,14 @@
-#ifndef _IZENELIB_AM_SUCCINCT_INTERVAL_HEAP_HPP
-#define _IZENELIB_AM_SUCCINCT_INTERVAL_HEAP_HPP
+#ifndef _IZENELIB_UTIL_INTERVAL_HEAP_HPP
+#define _IZENELIB_UTIL_INTERVAL_HEAP_HPP
 
 #include <assert.h>
 #include <algorithm>
 #include <vector>
 
 
-NS_IZENELIB_AM_BEGIN
-
-namespace succinct
+namespace izenelib
+{
+namespace util
 {
 
 template <class T, class Compare = std::less<T> >
@@ -61,6 +61,15 @@ public:
     void clear()
     {
         size_ = 0;
+    }
+
+    void reserve(size_type capacity)
+    {
+        if (capacity > capacity_)
+        {
+            container_.resize(capacity / 2 + capacity % 2 + 1);
+            capacity_ = capacity;
+        }
     }
 
     container_type& get_container()
@@ -257,7 +266,6 @@ private:
 
 
 }
-
-NS_IZENELIB_AM_END
+}
 
 #endif
