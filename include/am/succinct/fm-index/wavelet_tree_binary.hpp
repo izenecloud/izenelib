@@ -35,26 +35,26 @@ public:
     size_t select(char_type c, size_t rank) const;
 
     void intersect(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
     void topKUnionWithFilters(
             const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
     void topKUnionWithAuxFilters(
             const std::vector<FilterList<self_type> *> &aux_filters,
             const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
@@ -69,7 +69,7 @@ public:
 
 private:
     void doIntersect_(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             size_t level,
@@ -309,20 +309,20 @@ size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::intersect(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         std::vector<char_type> &results) const
 {
-    if (thres > ranges.size()) return;
-    if (thres > 0) thres = ranges.size() - thres;
+    if (thres > patterns.size()) return;
+    if (thres > 0) thres = patterns.size() - thres;
 
-    doIntersect_(ranges, thres, max_count, 0, 0, 0, results);
+    doIntersect_(patterns, thres, max_count, 0, 0, 0, results);
 }
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::doIntersect_(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         size_t level,
@@ -339,8 +339,8 @@ void WaveletTreeBinary<CharT>::doIntersect_(
     }
 
     std::vector<std::pair<size_t, size_t> > zero_ranges, one_ranges;
-    zero_ranges.reserve(ranges.size());
-    one_ranges.reserve(ranges.size());
+    zero_ranges.reserve(patterns.size());
+    one_ranges.reserve(patterns.size());
 
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
@@ -350,8 +350,8 @@ void WaveletTreeBinary<CharT>::doIntersect_(
     size_t before = node->rank1(start);
     size_t rank_start, rank_end;
 
-    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
-            it != ranges.end(); ++it)
+    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = patterns.begin();
+            it != patterns.end(); ++it)
     {
         rank_start = node->rank1(start + it->first);
         rank_end = node->rank1(start + it->second);
@@ -413,7 +413,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnion(
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -422,7 +422,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<PatternList *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(new PatternList(0, (char_type)0, nodes_[0], ranges), 0));
+    ranges_heap.insert(std::make_pair(new PatternList(0, (char_type)0, nodes_[0], patterns), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
@@ -432,11 +432,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
     results.reserve(topK);
 
-    std::vector<PatternList *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new PatternList(0, 0, NULL, ranges.size());
-    }
+    std::vector<PatternList *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<std::pair<PatternList *, size_t> > top_queue;
 
     PatternList *top_ranges;
@@ -473,13 +470,27 @@ void WaveletTreeBinary<CharT>::topKUnion(
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -584,7 +595,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -593,7 +604,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<FilteredPatternList *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(new FilteredPatternList(0, (char_type)0, nodes_[0], filters, ranges), 0));
+    ranges_heap.insert(std::make_pair(new FilteredPatternList(0, (char_type)0, nodes_[0], filters, patterns), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
@@ -603,11 +614,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
     results.reserve(topK);
 
-    std::vector<FilteredPatternList *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size());
-    }
+    std::vector<FilteredPatternList *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<std::pair<FilteredPatternList *, size_t> > top_queue;
 
     FilteredPatternList *top_ranges;
@@ -644,13 +652,27 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -794,7 +816,7 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         const std::vector<FilterList<self_type> *> &aux_filters,
         const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -803,7 +825,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<AuxFilteredPatternList<self_type> *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(new AuxFilteredPatternList<self_type>(0, (char_type)0, nodes_[0], aux_filters, filters, ranges), 0));
+    ranges_heap.insert(std::make_pair(new AuxFilteredPatternList<self_type>(0, (char_type)0, nodes_[0], aux_filters, filters, patterns), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
@@ -819,11 +841,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
     }
 
-    std::vector<AuxFilteredPatternList<self_type> *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size);
-    }
+    std::vector<AuxFilteredPatternList<self_type> *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<std::pair<AuxFilteredPatternList<self_type> *, size_t> > top_queue;
 
     AuxFilteredPatternList<self_type> *top_ranges;
@@ -860,13 +879,27 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         node = top_ranges->node_;
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new AuxFilteredPatternList<self_type>(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -877,15 +910,11 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
             if (zero_ranges)
             {
-                zero_filter = zero_ranges->recyc_aux_filters_.back();
-                zero_filter->reset((*it)->tree_, node->left_);
-                zero_ranges->recyc_aux_filters_.pop_back();
+                zero_filter = zero_ranges->getAuxFilter((*it)->tree_, node->left_, max_filter_size);
             }
             if (one_ranges)
             {
-                one_filter = one_ranges->recyc_aux_filters_.back();
-                one_filter->reset((*it)->tree_, node->right_);
-                one_ranges->recyc_aux_filters_.pop_back();
+                one_filter = one_ranges->getAuxFilter((*it)->tree_, node->right_, max_filter_size);
             }
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();

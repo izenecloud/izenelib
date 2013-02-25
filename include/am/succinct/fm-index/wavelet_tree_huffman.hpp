@@ -34,26 +34,26 @@ public:
     size_t select(char_type c, size_t rank) const;
 
     void intersect(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
     void topKUnionWithFilters(
             const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
     void topKUnionWithAuxFilters(
             const std::vector<FilterList<self_type> *> &aux_filters,
             const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const;
 
@@ -74,7 +74,7 @@ private:
 
     void recursiveIntersect_(
             const WaveletTreeNode *node,
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &results) const;
@@ -354,21 +354,21 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::intersect(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         std::vector<char_type> &results) const
 {
-    if (thres > ranges.size()) return;
-    if (thres > 0) thres = ranges.size() - thres;
+    if (thres > patterns.size()) return;
+    if (thres > 0) thres = patterns.size() - thres;
 
-    recursiveIntersect_(root_, ranges, thres, max_count, results);
+    recursiveIntersect_(root_, patterns, thres, max_count, results);
 }
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::recursiveIntersect_(
         const WaveletTreeNode *node,
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         std::vector<char_type> &results) const
@@ -376,16 +376,16 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
     if (results.size() >= max_count) return;
 
     std::vector<std::pair<size_t, size_t> > zero_ranges, one_ranges;
-    zero_ranges.reserve(ranges.size());
-    one_ranges.reserve(ranges.size());
+    zero_ranges.reserve(patterns.size());
+    one_ranges.reserve(patterns.size());
 
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
     size_t rank_start, rank_end;
 
-    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
-            it != ranges.end(); ++it)
+    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = patterns.begin();
+            it != patterns.end(); ++it)
     {
         rank_start = node->rank1(it->first);
         rank_end = node->rank1(it->second);
@@ -460,7 +460,7 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnion(
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -469,7 +469,7 @@ void WaveletTreeHuffman<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<PatternList *> ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(new PatternList(0, (char_type)0, root_, ranges));
+    ranges_heap.insert(new PatternList(0, (char_type)0, root_, patterns));
 
     if (ranges_heap.get_max()->score_ == 0.0)
     {
@@ -479,11 +479,8 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
     results.reserve(topK);
 
-    std::vector<PatternList *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new PatternList(0, 0, NULL, ranges.size());
-    }
+    std::vector<PatternList *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<PatternList *> top_queue;
 
     PatternList *top_ranges;
@@ -517,13 +514,27 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         node = top_ranges->node_;
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new PatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new PatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
@@ -628,7 +639,7 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
         const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -637,7 +648,7 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<FilteredPatternList *> ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(new FilteredPatternList(0, (char_type)0, root_, filters, ranges));
+    ranges_heap.insert(new FilteredPatternList(0, (char_type)0, root_, filters, patterns));
 
     if (ranges_heap.get_max()->score_ == 0.0)
     {
@@ -647,11 +658,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
     results.reserve(topK);
 
-    std::vector<FilteredPatternList *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new FilteredPatternList(0, 0, NULL, filters.size(), ranges.size());
-    }
+    std::vector<FilteredPatternList *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<FilteredPatternList *> top_queue;
 
     FilteredPatternList *top_ranges;
@@ -685,13 +693,27 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
         node = top_ranges->node_;
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new FilteredPatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
@@ -835,7 +857,7 @@ template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         const std::vector<FilterList<self_type> *> &aux_filters,
         const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results) const
 {
@@ -844,7 +866,7 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<AuxFilteredPatternList<self_type> *> ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(new AuxFilteredPatternList<self_type>(0, (char_type)0, root_, aux_filters, filters, ranges));
+    ranges_heap.insert(new AuxFilteredPatternList<self_type>(0, (char_type)0, root_, aux_filters, filters, patterns));
 
     if (ranges_heap.get_max()->score_ == 0.0)
     {
@@ -860,11 +882,8 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
     }
 
-    std::vector<AuxFilteredPatternList<self_type> *> recyc_queue(max_queue_size + 1);
-    for (size_t i = 0; i < recyc_queue.size(); ++i)
-    {
-        recyc_queue[i] = new AuxFilteredPatternList<self_type>(0, 0, NULL, aux_filters.size(), ranges.size(), max_filter_size);
-    }
+    std::vector<AuxFilteredPatternList<self_type> *> recyc_queue;
+    recyc_queue.reserve(max_queue_size + 1);
     std::deque<AuxFilteredPatternList<self_type> *> top_queue;
 
     AuxFilteredPatternList<self_type> *top_ranges;
@@ -899,13 +918,27 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
         node = top_ranges->node_;
 
-        zero_ranges = recyc_queue.back();
-        zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        one_ranges = recyc_queue.back();
-        one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
-        recyc_queue.pop_back();
+        if (recyc_queue.empty())
+        {
+            one_ranges = new AuxFilteredPatternList<self_type>(zero_ranges->level_, node->c1_, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity());
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
 
         for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
@@ -914,15 +947,11 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
             if (zero_ranges)
             {
-                zero_filter = zero_ranges->recyc_aux_filters_.back();
-                zero_filter->reset((*it)->tree_, node->left_);
-                zero_ranges->recyc_aux_filters_.pop_back();
+                zero_filter = zero_ranges->getAuxFilter((*it)->tree_, node->left_, max_filter_size);
             }
             if (one_ranges)
             {
-                one_filter = one_ranges->recyc_aux_filters_.back();
-                one_filter->reset((*it)->tree_, node->right_);
-                one_ranges->recyc_aux_filters_.pop_back();
+                one_filter = one_ranges->getAuxFilter((*it)->tree_, node->right_, max_filter_size);
             }
 
             for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
