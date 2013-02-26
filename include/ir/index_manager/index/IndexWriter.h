@@ -55,7 +55,7 @@ public:
     /// flush doclen writer
     void flushDocLen();
     /// set schedule
-    void scheduleOptimizeTask(std::string expression, string uuid);
+    //void scheduleOptimizeTask(std::string expression, string uuid);
 
     IndexMergeManager* getMergeManager() { return pIndexMergeManager_; }
 
@@ -79,7 +79,7 @@ public:
 private:
     
     /// optimize index offline
-    void lazyOptimizeIndex(int calltype);
+    //void lazyOptimizeIndex(int calltype);
 private:
     Indexer* pIndexer_;
 
@@ -91,9 +91,9 @@ private:
 
     IndexMergeManager* pIndexMergeManager_;
 
-    izenelib::util::CronExpression scheduleExpression_;
+    //izenelib::util::CronExpression scheduleExpression_;
 
-    std::string optimizeJobDesc_;
+    //std::string optimizeJobDesc_;
 
     boost::mutex indexMutex_;
 
