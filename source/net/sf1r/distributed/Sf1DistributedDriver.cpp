@@ -29,7 +29,8 @@ Sf1DistributedDriver::Sf1DistributedDriver(const string& zkhosts,
     }
     try {
         LOG(INFO) << "Initializing routing";
-        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.zkTimeout, config.match_master_name));
+        router.reset(new ZooKeeperRouter(factory.get(), hosts, config.zkTimeout,
+                config.match_master_name, config.set_seq, config.total_set_num));
     } catch (izenelib::zookeeper::ZooKeeperException& e) {
         LOG(ERROR) << "Initializing routing failed in: " << (long)getpid();
         router.reset();
@@ -52,7 +53,8 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
     if (router.get() == NULL) {
         try {
             LOG(INFO) << "Initializing routing";
-            router.reset(new ZooKeeperRouter(factory.get(), hosts, config.zkTimeout, config.match_master_name));
+            router.reset(new ZooKeeperRouter(factory.get(), hosts, config.zkTimeout,
+                    config.match_master_name, config.set_seq, config.total_set_num));
         } catch (izenelib::zookeeper::ZooKeeperException& e) {
             LOG(ERROR) << e.what();
             router.reset();

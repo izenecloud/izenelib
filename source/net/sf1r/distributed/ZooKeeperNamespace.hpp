@@ -62,6 +62,7 @@ const std::string       HOST_KEY = "host";
  * Noda data key for the SF1 baport.
  */
 const std::string     BAPORT_KEY = "baport";
+const std::string     REPLICAID_KEY = "replicaid";
 
 /**
  * Noda data key for the SF1 masterport.

@@ -34,9 +34,12 @@ typedef vector<string> strvector;
 
 
 ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory, 
-        const string& hosts, int timeout, const std::string& match_master_name)
-    : factory(poolFactory), match_master_name_(match_master_name)
+        const string& hosts, int timeout, const std::string& match_master_name,
+        int set_seq, int total_set_num)
+    : factory(poolFactory), match_master_name_(match_master_name),
+    set_seq_(set_seq), total_set_num_(total_set_num)
 {
+    assert(set_seq_ <= total_set_num_);
     // 0. connect to ZooKeeper
     LOG(INFO) << "Connecting to ZooKeeper servers: " << hosts;
     client.reset(new iz::ZooKeeper(hosts, timeout, AUTO_RECONNECT));
@@ -162,6 +165,17 @@ ZooKeeperRouter::addSf1Node(const string& path) {
         }
     }
 
+    // replicaid and set_seq_ both start from 1.
+    int32_t replicaid = parser.getUInt32Value(REPLICAID_KEY);
+    if (((replicaid - 1) % total_set_num_) == (set_seq_ - 1))
+    {
+        LOG(INFO) << "current set_seq_ : " << set_seq_ << " connectting to node in replica : " << replicaid;
+    }
+    else
+    {
+        LOG(INFO) << "current set_seq_ : " << set_seq_ << " ignore node in replica : " << replicaid;
+        return false;
+    }
     // check for search service
     std::string service_names;
     service_names = parser.getStrValue(SERVICE_NAMES_KEY);

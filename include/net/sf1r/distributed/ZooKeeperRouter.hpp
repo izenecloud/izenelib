@@ -50,7 +50,9 @@ public:
      * @throw ZooKeeperException if cannot connect to ZooKeeper.
      */
     ZooKeeperRouter(PoolFactory* poolFactory,
-            const std::string& hosts, const int timeout, const std::string& match_master_name);
+            const std::string& hosts, const int timeout,
+            const std::string& match_master_name,
+            int set_seq, int total_set_num);
     
     /**
      * Destructor.
@@ -158,6 +160,12 @@ private:
     PoolContainer pools;
     
     std::string match_master_name_;
+    // used for distinct the connections to sf1r nodes to avoid the performance 
+    // downgrade while a single node slow down.
+    // sf1r node connections will be grouped by connection set.
+    // The set sequence will determinate the node set to connect to.
+    int  set_seq_;
+    int  total_set_num_;
 };
 
 NS_IZENELIB_SF1R_END
