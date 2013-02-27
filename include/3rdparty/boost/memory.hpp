@@ -12,10 +12,39 @@
 #ifndef BOOST_MEMORY_HPP
 #define BOOST_MEMORY_HPP
 
-#include "memory/basic.hpp"
-#include "memory/auto_alloc.hpp"
-#include "memory/scoped_alloc.hpp"
+// -------------------------------------------------------------------------
 
+#ifndef BOOST_DETAIL_THREADMODEL_HPP
+#include "memory/detail/threadmodel.hpp"
+#endif
+
+// -------------------------------------------------------------------------
+#ifndef BOOST_MEMORY_BASIC_HPP
+#include "memory/basic.hpp"
+#endif
+
+#ifndef BOOST_MEMORY_AUTO_ALLOC_HPP
+#include "memory/auto_alloc.hpp"
+#endif
+
+#ifndef BOOST_MEMORY_SCOPED_ALLOC_HPP
+#include "memory/scoped_alloc.hpp"
+#endif
+
+// -------------------------------------------------------------------------
+// default_alloc
+
+NS_BOOST_MEMORY_BEGIN
+
+#if defined(BOOST_MEMORY_USE_AUTO_ALLOC)
+typedef auto_alloc default_alloc;
+#else
+typedef scoped_alloc default_alloc;
+#endif
+
+NS_BOOST_MEMORY_END
+
+// -------------------------------------------------------------------------
 // function swap_object
 
 NS_BOOST_MEMORY_BEGIN
@@ -29,7 +58,7 @@ inline void swap(void* a, void* b, size_t cb)
 }
 
 template <class Type>
-void  swap_object(Type* a, Type* b)
+void swap_object(Type* a, Type* b)
 {
     swap(a, b, sizeof(Type));
 }
@@ -43,24 +72,24 @@ NS_BOOST_MEMORY_BEGIN
 
 template <class ContainerT>
 class defragment :
-            private ContainerT::alloc_type,
-            public ContainerT
+    private ContainerT::alloc_type,
+    public ContainerT
 {
 private:
     typedef typename ContainerT::alloc_type AllocT;
 
 public:
-    AllocT& get_alloc()
+    AllocT& BOOST_MEMORY_CALL get_alloc()
     {
         return *static_cast<AllocT*>(this);
     }
 
-    void swap(defragment& o)
+    void BOOST_MEMORY_CALL swap(defragment& o)
     {
         swap_object(this, &o);
     }
 
-    void defrag()
+    void BOOST_MEMORY_CALL defrag()
     {
         AllocT alloc2;
         AllocT::swap(alloc2);
@@ -72,12 +101,19 @@ public:
 
 public:
     defragment()
-            : ContainerT(get_alloc())
+        : ContainerT(get_alloc())
     {
     }
 };
 
-template <class Type, class AllocT = scoped_alloc>
+NS_BOOST_MEMORY_END
+
+// -------------------------------------------------------------------------
+// class stl_allocator
+
+NS_BOOST_MEMORY_BEGIN
+
+template <class Type, class AllocT = default_alloc>
 class stl_allocator
 {
 private:
@@ -146,19 +182,37 @@ public:
 public:
     typedef AllocT alloc_type;
 
-    AllocT& get_alloc() const
+    AllocT& BOOST_MEMORY_CALL get_alloc() const
     {
         return *m_alloc;
     }
 
-    void swap(stl_allocator& o)
+    void BOOST_MEMORY_CALL swap(stl_allocator& o)
     {
         std::swap(m_alloc, o.m_alloc);
     }
 };
 
+#if !defined(BOOST_MEMORY_NO_PARTIAL_SPECIALIZATION)
+
 template <class AllocT>
 class stl_allocator<void, AllocT>
+{
+public:
+    typedef void value_type;
+    typedef void* pointer;
+    typedef const void* const_pointer;
+
+    template <class U>
+    struct rebind
+    {
+        typedef stl_allocator<U, AllocT> other;
+    };
+};
+
+#else
+
+template<> class stl_allocator<void, scoped_alloc>
 {
 public:
     typedef void value_type;
@@ -172,6 +226,34 @@ public:
     };
 };
 
+template<> class stl_allocator<void, auto_alloc>
+{
+public:
+    typedef void value_type;
+    typedef void* pointer;
+    typedef const void* const_pointer;
+
+    template <class U>
+    struct rebind
+    {
+        typedef stl_allocator<U, auto_alloc> other;
+    };
+};
+
+/*
+template<> class stl_allocator<void, gc_alloc>
+{
+public:
+    typedef void        value_type;
+    typedef void*       pointer;
+    typedef const void* const_pointer;
+
+    template <class U>
+    struct rebind { typedef stl_allocator<U, gc_alloc> other; };
+};
+*/
+
+#endif
 
 template <class Type, class AllocT>
 inline bool operator==(const stl_allocator<Type, AllocT>&,
@@ -196,7 +278,7 @@ namespace std
 {
 
 template <class Type, class AllocT>
-inline void swap(
+__forceinline void swap(
     NS_BOOST_MEMORY::stl_allocator<Type, AllocT>& a,
     NS_BOOST_MEMORY::stl_allocator<Type, AllocT>& b)
 {
@@ -211,13 +293,19 @@ namespace boost
 {
 using NS_BOOST_MEMORY::auto_alloc;
 using NS_BOOST_MEMORY::scoped_alloc;
+
 using NS_BOOST_MEMORY::stl_allocator;
+
+using NS_BOOST_MEMORY::enableMemoryLeakCheck;
 }
 
-#define BOOST_NEW(alloc, Type) BOOST_MEMORY_NEW(alloc, Type)
-#define BOOST_NEW_ARRAY(alloc, Type, count) BOOST_MEMORY_NEW_ARRAY(alloc, Type, count)
+#define BOOST_NO_CONSTRUCTOR(Type)				BOOST_MEMORY_NO_CONSTRUCTOR(Type)
+#define BOOST_NO_DESTRUCTOR(Type)				BOOST_MEMORY_NO_DESTRUCTOR(Type)
 
-#define BOOST_ALLOC(alloc, Type) BOOST_MEMORY_ALLOC(alloc, Type)
+#define BOOST_NEW(alloc, Type)					BOOST_MEMORY_NEW(alloc, Type)
+#define BOOST_NEW_ARRAY(alloc, Type, count)		BOOST_MEMORY_NEW_ARRAY(alloc, Type, count)
+
+#define BOOST_ALLOC(alloc, Type)				BOOST_MEMORY_ALLOC(alloc, Type)
 #define BOOST_ALLOC_ARRAY(alloc, Type, count)	BOOST_MEMORY_ALLOC_ARRAY(alloc, Type, count)
 
 // -------------------------------------------------------------------------
