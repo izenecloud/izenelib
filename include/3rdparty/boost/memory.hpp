@@ -36,11 +36,7 @@
 
 NS_BOOST_MEMORY_BEGIN
 
-#if defined(BOOST_MEMORY_USE_AUTO_ALLOC)
 typedef auto_alloc default_alloc;
-#else
-typedef scoped_alloc default_alloc;
-#endif
 
 NS_BOOST_MEMORY_END
 
