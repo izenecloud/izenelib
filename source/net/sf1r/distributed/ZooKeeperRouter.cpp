@@ -174,6 +174,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     else
     {
         LOG(INFO) << "current set_seq_ : " << set_seq_ << " ignore node in replica : " << replicaid;
+        client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
         return false;
     }
     // check for search service
