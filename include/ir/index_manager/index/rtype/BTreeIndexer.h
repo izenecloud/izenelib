@@ -610,23 +610,74 @@ private:
     }
 
     /// called only in cacheIterator_, one thread, common_bv_ is safe.
+    /// value was already sorted, also cacheValue was sorted
     static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
-
-        for (std::size_t i = 0; i < cacheValue.item.size(); i++)
+        ValueType new_value;
+        new_value.reserve(value.size()+cacheValue.size()/2);
+        ValueType::const_iterator it1 = value.begin();
+        //std::cerr<<"value addr "<<&value<<std::endl;
+        //std::cerr<<"value size "<<value.size()<<std::endl;
+        //std::cerr<<"cache value size "<<cacheValue.size()<<std::endl;
+        typename CacheValueType::const_iterator it2 = cacheValue.begin();
+        typename CacheValueType::const_iterator it2_end = cacheValue.end();
+        while(it1!=value.end()&&it2!=it2_end)
         {
-            if (cacheValue.flag.test(i))
+            uint32_t docid2 = *it2;
+            bool b2 = it2.test();
+            //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
+            if(*it1<*it2)
             {
-                value.push_back(cacheValue.item[i]);
+                new_value.push_back(*it1);
+                ++it1;
+            }
+            else if(*it1>*it2)
+            {
+                if(it2.test())//is insert, not delete
+                {
+                    new_value.push_back(*it2);
+                }
+                ++it2;
             }
             else
             {
-                VectorRemove_(value, cacheValue.item[i]);
+                if(it2.test())
+                {
+                    new_value.push_back(*it1);
+                }
+                ++it1;
+                ++it2;
             }
         }
-        //duplicate
-        std::sort(value.begin(), value.end());
-        value.erase(std::unique(value.begin(), value.end()), value.end());
+        for(;it1!=value.end(); ++it1)
+        {
+            new_value.push_back(*it1);
+        }
+        for(;it2!=it2_end;++it2)
+        {
+            uint32_t docid2 = *it2;
+            bool b2 = it2.test();
+            //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
+            if(it2.test())
+            {
+                new_value.push_back(*it2);
+            }
+        }
+        value.swap(new_value);
+        //for (std::size_t i = 0; i < cacheValue.item.size(); i++)
+        //{
+            //if (cacheValue.flag.test(i))
+            //{
+                //value.push_back(cacheValue.item[i]);
+            //}
+            //else
+            //{
+                //VectorRemove_(value, cacheValue.item[i]);
+            //}
+        //}
+        ////duplicate
+        //std::sort(value.begin(), value.end());
+        //value.erase(std::unique(value.begin(), value.end()), value.end());
     }
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
@@ -644,11 +695,11 @@ private:
         }
     }
 
-    template <typename T>
-    static void VectorRemove_(std::vector<T>& vec, const T& value)
-    {
-        vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
-    }
+    //template <typename T>
+    //static void VectorRemove_(std::vector<T>& vec, const T& value)
+    //{
+        //vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+    //}
 
 private:
     std::string path_;
