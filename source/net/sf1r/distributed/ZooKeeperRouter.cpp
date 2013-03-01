@@ -300,7 +300,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
         return;
     }
     
-    if (!boost::regex_search(path, TOPOLOGY) && !boost::regex_match(path, SF1R_ROOT_REGEX))
+    if (!boost::regex_search(path, TOPOLOGY_REGEX) && !boost::regex_match(path, SF1R_ROOT_REGEX))
     {
         client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
         LOG(INFO) << "Not Watching children of: " << path;
