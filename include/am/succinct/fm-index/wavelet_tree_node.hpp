@@ -50,7 +50,10 @@ public:
     void save(std::ostream &ostr) const;
     void load(std::istream &istr);
 
-    bool operator>(const WaveletTreeNode &rhs) const;
+    bool operator<(const WaveletTreeNode &rhs) const
+    {
+        return freq_ < rhs.freq_;
+    }
 
 public:
     WaveletTreeNode *left_;
@@ -79,11 +82,11 @@ namespace std
 {
 
 template <>
-struct greater<izenelib::am::succinct::fm_index::WaveletTreeNode *>
+struct less<izenelib::am::succinct::fm_index::WaveletTreeNode *>
 {
     bool operator()(izenelib::am::succinct::fm_index::WaveletTreeNode * const &p1, izenelib::am::succinct::fm_index::WaveletTreeNode * const &p2)
     {
-        return *p1 > *p2;
+        return *p1 < *p2;
     }
 };
 

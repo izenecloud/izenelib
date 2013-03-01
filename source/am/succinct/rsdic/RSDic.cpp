@@ -85,7 +85,7 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 
 void RSDic::BuildBlock_(uint64_t block, size_t offset, size_t& global_offset)
 {
-    size_t rank_sb = SuccinctUtils::popcount64(block);
+    size_t rank_sb = SuccinctUtils::popcount(block);
 
     if (support_select_)
     {

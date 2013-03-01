@@ -102,16 +102,6 @@ public:
         idStorage_.close();
     }
 
-    void warmUp()
-    {
-        idGenerator_.warmUp();
-    }
-
-    void coolDown()
-    {
-        idGenerator_.coolDown();
-    }
-
     void display()
     {
         idGenerator_.display();
@@ -119,7 +109,6 @@ public:
     }
 
 protected:
-
     string storageName_;
 
     IDGenerator idGenerator_; /// convert ID to String
@@ -129,9 +118,9 @@ protected:
 }; // end - template IDFactory
 
 template <typename NameString, typename NameID,
-    typename IDGenerator, typename IDStorage>
+          typename IDGenerator, typename IDStorage>
 IDFactory<NameString, NameID, IDGenerator, IDStorage>::IDFactory(
-    const string& storageName)
+        const string& storageName)
 :
     storageName_(storageName),
     idGenerator_(storageName),
@@ -140,28 +129,28 @@ IDFactory<NameString, NameID, IDGenerator, IDStorage>::IDFactory(
 } // end - IDFactory()
 
 template <typename NameString, typename NameID,
-    typename IDGenerator, typename IDStorage>
+          typename IDGenerator, typename IDStorage>
 IDFactory<NameString, NameID, IDGenerator, IDStorage>::~IDFactory()
 {
 } // end - ~IDFactory()
 
 template <typename NameString, typename NameID,
-    typename IDGenerator, typename IDStorage>
+          typename IDGenerator, typename IDStorage>
 inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameIDByNameString(
         const NameString& nameString,
         NameID& nameID,
         bool insert)
 {
-    if( idGenerator_.get(nameString, nameID, insert) )
-           return true;
+    if (idGenerator_.get(nameString, nameID, insert))
+        return true;
 
-    if(insert)
+    if (insert)
         idStorage_.put(nameID, nameString);
     return false;
 } // end - getNameIDByNameString()
 
 template <typename NameString, typename NameID,
-    typename IDGenerator, typename IDStorage>
+          typename IDGenerator, typename IDStorage>
 inline void IDFactory<NameString, NameID, IDGenerator, IDStorage>::updateNameIDByNameString(
         const NameString& nameString,
         NameID& updatedId)
@@ -172,7 +161,7 @@ inline void IDFactory<NameString, NameID, IDGenerator, IDStorage>::updateNameIDB
 
 
 template <typename NameString, typename NameID,
-    typename IDGenerator, typename IDStorage>
+          typename IDGenerator, typename IDStorage>
 inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameStringByNameID(
         const NameID& nameID, NameString& nameString)
 {

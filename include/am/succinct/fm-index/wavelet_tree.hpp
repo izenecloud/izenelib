@@ -3,7 +3,6 @@
 
 #include "const.hpp"
 #include "range_list.hpp"
-#include <3rdparty/boost/priority_deque.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -40,19 +39,19 @@ public:
     virtual size_t select(char_type c, size_t rank) const = 0;
 
     virtual void intersect(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &result) const = 0;
 
     virtual void topKUnion(
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const = 0;
 
     virtual void topKUnionWithFilters(
             const std::vector<std::pair<size_t, size_t> > &filter,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results) const = 0;
 

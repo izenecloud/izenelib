@@ -201,11 +201,6 @@ void WaveletTreeNode::load(std::istream &istr)
     }
 }
 
-bool WaveletTreeNode::operator>(const WaveletTreeNode &rhs) const
-{
-    return freq_ > rhs.freq_;
-}
-
 }
 }
 

@@ -253,7 +253,7 @@ public:
     AuxFilteredPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            size_t aux_filter_count, size_t pattern_count, size_t filter_count)
+            size_t aux_filter_count, size_t pattern_count)
         : level_(level)
         , sym_(sym)
         , score_()
@@ -262,11 +262,7 @@ public:
         aux_filters_.reserve(aux_filter_count);
         patterns_.reserve(pattern_count);
 
-        recyc_aux_filters_.resize(aux_filter_count);
-        for (size_t i = 0; i < recyc_aux_filters_.size(); ++i)
-        {
-            recyc_aux_filters_[i] = new FilterList<WaveletTreeType>(NULL, NULL, filter_count);
-        }
+        recyc_aux_filters_.reserve(aux_filter_count);
     }
 
     ~AuxFilteredPatternList()
@@ -319,6 +315,23 @@ public:
             return true;
         }
         return false;
+    }
+
+    FilterList<WaveletTreeType> *getAuxFilter(
+            const WaveletTreeType *tree, const WaveletTreeNode *node,
+            size_t filter_count)
+    {
+        if (recyc_aux_filters_.empty())
+        {
+            return new FilterList<WaveletTreeType>(tree, node, filter_count);
+        }
+        else
+        {
+            FilterList<WaveletTreeType> *filter = recyc_aux_filters_.back();
+            filter->reset(tree, node);
+            recyc_aux_filters_.pop_back();
+            return filter;
+        }
     }
 
     void calcScore()

@@ -173,7 +173,7 @@ public:
          * FIXME: gcc seems to generates a conditional jump, so
          * the code below needs to be replaced with __asm__().
          */
-        return rblk.rk + ((pos & 64) ? rblk.b0sum + SuccinctUtils::popcount64(rblk.b1 & mask) : SuccinctUtils::popcount64(rblk.b0 & mask));
+        return rblk.rk + ((pos & 64) ? rblk.b0sum + SuccinctUtils::popcount(rblk.b1 & mask) : SuccinctUtils::popcount(rblk.b0 & mask));
     }
 
     size_t rank0(size_t pos) const
@@ -225,9 +225,9 @@ private:
             rblk_[i].rk = r;
 
             /* b0sum used for select() */
-            rblk_[i].b0sum = SuccinctUtils::popcount64(rblk_[i].b0);
+            rblk_[i].b0sum = SuccinctUtils::popcount(rblk_[i].b0);
 
-            r += rblk_[i].b0sum + SuccinctUtils::popcount64(rblk_[i].b1);
+            r += rblk_[i].b0sum + SuccinctUtils::popcount(rblk_[i].b1);
         }
     }
 
@@ -301,7 +301,7 @@ private:
         for (size_t i = 0; i < bsize - 1; ++i)
         {
             blk = block(bv.get_block(i));
-            size_ += SuccinctUtils::popcount64(blk);
+            size_ += SuccinctUtils::popcount(blk);
         }
 
         blk = block(bv.get_block(bsize - 1));
@@ -309,7 +309,7 @@ private:
         {
             blk &= (block_t(1) << (sz - (bsize - 1) * BSIZE)) - 1;
         }
-        size_ += SuccinctUtils::popcount64(blk);
+        size_ += SuccinctUtils::popcount(blk);
 
         Q.init(size_);
 
@@ -320,7 +320,7 @@ private:
                 Q.set_bit(qcount);
 
             blk = block(bv.get_block(i));
-            qcount += SuccinctUtils::popcount64(blk);
+            qcount += SuccinctUtils::popcount(blk);
         }
 
         rkQ_.reset(new SuccinctRank(Q));
