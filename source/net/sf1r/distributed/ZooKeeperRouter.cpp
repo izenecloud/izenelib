@@ -290,16 +290,23 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
 void
 ZooKeeperRouter::watchChildren(const string& path) {
     if (not client->isZNodeExists(path, ZooKeeper::WATCH)) {
-        DLOG(INFO) << "node [" << path << "] does not exist";
-        boost::smatch what;
-        CHECK(boost::regex_search(path, what, SF1R_ROOT_REGEX));
-        CHECK(not what.empty());
-        
-        DLOG(INFO) << "recurse to [" << what[0] << "] ...";
-        watchChildren(what[0]);
+        LOG(INFO) << "node [" << path << "] does not exist";
+        //boost::smatch what;
+        //CHECK(boost::regex_search(path, what, SF1R_ROOT_REGEX));
+        //CHECK(not what.empty());
+        //
+        //DLOG(INFO) << "recurse to [" << what[0] << "] ...";
+        //watchChildren(what[0]);
         return;
     }
     
+    if (!boost::regex_search(path, TOPOLOGY) && !boost::regex_match(path, SF1R_ROOT_REGEX))
+    {
+        client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
+        LOG(INFO) << "Not Watching children of: " << path;
+        return;
+    }
+
     strvector children;
     client->getZNodeChildren(path, children, ZooKeeper::WATCH);
     DLOG(INFO) << "Watching children of: " << path;
