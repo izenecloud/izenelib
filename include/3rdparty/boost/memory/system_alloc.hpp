@@ -12,89 +12,89 @@
 #ifndef BOOST_MEMORY_SYSTEM_ALLOC_HPP
 #define BOOST_MEMORY_SYSTEM_ALLOC_HPP
 
+#ifndef BOOST_MEMORY_BASIC_HPP
 #include "basic.hpp"
+#endif
 
-#include <algorithm> // std::swap
-
+#if !defined(_GLIBCXX_CSTDLIB) && !defined(_CSTDLIB)
 #include <cstdlib> // malloc, free
-#include <cstring> // memcpy
+#endif
 
 NS_BOOST_MEMORY_BEGIN
 
-// -------------------------------------------------------------------------
+// =========================================================================
 // class stdlib_alloc
 
 #if defined(__GNUG__)
 #define _msize	malloc_usable_size
 #endif
 
-#ifdef __APPLE__
-#undef _msize
-#define _msize  malloc_size
-#endif
-
 class stdlib_alloc
 {
 public:
-    static void* allocate(size_t cb)
-    {
-        return malloc(cb);
-    }
-    static void* allocate(size_t cb, destructor_t fn)
-    {
-        return malloc(cb);
-    }
-    static void* allocate(size_t cb, int fnZero)
+    enum { Padding = 32 /* must >= sizeof(AllocateHeader) */ };
+
+    static void* BOOST_MEMORY_CALL allocate(size_t cb)
     {
         return malloc(cb);
     }
 
-    static void* reallocate(void* p, size_t oldSize, size_t newSize)
+    static void* BOOST_MEMORY_CALL reallocate(void* p, size_t oldSize, size_t newSize)
     {
         return realloc(p, newSize);
     }
 
-    static void deallocate(void* p)
+    static void BOOST_MEMORY_CALL deallocate(void* p)
     {
         free(p);
     }
-    static void deallocate(void* p, size_t)
+    static void BOOST_MEMORY_CALL deallocate(void* p, size_t)
     {
         free(p);
     }
-    static void swap(stdlib_alloc& o)			{}
 
-    static size_t alloc_size(void* p)
+    static void BOOST_MEMORY_CALL swap(stdlib_alloc& o)	{}
+
+    static size_t BOOST_MEMORY_CALL alloc_size(void* p)
     {
         return _msize(p);
     }
-
-    template <class Type>
-    static void destroy(Type* obj)
-    {
-        obj->~Type();
-        free(obj);
-    }
-
-    template <class Type>
-    static Type* newArray(size_t count, Type* zero)
-    {
-        Type* array = (Type*)malloc(sizeof(Type) * count);
-        return constructor_traits<Type>::constructArray(array, count);
-    }
-
-    template <class Type>
-    static void destroyArray(Type* array, size_t count)
-    {
-        destructor_traits<Type>::destructArrayN(array, count);
-        free(array);
-    }
 };
+
+// -------------------------------------------------------------------------
+// class system_alloc
 
 typedef stdlib_alloc system_alloc;
 
+// =========================================================================
+// Configurations
 
-// -------------------------------------------------------------------------
+#ifndef NS_BOOST_MEMORY_POLICY_BEGIN
+#define NS_BOOST_MEMORY_POLICY_BEGIN	namespace policy {
+#define NS_BOOST_MEMORY_POLICY_END		}
+#define NS_BOOST_MEMORY_POLICY			boost::memory::policy
+#endif
+
+NS_BOOST_MEMORY_POLICY_BEGIN
+
+class sys
+{
+public:
+    enum { MemBlockBytes = 16384 /* 16k */ };
+
+public:
+    typedef system_alloc alloc_type;
+};
+
+class stdlib : public sys
+{
+public:
+    typedef stdlib_alloc alloc_type;
+};
+
+NS_BOOST_MEMORY_POLICY_END
+
+// =========================================================================
 // $Log: $
 
 NS_BOOST_MEMORY_END

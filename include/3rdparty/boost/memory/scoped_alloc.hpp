@@ -12,26 +12,68 @@
 #ifndef BOOST_MEMORY_SCOPED_ALLOC_HPP
 #define BOOST_MEMORY_SCOPED_ALLOC_HPP
 
+#ifndef BOOST_MEMORY_BASIC_HPP
 #include "basic.hpp"
+#endif
 
+#ifndef BOOST_MEMORY_AUTO_ALLOC_HPP
 #include "auto_alloc.hpp"
-#include <util/singleton.h>
+#endif
 
-#include <boost/assert.hpp>
+#ifndef BOOST_MEMORY_THREAD_TLS_HPP
+#include "thread/tls.hpp"
+#endif
 
+#if !defined(_CLIMITS_) && !defined(_CLIMITS)
 #include <climits> // INT_MAX
+#endif
 
 NS_BOOST_MEMORY_BEGIN
+
+// -------------------------------------------------------------------------
+// class proxy_alloc
+
+template <class AllocT, class TlsAllocT>
+class proxy_alloc
+{
+private:
+    AllocT* m_alloc;
+
+public:
+    proxy_alloc(AllocT& alloc) : m_alloc(&alloc) {}
+    proxy_alloc() : m_alloc(&TlsAllocT::instance()) {}
+
+public:
+    enum { Padding = AllocT::Padding };
+
+public:
+    void* BOOST_MEMORY_CALL allocate(size_t cb)
+    {
+        return m_alloc->allocate(cb);
+    }
+    void BOOST_MEMORY_CALL deallocate(void* p)
+    {
+        m_alloc->deallocate(p);
+    }
+    void BOOST_MEMORY_CALL swap(proxy_alloc& o)
+    {
+        std::swap(m_alloc, o.m_alloc);
+    }
+    size_t BOOST_MEMORY_CALL alloc_size(void* p) const
+    {
+        return m_alloc->alloc_size(p);
+    }
+};
 
 // -------------------------------------------------------------------------
 // class block_pool
 
 template <class PolicyT>
-class block_alloc
+class block_pool_
 {
 private:
-    typedef typename PolicyT::allocator_type AllocT;
-    enum { CbBlock = PolicyT::MemBlockSize };
+    typedef typename PolicyT::alloc_type AllocT;
+    enum { m_cbBlock = PolicyT::MemBlockBytes - AllocT::Padding };
 
 #pragma pack(1)
     struct Block
@@ -40,118 +82,150 @@ private:
     };
 #pragma pack()
 
-    Block* freeList_;
+    Block* m_freeList;
 
-    int nFree_;
-    const int nFreeLimit_;
+    int m_nFree;
+    const int m_nFreeLimit;
+
 private:
-    block_alloc(const block_alloc& other);
-    block_alloc& operator=(const block_alloc& other);
-public:
+    block_pool_(const block_pool_&);
+    void operator=(const block_pool_&);
 
-    block_alloc(int cbFreeLimit = INT_MAX)
-            : freeList_(NULL), nFree_(0),
-            nFreeLimit_(cbFreeLimit / CbBlock + 1)
+public:
+    block_pool_(int cbFreeLimit = INT_MAX)
+        : m_freeList(NULL), m_nFree(0),
+          m_nFreeLimit(cbFreeLimit / m_cbBlock + 1)
     {
     }
-    ~block_alloc()
+    ~block_pool_()
     {
         clear();
     }
 
 public:
-    void* allocate(size_t cb)
-    {
-        BOOST_ASSERT(cb >= (size_t)CbBlock);
+    enum { Padding = AllocT::Padding };
 
-        if (cb > (size_t)CbBlock)
+public:
+    void* BOOST_MEMORY_CALL allocate(size_t cb)
+    {
+        BOOST_MEMORY_ASSERT(cb >= (size_t)m_cbBlock);
+
+        if (cb > (size_t)m_cbBlock)
             return AllocT::allocate(cb);
         else
         {
-            if (freeList_)
+            if (m_freeList)
             {
-                BOOST_ASSERT(AllocT::alloc_size(freeList_) >= cb);
-                Block* blk = freeList_;
-                freeList_ = blk->next;
-                --nFree_;
+                BOOST_MEMORY_ASSERT(AllocT::alloc_size(m_freeList) >= cb);
+                Block* blk = m_freeList;
+                m_freeList = blk->next;
+                --m_nFree;
                 return blk;
             }
-            return AllocT::allocate(CbBlock);
+            return AllocT::allocate(m_cbBlock);
         }
     }
 
-    void deallocate(void* p)
+    void BOOST_MEMORY_CALL deallocate(void* p)
     {
-        if (nFree_ >= nFreeLimit_)
+        if (m_nFree >= m_nFreeLimit)
         {
             AllocT::deallocate(p);
         }
         else
         {
             Block* blk = (Block*)p;
-            blk->next = freeList_;
-            freeList_ = blk;
-            ++nFree_;
+            blk->next = m_freeList;
+            m_freeList = blk;
+            ++m_nFree;
         }
     }
 
-    static size_t alloc_size(void* p)
+    static size_t BOOST_MEMORY_CALL alloc_size(void* p)
     {
         return AllocT::alloc_size(p);
     }
 
-    void clear()
+    void BOOST_MEMORY_CALL clear()
     {
-        while (freeList_)
+        while (m_freeList)
         {
-            Block* blk = freeList_;
-            freeList_ = blk->next;
+            Block* blk = m_freeList;
+            m_freeList = blk->next;
             AllocT::deallocate(blk);
         }
-        nFree_ = 0;
+        m_nFree = 0;
     }
-
 };
 
-#pragma pack(1)
+typedef block_pool_<NS_BOOST_MEMORY_POLICY::sys> block_pool;
 
-template <class AllocT>
-class proxy_alloc
+// -------------------------------------------------------------------------
+// class tls_block_pool
+
+typedef tls_object<block_pool> tls_block_pool_t;
+
+extern "C" tls_block_pool_t* _boost_TlsBlockPool();
+
+template <class Unused>
+class tls_block_pool_
 {
 private:
-  AllocT* alloc_;
+    static tls_block_pool_t* _tls_blockPool;
+
 public:
-  proxy_alloc() : alloc_(::izenelib::util::Singleton<AllocT>::get()) {}
-  proxy_alloc(AllocT& alloc) : alloc_(&alloc){}
-public:
-  typedef size_t size_type;
-                                        
-public:
-  inline void* allocate(size_type cb)    { return alloc_->allocate(cb); }
-  inline void deallocate(void* p) { alloc_->deallocate(p); }
-  inline void swap(proxy_alloc& o) { std::swap(alloc_, o.alloc_); }
-  inline size_type alloc_size(void* p) const { return alloc_->alloc_size(p); }
-  inline AllocT& instance() const { return *alloc_; }
-  inline AllocT* operator&() const { return alloc_; }
-  inline operator AllocT&() const { return *alloc_; }
+    tls_block_pool_()
+    {
+        init();
+    }
+    ~tls_block_pool_()
+    {
+        term();
+    }
+
+    static void BOOST_MEMORY_CALL init()
+    {
+        _tls_blockPool->init();
+    }
+
+    static void BOOST_MEMORY_CALL term()
+    {
+        _tls_blockPool->term();
+    }
+
+    static block_pool& BOOST_MEMORY_CALL instance()
+    {
+        return _tls_blockPool->get();
+    }
 };
 
-#pragma pack()
+template <class Unused>
+tls_block_pool_t* tls_block_pool_<Unused>::_tls_blockPool = _boost_TlsBlockPool();
 
-typedef block_alloc<NS_BOOST_MEMORY_POLICY::sys> block_pool;
-typedef proxy_alloc<block_pool> proxy_block_pool;
+typedef tls_block_pool_<int> tls_block_pool;
+
+// -------------------------------------------------------------------------
+// class pool
+
+typedef proxy_alloc<block_pool, tls_block_pool> proxy_block_pool;
 
 NS_BOOST_MEMORY_POLICY_BEGIN
 
 class pool : public sys
 {
 public:
-    typedef proxy_block_pool allocator_type;
+    typedef proxy_block_pool alloc_type;
 };
 
 NS_BOOST_MEMORY_POLICY_END
 
+// -------------------------------------------------------------------------
+// class scoped_alloc
+
 typedef region_alloc<NS_BOOST_MEMORY_POLICY::pool> scoped_alloc;
+
+// -------------------------------------------------------------------------
+// $Log: $
 
 NS_BOOST_MEMORY_END
 
