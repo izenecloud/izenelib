@@ -623,8 +623,8 @@ private:
         typename CacheValueType::const_iterator it2_end = cacheValue.end();
         while(it1!=value.end()&&it2!=it2_end)
         {
-            uint32_t docid2 = *it2;
-            bool b2 = it2.test();
+            //uint32_t docid2 = *it2;
+            //bool b2 = it2.test();
             //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
             if(*it1<*it2)
             {
@@ -655,8 +655,8 @@ private:
         }
         for(;it2!=it2_end;++it2)
         {
-            uint32_t docid2 = *it2;
-            bool b2 = it2.test();
+            //uint32_t docid2 = *it2;
+            //bool b2 = it2.test();
             //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
             if(it2.test())
             {
