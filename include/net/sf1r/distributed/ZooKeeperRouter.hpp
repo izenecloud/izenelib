@@ -66,6 +66,7 @@ public:
         return client->isConnected();
     }
 
+    void reconnect();
     /**
      * Get a connection to a node hosting the given collection.
      * @param collection The collection name.

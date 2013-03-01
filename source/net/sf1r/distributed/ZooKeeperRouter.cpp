@@ -71,6 +71,26 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     LOG(INFO) << "ZooKeeperRouter ready";
 }
 
+void ZooKeeperRouter::reconnect()
+{
+    LOG(INFO) << "reconnecting....";
+    if (!client)
+        return;
+    client->disconnect();
+    client->connect();
+    int timeout = 10*1000;
+    while(not client->isConnected())
+    {
+        timeout -= 100;
+        if (timeout < 0)
+        {
+            // XXX: this should be done in the ZooKeeper client
+            throw iz::ZooKeeperException("Re-connect failed " );
+        }
+        usleep(100*1000);
+    }
+    loadTopology();
+}
 
 ZooKeeperRouter::~ZooKeeperRouter() {
     BOOST_FOREACH(PoolContainer::value_type& i, pools) {
