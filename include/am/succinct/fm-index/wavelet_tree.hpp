@@ -45,15 +45,17 @@ public:
             std::vector<char_type> &result) const = 0;
 
     virtual void topKUnion(
-            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
+            const pattern_tuple_list_type &patterns,
             size_t topK,
-            std::vector<std::pair<double, char_type> > &results) const = 0;
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const = 0;
 
     virtual void topKUnionWithFilters(
-            const std::vector<std::pair<size_t, size_t> > &filter,
-            const std::vector<boost::tuple<size_t, size_t, double> > &patterns,
+            const filter_list_type &filter,
+            const pattern_tuple_list_type &patterns,
             size_t topK,
-            std::vector<std::pair<double, char_type> > &results) const = 0;
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const = 0;
 
     virtual size_t getOcc(char_type c) const = 0;
     virtual WaveletTreeNode *getRoot() const = 0;

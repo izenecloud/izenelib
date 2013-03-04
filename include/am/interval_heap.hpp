@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <boost/memory.hpp>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -43,7 +44,7 @@ class interval_heap
 {
 public:
     typedef T value_type;
-    typedef std::vector<std::pair<T, T> > container_type;
+    typedef std::vector<std::pair<T, T>, stl_allocator<std::pair<T, T> > > container_type;
     typedef typename container_type::size_type size_type;
 
     /**
@@ -54,10 +55,12 @@ public:
      */
     explicit interval_heap(size_type capacity, const Compare& compare = Compare())
         : compare_(compare)
-        , container_(capacity / 2 + capacity % 2 + 1) // 1-based indexing
+        //, container_(capacity / 2 + capacity % 2 + 1) // 1-based indexing
+        , container_(alloc_)
         , capacity_(capacity)
         , size_(0)
     {
+        container_.resize(capacity_ / 2 + capacity_ % 2 + 1); // 1-based indexing
     }
 
     /**
@@ -285,6 +288,7 @@ private:
      * Storage array for the heap.
      * Type T must be comparable.
      */
+    boost::auto_alloc alloc_;
     Compare compare_;
     container_type container_;
     size_type capacity_;

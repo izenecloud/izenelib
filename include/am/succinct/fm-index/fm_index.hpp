@@ -474,7 +474,11 @@ void FMIndex<CharT>::getTopKDocIdList(
     if (!doc_array_ || docCount() == 0)
         return;
 
-    std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
+    //std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
+    boost::auto_alloc alloc;    
+    pattern_tuple_list_type match_ranges(alloc);
+    match_ranges.resize(match_ranges_list.size());
+    
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
         match_ranges[i].get<0>() = match_ranges_list[i].first;
@@ -482,7 +486,7 @@ void FMIndex<CharT>::getTopKDocIdList(
         match_ranges[i].get<2>() = max_match_list[i];
     }
 
-    doc_array_->topKUnion(match_ranges, max_docs, res_list);
+    doc_array_->topKUnion(match_ranges, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
