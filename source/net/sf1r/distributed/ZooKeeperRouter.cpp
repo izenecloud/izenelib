@@ -218,8 +218,20 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     // add pool for the node
     const Sf1Node& node = topology->getNodeAt(path);
     DLOG(INFO) << "Getting connection pool for node: " << node.getPath();
-    ConnectionPool* pool = factory->newConnectionPool(node);
-    pools.insert(PoolContainer::value_type(node.getPath(), pool));
+
+    try
+    {
+        ConnectionPool* pool = factory->newConnectionPool(node);
+        pools.insert(PoolContainer::value_type(node.getPath(), pool));
+    }
+    catch(...)
+    {
+        LOG(ERROR) << "connect failed.";
+        // remove node from topology
+        topology->removeNode(path);
+        return false;
+    }
+
     return true;
 }
 
