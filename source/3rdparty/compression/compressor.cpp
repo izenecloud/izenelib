@@ -2,6 +2,7 @@
 #include <compression/minilzo/minilzo.h>
 #include <compression/lz4hc/lz4.h>
 #include <compression/lz4hc/lz4hc.h>
+#include <compression/snappy/snappy.h>
 
 #include <iostream>
 using namespace std;
@@ -37,7 +38,7 @@ bool Lz4Compressor::compress(const unsigned char* src, size_t srcLen, unsigned c
 bool Lz4Compressor::decompress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t destLen){
     int tmpLen;
     tmpLen = LZ4_uncompress((const char*)src, (char*)dest, destLen);
-    if(tmpLen < 0 || tmpLen != srcLen){
+    if(tmpLen < 0 || (size_t)tmpLen != srcLen){
         return false;
     }
     return true;
@@ -57,7 +58,7 @@ bool Lz4hcCompressor::compress(const unsigned char* src, size_t srcLen, unsigned
 bool Lz4hcCompressor::decompress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t destLen){
     int tmpLen;
     tmpLen = LZ4_uncompress((const char*)src, (char*)dest, destLen);
-    if(tmpLen < 0 || tmpLen != srcLen){
+    if(tmpLen < 0 || (size_t)tmpLen != srcLen){
         return false;
     }
     return true;
@@ -65,5 +66,30 @@ bool Lz4hcCompressor::decompress(const unsigned char* src, size_t srcLen, unsign
 
 int Lz4hcCompressor::compressBound(int size){
     return LZ4_compressBound(size);
+}
+
+bool SnappyCompressor::compress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t& destLen){
+    snappy::RawCompress((const char*)src, srcLen, (char*)dest, &destLen);
+    if(destLen == 0)
+        return false;
+    return true;
+}
+
+bool SnappyCompressor::decompress(const unsigned char* src, size_t srcLen, unsigned char* dest, size_t destLen){
+    bool ret = snappy::RawUncompress((const char*)src, srcLen, (char*)dest);
+    if (!ret)
+    {
+        destLen = 0;
+        return false;
+    }
+    ret = snappy::GetUncompressedLength((const char*)src, srcLen, &destLen);
+    if(!ret || destLen == 0){
+        return false;
+    }
+    return true;
+}
+
+int SnappyCompressor::compressBound(int size){
+    return (int)snappy::MaxCompressedLength(size);
 }
 

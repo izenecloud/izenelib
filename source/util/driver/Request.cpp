@@ -11,7 +11,7 @@ namespace driver {
 const std::string Request::kDefaultAction;
 
 Request::Request()
-: RestrictedObjectValue(), header_(0)
+: RestrictedObjectValue(), header_(0), calltype_(FromAPI)
 {
     updateHeaderPtr();
 }
@@ -21,7 +21,8 @@ Request::Request(const Request& other)
   header_(0),
   controller_(other.controller_),
   action_(other.controller_),
-  aclTokens_(other.aclTokens_)
+  aclTokens_(other.aclTokens_),
+  calltype_(other.calltype_)
 {
     updateHeaderPtr();
 }
@@ -34,6 +35,7 @@ Request& Request::operator=(const Request& other)
     controller_ = other.controller_;
     action_ = other.action_;
     aclTokens_ = other.aclTokens_;
+    calltype_ = other.calltype_;
 
     return *this;
 }

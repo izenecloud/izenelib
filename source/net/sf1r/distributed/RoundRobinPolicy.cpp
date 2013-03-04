@@ -45,6 +45,8 @@ RoundRobinPolicy::updateCollections() {
     BOOST_FOREACH(const string& collection, topology.getCollectionIndex()) {
         NodeCollectionsRange range = topology.getNodesFor(collection);
         string k(collection);
+        //for(NodeCollectionsIterator it = range.first; it != range.second; ++it)
+        //    LOG(INFO) << "collection: " << k << ", node : " << (*it).second.getPath();
         collections.insert(k, new NodeCollectionsList(range.first, range.second));
         ccounter[collection] = 0;
     }
@@ -61,9 +63,24 @@ RoundRobinPolicy::getNode() {
 
 
 const Sf1Node& 
-RoundRobinPolicy::getNodeFor(const std::string collection) {
+RoundRobinPolicy::getNodeFor(const std::string& collection) {
     const NodeCollectionsList& list = collections.at(collection);
     size_t index = ccounter[collection]++ % list.size();
+    size_t trynext = 0;
+    while(trynext < list.size())
+    {
+        if (list[index].second.getServiceState() == "ReadyForRead")
+            break;
+        ++trynext;
+        LOG(INFO) << "!!!! one of node is busy, try next !!!!!!" << list[index].second.getPath();
+        index = ccounter[collection]++ % list.size();
+    }
+
+    if (trynext == list.size())
+    {
+        LOG(INFO) << "!!!! all node is BusyForWrite, just choose any one !!!!!!";
+    }
+
     DLOG(INFO) << "index[" << collection << "] = " << index;
     
     return list[index].second;

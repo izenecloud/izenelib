@@ -57,6 +57,7 @@ struct CbFileHeader
 
     CbFileHeader()
     {
+        ::memset(&magic, 0x00, sizeof(CbFileHeader));
         magic = 0x061561;
         maxKeys = 24;
         pageSize = 1024;

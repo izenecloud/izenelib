@@ -43,7 +43,7 @@ public:
      * @param collection The collection name
      * @return A const reference to a node.
      */
-    virtual const Sf1Node& getNodeFor(const std::string collection) = 0;
+    virtual const Sf1Node& getNodeFor(const std::string& collection) = 0;
     
 protected:
     

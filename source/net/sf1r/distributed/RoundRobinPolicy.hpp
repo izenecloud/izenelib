@@ -33,7 +33,7 @@ public:
     const Sf1Node& getNode();
     
     /// Get a node hosting the given collection using a round-robin policy.
-    const Sf1Node& getNodeFor(const std::string collection);
+    const Sf1Node& getNodeFor(const std::string& collection);
 
 private:  
     

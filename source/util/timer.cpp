@@ -52,6 +52,8 @@ public:
 
     void join()
     {
+        if (boost::this_thread::get_id() == thread_->get_id())
+            return;
         thread_->join();
     }
 

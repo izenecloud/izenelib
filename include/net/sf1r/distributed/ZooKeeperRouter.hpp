@@ -50,7 +50,9 @@ public:
      * @throw ZooKeeperException if cannot connect to ZooKeeper.
      */
     ZooKeeperRouter(PoolFactory* poolFactory,
-            const std::string& hosts, const int timeout);
+            const std::string& hosts, const int timeout,
+            const std::string& match_master_name,
+            int set_seq, int total_set_num);
     
     /**
      * Destructor.
@@ -64,6 +66,7 @@ public:
         return client->isConnected();
     }
 
+    void reconnect();
     /**
      * Get a connection to a node hosting the given collection.
      * @param collection The collection name.
@@ -115,7 +118,7 @@ private:
     void addSearchTopology(const std::string& path);
     
     /** Add a new SF1 node in the topology. */
-    void addSf1Node(const std::string& path);
+    bool addSf1Node(const std::string& path);
     
     /** Updates the SF1 node information. */
     void updateNodeData(const std::string& path);
@@ -157,6 +160,13 @@ private:
     /// Connection pools.
     PoolContainer pools;
     
+    std::string match_master_name_;
+    // used for distinct the connections to sf1r nodes to avoid the performance 
+    // downgrade while a single node slow down.
+    // sf1r node connections will be grouped by connection set.
+    // The set sequence will determinate the node set to connect to.
+    int  set_seq_;
+    int  total_set_num_;
 };
 
 NS_IZENELIB_SF1R_END

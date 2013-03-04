@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
     SearchMergerProxy* mergerProxy = new SearchMergerProxy(searchMerger.get());
     BOOST_CHECK(searchMerger->bindCallProxy(*mergerProxy));
 
-    SearchAggregator ag(mergerProxy);
+    SearchAggregator ag(mergerProxy, NULL, "search", "");
     ag.setDebug(true);
     ag.setAggregatorConfig(config);
 
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
     config.addWorker("0.0.0.0", 18110, 1, true); // is local
     config.addWorker("0.0.0.0", 18111, 2);
 
-    SearchAggregator ag(mergerProxy, workerProxy);
+    SearchAggregator ag(mergerProxy, workerProxy, "search", "");
     ag.setDebug(true);
     ag.setAggregatorConfig(config);
 
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     config.addWorker("0.0.0.0", 18111, 2);
     config.addWorker("0.0.0.0", 18112, 3);
 
-    SearchAggregator ag(mergerProxy, workerProxy);
+    SearchAggregator ag(mergerProxy, workerProxy, "search", "");
     ag.setDebug(true);
     ag.setAggregatorConfig(config);
 
