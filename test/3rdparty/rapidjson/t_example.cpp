@@ -1,7 +1,6 @@
 #include "rapidjson/reader.h"
 #include "rapidjson/writer.h"
-#include "rapidjson/filereadstream.h"
-#include "rapidjson/filewritestream.h"
+#include "rapidjson/filestream.h"
 
 using namespace rapidjson;
 
@@ -20,13 +19,11 @@ void t_condense()
 {
     // Prepare JSON reader and input stream.
     Reader reader;
-    char readBuffer[65536];
-    FileReadStream is(stdin, readBuffer, sizeof(readBuffer));
+    FileStream is(stdin);
 
     // Prepare JSON writer and output stream.
-    char writeBuffer[65536];
-    FileWriteStream os(stdout, writeBuffer, sizeof(writeBuffer));
-    Writer<FileWriteStream> writer(os);
+    FileStream os(stdout);
+    Writer<FileStream> writer(os);
 
     // JSON reader parse from the input stream and let writer generate the output.
     if (!reader.Parse<0>(is, writer)) {
