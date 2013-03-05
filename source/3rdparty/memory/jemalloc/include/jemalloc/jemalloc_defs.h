@@ -181,7 +181,7 @@
 /* #undef JEMALLOC_UTRACE */
 
 /* Support Valgrind. */
-/* #undef JEMALLOC_VALGRIND */
+#define JEMALLOC_VALGRIND 
 
 /* Support optional abort() on OOM. */
 /* #undef JEMALLOC_XMALLOC */
@@ -249,6 +249,11 @@
  */
 #define JEMALLOC_PURGE_MADVISE_DONTNEED 
 /* #undef JEMALLOC_PURGE_MADVISE_FREE */
+
+/*
+ * Define if operating system has alloca.h header.
+ */
+#define JEMALLOC_HAS_ALLOCA_H 1
 
 /* sizeof(void *) == 2^LG_SIZEOF_PTR. */
 #define LG_SIZEOF_PTR 3
