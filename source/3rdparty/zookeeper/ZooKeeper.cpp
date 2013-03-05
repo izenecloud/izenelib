@@ -6,6 +6,7 @@
 #include <zookeeper.jute.h>
 
 #include "string.h" // memset
+#include "unistd.h" // usleep
 #include <algorithm>
 #include <sstream>
 
@@ -469,5 +470,3 @@ void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream
         out << "========================================================="<<std::endl;
     }
 }
-
-
