@@ -53,8 +53,7 @@ struct ScheduleOP
     uint32_t delay_start;
     boost::function<void (int)> callback;
     QueueTimer* timer;
-    bool running;
-    int calltype;
+    volatile bool running;
 };
 
 class SchedulerImpl
@@ -93,7 +92,6 @@ public:
 
         ScheduleOP newjob;
         newjob.name = name;
-        newjob.calltype = 0;
         newjob.default_interval = default_interval;
         newjob.delay_start = delay_start;
         newjob.callback = func;
@@ -133,32 +131,28 @@ public:
         std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
         if (itr == jobs_.end())
         {
- 	    std::cout << "schedule job not found:" << name << std::endl;
+            std::cout << "schedule job not found:" << name << std::endl;
             return false;
         }
         ScheduleOP *job = &itr->second;
         if (job && job->timer)
-	{
-	    job->calltype = calltype;
-	    if (sync)
-	    {
-		if (job->running)
-		{
-		    std::cout << "schedule job already running:" << name << std::endl;
-		    return false;
-		}
-		job->running = true;
-		job->callback(calltype);
-		job->running = false;
-		job->calltype = 0;
-		return true;
-	    }
-	    else
-	    {
-		return job->timer->startNow();
-	    }
+        {
+            int retry = 5;
+            while (job->running)
+            {
+                if (retry-- < 0)
+                {
+                    std::cout << "schedule job already running:" << name << std::endl;
+                    return false;
+                }
+                sleep(1);
+            }
+            job->running = true;
+            job->callback(calltype);
+            job->running = false;
+            return true;
         }
-	std::cout << "schedule job timer null:" << name << std::endl;
+        std::cout << "schedule job timer null:" << name << std::endl;
         return false;
     }
 
@@ -190,10 +184,9 @@ private:
         if (job->running)
             return;
         job->running = true;
-        
-        job->callback(job->calltype);
+
+        job->callback(0);
         job->running = false;
-	job->calltype = 0;
     }
 
     std::map<std::string, ScheduleOP> jobs_;
