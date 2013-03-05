@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -48,6 +48,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 
 namespace datadifferential {
@@ -240,7 +241,7 @@ bool Instance::run()
       {
         if (not _finish_fn->call(success, response))
         {
-          // Error was sent from _finish_fn 
+          // Error was sent from _finish_fn
           return false;
         }
       }

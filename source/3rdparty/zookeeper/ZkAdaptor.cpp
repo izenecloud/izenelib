@@ -18,6 +18,7 @@
 
 #include <ZkAdaptor.hpp>
 #include <string.h>
+#include <unistd.h>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -517,4 +518,3 @@ void ZooKeeperAdapter::setNodeData(const string &path,
     }
     // success
 }
-
