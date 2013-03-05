@@ -376,6 +376,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
     if (rc == ZOK)
     {
+        childrenList.reserve(children.count);
         for (int i = 0; i < children.count; ++i)
         {
             if (inAbsPath)

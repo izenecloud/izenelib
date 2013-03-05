@@ -170,7 +170,20 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
     izenelib::util::kv2string parser;
     parser.loadKvString(data);
-    
+    //
+    // replicaid and set_seq_ both start from 1.
+    int32_t replicaid = parser.getUInt32Value(REPLICAID_KEY);
+    if (((replicaid - 1) % total_set_num_) == (set_seq_ - 1))
+    {
+        LOG(INFO) << "current set_seq_ : " << set_seq_ << " connectting to node in replica : " << replicaid;
+    }
+    else
+    {
+        LOG(INFO) << "current set_seq_ : " << set_seq_ << " ignore node in replica : " << replicaid;
+        client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
+        return false;
+    }
+
     if (not parser.hasKey(MASTERPORT_KEY)) {
         LOG(INFO) << "Not a master node, skipping";
         return false;
@@ -185,18 +198,6 @@ ZooKeeperRouter::addSf1Node(const string& path) {
         }
     }
 
-    // replicaid and set_seq_ both start from 1.
-    int32_t replicaid = parser.getUInt32Value(REPLICAID_KEY);
-    if (((replicaid - 1) % total_set_num_) == (set_seq_ - 1))
-    {
-        LOG(INFO) << "current set_seq_ : " << set_seq_ << " connectting to node in replica : " << replicaid;
-    }
-    else
-    {
-        LOG(INFO) << "current set_seq_ : " << set_seq_ << " ignore node in replica : " << replicaid;
-        client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
-        return false;
-    }
     // check for search service
     std::string service_names;
     service_names = parser.getStrValue(SERVICE_NAMES_KEY);
@@ -332,7 +333,9 @@ ZooKeeperRouter::watchChildren(const string& path) {
         return;
     }
     
-    if (!boost::regex_search(path, TOPOLOGY_REGEX) && !boost::regex_match(path, SF1R_ROOT_REGEX))
+    if (!boost::regex_search(path, TOPOLOGY_REGEX) &&
+        !boost::regex_match(path, SF1R_ROOT_REGEX) &&
+        path != ROOT_NODE )
     {
         client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
         LOG(INFO) << "Not Watching children of: " << path;
