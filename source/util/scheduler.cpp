@@ -54,6 +54,7 @@ struct ScheduleOP
     boost::function<void (int)> callback;
     QueueTimer* timer;
     volatile bool running;
+    volatile bool immediatly_running;
 };
 
 class SchedulerImpl
@@ -77,7 +78,10 @@ public:
             {
                 job->timer->stop();
                 delete job->timer;
+                job->timer = NULL;
             }
+            while (job->immediatly_running)
+                cond_.wait(l);
         }
         jobs_.clear();
     }
@@ -97,6 +101,7 @@ public:
         newjob.callback = func;
         newjob.timer = NULL;
         newjob.running = false;
+        newjob.immediatly_running = false;
 
         std::pair<std::map<std::string, ScheduleOP>::iterator, bool> result
         = jobs_.insert(make_pair(name, newjob));
@@ -121,6 +126,7 @@ public:
         else
         {
             delete job->timer;
+            job->timer = NULL;
             return false;
         }
     }
@@ -138,7 +144,7 @@ public:
         if (job && job->timer)
         {
             int retry = 5;
-            while (job->running)
+            while (job->running || job->immediatly_running)
             {
                 if (retry-- < 0)
                 {
@@ -147,9 +153,22 @@ public:
                 }
                 sleep(1);
             }
-            job->running = true;
-            job->callback(calltype);
-            job->running = false;
+            job->immediatly_running = true;
+            mutex_.unlock();
+            try{
+                boost::scoped_ptr<boost::thread> run_thread;
+                run_thread.reset(new boost::thread(boost::bind(job->callback, calltype)));
+                run_thread->join();
+            } catch(const std::exception& e) {
+                std::cout << "run job exception: " << e.what() << std::endl;
+                mutex_.lock();
+                job->immediatly_running = false;
+                cond_.notify_all();
+                throw e;
+            }
+            mutex_.lock();
+            job->immediatly_running = false;
+            cond_.notify_all();
             return true;
         }
         std::cout << "schedule job timer null:" << name << std::endl;
@@ -171,7 +190,10 @@ public:
             {
                 job->timer->stop();
                 delete job->timer;
+                job->timer = NULL;
             }
+            while (job->immediatly_running)
+                cond_.wait(l);
             jobs_.erase(itr);
             return true;
         }
@@ -181,7 +203,7 @@ private:
     static void timerCallback(void *param)
     {
         ScheduleOP *job = reinterpret_cast<ScheduleOP *>(param);
-        if (job->running)
+        if (job->running || job->immediatly_running)
             return;
         job->running = true;
 
@@ -190,6 +212,7 @@ private:
     }
 
     std::map<std::string, ScheduleOP> jobs_;
+    boost::condition_variable cond_;
     boost::mutex mutex_;
 };
 
