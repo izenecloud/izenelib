@@ -181,7 +181,7 @@
 /* #undef JEMALLOC_UTRACE */
 
 /* Support Valgrind. */
-#define JEMALLOC_VALGRIND 
+/* #undef JEMALLOC_VALGRIND */
 
 /* Support optional abort() on OOM. */
 /* #undef JEMALLOC_XMALLOC */
