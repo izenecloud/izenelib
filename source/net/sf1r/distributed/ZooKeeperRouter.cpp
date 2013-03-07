@@ -37,7 +37,8 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
         const string& hosts, int timeout, const std::string& match_master_name,
         int set_seq, int total_set_num)
     : factory(poolFactory), match_master_name_(match_master_name),
-    set_seq_(set_seq), total_set_num_(total_set_num)
+    set_seq_(set_seq), total_set_num_(total_set_num),
+    last_update_time_(time(NULL)), waiting_update_cnt_(0)
 {
     assert(set_seq_ <= total_set_num_);
     // 0. connect to ZooKeeper
@@ -155,7 +156,7 @@ ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
 
 bool
 ZooKeeperRouter::addSf1Node(const string& path) {
-    boost::lock_guard<boost::mutex> lock(mutex);
+    UpgradeLockT lock(shared_mutex);
 
     LOG(INFO) << "adding SF1 node: [" << path << "]";
     
@@ -206,6 +207,8 @@ ZooKeeperRouter::addSf1Node(const string& path) {
         LOG(INFO) << "current node has no search service : " << path;
         return false;
     }
+
+    UpgradeUniqueLockT uniqueLock(lock);
     // add node into topology
     topology->addNode(path, data);
 
@@ -239,7 +242,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
 void 
 ZooKeeperRouter::updateNodeData(const string& path) {
-    boost::unique_lock<boost::mutex> lock(mutex);
+    UpgradeLockT lock(shared_mutex);
 
     if (not topology->isPresent(path)) {
         LOG(INFO) << "Node not in topology, skipping";
@@ -252,8 +255,11 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
     LOG(INFO) << "node data: [" << data << "]";
     
+    UpgradeUniqueLockT uniqueLock(lock);
     if (data.empty())
     {
+        waiting_update_cnt_ = 0;
+        last_update_time_ = time(NULL);
         LOG(INFO) << "update node data is empty, remove it." << path;
         // remove node from topology
         topology->removeNode(path);
@@ -279,13 +285,22 @@ ZooKeeperRouter::updateNodeData(const string& path) {
         delete pool;
     }
     else
+    {
+        if (waiting_update_cnt_ < 10 && time(NULL) - last_update_time_ < 10)
+        {
+            waiting_update_cnt_++;
+            return;
+        }
         topology->updateNode(path, data);
+        waiting_update_cnt_ = 0;
+        last_update_time_ = time(NULL);
+    }
 }
 
 
 void
 ZooKeeperRouter::removeSf1Node(const string& path) {
-    boost::unique_lock<boost::mutex> lock(mutex);
+    UpgradeLockT lock(shared_mutex);
     
     if (not topology->isPresent(path)) {
         LOG(INFO) << "Node not in topology, skipping";
@@ -294,6 +309,7 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     
     LOG(INFO) << "removing SF1 node: [" << path << "]";
     
+    UpgradeUniqueLockT uniqueLock(lock);
     // remove node from topology
     topology->removeNode(path);
 
@@ -358,30 +374,30 @@ ZooKeeperRouter::watchChildren(const string& path) {
 }
 
 
-NodeListRange
-ZooKeeperRouter::getSf1Nodes() const {
-    DLOG(INFO) << "Getting all nodes ...";
-    
-    if (topology->count() == 0) {
-        LOG(WARNING) << "Empty topology"; 
-    }
-    return topology->getNodes();
-}
-
-
-NodeCollectionsRange
-ZooKeeperRouter::getSf1Nodes(const string& collection) const {
-    DLOG(INFO) << "Getting all nodes for collection: " << collection << " ...";
-    
-    if (topology->count() == 0) {
-        LOG(WARNING) << "Empty topology"; 
-    }
-    
-    if (topology->count(collection) == 0) {
-        LOG(WARNING) << "No routes for collection: " << collection;
-    }
-    return topology->getNodesFor(collection);
-}
+//NodeListRange
+//ZooKeeperRouter::getSf1Nodes() const {
+//    DLOG(INFO) << "Getting all nodes ...";
+//    
+//    if (topology->count() == 0) {
+//        LOG(WARNING) << "Empty topology"; 
+//    }
+//    return topology->getNodes();
+//}
+//
+//
+//NodeCollectionsRange
+//ZooKeeperRouter::getSf1Nodes(const string& collection) const {
+//    DLOG(INFO) << "Getting all nodes for collection: " << collection << " ...";
+//    
+//    if (topology->count() == 0) {
+//        LOG(WARNING) << "Empty topology"; 
+//    }
+//    
+//    if (topology->count(collection) == 0) {
+//        LOG(WARNING) << "No routes for collection: " << collection;
+//    }
+//    return topology->getNodesFor(collection);
+//}
 
 
 const Sf1Node& 
@@ -413,7 +429,7 @@ ZooKeeperRouter::resolve(const string collection) const {
 
 RawClient&
 ZooKeeperRouter::getConnection(const string& collection) {
-    boost::lock_guard<boost::mutex> lock(mutex);
+    ReadLockT lock(shared_mutex);
     
     const Sf1Node& node = resolve(collection);
     LOG(INFO) << "Resolved to node: " << node.getPath();
@@ -423,17 +439,10 @@ ZooKeeperRouter::getConnection(const string& collection) {
     if (cit == pools.end())
     {
         LOG(INFO) << "no pools for the connection, add new node : " << node.getPath();
-        //if(!addSf1Node(node.getPath()))
         {
             LOG(ERROR) << "get connection failed for : " << node.getPath();
             throw RoutingError("no ConnectionPool for " + collection);
         }
-        //cit = pools.find(node.getPath());
-        //if (cit == pools.end())
-        //{
-        //    LOG(ERROR) << "get connection failed for : " << node.getPath();
-        //    throw RoutingError("no ConnectionPool for " + collection);
-        //}
     }
     ConnectionPool* pool = cit->second;
     CHECK(pool) << "NULL pool";
@@ -443,7 +452,7 @@ ZooKeeperRouter::getConnection(const string& collection) {
 
 void 
 ZooKeeperRouter::releaseConnection(const RawClient& connection) {
-    boost::lock_guard<boost::mutex> lock(mutex);
+    WriteLockT lock(shared_mutex);
     
     DLOG(INFO) << "releasing connection";
     ConnectionPool* pool = pools.find(connection.getPath())->second;
@@ -466,6 +475,7 @@ addConnection(vector<RawClient*>& list, const Sf1Node& node, PoolContainer& pool
 
 vector<RawClient*> 
 ZooKeeperRouter::getConnections(const string& collection) {
+    ReadLockT lock(shared_mutex);
     if (topology->count() == 0) {
         LOG(WARNING) << "Empty topology, throwing RoutingError";
         throw RoutingError("Empty topology");
