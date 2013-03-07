@@ -70,6 +70,49 @@ public:
     }
 };
 
+class RecursiveLock : private boost::noncopyable
+{
+private:
+    boost::recursive_mutex recurMutex_;
+public:
+    explicit RecursiveLock()
+    {}
+
+    ~RecursiveLock()
+    {
+    }
+
+    /**
+     * @ brief Attempts to get the read lock.
+     */
+    void lock()
+    {
+        recurMutex_.lock();
+    }
+    /**
+     *  @ brief Attempts to get the write lock.
+     */
+    void lock_shared()
+    {
+        recurMutex_.lock();
+    }
+    /**
+     *  @ brief Attempts to release the  read lock .
+     */
+    void unlock()
+    {
+        recurMutex_.unlock();
+    }
+    /**
+     * @ brief Attempts to release the write lock.
+     */
+    void unlock_shared()
+    {
+        recurMutex_.unlock();
+    }
+};
+
+
 template<class LockType>
 class ScopedReadLock
 {
