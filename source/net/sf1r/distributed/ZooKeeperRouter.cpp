@@ -69,7 +69,8 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     policy.reset(new RoundRobinPolicy(*topology));
     
     LOG(INFO) << "ZooKeeperRouter ready";
-    Scheduler::addJob("UpdateNodeDataOnTimer", 60, 60, boost::bind(&ZooKeeperRouter::updateNodeDataOnTimer, this, _1));
+    Scheduler::addJob("UpdateNodeDataOnTimer", 60*1000, 60*1000,
+        boost::bind(&ZooKeeperRouter::updateNodeDataOnTimer, this, _1));
 }
 
 void ZooKeeperRouter::reconnect()
