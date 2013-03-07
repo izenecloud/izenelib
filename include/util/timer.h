@@ -10,7 +10,6 @@ namespace izenelib{
 namespace util{
 
 class TimerThread;
-class TimerEvent;
 class Timer
 {
 public:
@@ -38,7 +37,6 @@ public:
 
     void timerCallback()
     {
-        boost::mutex::scoped_lock l(mutex_);
         signaled();
     }
 
@@ -48,8 +46,6 @@ protected:
     virtual void signaled() {}
 
 private:
-    boost::mutex mutex_;
-    boost::scoped_ptr<TimerEvent> event_;
     boost::scoped_ptr<TimerThread> timer_thread_;
 };
 

@@ -55,6 +55,7 @@ struct ScheduleOP
     QueueTimer* timer;
     volatile bool running;
     volatile bool immediatly_running;
+    boost::mutex jobmutex;
 };
 
 class SchedulerImpl
@@ -70,10 +71,10 @@ public:
     void removeAllJobs()
     {
         boost::mutex::scoped_lock l(mutex_);
-        for (std::map<std::string, ScheduleOP>::iterator itr = jobs_.begin();
+        for (std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.begin();
                 itr != jobs_.end(); ++itr)
         {
-            ScheduleOP *job = &itr->second;
+            boost::shared_ptr<ScheduleOP> job = itr->second;
             if (job->timer)
             {
                 job->timer->stop();
@@ -90,29 +91,29 @@ public:
                 uint32_t delay_start, const boost::function<void (int)>& func)
     {
         boost::mutex::scoped_lock l(mutex_);
-        std::map<string, ScheduleOP>::iterator find_itr = jobs_.find(name);
+        std::map<string, boost::shared_ptr<ScheduleOP> >::iterator find_itr = jobs_.find(name);
         if (find_itr != jobs_.end())
             return false;
 
-        ScheduleOP newjob;
-        newjob.name = name;
-        newjob.default_interval = default_interval;
-        newjob.delay_start = delay_start;
-        newjob.callback = func;
-        newjob.timer = NULL;
-        newjob.running = false;
-        newjob.immediatly_running = false;
+        boost::shared_ptr<ScheduleOP> newjob(new ScheduleOP());
+        newjob->name = name;
+        newjob->default_interval = default_interval;
+        newjob->delay_start = delay_start;
+        newjob->callback = func;
+        newjob->timer = NULL;
+        newjob->running = false;
+        newjob->immediatly_running = false;
 
-        std::pair<std::map<std::string, ScheduleOP>::iterator, bool> result
+        std::pair<std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator, bool> result
         = jobs_.insert(make_pair(name, newjob));
         if (!result.second)
         {
             return false;
         }
-        ScheduleOP *job = &result.first->second;
+        boost::shared_ptr<ScheduleOP> job = result.first->second;
 
         uint32_t delay = job->delay_start;
-        job->timer = new QueueTimer(&timerCallback, job, delay,
+        job->timer = new QueueTimer(&timerCallback, job.get(), delay,
                                     job->default_interval);
         if (job->timer == NULL)
         {
@@ -134,13 +135,13 @@ public:
     bool runJobImmediatly(const std::string& name, int calltype, bool sync)
     {
         boost::mutex::scoped_lock l(mutex_);
-        std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
+        std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.find(name);
         if (itr == jobs_.end())
         {
             std::cout << "schedule job not found:" << name << std::endl;
             return false;
         }
-        ScheduleOP *job = &itr->second;
+        boost::shared_ptr<ScheduleOP> job = itr->second;
         if (job && job->timer)
         {
             int retry = 5;
@@ -153,7 +154,12 @@ public:
                 }
                 sleep(1);
             }
-            job->immediatly_running = true;
+            {
+                boost::mutex::scoped_lock job_guard(job->jobmutex);
+                if (job->running || job->immediatly_running)
+                    return false;
+                job->immediatly_running = true;
+            }
             mutex_.unlock();
             try{
                 boost::scoped_ptr<boost::thread> run_thread;
@@ -162,12 +168,18 @@ public:
             } catch(const std::exception& e) {
                 std::cout << "run job exception: " << e.what() << std::endl;
                 mutex_.lock();
-                job->immediatly_running = false;
+                {
+                    boost::mutex::scoped_lock job_guard(job->jobmutex);
+                    job->immediatly_running = false;
+                }
                 cond_.notify_all();
                 throw e;
             }
             mutex_.lock();
-            job->immediatly_running = false;
+            {
+                boost::mutex::scoped_lock job_guard(job->jobmutex);
+                job->immediatly_running = false;
+            }
             cond_.notify_all();
             return true;
         }
@@ -178,14 +190,14 @@ public:
     bool removeJob(const std::string &name)
     {
         boost::mutex::scoped_lock l(mutex_);
-        std::map<std::string, ScheduleOP>::iterator itr = jobs_.find(name);
+        std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.find(name);
         if (itr == jobs_.end())
         {
             return false;
         }
         else
         {
-            ScheduleOP *job = &itr->second;
+            boost::shared_ptr<ScheduleOP> job = itr->second;
             if (job->timer != NULL)
             {
                 job->timer->stop();
@@ -203,15 +215,23 @@ private:
     static void timerCallback(void *param)
     {
         ScheduleOP *job = reinterpret_cast<ScheduleOP *>(param);
-        if (job->running || job->immediatly_running)
-            return;
-        job->running = true;
+
+        {
+            boost::mutex::scoped_lock job_guard(job->jobmutex);
+            if (job->running || job->immediatly_running)
+                return;
+            job->running = true;
+        }
 
         job->callback(0);
-        job->running = false;
+
+        {
+            boost::mutex::scoped_lock job_guard(job->jobmutex);
+            job->running = false;
+        }
     }
 
-    std::map<std::string, ScheduleOP> jobs_;
+    std::map<std::string, boost::shared_ptr<ScheduleOP> > jobs_;
     boost::condition_variable cond_;
     boost::mutex mutex_;
 };
