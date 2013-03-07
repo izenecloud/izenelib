@@ -211,14 +211,14 @@ public:
     {
         if(!isOpen_) {
 
-            diskSdbLock_.acquire_write_lock();
+            diskSdbLock_.lock();
             for(size_t i = 0; i<diskSdbList_.size(); i++)
                 diskSdbList_[i]->sdb.open();
-            diskSdbLock_.release_write_lock();
+            diskSdbLock_.unlock();
 
-            memorySdbLock_.acquire_write_lock();
+            memorySdbLock_.lock();
             memorySdb_.open();
-            memorySdbLock_.release_write_lock();
+            memorySdbLock_.unlock();
 
             isOpen_ = true;
         }
@@ -231,7 +231,7 @@ public:
     {
         if(isOpen_) {
 
-            diskSdbLock_.acquire_write_lock();
+            diskSdbLock_.lock();
             for(size_t i = 0; i<diskSdbList_.size(); i++) {
                 std::string n = diskSdbList_[i]->sdb.getName();
                 diskSdbList_[i]->sdb.close();
@@ -240,13 +240,13 @@ public:
             }
             diskSdbList_.clear();
             lastModificationStamp_ ++;
-            diskSdbLock_.release_write_lock();
+            diskSdbLock_.unlock();
 
-            memorySdbLock_.acquire_write_lock();
+            memorySdbLock_.lock();
             memorySdb_.clear();
             memorySdbDeletion_ = 0;
             lastModificationStamp_ ++;
-            memorySdbLock_.release_write_lock();
+            memorySdbLock_.unlock();
 
             // update header
             flush();
@@ -263,15 +263,15 @@ public:
 
             flush();
 
-            diskSdbLock_.acquire_write_lock();
+            diskSdbLock_.lock();
             for(size_t i = 0; i<diskSdbList_.size(); i++)
                 diskSdbList_[i]->sdb.close();
-            diskSdbLock_.release_write_lock();
+            diskSdbLock_.unlock();
 
-            memorySdbLock_.acquire_write_lock();
+            memorySdbLock_.lock();
             memorySdb_.close();
             memorySdbDeletion_ = 0;
-            memorySdbLock_.release_write_lock();
+            memorySdbLock_.unlock();
 
             isOpen_ = false;
         }
@@ -344,13 +344,13 @@ public:
 
         TagType tag = TagType();
 
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.lock();
 	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist || tag.first == DELETE) {
             memorySdb_.update(key, TagType(INSERT, value));
             lastModificationStamp_ ++;
         }
-        memorySdbLock_.release_write_lock();
+        memorySdbLock_.unlock();
 	}
 
 	/**
@@ -360,10 +360,10 @@ public:
 	{
 	    tryToMerge();
 
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.lock();
 	    memorySdb_.update(key, TagType(UPDATE, value));
         lastModificationStamp_ ++;
-        memorySdbLock_.release_write_lock();
+        memorySdbLock_.unlock();
 	}
 
 	/**
@@ -375,13 +375,13 @@ public:
 
         TagType tag = TagType();
 
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.lock();
 	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist || (keyExist && tag.first != DELETE) )
             memorySdbDeletion_++;
 	    memorySdb_.update(key, TagType(DELETE, ValueType()));
         lastModificationStamp_ ++;
-        memorySdbLock_.release_write_lock();
+        memorySdbLock_.unlock();
 	}
 
     /**
@@ -406,7 +406,7 @@ public:
 
 	    TagType tag = TagType();
 
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.lock();
 	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist) {
             memorySdb_.update(key, TagType(DELTA, delta));
@@ -417,16 +417,16 @@ public:
 	    } else if (tag.first == DELETE) {
             memorySdb_.update(key, TagType(UPDATE, delta));
 	    } else if (tag.first == INSERT) {
-            memorySdbLock_.release_write_lock();
+            memorySdbLock_.unlock();
 	        throw std::runtime_error( "Warning: In hdb, use insert() together\
                 with delta() is not recommended, which causes bad performance,\
                 try update() instead." );
 	    } else {
-            memorySdbLock_.release_write_lock();
+            memorySdbLock_.unlock();
 	        throw std::runtime_error("unrecognized tag format in hdb");
 	    }
         lastModificationStamp_ ++;
-        memorySdbLock_.release_write_lock();
+        memorySdbLock_.unlock();
 	}
 
     /**
@@ -439,18 +439,18 @@ public:
         std::vector<TagType> tagList;
 
         // Collect all tags from both on-disk partitions and the in-memory partition.
-        diskSdbLock_.acquire_read_lock();
+        diskSdbLock_.lock_shared();
         TagType tmp = TagType();
         for(size_t i = 0; i < diskSdbList_.size() ; i++)
         {
             if(diskSdbList_[i]->sdb.getValue(key, tmp) )
                 tagList.push_back(tmp);
         }
-        memorySdbLock_.acquire_read_lock();
+        memorySdbLock_.lock_shared();
         if( memorySdb_.getValue(key,tmp) )
             tagList.push_back(tmp);
-        memorySdbLock_.release_read_lock();
-        diskSdbLock_.release_read_lock();
+        memorySdbLock_.unlock_shared();
+        diskSdbLock_.unlock_shared();
 
         // Iterate all tags to caculate the correct answer.
 	    bool found = false;
@@ -500,7 +500,7 @@ public:
 	void optimize()
 	{
 	    // optimize() is kind of merge process, hence single-threaded.
-        mergeLock_.acquire_write_lock();
+        mergeLock_.lock();
 
         // Step 1, First flush memory partition to disk.
         if( memorySdb_.numItems() ) {
@@ -508,7 +508,7 @@ public:
         }
         // Sanity check.
         if(diskSdbList_.size() < 2) {
-            mergeLock_.release_write_lock();
+            mergeLock_.unlock();
             return;
         }
 
@@ -531,13 +531,13 @@ public:
         // Step 3, Dump all records to the final partition.
         //          lock the memory parition is enough, because disk partition
         //          cannot be modified except during merging.
-        memorySdbLock_.acquire_read_lock();
+        memorySdbLock_.lock_shared();
         HDBCursor cursor(*this);
         while( cursor.next() ) {
             if(cursor.getTag().first != DELETE)
                 dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
         }
-        memorySdbLock_.release_read_lock();
+        memorySdbLock_.unlock_shared();
         dst->sdb.flush();
 
         // Step 4, Store all to-be-deleted partitions.
@@ -547,11 +547,11 @@ public:
         }
 
         // Step 5, Maintain list.
-        diskSdbLock_.acquire_write_lock();
+        diskSdbLock_.lock();
         diskSdbList_.clear();
         diskSdbList_.push_back(dst);
         lastModificationStamp_ ++;
-        diskSdbLock_.release_write_lock();
+        diskSdbLock_.unlock();
 
         // Step 5, Close and delete old partitions.
         for(size_t i = 0; i< tobeDeleted.size(); i++ ) {
@@ -561,7 +561,7 @@ public:
             std::remove(n.c_str());
         }
 
-        mergeLock_.release_write_lock();
+        mergeLock_.unlock();
 	}
 
     /**
@@ -591,13 +591,13 @@ public:
                 Or It would be extreamly inefficient." << std::endl;
 
         size_t count = 0;
-        memorySdbLock_.acquire_read_lock();
+        memorySdbLock_.lock_shared();
         HDBCursor cursor(*this);
         while( cursor.next() ) {
             if(cursor.getTag().first != DELETE)
                 count ++;
         }
-        memorySdbLock_.release_read_lock();
+        memorySdbLock_.unlock_shared();
         return count;
     }
 
@@ -653,18 +653,18 @@ protected:
                 if(!mergable() ) break;
 
                 // Ensure only one thread enter merging.
-                mergeLock_.acquire_write_lock();
+                mergeLock_.lock();
                 // recheck
 
                 if(mergable()) merge();
-                mergeLock_.release_write_lock();
+                mergeLock_.unlock();
             }
 	    }
     }
 
     bool mergable()
     {
-        diskSdbLock_.acquire_read_lock();
+        diskSdbLock_.lock_shared();
         bool test = false;
         if(diskSdbList_.size() >= mergeFactor_) {
             test = true;
@@ -676,7 +676,7 @@ protected:
                 }
             }
         }
-        diskSdbLock_.release_read_lock();
+        diskSdbLock_.unlock_shared();
         return test;
     }
 
@@ -732,13 +732,13 @@ protected:
 
         // Step 5. delete old partitions from list and insert the new partition
         //          into list in a write lock.
-        diskSdbLock_.acquire_write_lock();
+        diskSdbLock_.lock();
         for(size_t i=0; i<mergeFactor_; i++) {
             diskSdbList_.pop_back();
         }
         diskSdbList_.push_back(dst);
         lastModificationStamp_ ++;
-        diskSdbLock_.release_write_lock();
+        diskSdbLock_.unlock();
 
         // Step 6. close and delete old partitions
         for(size_t i=0; i<mergeFactor_; i++) {
@@ -764,7 +764,7 @@ protected:
 
         // Step 2. Dump all records in memory partition to the new disk partition.
         //          Protected by a read lock.
-        memorySdbLock_.acquire_read_lock();
+        memorySdbLock_.lock_shared();
         KeyType tmpk = KeyType();
         TagType tmpv = TagType();
         typename SdbType::SDBCursor cursor = memorySdb_.get_first_locn();
@@ -773,26 +773,26 @@ protected:
             memorySdb_.seq(cursor);
         }
         newDiskSdb->deletions = memorySdbDeletion_;
-        memorySdbLock_.release_read_lock();
+        memorySdbLock_.unlock_shared();
 
         // Step 3. Flush new disk partition, need not lock.
         newDiskSdb->sdb.flush();
 
         // Step 4. Insert new disk partition to list, protected by write lock.
-        diskSdbLock_.acquire_write_lock();
+        diskSdbLock_.lock();
         diskSdbList_.push_back(newDiskSdb);
         lastModificationStamp_ ++;
-        diskSdbLock_.release_write_lock();
+        diskSdbLock_.unlock();
 
         // Dont worry the memory partition and the new disk partition coexist
         // between Step 4 and Step 5. Because hdb allows redundancy.
 
         // Step 5. Clear memory partition, protected by write lock.
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.lock();
         memorySdb_.clear();
         memorySdbDeletion_ = 0;
         lastModificationStamp_ ++;
-        memorySdbLock_.release_write_lock();
+        memorySdbLock_.unlock();
     }
 
 public:
@@ -933,8 +933,8 @@ public:
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
 
-	    diskSdbLock_.acquire_read_lock();
-	    memorySdbLock_.acquire_read_lock();
+	    diskSdbLock_.lock_shared();
+	    memorySdbLock_.lock_shared();
 	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_FORWARD) ) {
 	        if( seq(cursor, ESD_FORWARD) ) {
@@ -946,8 +946,8 @@ public:
 	        nxtKey = tmpk;
 	        ret = true;
 	    }
-	    memorySdbLock_.release_read_lock();
-	    diskSdbLock_.release_read_lock();
+	    memorySdbLock_.unlock_shared();
+	    diskSdbLock_.unlock_shared();
 	    return ret;
 	}
 
@@ -959,8 +959,8 @@ public:
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
 
-	    diskSdbLock_.acquire_read_lock();
-	    memorySdbLock_.acquire_read_lock();
+	    diskSdbLock_.lock_shared();
+	    memorySdbLock_.lock_shared();
 	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_BACKWARD) ) {
 	        if( seq(cursor, ESD_BACKWARD) ) {
@@ -972,8 +972,8 @@ public:
 	        prevKey = tmpk;
 	        ret = true;
 	    }
-	    memorySdbLock_.release_read_lock();
-	    diskSdbLock_.release_read_lock();
+	    memorySdbLock_.unlock_shared();
+	    diskSdbLock_.unlock_shared();
 	    return ret;
 	}
 
@@ -984,8 +984,8 @@ public:
             vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
 
-	    diskSdbLock_.acquire_read_lock();
-	    memorySdbLock_.acquire_read_lock();
+	    diskSdbLock_.lock_shared();
+	    memorySdbLock_.lock_shared();
         HDBCursor cursor(*this);
         search(key, cursor, ESD_FORWARD);
         KeyType tmpk;
@@ -996,8 +996,8 @@ public:
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_FORWARD);
         }
-	    memorySdbLock_.release_read_lock();
-	    diskSdbLock_.release_read_lock();
+	    memorySdbLock_.unlock_shared();
+	    diskSdbLock_.unlock_shared();
 	    return result.size() > 0 ? true:false;
     }
 
@@ -1016,8 +1016,8 @@ public:
 			vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
 
-	    diskSdbLock_.acquire_read_lock();
-	    memorySdbLock_.acquire_read_lock();
+	    diskSdbLock_.lock_shared();
+	    memorySdbLock_.lock_shared();
         HDBCursor cursor(*this);
         search(key, cursor, ESD_BACKWARD);
         KeyType tmpk;
@@ -1028,8 +1028,8 @@ public:
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_BACKWARD);
         }
-	    memorySdbLock_.release_read_lock();
-	    diskSdbLock_.release_read_lock();
+	    memorySdbLock_.unlock_shared();
+	    diskSdbLock_.unlock_shared();
 	    return result.size() > 0 ? true:false;
     }
 
@@ -1048,8 +1048,8 @@ public:
 			const KeyType& lowKey, const KeyType& highKey) {
         result.clear();
 
-	    diskSdbLock_.acquire_read_lock();
-	    memorySdbLock_.acquire_read_lock();
+	    diskSdbLock_.lock_shared();
+	    memorySdbLock_.lock_shared();
         HDBCursor cursor(*this);
         search(lowKey, cursor, ESD_FORWARD);
         KeyType tmpk;
@@ -1060,8 +1060,8 @@ public:
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_FORWARD);
         }
-	    memorySdbLock_.release_read_lock();
-	    diskSdbLock_.release_read_lock();
+	    memorySdbLock_.unlock_shared();
+	    diskSdbLock_.unlock_shared();
 	    return result.size() > 0 ? true:false;
     }
 

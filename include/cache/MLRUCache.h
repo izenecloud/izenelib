@@ -91,7 +91,7 @@ public:
     }
     bool updateValue(const DataType<KeyType, ValueType>& dat) // insert an new item into MCache
     {
-        lock.acquire_write_lock();
+        lock.lock();
         KeyType key = dat.get_key();
         if ( hasKey(key) )
         {
@@ -105,7 +105,7 @@ public:
             firstInsert_(dat); //Insert the corresponding CacheInfo into KeyInfoMap_.
         }
         return true;
-        lock.release_write_lock();
+        lock.unlock();
 
     }
     bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
@@ -254,7 +254,7 @@ template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValue(
         const KeyType& key, ValueType& value)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     nTotal_++;
     CachedData* pd;
     pd = hash_.find(key);
@@ -263,12 +263,12 @@ bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValue(
         value = pd->data;
         replace_(key); //Update the corresponding  CacheInfo.
         nHit_++;
-        lock.release_write_lock();
+        lock.unlock();
         return true;
     }
     else
     {
-        lock.release_write_lock();
+        lock.unlock();
         return false;
     }
 }
@@ -282,7 +282,7 @@ template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
         const DataType<KeyType, ValueType>& dat)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     KeyType key = dat.get_key();
     if (hash_.find(key) )
     {
@@ -302,7 +302,7 @@ void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
             firstInsert_(dat);
         }
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -342,9 +342,9 @@ bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::getValueWithInsert(
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::hasKey(const KeyType& key)
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     CachedData* pd = hash_.find(key);
-    lock.release_read_lock();
+    lock.unlock_shared();
     return (pd != NULL );
 }
 
@@ -355,9 +355,9 @@ bool MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::hasKey(const KeyType& 
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 int MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::numItems()
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     int num = hash_.numItems();
-    lock.release_read_lock();
+    lock.unlock_shared();
     return num;
 }
 
@@ -381,14 +381,14 @@ void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::evict_()
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::flush(const KeyType& key)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     CachedData* pd = hash_.find(key);
     if (pd)
     {
         cacheContainer_.erase(pd->lit);
         hash_.del(key);
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -399,7 +399,7 @@ void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::flush(const KeyType& k
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock>
 void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::clear()
 {
-    lock.acquire_write_lock();
+    lock.lock();
     KeyType key;
     while (!cacheContainer_.empty() )
     {
@@ -407,7 +407,7 @@ void MLRUCache<KeyType, ValueType, Hash, ThreadSafeLock>::clear()
         cacheContainer_.pop_front();
         hash_.del(key);
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 }
