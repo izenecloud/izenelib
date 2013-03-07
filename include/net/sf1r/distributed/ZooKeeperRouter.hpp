@@ -135,6 +135,7 @@ private:
     
     /** Resolve to a node in the topology. */
     const Sf1Node& resolve(const std::string collection) const;
+    void updateNodeDataOnTimer(int calltype);
     
 private:
     
@@ -172,8 +173,8 @@ private:
     // The set sequence will determinate the node set to connect to.
     int  set_seq_;
     int  total_set_num_;
-    time_t  last_update_time_;
-    int  waiting_update_cnt_;
+    typedef std::map<std::string, std::pair<time_t, int> > WaitingMapT;
+    WaitingMapT waiting_update_path_;
 };
 
 NS_IZENELIB_SF1R_END

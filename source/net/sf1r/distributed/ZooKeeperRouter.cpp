@@ -16,14 +16,14 @@
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <glog/logging.h>
-
+#include <util/scheduler.h>
 
 NS_IZENELIB_SF1R_BEGIN
 
 using iz::ZooKeeper;
 using std::string;
 using std::vector;
-
+using namespace izenelib::util;
 
 namespace {
 
@@ -37,8 +37,7 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
         const string& hosts, int timeout, const std::string& match_master_name,
         int set_seq, int total_set_num)
     : factory(poolFactory), match_master_name_(match_master_name),
-    set_seq_(set_seq), total_set_num_(total_set_num),
-    last_update_time_(time(NULL)), waiting_update_cnt_(0)
+    set_seq_(set_seq), total_set_num_(total_set_num)
 {
     assert(set_seq_ <= total_set_num_);
     // 0. connect to ZooKeeper
@@ -70,6 +69,7 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     policy.reset(new RoundRobinPolicy(*topology));
     
     LOG(INFO) << "ZooKeeperRouter ready";
+    Scheduler::addJob("UpdateNodeDataOnTimer", 60, 60, boost::bind(&ZooKeeperRouter::updateNodeDataOnTimer, this, _1));
 }
 
 void ZooKeeperRouter::reconnect()
@@ -98,6 +98,8 @@ ZooKeeperRouter::~ZooKeeperRouter() {
         delete i.second;
     }
     
+    Scheduler::removeJob("UpdateNodeDataOnTimer");
+
     LOG(INFO) << "ZooKeeperRouter closed";
 }
 
@@ -240,6 +242,28 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 }
 
 
+void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
+{
+    WriteLockT lock(shared_mutex);
+    LOG(INFO) << "updating SF1 node in timer callback";
+    WaitingMapT::iterator it = waiting_update_path_.begin();
+    while(it != waiting_update_path_.end())
+    {
+        if (it->second.second > 0 && topology->isPresent(it->first))
+        {
+            // update
+            LOG(INFO) << "updating SF1 node in timer : [" << it->first << "]";
+            string data;
+            client->getZNodeData(it->first, data, iz::ZooKeeper::WATCH);
+            LOG(INFO) << "node data: [" << data << "]";
+            topology->updateNode(it->first, data);
+            it->second.second = 0;
+            it->second.first = time(NULL);
+        }
+        ++it;
+    }
+}
+
 void 
 ZooKeeperRouter::updateNodeData(const string& path) {
     UpgradeLockT lock(shared_mutex);
@@ -256,10 +280,17 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     LOG(INFO) << "node data: [" << data << "]";
     
     UpgradeUniqueLockT uniqueLock(lock);
+    WaitingMapT::value_type element(path, std::pair<time_t, int>(time(NULL), 1));
+    std::pair<WaitingMapT::iterator, bool> insert_wait = waiting_update_path_.insert(element);
+    WaitingMapT::mapped_type& cur_wait_info = insert_wait.first->second;
+    if (!insert_wait.second)
+    {
+        cur_wait_info.second += 1;
+    }
     if (data.empty())
     {
-        waiting_update_cnt_ = 0;
-        last_update_time_ = time(NULL);
+        cur_wait_info.second = 0;
+        cur_wait_info.first = time(NULL);
         LOG(INFO) << "update node data is empty, remove it." << path;
         // remove node from topology
         topology->removeNode(path);
@@ -286,14 +317,14 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     }
     else
     {
-        if (waiting_update_cnt_ < 10 && time(NULL) - last_update_time_ < 10)
+        if (cur_wait_info.second < 10 && time(NULL) - cur_wait_info.first < 10)
         {
-            waiting_update_cnt_++;
+            cur_wait_info.second++;
             return;
         }
         topology->updateNode(path, data);
-        waiting_update_cnt_ = 0;
-        last_update_time_ = time(NULL);
+        cur_wait_info.second = 0;
+        cur_wait_info.first = time(NULL);
     }
 }
 
@@ -312,6 +343,8 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     UpgradeUniqueLockT uniqueLock(lock);
     // remove node from topology
     topology->removeNode(path);
+
+    waiting_update_path_.erase(path);
 
 #ifdef ENABLE_ZK_TEST
     if (factory == NULL) { // Should be NULL only in tests
