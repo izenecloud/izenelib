@@ -16,7 +16,8 @@
 #include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <map>
 #include <string>
@@ -100,14 +101,14 @@ public:
      * Get all the nodes from the actual topology.
      * @return A range of nodes.
      */
-    NodeListRange getSf1Nodes() const;
+    //NodeListRange getSf1Nodes() const;
     
     /**
      * Get all the nodes hosting the given collection from the actual topology.
      * @param collection The collection name
      * @return A range of nodes.
      */
-    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
+    //NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
  
 private:
     
@@ -138,9 +139,13 @@ private:
 private:
     
     /// Mutex for topology changes.
-    boost::mutex mutex;
+    boost::shared_mutex shared_mutex;
+    typedef boost::shared_lock<boost::shared_mutex> ReadLockT;
+    typedef boost::unique_lock<boost::shared_mutex> WriteLockT;
+    typedef boost::upgrade_lock<boost::shared_mutex> UpgradeLockT;
+    typedef boost::upgrade_to_unique_lock<boost::shared_mutex> UpgradeUniqueLockT;
     /// Condition variable for connection pool deletion.
-    boost::condition_variable condition;
+    boost::condition_variable_any condition;
     
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;
@@ -167,6 +172,8 @@ private:
     // The set sequence will determinate the node set to connect to.
     int  set_seq_;
     int  total_set_num_;
+    time_t  last_update_time_;
+    int  waiting_update_cnt_;
 };
 
 NS_IZENELIB_SF1R_END
