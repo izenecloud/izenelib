@@ -538,7 +538,9 @@ public:
     void flush()
     {
         if ( !isOpen() ) return;
-        commit();
+        close();
+        open();
+        //commit();
     }
 
     /**
