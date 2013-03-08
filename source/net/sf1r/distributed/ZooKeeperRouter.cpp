@@ -69,7 +69,7 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     policy.reset(new RoundRobinPolicy(*topology));
     
     LOG(INFO) << "ZooKeeperRouter ready";
-    Scheduler::addJob("UpdateNodeDataOnTimer", 60*1000, 60*1000,
+    Scheduler::addJob("UpdateNodeDataOnTimer", 30*1000, 30*1000,
         boost::bind(&ZooKeeperRouter::updateNodeDataOnTimer, this, _1));
 }
 
@@ -250,7 +250,7 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
     WaitingMapT::iterator it = waiting_update_path_.begin();
     while(it != waiting_update_path_.end())
     {
-        if (it->second.second > 0 && topology->isPresent(it->first))
+        if (it->second > 0 && topology->isPresent(it->first))
         {
             // update
             LOG(INFO) << "updating SF1 node in timer : [" << it->first << "]";
@@ -258,8 +258,7 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
             client->getZNodeData(it->first, data, iz::ZooKeeper::WATCH);
             LOG(INFO) << "node data: [" << data << "]";
             topology->updateNode(it->first, data);
-            it->second.second = 0;
-            it->second.first = time(NULL);
+            it->second = 0;
         }
         ++it;
     }
@@ -281,17 +280,16 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     LOG(INFO) << "node data: [" << data << "]";
     
     UpgradeUniqueLockT uniqueLock(lock);
-    WaitingMapT::value_type element(path, std::pair<time_t, int>(time(NULL), 1));
+    WaitingMapT::value_type element(path, 1);
     std::pair<WaitingMapT::iterator, bool> insert_wait = waiting_update_path_.insert(element);
     WaitingMapT::mapped_type& cur_wait_info = insert_wait.first->second;
     if (!insert_wait.second)
     {
-        cur_wait_info.second += 1;
+        cur_wait_info += 1;
     }
     if (data.empty())
     {
-        cur_wait_info.second = 0;
-        cur_wait_info.first = time(NULL);
+        cur_wait_info = 0;
         LOG(INFO) << "update node data is empty, remove it." << path;
         // remove node from topology
         topology->removeNode(path);
@@ -318,14 +316,13 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     }
     else
     {
-        if (cur_wait_info.second < 10 && time(NULL) - cur_wait_info.first < 10)
+        if (cur_wait_info < 10)
         {
-            cur_wait_info.second++;
+            cur_wait_info++;
             return;
         }
         topology->updateNode(path, data);
-        cur_wait_info.second = 0;
-        cur_wait_info.first = time(NULL);
+        cur_wait_info = 0;
     }
 }
 
