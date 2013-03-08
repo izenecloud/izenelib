@@ -173,7 +173,7 @@ private:
     // The set sequence will determinate the node set to connect to.
     int  set_seq_;
     int  total_set_num_;
-    typedef std::map<std::string, std::pair<time_t, int> > WaitingMapT;
+    typedef std::map<std::string, int> WaitingMapT;
     WaitingMapT waiting_update_path_;
 };
 
