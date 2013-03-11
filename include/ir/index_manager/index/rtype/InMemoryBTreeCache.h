@@ -104,10 +104,10 @@ public:
         VectorType item;
         FlagType flag;
 
-        void merge(std::size_t low, std::size_t mid, std::size_t high)
+        void merge(std::size_t low, std::size_t mid, std::size_t high, ValueType& b)
         {
             std::size_t h=low, i=low, j=mid+1;
-            ValueType b(*this);
+            //ValueType b(*this);
             while( h<=mid && j<=high )
             {
                 if(item[h]<=item[j])
@@ -149,14 +149,14 @@ public:
             }
         }
 
-        void merge_sort(std::size_t low, std::size_t high)
+        void merge_sort(std::size_t low, std::size_t high, ValueType& buffer)
         {
             if(low<high)
             {
                 std::size_t mid = (low+high)/2;
-                merge_sort(low, mid);
-                merge_sort(mid+1, high);
-                merge(low, mid, high);
+                merge_sort(low, mid, buffer);
+                merge_sort(mid+1, high, buffer);
+                merge(low, mid, high, buffer);
             }
         }
         ///stable merge sort
@@ -169,7 +169,10 @@ public:
             //{
                 //std::cerr<<item[i]<<","<<flag[i]<<std::endl;
             //}
-            merge_sort(0, size()-1);
+            ValueType buffer;
+            buffer.item.resize(size());
+            buffer.flag.resize(size());
+            merge_sort(0, size()-1, buffer);
             //std::cerr<<"after"<<std::endl;
             //for(uint32_t i=0;i<size();i++)
             //{
