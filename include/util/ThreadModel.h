@@ -12,26 +12,13 @@ NS_IZENELIB_UTIL_BEGIN
 class NullLock
 {
 public:
-    inline int acquire_read_lock()
-    {
-        return 0;
-    }
+    void lock_shared() {}
 
-    inline int release_read_lock()
-    {
-        return 0;
-    }
+    void unlock_shared() {}
 
-    inline int acquire_write_lock()
-    {
-        return 0;
-    }
+    void lock() {}
 
-    inline int release_write_lock()
-    {
-        return 0;
-    }
-
+    void unlock() {}
 };
 
 class ReadWriteLock : private boost::noncopyable
@@ -56,34 +43,30 @@ public:
     /**
      * @ brief Attempts to get the read lock.
      */
-    inline int acquire_read_lock()
+    void lock_shared()
     {
         rwMutex_.lock_shared();
-        return 0;
     }
     /**
      *  @ brief Attempts to get the write lock.
      */
-    inline int acquire_write_lock()
+    void lock()
     {
         rwMutex_.lock();
-        return 0;
     }
     /**
      *  @ brief Attempts to release the  read lock .
      */
-    inline int release_read_lock()
+    void unlock_shared()
     {
         rwMutex_.unlock_shared();
-        return 0;
     }
     /**
      * @ brief Attempts to release the write lock.
      */
-    inline int release_write_lock()
+    void unlock()
     {
         rwMutex_.unlock();
-        return 0;
     }
 };
 
@@ -102,36 +85,33 @@ public:
     /**
      * @ brief Attempts to get the read lock.
      */
-    inline int acquire_read_lock()
+    void lock()
     {
         recurMutex_.lock();
-        return 0;
     }
     /**
      *  @ brief Attempts to get the write lock.
      */
-    inline int acquire_write_lock()
+    void lock_shared()
     {
         recurMutex_.lock();
-        return 0;
     }
     /**
      *  @ brief Attempts to release the  read lock .
      */
-    inline int release_read_lock()
+    void unlock()
     {
         recurMutex_.unlock();
-        return 0;
     }
     /**
      * @ brief Attempts to release the write lock.
      */
-    inline int release_write_lock()
+    void unlock_shared()
     {
         recurMutex_.unlock();
-        return 0;
     }
 };
+
 
 template<class LockType>
 class ScopedReadLock
@@ -140,11 +120,11 @@ class ScopedReadLock
 public:
     explicit ScopedReadLock( LockType& lock):lock_(lock)
     {
-        lock_.acquire_read_lock();
+        lock_.lock_shared();
     }
     ~ScopedReadLock()
     {
-        lock_.release_read_lock();
+        lock_.unlock_shared();
     }
 private:
     DISALLOW_COPY_AND_ASSIGN(ScopedReadLock);
@@ -157,11 +137,11 @@ class ScopedWriteLock
 public:
     explicit ScopedWriteLock( LockType& lock):lock_(lock)
     {
-        lock_.acquire_write_lock();
+        lock_.lock();
     }
     ~ScopedWriteLock()
     {
-        lock_.release_write_lock();
+        lock_.unlock();
     }
 private:
     DISALLOW_COPY_AND_ASSIGN(ScopedWriteLock);

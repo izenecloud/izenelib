@@ -39,8 +39,8 @@ public:
     HDBCursor_(HdbType& hdb)
     : hdb_(hdb)
     {
-        hdb_.diskSdbLock_.acquire_read_lock();
-        hdb_.memorySdbLock_.acquire_read_lock();
+        hdb_.diskSdbLock_.lock_shared();
+        hdb_.memorySdbLock_.lock_shared();
 
         creationStamp_ = hdb_.lastModificationStamp_;
         std::vector<SdbType*> sdbList;
@@ -52,8 +52,8 @@ public:
         sdbList[hdb.diskSdbList_.size()] = &(hdb.memorySdb_);
         cursor_.init(sdbList);
 
-        hdb_.memorySdbLock_.release_read_lock();
-        hdb_.diskSdbLock_.release_read_lock();
+        hdb_.memorySdbLock_.unlock_shared();
+        hdb_.diskSdbLock_.unlock_shared();
     }
 
     /**
@@ -78,15 +78,15 @@ public:
      * @brief Move to previous element.
      */
     bool prev() {
-        hdb_.diskSdbLock_.acquire_read_lock();
-        hdb_.memorySdbLock_.acquire_read_lock();
+        hdb_.diskSdbLock_.lock_shared();
+        hdb_.memorySdbLock_.lock_shared();
         if(hdb_.lastModificationStamp_ != creationStamp_) {
-            hdb_.diskSdbLock_.release_read_lock();
+            hdb_.diskSdbLock_.unlock_shared();
             throw std::runtime_error("concurrent modification");
         }
         bool ret = cursor_.prev();
-        hdb_.memorySdbLock_.release_read_lock();
-        hdb_.diskSdbLock_.release_read_lock();
+        hdb_.memorySdbLock_.unlock_shared();
+        hdb_.diskSdbLock_.unlock_shared();
         return ret;
     }
 
@@ -94,15 +94,15 @@ public:
      * @brief Move to next element.
      */
     bool next() {
-        hdb_.diskSdbLock_.acquire_read_lock();
-        hdb_.memorySdbLock_.acquire_read_lock();
+        hdb_.diskSdbLock_.lock_shared();
+        hdb_.memorySdbLock_.lock_shared();
         if(hdb_.lastModificationStamp_ != creationStamp_) {
-            hdb_.diskSdbLock_.release_read_lock();
+            hdb_.diskSdbLock_.unlock_shared();
             throw std::runtime_error("concurrent modification");
         }
         bool ret = cursor_.next();
-        hdb_.memorySdbLock_.release_read_lock();
-        hdb_.diskSdbLock_.release_read_lock();
+        hdb_.memorySdbLock_.unlock_shared();
+        hdb_.diskSdbLock_.unlock_shared();
         return ret;
     }
 
@@ -111,15 +111,15 @@ public:
      */
     bool seek(const KeyType& target)
     {
-        hdb_.diskSdbLock_.acquire_read_lock();
-        hdb_.memorySdbLock_.acquire_read_lock();
+        hdb_.diskSdbLock_.lock_shared();
+        hdb_.memorySdbLock_.lock_shared();
         if(hdb_.lastModificationStamp_ != creationStamp_) {
-            hdb_.diskSdbLock_.release_read_lock();
+            hdb_.diskSdbLock_.unlock_shared();
             throw std::runtime_error("concurrent modification");
         }
         bool ret = cursor_.seek(target);
-        hdb_.memorySdbLock_.release_read_lock();
-        hdb_.diskSdbLock_.release_read_lock();
+        hdb_.memorySdbLock_.unlock_shared();
+        hdb_.diskSdbLock_.unlock_shared();
         return ret;
     }
 

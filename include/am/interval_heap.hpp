@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <vector>
 
-
 NS_IZENELIB_AM_BEGIN
 
 template <class T, class Compare = std::less<T> >

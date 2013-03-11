@@ -19,15 +19,8 @@
 #include <boost/type_traits.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/utility.hpp>
+#include <boost/assert.hpp>
 
-#ifndef ASSERT
-#  include <cassert>
-#  ifdef _DEBUG
-#    define ASSERT(x) assert(x)
-#  else
-#    define ASSERT(x) do {} while(0)
-#  endif
-#endif
 
 namespace sti
 {
@@ -500,7 +493,7 @@ namespace sti
                     , left(0)
                 {}
 
-                bool full() const       { ASSERT(count <= BN); return count == BN; }
+                bool full() const       { BOOST_ASSERT(count <= BN); return count == BN; }
                 int size() const        { return count; }
                 bool empty() const      { return count == 0; }
 
@@ -631,7 +624,7 @@ namespace sti
                     , _dummy(d)
                     , _revision(_dummy->revision)
                 {
-                    ASSERT(_idx == 0 || _idx < _bnode->count);
+                    BOOST_ASSERT(_idx == 0 || _idx < _bnode->count);
                 }
 
                 V& dereference() const
@@ -664,7 +657,7 @@ namespace sti
                     else
                     {
                         _bnode = _bnode->prev();
-                        ASSERT(_bnode);
+                        BOOST_ASSERT(_bnode);
                         _idx = (static_cast<base_bnode_ptr>(_bnode) == _dummy) 
                                       ? 0 
                                       : _bnode->count - 1;
@@ -715,19 +708,19 @@ namespace sti
 
             const KeyWrapperType& last(inner_node_pointer p) const
             {
-                ASSERT(p->count > 0);
+                BOOST_ASSERT(p->count > 0);
                 return p->get_node(p->count - 1)->key();
             }
             const typename LeafNode::KeyHolder& last(leaf_pointer p) const
             {
-                ASSERT(p->count > 0);
+                BOOST_ASSERT(p->count > 0);
                 return p->get_node(p->count - 1)->key();
             }
 
             template<class N>
             void erase_item(TBNode<N>* p, int i)
             {
-                ASSERT(i < p->count);
+                BOOST_ASSERT(i < p->count);
                 typedef typename Allocator::template rebind<N>::other Alloc;
                 typename Alloc::pointer node = p->get_node(i);
                 Alloc(*this).destroy(node);
@@ -883,7 +876,7 @@ namespace sti
 
             leaf_pointer last_bnode() const
             {
-                ASSERT(!empty());
+                BOOST_ASSERT(!empty());
                 return dummy_node()->prev();
             }
 
@@ -1107,7 +1100,7 @@ namespace sti
 
             void do_combine(inner_node_pointer parent, int idx)
             {
-                ASSERT(idx < parent->size() - 1);
+                BOOST_ASSERT(idx < parent->size() - 1);
                 int node_count1 = (*parent)[idx].down->size();
                 int node_count2 = (*parent)[idx+1].down->size();
 
@@ -1120,7 +1113,7 @@ namespace sti
             }
             int combine_nodes(inner_node_pointer parent, int idx)
             {
-                ASSERT(parent->size() > 1);
+                BOOST_ASSERT(parent->size() > 1);
                 int node_idx;
                 int next_sz = BN + 1;
                 int prev_sz = BN + 1;
@@ -1133,7 +1126,7 @@ namespace sti
                 node_idx = (next_sz < prev_sz) 
                                     ? idx
                                     : idx - 1;
-                ASSERT(node_idx >= 0 && (node_idx < parent->size() - 1));
+                BOOST_ASSERT(node_idx >= 0 && (node_idx < parent->size() - 1));
                 do_combine(parent, node_idx);
 
                 VALIDATE(parent);
@@ -1177,7 +1170,7 @@ namespace sti
 
                         inner_node_pointer node = static_cast<inner_node_pointer>(x);
                         int i = node->find(k);
-                        ASSERT(i < node->size());
+                        BOOST_ASSERT(i < node->size());
                         VALIDATE(node);
 
                         pointer down = (*node)[i].down;
@@ -1232,7 +1225,7 @@ namespace sti
             {
                 pointer next_node;
                 Key l;
-                ASSERT((*parent)[node_idx].down == node);
+                BOOST_ASSERT((*parent)[node_idx].down == node);
                 if (node->is_leaf())
                 {
                     leaf_pointer leaf = static_cast<leaf_pointer>(node);
@@ -1347,7 +1340,7 @@ namespace sti
                     // we found the gap to drop to
                     if (x->is_leaf())
                     {
-                        ASSERT(!x->full());
+                        BOOST_ASSERT(!x->full());
                         // We're at the bottom
                         leaf_pointer p = static_cast<leaf_pointer>(x);
                         VALIDATE(p);
@@ -1463,7 +1456,7 @@ namespace sti
             {
 
                 VALIDATE(it);
-                ASSERT(it != end());
+                BOOST_ASSERT(it != end());
 
                 _dummy.revision++;
                 // We start at the _bottom_
@@ -1481,22 +1474,22 @@ namespace sti
                 inner_node_pointer p = n->parent;
                 if (n->size() < BN/2 && p != _head )
                 {
-                    ASSERT(p->size() > 1);
+                    BOOST_ASSERT(p->size() > 1);
                     // Need to fix the tree
                     // We do the first iteration of the while loop first
                     // so we can fix the iterator
 
                     // Search for element in its parent's array.
                     int i = p->find(k);
-                    ASSERT(i < p->size());
-                    ASSERT((*p)[i].down == n);
+                    BOOST_ASSERT(i < p->size());
+                    BOOST_ASSERT((*p)[i].down == n);
 
                     int prev_count = 0;
                     if (i > 0)
                         prev_count = (*p)[i - 1].down->size();
                     int node_idx = combine_nodes(p, i);
-                    ASSERT(node_idx <= i && (node_idx + 1 >= i));
-                    ASSERT(node_idx >= 0);
+                    BOOST_ASSERT(node_idx <= i && (node_idx + 1 >= i));
+                    BOOST_ASSERT(node_idx >= 0);
                     if (node_idx < i)
                         pos += prev_count;
 
@@ -1514,7 +1507,7 @@ namespace sti
 
                         // Search for 'd' in its parent's array.
                         int i = p->find(k);
-                        ASSERT(i < p->size());
+                        BOOST_ASSERT(i < p->size());
 
                         combine_nodes(p, i);
                         VALIDATE(p);
@@ -1525,7 +1518,7 @@ namespace sti
 
                     if (p == _head && d->size() == 1)
                     {
-                        ASSERT(!d->is_leaf());
+                        BOOST_ASSERT(!d->is_leaf());
                         // we can reduce height
                         delete_node(_head);
                         _head = static_cast<inner_node_pointer>(d);
@@ -1541,18 +1534,18 @@ namespace sti
 
                     if (pos >= n->size() && n != dummy_node())
                     {
-                        ASSERT(pos == n->size());
+                        BOOST_ASSERT(pos == n->size());
                         pos -= n->size();
                         n = n->next();
 
 #ifdef _DEBUG
-                        ASSERT(n == dummy_node() || !less((*n)[pos].key(), k));
+                        BOOST_ASSERT(n == dummy_node() || !less((*n)[pos].key(), k));
                         if (pos > 0)
-                            ASSERT(n != dummy_node() && less((*n)[pos-1].key(), k));
+                            BOOST_ASSERT(n != dummy_node() && less((*n)[pos-1].key(), k));
                         else
                         {
                             leaf_pointer pr = n->prev();
-                            ASSERT(pr== dummy_node() || less((*pr)[pr->size() - 1].key(), k));
+                            BOOST_ASSERT(pr== dummy_node() || less((*pr)[pr->size() - 1].key(), k));
                         }
 #endif
                     }
@@ -1588,7 +1581,7 @@ namespace sti
                         VALIDATE(leaf);
 
                         int i = leaf->find(key);
-                        ASSERT(i >= 0 && i <= leaf->size());
+                        BOOST_ASSERT(i >= 0 && i <= leaf->size());
 
                         if (i < leaf->size() && equal((*leaf)[i].key(), key))
                         {
@@ -1606,7 +1599,7 @@ namespace sti
                     // Go over the current BNode
                     int i = node->find(key);
 
-                    ASSERT(i < node->size());
+                    BOOST_ASSERT(i < node->size());
 
                     pointer down = (*node)[i].down;
 
@@ -1622,7 +1615,7 @@ namespace sti
                             if (less((*node)[i].key(), key))
                                 ++i;
 
-                            ASSERT(i < node->size());
+                            BOOST_ASSERT(i < node->size());
 
                             down = (*node)[i].down;
 
