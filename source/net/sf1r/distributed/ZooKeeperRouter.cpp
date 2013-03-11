@@ -266,20 +266,22 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 
 void 
 ZooKeeperRouter::updateNodeData(const string& path) {
-    UpgradeLockT lock(shared_mutex);
-
-    if (not topology->isPresent(path)) {
-        LOG(INFO) << "Node not in topology, skipping";
-        return;
-    }
-    
-    LOG(INFO) << "updating SF1 node: [" << path << "]";
-    
     string data;
-    client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
-    LOG(INFO) << "node data: [" << data << "]";
-    
-    UpgradeUniqueLockT uniqueLock(lock);
+    {
+	    ReadLockT lock(shared_mutex);
+
+	    if (not topology->isPresent(path)) {
+		    LOG(INFO) << "Node not in topology, skipping";
+		    return;
+	    }
+
+	    LOG(INFO) << "updating SF1 node: [" << path << "]";
+
+	    client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
+	    LOG(INFO) << "node data: [" << data << "]";
+
+    }
+    WriteLockT rwlock(shared_mutex);
     WaitingMapT::value_type element(path, 1);
     std::pair<WaitingMapT::iterator, bool> insert_wait = waiting_update_path_.insert(element);
     WaitingMapT::mapped_type& cur_wait_info = insert_wait.first->second;
@@ -308,7 +310,7 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 
         while (pool->isBusy()) {
             DLOG(INFO) << "pool is currently in use, waiting";
-            condition.wait(lock);
+            condition.wait(rwlock);
         }
         DLOG(INFO) << "removing pool";
         CHECK_EQ(1, pools.erase(path));
@@ -329,16 +331,18 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 
 void
 ZooKeeperRouter::removeSf1Node(const string& path) {
-    UpgradeLockT lock(shared_mutex);
-    
-    if (not topology->isPresent(path)) {
-        LOG(INFO) << "Node not in topology, skipping";
-        return;
-    }
+	{
+		ReadLockT lock(shared_mutex);
+
+		if (not topology->isPresent(path)) {
+			LOG(INFO) << "Node not in topology, skipping";
+			return;
+		}
+	}
     
     LOG(INFO) << "removing SF1 node: [" << path << "]";
     
-    UpgradeUniqueLockT uniqueLock(lock);
+    WriteLockT rwlock(shared_mutex);
     // remove node from topology
     topology->removeNode(path);
 
@@ -359,7 +363,7 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     
     while (pool->isBusy()) {
         DLOG(INFO) << "pool is currently in use, waiting";
-        condition.wait(lock);
+        condition.wait(rwlock);
     }
     DLOG(INFO) << "removing pool";
     CHECK_EQ(1, pools.erase(path));
