@@ -301,21 +301,21 @@ inline bool OldUniqueIDGenerator<NameString, NameID,
         NameID& nameID,
         bool insert)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     // If name string is found, return the id.
     if (bloomFilter_.Get(nameString))
     {
         if (idFinder_.get(nameString, nameID))
         {
-            mutex_.release_write_lock();
+            mutex_.unlock();
             return true;
         }
     }// end - if
 
     if (!insert)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         return false;
     }
 
@@ -326,13 +326,13 @@ inline bool OldUniqueIDGenerator<NameString, NameID,
     // check correctness of input nameID
     if (newID_> maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     bloomFilter_.Insert(nameString);
     idFinder_.insert(nameString, nameID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
     return false;
 } // end - get()
 
@@ -343,7 +343,7 @@ inline void OldUniqueIDGenerator<NameString, NameID,
         const NameString& nameString,
         NameID& updatedID)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     // Because there's no name string in idFinder, create new id according to the string.
     updatedID = newID_;
@@ -352,13 +352,13 @@ inline void OldUniqueIDGenerator<NameString, NameID,
     // check correctness of input nameID
     if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     bloomFilter_.Insert(nameString);
     idFinder_.update(nameString, updatedID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
 } // end - update()
 
 template <
@@ -532,20 +532,20 @@ inline bool UniqueIDGenerator<NameString, NameID,
         NameID& nameID,
         bool insert)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     nameID = fujimap_.getInteger(nameString);
 
     // If name string is found, return the id.
     if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         return true;
     }
 
     if (!insert)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         return false;
     }
 
@@ -554,12 +554,12 @@ inline bool UniqueIDGenerator<NameString, NameID,
     // check correctness of input nameID
     if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     fujimap_.setInteger(nameString, nameID, true);
-    mutex_.release_write_lock();
+    mutex_.unlock();
     return false;
 } // end - get()
 
@@ -570,19 +570,19 @@ inline void UniqueIDGenerator<NameString, NameID,
         const NameString& nameString,
         NameID& updatedID)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     updatedID = newID_++;
 
     // check correctness of input nameID
     if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     fujimap_.setInteger(nameString, updatedID, true);
-    mutex_.release_write_lock();
+    mutex_.unlock();
 } // end - update()
 
 }

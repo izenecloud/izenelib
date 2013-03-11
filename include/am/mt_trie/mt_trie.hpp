@@ -378,11 +378,11 @@ protected:
             trie.close();
             l1Trie.close();
 
-            printLock_.acquire_write_lock();
+            printLock_.lock();
             processedPartitions_ ++;
             std::cout << "\r" << logHead() << "Build partitions, progress ["
                 << (100*processedPartitions_)/partitionNum_ << "%]" << std::flush;
-            printLock_.release_write_lock();
+            printLock_.unlock();
 
             partitionId += threadNum_;
         }

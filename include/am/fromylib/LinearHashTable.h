@@ -115,9 +115,9 @@ public:
 		return ((LinearHashTable*)this)->get_current_items();
 	}
 	int get_current_items() {
-		lock.acquire_read_lock();
+		lock.lock_shared();
 		int currentItems = keycount;
-		lock.release_read_lock();
+		lock.unlock_shared();
 		return currentItems;
 	}
 	int num_buckets() const {
@@ -404,20 +404,20 @@ template <typename KeyType, typename ValueType, typename LockType> void LinearHa
 template <typename KeyType, typename ValueType, typename LockType> ValueType* LinearHashTable<
 		KeyType, ValueType, LockType>::find(const KeyType& key) {
 	// first requests the read lock
-	lock.acquire_read_lock();
+	lock.lock_shared();
 	int address = hash(key);
 	LHTElem<DataType<KeyType,ValueType> >* elem =
 			directory[address/IZENE_SEGMENT_SIZE]->seg[address % IZENE_SEGMENT_SIZE]; // first on chain
 	while (elem != NULL) {
 		if (key == elem->data.get_key()) {// found!
 			// release the read lock
-			lock.release_read_lock();
+			lock.unlock_shared();
 			return (ValueType*) &elem->data.get_value();
 		} else
 			elem = elem->next;
 	}
 	// release the read lock
-	lock.release_read_lock();
+	lock.unlock_shared();
 	// not found
 	return NULL;
 }
@@ -441,7 +441,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 template <typename KeyType, typename ValueType, typename LockType> bool LinearHashTable<
 		KeyType, ValueType, LockType>::insert(const DataType<KeyType,ValueType> & elem) {
 	// first requests the write lock
-	lock.acquire_write_lock();
+	lock.lock();
 	if (maxloadfctr * currentsize <= keycount)
 		expand_table(); // due for expanding table
 
@@ -456,14 +456,14 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 		while (e->next != NULL) {
 			if (e->data.get_key() == key) {// duplicate data
 				// release the write lock
-				lock.release_write_lock();
+				lock.unlock();
 				return false;
 			}
 			e = e->next; // go to the end of the chain
 		}
 		if (e->data.get_key() == key) {
 			// release the write lock
-			lock.release_write_lock();
+			lock.unlock();
 			return false;
 		}
 		e->next = new LHTElem<DataType<KeyType,ValueType> >(elem);
@@ -471,7 +471,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 
 	keycount++; // increment key count by one.
 	// release the write lock
-	lock.release_write_lock();
+	lock.unlock();
 	return true;
 }
 
@@ -485,7 +485,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 template <typename KeyType, typename ValueType, typename LockType> bool LinearHashTable<
 		KeyType, ValueType, LockType>::del(const KeyType& key) {
 	// first requests the write lock
-	lock.acquire_write_lock();
+	lock.lock();
 	if (minloadfctr * currentsize > keycount)
 		contract_table();
 
@@ -505,7 +505,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 			delete elem;
 			keycount--;
 			// release the write lock
-			lock.release_write_lock();
+			lock.unlock();
 			return true;
 		} else {
 			prev = elem;
@@ -513,7 +513,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 		}
 	}
 	// release the write lock
-	lock.release_write_lock();
+	lock.unlock();
 	// not found
 	return false;
 }

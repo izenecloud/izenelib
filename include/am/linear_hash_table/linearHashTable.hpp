@@ -412,7 +412,7 @@ protected:
   bool insert(const LHTElem& elem)
   {
     // first requests the write lock
-   	locker_.acquire_write_lock();
+   	locker_.lock();
     if (maxloadfctr_ * currentsize_ <= keycount_)
       expand_table(); // due for expanding table
 
@@ -427,14 +427,14 @@ protected:
       while (e->pNext_ != NULL) {
         if (compare(e->key_, key)==0) {// duplicate data
           // release the write lock
-          locker_.release_write_lock();
+          locker_.unlock();
           return false;
         }
         e = e->pNext_; // go to the end of the chain
       }
       if (compare(e->key_, key)==0) {
         // release the write lock
-        locker_.release_write_lock();
+        locker_.unlock();
         return false;
       }
       e->pNext_ = BOOST_NEW(alloc_, LHTElem)(elem);//new LHTElem(elem);
@@ -442,7 +442,7 @@ protected:
 
     keycount_++; // increment key count by one.
     // release the write lock
-    locker_.release_write_lock();
+    locker_.unlock();
     return true;
   }
   
@@ -492,7 +492,7 @@ public:
   }
   
   int get_current_items() {
-    locker_.acquire_read_lock();
+    locker_.lock_shared();
     int currentItems = keycount_;
     locker_.unlock();
     return currentItems;
@@ -504,14 +504,14 @@ public:
 
   virtual ValueType* find(const KeyType& key)
   {
-    locker_.acquire_read_lock();
+    locker_.lock_shared();
     int address = hash(key);
     LHTElem* elem =
       pDirectory_[address/SEGMENT_SIZE]->pSeg_[address % SEGMENT_SIZE]; // first on chain
     while (elem != NULL) {
       if (compare(key, elem->key_)==0) {// found!
         // release the read lock
-        locker_.release_read_lock();
+        locker_.unlock_shared();
    
         //      IF_DLOG(compare(key, elem->key_)==0)<<"compare(key, elem->key_)==0";
            
@@ -520,7 +520,7 @@ public:
         elem = elem->pNext_;
     }
     // release the read lock
-    locker_.release_read_lock();
+    locker_.unlock_shared();
     // not found
     return NULL;
   }
@@ -544,7 +544,7 @@ public:
 
   virtual bool update(const KeyType& key, const ValueType& data)
   {
-    locker_.acquire_write_lock();
+    locker_.lock();
     bool r = false;
     
     int address = hash(key);
@@ -560,7 +560,7 @@ public:
         elem = elem->pNext_;
     }
     // release the read lock
-    locker_.release_write_lock();
+    locker_.unlock();
     // not found
 
        
@@ -578,7 +578,7 @@ public:
   virtual bool del(const KeyType& key)
   {
     // first requests the write lock
-    locker_.acquire_write_lock();
+    locker_.lock();
     if (minloadfctr_ * currentsize_ > keycount_)
       contract_table();
 
@@ -598,7 +598,7 @@ public:
         elem = NULL;//delete elem;
         keycount_--;
         // release the write lock
-        locker_.release_write_lock();
+        locker_.unlock();
         return true;
       } else {
         prev = elem;
@@ -606,7 +606,7 @@ public:
       }
     }
     // release the write lock
-    locker_.release_write_lock();
+    locker_.unlock();
     // not found
     return false;
   }

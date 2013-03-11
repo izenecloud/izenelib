@@ -28,7 +28,7 @@ static string indexFile = "mfcache_index.dat";
 
 static int dumpOption = 0;
 
-//Use YString-YString pair for testing. 
+//Use YString-YString pair for testing.
 typedef string Key;
 typedef izenelib::am::NullType Value;
 
@@ -98,38 +98,6 @@ static int sum =0;
 static int hit =0;
 static time_t start;
 
-//Top-level 
-template<typename T> void run(T& cm) {
-
-	cout<<"Testing getValueWithInsert()"<<endl;
-	run_getValueWithInsert(cm);
-
-	cout<<"Ratio/2 Testing getValueWithInsert()"<<endl;
-	cm.setRatio(ratio/2);
-	run_getValueWithInsert(cm);
-
-	cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
-	cm.setCacheSize(cacheSize*2);
-	run_getValueWithInsert(cm);
-
-	cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
-	cm.setCacheSize(cacheSize/2);
-	run_getValueWithInsert(cm);
-
-	cout<<"Testing getValue()"<<endl;
-	run_getValue(cm);
-
-	cout<<"Testing insertValue()"<<endl;
-	run_insertValue(cm);
-
-	cout<<"Testing flush()"<<endl;
-	run_Update(cm);
-
-	cout<<"Testing flush()"<<endl;
-	run_flush(cm);
-
-}
-
 // test getValueWithInsert();
 template<typename T> void run_getValueWithInsert(T& cm) {
 	sum =0;
@@ -157,7 +125,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 	ProcMemInfo::getProcMemInfo(vm, rss);
 
-	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
 	cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 	//sleep(5);
 
@@ -185,7 +153,7 @@ template<typename T> void run_insertValue(T& cm) {
 	Value val;
 	while (inf>>ystr) {
 		sum++;
-		cm.insertValue(ystr, val);			
+		cm.insertValue(ystr, val);
 		if (trace) {
 			cout<< "Insert: value="<<ystr<<endl;
 			//cm.printKeyInfoMap();
@@ -201,7 +169,7 @@ template<typename T> void run_insertValue(T& cm) {
 
 	ProcMemInfo::getProcMemInfo(vm, rss);
 
-	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
 	cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 	//sleep(5);
 
@@ -218,7 +186,7 @@ template<typename T> void run_insertValue(T& cm) {
 
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_getValue(T& cm) {
 	sum =0;
 	hit =0;
@@ -254,7 +222,7 @@ template<typename T> void run_Update(T& cm) {
 	string ystr;
 	while (inf>>ystr) {
 		sum++;
-		//cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;					
+		//cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;
 		cm.setTimeToLive(ystr, 1);
 		if (0) {
 			cout<< "update: value="<<ystr<<endl;
@@ -270,7 +238,7 @@ template<typename T> void run_Update(T& cm) {
 	cout<<"eclipse:"<<time(0)- start<<endl;
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_flush(T& cm) {
 
 	ifstream inf(inputFile.c_str());
@@ -286,6 +254,38 @@ template<typename T> void run_flush(T& cm) {
 		}
 	}
 	cout<<"eclipse:"<<time(0)- start<<endl;
+}
+
+//Top-level
+template<typename T> void run(T& cm) {
+
+	cout<<"Testing getValueWithInsert()"<<endl;
+	run_getValueWithInsert(cm);
+
+	cout<<"Ratio/2 Testing getValueWithInsert()"<<endl;
+	cm.setRatio(ratio/2);
+	run_getValueWithInsert(cm);
+
+	cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
+	cm.setCacheSize(cacheSize*2);
+	run_getValueWithInsert(cm);
+
+	cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
+	cm.setCacheSize(cacheSize/2);
+	run_getValueWithInsert(cm);
+
+	cout<<"Testing getValue()"<<endl;
+	run_getValue(cm);
+
+	cout<<"Testing insertValue()"<<endl;
+	run_insertValue(cm);
+
+	cout<<"Testing flush()"<<endl;
+	run_Update(cm);
+
+	cout<<"Testing flush()"<<endl;
+	run_flush(cm);
+
 }
 
 //int main(int argc, char *argv[])
@@ -316,13 +316,13 @@ BOOST_AUTO_TEST_CASE(t_mfcache)
 				if (m == "lin")
 					hash1 = LIN;
 				else {
-				}//use default 				
+				}//use default
 			} else if (str == "secondhash") {
 				string m = *argv++;
 				if (m == "ext")
 					hash2 = EXT;
 				else {
-				}//use default 		
+				}//use default
 
 			} else if (str == "replace") {
 				string m = *argv++;
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(t_mfcache)
 				else if (m == "lfu")
 					nReplace = LFU1;
 				else {
-				}// use default lru.				
+				}// use default lru.
 			} else if (str == "index") {
 				indexFile = *argv++;
 			} else if (str == "dump") {

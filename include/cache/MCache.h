@@ -83,7 +83,7 @@ public:
 
     bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
     {
-        lock.acquire_write_lock();
+        lock.lock();
         KeyType key = dat.get_key();
         if (hash_.update(dat))
         {
@@ -97,7 +97,7 @@ public:
             }
         }
         return true;
-        lock.release_write_lock();
+        lock.unlock();
 
     }
     bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
@@ -127,16 +127,16 @@ public:
      */
     void setTimeToLive(const KeyType &key, unsigned int lifeTime)
     {
-        lock.acquire_write_lock();
+        lock.lock();
         cacheContainer_.setTimeToLive(key, lifeTime);
-        lock.release_write_lock();
+        lock.unlock();
     }
 
     void UpdateKeyInfoMap()
     {
-        lock.acquire_write_lock();
+        lock.lock();
         cacheContainer_.UpdateKeyInfoMap();
-        lock.release_write_lock();
+        lock.unlock();
     }
     void flush(const KeyType& key);
     void flush();
@@ -259,7 +259,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, c
 bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValue(
         const KeyType& key, ValueType& value)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     ++nTotal_;
     ValueType* pd = hash_.find(key);
     if (pd)
@@ -268,19 +268,19 @@ bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValue(
     {
         cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
         ++nHit_;
-        lock.release_write_lock();
+        lock.unlock();
         return true;
     }
     else if (isArchive_ && hash_.find(key))
     {
         cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
         ++nHit_;
-        lock.release_write_lock();
+        lock.unlock();
         return true;
     }
     else
     {
-        lock.release_write_lock();
+        lock.unlock();
         return false;
     }
 }
@@ -294,7 +294,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, c
 void MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::insertValue(
         const DataType<KeyType, ValueType>& dat)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     KeyType key = dat.get_key();
     if (hasKey(key))
         return;
@@ -322,7 +322,7 @@ void MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::insertValue(
             //assert(false);
         }
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -363,9 +363,9 @@ bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::getValueWith
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash, class LockType>
 bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::hasKey(const KeyType& key)
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     bool isFound = cacheContainer_.find(key) || hash_.find(key);
-    lock.release_read_lock();
+    lock.unlock_shared();
     return isFound;
 }
 
@@ -376,9 +376,9 @@ bool MCache<KeyType, ValueType, ReplacementPolicy, Hash, LockType>::hasKey(const
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 int MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::numItems()
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     int num = hash_.numItems();
-    lock.release_read_lock();
+    lock.unlock_shared();
     return num;
 }
 
@@ -388,10 +388,10 @@ int MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::numItems()
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::displayHash()
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     std::cout << "MCache_hash numItems:" << hash_.numItems() << std::endl;
     cacheContainer_.display();
-    lock.release_read_lock();
+    lock.unlock_shared();
 }
 
 /**
@@ -401,9 +401,9 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::displayHash()
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::printKeyInfoMap()
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     cacheContainer_.printKeyInfoMap();
-    lock.release_read_lock();
+    lock.unlock_shared();
 }
 
 /**
@@ -439,10 +439,10 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::evict(unsigne
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush(const KeyType& key)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     if (hash_.del(key))
         cacheContainer_.del(key);
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -453,7 +453,7 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush(const K
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush()
 {
-    lock.acquire_write_lock();
+    lock.lock();
     UpdateKeyInfoMap();
     MIT it = cacheContainer_.begin();
     while (it != cacheContainer_.end())
@@ -464,7 +464,7 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush()
         if (cacheContainer_.isOutOfDate(key))
             flush(key);
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -475,7 +475,7 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::flush()
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash, class LockType>
 void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::clear()
 {
-    lock.acquire_write_lock();
+    lock.lock();
     UpdateKeyInfoMap();
     MIT it = cacheContainer_.begin();
     while (it != cacheContainer_.end())
@@ -484,7 +484,7 @@ void MCache<KeyType, DataType, ReplacementPolicy, Hash, LockType>::clear()
         it = cacheContainer_.next(it);
         flush(it1->first.key);
     }
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 }

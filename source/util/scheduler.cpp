@@ -81,8 +81,6 @@ public:
                 delete job->timer;
                 job->timer = NULL;
             }
-            while (job->immediatly_running)
-                cond_.wait(l);
         }
         jobs_.clear();
     }
@@ -134,15 +132,18 @@ public:
 
     bool runJobImmediatly(const std::string& name, int calltype, bool sync)
     {
-        boost::mutex::scoped_lock l(mutex_);
-        std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.find(name);
-        if (itr == jobs_.end())
+        boost::shared_ptr<ScheduleOP> job;
         {
-            std::cout << "schedule job not found:" << name << std::endl;
-            return false;
+            boost::mutex::scoped_lock l(mutex_);
+            std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.find(name);
+            if (itr == jobs_.end())
+            {
+                std::cout << "schedule job not found:" << name << std::endl;
+                return false;
+            }
+            job = itr->second;
         }
-        boost::shared_ptr<ScheduleOP> job = itr->second;
-        if (job && job->timer)
+        if (job)
         {
             int retry = 5;
             while (job->running || job->immediatly_running)
@@ -160,30 +161,25 @@ public:
                     return false;
                 job->immediatly_running = true;
             }
-            mutex_.unlock();
             try{
                 boost::scoped_ptr<boost::thread> run_thread;
                 run_thread.reset(new boost::thread(boost::bind(job->callback, calltype)));
                 run_thread->join();
             } catch(const std::exception& e) {
                 std::cout << "run job exception: " << e.what() << std::endl;
-                mutex_.lock();
                 {
                     boost::mutex::scoped_lock job_guard(job->jobmutex);
                     job->immediatly_running = false;
                 }
-                cond_.notify_all();
                 throw e;
             }
-            mutex_.lock();
             {
                 boost::mutex::scoped_lock job_guard(job->jobmutex);
                 job->immediatly_running = false;
             }
-            cond_.notify_all();
             return true;
         }
-        std::cout << "schedule job timer null:" << name << std::endl;
+        std::cout << "schedule job null:" << name << std::endl;
         return false;
     }
 
@@ -204,8 +200,6 @@ public:
                 delete job->timer;
                 job->timer = NULL;
             }
-            while (job->immediatly_running)
-                cond_.wait(l);
             jobs_.erase(itr);
             return true;
         }

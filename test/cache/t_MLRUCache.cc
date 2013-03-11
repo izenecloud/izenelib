@@ -60,41 +60,9 @@ static int sum =0;
 static int hit =0;
 static time_t start;
 
-//Top-level 
-template<typename T> void run(T& cm) {
-	cout<<"Testing getValueWithInsert()"<<endl;
-	run_getValueWithInsert(cm);
-
-	cout<<"Testing insertValue()"<<endl;
-	run_insertValue(cm);
-
-	cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
-	cm.setCacheSize(cacheSize*2);
-	run_getValueWithInsert(cm);
-
-	cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
-	cm.setCacheSize(cacheSize/2);
-	run_getValueWithInsert(cm);
-
-	cout<<"Testing getValue()"<<endl;
-	run_getValue(cm);
-
-	cout<<"Testing insertValue()"<<endl;
-	run_insertValue(cm);
-
-	cout<<"Testing updateValue()"<<endl;
-	run_updateValue(cm);
-
-	//cout<<"Testing update"<<endl;
-	//run_Update(cm);
-
-	cout<<"Testing flush(key)"<<endl;
-	run_flush(cm);
-}
-
 // test getValueWithInsert();
 template<typename T> void run_getValueWithInsert(T& cm) {
-	//		ofstream outf("unique.out");		
+	//		ofstream outf("unique.out");
 	sum =0;
 	hit =0;
 	clock_t t1 = clock();
@@ -124,7 +92,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 	ProcMemInfo::getProcMemInfo(vm, rss);
 
-	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;
 	cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 	//sleep(5);
 
@@ -139,7 +107,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 // test getValueWithInsert();
 template<typename T> void run_insertValue(T& cm) {
-	//		ofstream outf("unique.out");		
+	//		ofstream outf("unique.out");
 	sum =0;
 	hit =0;
 	start = time(0);
@@ -229,7 +197,7 @@ template<typename T> void run_updateValue(T& cm) {
  YString ystr;
  while (inf>>ystr) {
  sum++;
- //cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;					
+ //cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;
  cm.setTimeToLive(ystr.get_key(), 1);
  if (0) {
  cout<< "update: value="<<ystr<<endl;
@@ -267,34 +235,66 @@ template<typename T> void run_flush(T& cm) {
 	cout<<"eclipse:"<<time(0)- start<<endl;
 }
 
+//Top-level
+template<typename T> void run(T& cm) {
+	cout<<"Testing getValueWithInsert()"<<endl;
+	run_getValueWithInsert(cm);
+
+	cout<<"Testing insertValue()"<<endl;
+	run_insertValue(cm);
+
+	cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
+	cm.setCacheSize(cacheSize*2);
+	run_getValueWithInsert(cm);
+
+	cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
+	cm.setCacheSize(cacheSize/2);
+	run_getValueWithInsert(cm);
+
+	cout<<"Testing getValue()"<<endl;
+	run_getValue(cm);
+
+	cout<<"Testing insertValue()"<<endl;
+	run_insertValue(cm);
+
+	cout<<"Testing updateValue()"<<endl;
+	run_updateValue(cm);
+
+	//cout<<"Testing update"<<endl;
+	//run_Update(cm);
+
+	cout<<"Testing flush(key)"<<endl;
+	run_flush(cm);
+}
+
 /*
- //Top-level 
+ //Top-level
  template<typename T>
  void run(T& cm)
  {
  int sum =0;
- int hit =0; 
+ int hit =0;
  time_t start = time(0);
- ifstream inf(inputFile.c_str());	
- YString ystr;		
+ ifstream inf(inputFile.c_str());
+ YString ystr;
  while(inf>>ystr)
  {
- sum++;	
- 
+ sum++;
+
  if(cm.getValueWithInsert(ystr.get_key(), ystr))
- hit++;	
+ hit++;
  if(trace)
  {
  cout<< "getValueWithInsert: value="<<ystr<<endl;
  //cm.printKeyInfoMap();
  //cout<< "MCache numItem = "<<cm.numItems()<<endl;
- cm.displayHash();								
- }						
- }		
- 
+ cm.displayHash();
+ }
+ }
+
  cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
  cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
- cout<<"eclipse:"<<time(0)- start<<endl;	
+ cout<<"eclipse:"<<time(0)- start<<endl;
 
  }
  */
@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE(t_MLRUCache)
 				if (m == "lin")
 					hash1 = LIN;
 				else {
-				}//use default 				
+				}//use default
 			} else if (str == "replace") {
 				string m = *argv++;
 				if (m == "lru")
@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE(t_MLRUCache)
 				else if (m == "lfu")
 					nReplace = LFU1;
 				else {
-				}// use default lru.				
+				}// use default lru.
 			} else {
 				cout<<"Input parameters error\n";
 				return 0;
@@ -345,8 +345,8 @@ BOOST_AUTO_TEST_CASE(t_MLRUCache)
 			break;
 		}
 	}*/
-	
-	
+
+
 	try
 	{
 

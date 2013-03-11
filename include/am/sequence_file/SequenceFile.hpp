@@ -1,6 +1,6 @@
 ///
 /// @file   SequenceFile.hpp
-/// @brief  
+/// @brief
 /// @author Jia Guo
 /// @date   Created 2009-11-03
 /// @date   Updated 2009-11-30
@@ -17,7 +17,7 @@
 #include <boost/bind.hpp>
 //#include <boost/serialization/deque.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include <boost/thread/thread.hpp> 
+#include <boost/thread/thread.hpp>
 //#include <boost/format.hpp>
 
 #include <am/tokyo_cabinet/tc_fixdb.h>
@@ -46,7 +46,7 @@ typedef Container ContainerType;
 SequenceFile(const std::string& file) :
 file_(file), isOpen_(false), fileData_(file)
 {
-    
+
 }
 
 ~SequenceFile()
@@ -68,11 +68,11 @@ void open()
     for(uint32_t i=0;i<fileData_.numItems();i++)
     {
         bool b = getOnFile(i+1, value);
-        if(b) insertToCache(i+1, value);
+        if(b) this->insertToCache(i+1, value);
         else break;
     }
     isOpen_ = true;
-    
+
 }
 
 bool isOpen() const
@@ -97,10 +97,10 @@ void update(KeyType id, const ValueType& value)
     {
         boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
         fileData_.update(id, data, vsize);
-        insertToCache(id, value);
+        this->insertToCache(id, value);
         free(data);
     }
-    
+
 }
 
 
@@ -111,17 +111,17 @@ bool get(KeyType id, ValueType& value)
     {
         return false;
     }
-    if(getInCache(id, value))
+    if(this->getInCache(id, value))
     {
         return true;
     }
     else
     {
-        
+
         return getOnFile(id, value);
     }
 
-    
+
 }
 
 template <typename T>
@@ -139,13 +139,13 @@ bool get(const std::vector<T>& idList, std::vector<ValueType>& valueList)
         valueList[i] = value;
         if(!b) falseCount++;
     }
-    if( falseCount == valueList.size() ) 
+    if( falseCount == valueList.size() )
     {
         return false;
     }
     return true;
-        
-    
+
+
 }
 
 bool getOnFile(KeyType id, ValueType& value)
@@ -177,7 +177,7 @@ void close()
     }
 }
 
-    
+
 
 
 private:

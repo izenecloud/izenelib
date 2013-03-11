@@ -80,12 +80,12 @@ public:
 
     void updateValue(const DataType<KeyType,ValueType>& dat)
     {
-        lock.acquire_write_lock();
+        lock.lock();
         if ( dataHash_.update(dat) )
         {
             mCache_.updateValue(dat);
         }
-        lock.release_write_lock();
+        lock.unlock();
     }
 
     void updateValue(const KeyType& key, const ValueType& value) // insert an new item into CacheDB
@@ -152,10 +152,10 @@ class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
 ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValue(
     const KeyType& key, ValueType& value)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     if (mCache_.getValue(key, value) )
     {
-        lock.release_write_lock();
+        lock.unlock();
         return true;
     }
     else
@@ -163,10 +163,10 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValue(
         if (dataHash_.get(key, value))
         {
             mCache_.insertValue(key, value);
-            lock.release_write_lock();
+            lock.unlock();
             return true;
         }
-        lock.release_write_lock();
+        lock.unlock();
         return false;
     }
 
@@ -181,10 +181,10 @@ class MCache, class DataHash, class LockType> void CacheDB<KeyType,
 ValueType, ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
     const DataType<KeyType,ValueType>& dat)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     dataHash_.insert(dat);
     mCache_.insertValue(dat);
-    lock.release_write_lock();
+    lock.unlock();
 }
 
 /**
@@ -229,16 +229,16 @@ class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
 ValueType, ReplacementPolicy, MCache, DataHash, LockType>::del(
     const KeyType& key)
 {
-    lock.acquire_write_lock();
+    lock.lock();
     if (dataHash_.del(key) )
     {
         mCache_.flush(key);
-        lock.release_write_lock();
+        lock.unlock();
         return 1;
     }
     else
     {
-        lock.release_write_lock();
+        lock.unlock();
         return 0;
     }
 }
@@ -252,9 +252,9 @@ class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
 ValueType, ReplacementPolicy, MCache, DataHash, LockType>::hasKey(
     const KeyType& key)
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     bool is = mCache_.hasKey(key) || (dataHash_.find(key) != NULL);
-    lock.release_read_lock();
+    lock.unlock_shared();
 
     return is;
 
@@ -268,9 +268,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 class MCache, class DataHash, class LockType> int CacheDB<KeyType,
 ValueType, ReplacementPolicy, MCache, DataHash, LockType>::numItems()
 {
-    lock.acquire_read_lock();
+    lock.lock_shared();
     int num = dataHash_.num_items();
-    lock.release_read_lock();
+    lock.unlock_shared();
 
     return num;
 }

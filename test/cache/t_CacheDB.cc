@@ -25,7 +25,7 @@ enum {LRU1=0,LFU1, SLRU1};
 static string inputFile = "test.txt";
 static string indexFile = "index_db.dat";
 
-//Use YString-YString pair for testing. 
+//Use YString-YString pair for testing.
 typedef string Key;
 typedef string Value;
 
@@ -74,48 +74,7 @@ static void ReportUsage(void) {
 	cout<<"\n";
 }
 
-//Top-level 
-template<typename T> void run(T& cm) {
-	
-	cout<<"Testing Insert()"<<endl;
-	run_insert(cm);
-
-	cout<<"Testing getValueWithInsert()"<<endl;
-	run_getValueWithInsert(cm);
-	
-	
-	cout<<"Testing upate()"<<endl;
-	run_update(cm);
-	
-
-	cout<<"Testing getValue()"<<endl;
-	run_getValue(cm);
-
-	cout<<"Testing hashKey()"<<endl;	
-	 run_hasKey(cm);
-
-	 cout<<"Testing del()"<<endl;
-	 run_del(cm);
-	 
-	 cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
-	 cm.setCacheSize(cacheSize*2);
-	 run_getValueWithInsert(cm);
-
-	 cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
-	 cm.setCacheSize(cacheSize/2);
-	 run_getValueWithInsert(cm);
-	 
-
-	 cout<<"Testing getValue()"<<endl;
-	 run_getValue(cm);	
-	
-	cm.displayHash();
-	cm.clear();
-	cm.displayHash();
-
-}
-
-//Top-level 
+//Top-level
 
 static  void run_DataHashTest() {
 
@@ -123,7 +82,7 @@ static  void run_DataHashTest() {
 	linDataHash lh(indexFile);
 
 	int sum =0;
-	int hit =0;	
+	int hit =0;
 	clock_t t1 = clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
@@ -145,7 +104,7 @@ static  void run_DataHashTest() {
 
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_getValueWithInsert(T& cm) {
 	int sum =0;
 	int hit =0;
@@ -181,7 +140,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_insert(T& cm) {
 	clock_t t1 = clock();
 	ifstream inf(inputFile.c_str());
@@ -190,7 +149,7 @@ template<typename T> void run_insert(T& cm) {
 	while (inf>>ystr) {
 		//cout<<"input "<<ystr<<endl;
 		val = ystr;
-		cm.insertValue(ystr, val);		
+		cm.insertValue(ystr, val);
 		if (trace) {
 			cout<< "Insert: value="<<ystr<<endl;
 			cout<<" value="<<val<<endl;
@@ -220,7 +179,7 @@ template<typename T> void run_update(T& cm) {
 	while (inf>>ystr) {
 		//cout<<"input "<<ystr<<endl;
 		val = ystr+ystr;
-		cm.updateValue(ystr, val);		
+		cm.updateValue(ystr, val);
 		if (trace) {
 			cout<< "update: value="<<ystr<<endl;
 			cout<<" value="<<val<<endl;
@@ -264,7 +223,7 @@ template<typename T> void run_del(T& cm) {
 
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_getValue(T& cm) {
 	int sum =0;
 	int hit =0;
@@ -304,7 +263,7 @@ template<typename T> void run_flush(T& cm) {
 	cm.displayHash();
 	while (inf>>ystr) {
 
-		//cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;					
+		//cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;
 		cm.flush(ystr);
 		if (trace) {
 			cout<< "flush: value="<<ystr<<endl;
@@ -318,7 +277,7 @@ template<typename T> void run_flush(T& cm) {
 	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
 }
 
-//Top-level 
+//Top-level
 template<typename T> void run_hasKey(T& cm) {
 	int sum =0;
 	int hit =0;
@@ -338,6 +297,47 @@ template<typename T> void run_hasKey(T& cm) {
 		}
 	}
 	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+}
+
+//Top-level
+template<typename T> void run(T& cm) {
+
+	cout<<"Testing Insert()"<<endl;
+	run_insert(cm);
+
+	cout<<"Testing getValueWithInsert()"<<endl;
+	run_getValueWithInsert(cm);
+
+
+	cout<<"Testing upate()"<<endl;
+	run_update(cm);
+
+
+	cout<<"Testing getValue()"<<endl;
+	run_getValue(cm);
+
+	cout<<"Testing hashKey()"<<endl;
+	 run_hasKey(cm);
+
+	 cout<<"Testing del()"<<endl;
+	 run_del(cm);
+
+	 cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
+	 cm.setCacheSize(cacheSize*2);
+	 run_getValueWithInsert(cm);
+
+	 cout<<"CacheSize/2 Testing getValueWithInsert()"<<endl;
+	 cm.setCacheSize(cacheSize/2);
+	 run_getValueWithInsert(cm);
+
+
+	 cout<<"Testing getValue()"<<endl;
+	 run_getValue(cm);
+
+	cm.displayHash();
+	cm.clear();
+	cm.displayHash();
+
 }
 
 //int main(int argc, char *argv[])
@@ -366,13 +366,13 @@ BOOST_AUTO_TEST_CASE(t_cachedb)
 				if (m == "lin")
 					hash1 = LIN;
 				else {
-				}//use default 				
+				}//use default
 			} else if (str == "datahash") {
 				string m = *argv++;
 				if (m == "ext")
 					hash2 = EXT;
 				else {
-				}//use default 		
+				}//use default
 
 			} else if (str == "replace") {
 				string m = *argv++;
@@ -383,7 +383,7 @@ BOOST_AUTO_TEST_CASE(t_cachedb)
 				else if (m == "lfu")
 					nReplace = LFU1;
 				else {
-				}// use default lru.				
+				}// use default lru.
 			} else if (str == "index") {
 				indexFile = *argv++;
 			} else {
@@ -398,7 +398,7 @@ BOOST_AUTO_TEST_CASE(t_cachedb)
 */
 	//try
 	{
-		//run_DataHashTest();	
+		//run_DataHashTest();
 		if(nReplace == LRU1)
 		{
 			if(hash1 == EXT)
