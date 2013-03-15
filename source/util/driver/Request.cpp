@@ -20,7 +20,7 @@ Request::Request(const Request& other)
 : RestrictedObjectValue(other),
   header_(0),
   controller_(other.controller_),
-  action_(other.controller_),
+  action_(other.action_),
   aclTokens_(other.aclTokens_),
   calltype_(other.calltype_)
 {
