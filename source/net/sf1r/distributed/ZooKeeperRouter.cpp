@@ -246,7 +246,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 {
     WriteLockT lock(shared_mutex);
-    LOG(INFO) << "updating SF1 node in timer callback";
+    LOG(INFO) << "updating SF1 node in timer callback, total nodes : " << topology->count();
     WaitingMapT::iterator it = waiting_update_path_.begin();
     while(it != waiting_update_path_.end())
     {

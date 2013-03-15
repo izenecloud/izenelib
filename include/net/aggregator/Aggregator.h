@@ -99,6 +99,11 @@ public:
 
     void setDebug(bool debug) { debug_ = debug; }
 
+    bool isLocalWorker(workerid_t wid)
+    {
+        return hasLocalWorker_ && wid == localWorkerId_;
+    }
+
     /**
      * Send request to all workers, their results will be \b aggregated to @p out.
      *
