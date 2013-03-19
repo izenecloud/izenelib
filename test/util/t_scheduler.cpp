@@ -20,6 +20,7 @@ static boost::mutex g_counter_mutex1;
 void TestFuncOk1(int calltype) {
   boost::mutex::scoped_lock l(g_counter_mutex1);
   ++g_counter1;
+  boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(2000));
 }
 
 static int g_counter2 = 0;
@@ -27,6 +28,7 @@ static boost::mutex g_counter_mutex2;
 void TestFuncOk2(int calltype) {
   boost::mutex::scoped_lock l(g_counter_mutex2);
   ++g_counter2;
+  std::cout << "running TestFuncOk2" << std::endl;
 }
 
 
@@ -66,17 +68,29 @@ BOOST_AUTO_TEST_CASE(Scheduler_test)
   
     {
       g_counter1 = 0;
-      Scheduler::addJob(kTestJob1, 1000, 1000, task1);
+      std::cout << "begin test job " << std::endl;
+      Scheduler::addJob(kTestJob1, 2000, 1000, task1);
  
-      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(3100));
+      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(10000));
       BOOST_CHECK(3==g_counter1);
       Scheduler::removeJob(kTestJob1);
+      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
+      BOOST_CHECK(3==g_counter1);
     }
     {
       g_counter1 = 0;
-      Scheduler::addJob(kTestJob1, 1000, 1000, task1);
+      Scheduler::addJob(kTestJob1, 2000, 1000, task1);
+ 
+      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(10000));
+      BOOST_CHECK(3==g_counter1);
+      Scheduler::removeJob(kTestJob1, true);
+      BOOST_CHECK(3==g_counter1);
+    }
+    {
+      g_counter1 = 0;
+      Scheduler::addJob(kTestJob1, 2000, 1000, task1);
 
-      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(3100));
+      boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(10100));
       BOOST_CHECK(3==g_counter1);
 
       g_counter2 = 0;
@@ -84,18 +98,18 @@ BOOST_AUTO_TEST_CASE(Scheduler_test)
 
       boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(3100));
 	
-      BOOST_CHECK(6==g_counter1);
+      BOOST_CHECK(4==g_counter1);
       BOOST_CHECK(3==g_counter2);
       Scheduler::removeJob(kTestJob1);
 
       boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(3100));
-      BOOST_CHECK(6==g_counter1);
+      BOOST_CHECK(4==g_counter1);
       BOOST_CHECK(6==g_counter2);
     }
     Scheduler::removeJob(kTestJob2);
 
     boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(3100));
-    BOOST_CHECK(6==g_counter1);
+    BOOST_CHECK(4==g_counter1);
     BOOST_CHECK(6==g_counter2);
 }
 

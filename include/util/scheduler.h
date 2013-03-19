@@ -31,7 +31,7 @@ public:
 
     static bool runJobImmediatly(const std::string& name, int calltype = 0, bool sync = false);
     // stop scheduled job
-    static bool removeJob(const std::string &name);
+    static bool removeJob(const std::string &name, bool wait = false);
 
     // stop all jobs
     static void removeAllJobs();

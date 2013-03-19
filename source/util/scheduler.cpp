@@ -11,51 +11,25 @@ using namespace std;
 namespace izenelib{
 namespace util{
 
-class QueueTimer : public Timer
-{
-public:
-    QueueTimer(void (*callback)(void *),
-               void *arg,
-               uint32_t due_time,
-               uint32_t period)
-            :callback_(callback),
-             arg_(arg),
-             due_time_(due_time),
-             period_(period)
-    {}
-
-    bool start()
-    {
-        return Timer::start(due_time_, period_);
-    }
-
-    bool startNow()
-    {
-        return Timer::start(0, period_);
-    }
-
-    virtual void signaled()
-    {
-        callback_(arg_);
-    }
-
-private:
-    void (*callback_)(void *);
-    void *arg_;
-    uint32_t due_time_;
-    uint32_t period_;
-};
-
 struct ScheduleOP
 {
     std::string name;
     uint32_t default_interval;
     uint32_t delay_start;
     boost::function<void (int)> callback;
-    QueueTimer* timer;
+    Timer* timer;
     volatile bool running;
     volatile bool immediatly_running;
     boost::mutex jobmutex;
+    ScheduleOP()
+        :timer(NULL)
+    {
+    }
+    ~ScheduleOP()
+    {
+        if (timer)
+            delete timer;
+    }
 };
 
 class SchedulerImpl
@@ -78,8 +52,6 @@ public:
             if (job->timer)
             {
                 job->timer->stop();
-                delete job->timer;
-                job->timer = NULL;
             }
         }
         jobs_.clear();
@@ -111,19 +83,20 @@ public:
         boost::shared_ptr<ScheduleOP> job = result.first->second;
 
         uint32_t delay = job->delay_start;
-        job->timer = new QueueTimer(&timerCallback, job.get(), delay,
-                                    job->default_interval);
+        job->timer = new Timer();
         if (job->timer == NULL)
         {
             return false;
         }
-        const bool started =  job->timer->start();
+        bool started =  job->timer->start(delay, job->default_interval,
+            boost::bind(&timerCallback, job));
         if (started)
         {
             return true;
         }
         else
         {
+            std::cerr << "timer start failed. " << name << std::endl;
             delete job->timer;
             job->timer = NULL;
             return false;
@@ -183,7 +156,7 @@ public:
         return false;
     }
 
-    bool removeJob(const std::string &name)
+    bool removeJob(const std::string &name, bool wait = false)
     {
         boost::mutex::scoped_lock l(mutex_);
         std::map<std::string, boost::shared_ptr<ScheduleOP> >::iterator itr = jobs_.find(name);
@@ -191,25 +164,18 @@ public:
         {
             return false;
         }
-        else
+        boost::shared_ptr<ScheduleOP> job = itr->second;
+        if (job->timer)
         {
-            boost::shared_ptr<ScheduleOP> job = itr->second;
-            if (job->timer != NULL)
-            {
-                job->timer->stop();
-                delete job->timer;
-                job->timer = NULL;
-            }
-            jobs_.erase(itr);
-            return true;
+            job->timer->stop(wait);
         }
+        jobs_.erase(itr);
+        return true;
     }
 
 private:
-    static void timerCallback(void *param)
+    static void timerCallback(boost::shared_ptr<ScheduleOP> job)
     {
-        ScheduleOP *job = reinterpret_cast<ScheduleOP *>(param);
-
         {
             boost::mutex::scoped_lock job_guard(job->jobmutex);
             if (job->running || job->immediatly_running)
@@ -236,9 +202,9 @@ bool Scheduler::addJob(const string &name, uint32_t default_interval,
     return Singleton<SchedulerImpl>::get()->addJob(name, default_interval, delay_start, func);
 }
 
-bool Scheduler::removeJob(const string &name)
+bool Scheduler::removeJob(const string &name, bool wait)
 {
-    return Singleton<SchedulerImpl>::get()->removeJob(name);
+    return Singleton<SchedulerImpl>::get()->removeJob(name, wait);
 }
 
 void Scheduler::removeAllJobs()

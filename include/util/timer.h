@@ -5,6 +5,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace izenelib{
 namespace util{
@@ -13,6 +14,7 @@ class TimerThread;
 class Timer
 {
 public:
+    typedef boost::function<void(void)> TimerCBType;
     // start timer.
     // due_time:
     // The amount of time to elapse before the timer is to be set to the
@@ -23,27 +25,17 @@ public:
     // the timer is periodic.
     //
     // Either due_time and interval must be non 0.
-    bool start(uint32_t due_time, uint32_t interval);
+    bool start(uint32_t due_time, uint32_t interval, const TimerCBType& cb);
 
     // stop timer:
     // If pending signal functions remain, stop() blocks the current thread
     // Be sure that signal handler never be blocked.
-    void stop();
+    void stop(bool wait = false);
 
     Timer();
 
     // Timer() call stop() internally, so it is blocking
-    virtual ~Timer();
-
-    void timerCallback()
-    {
-        signaled();
-    }
-
-protected:
-    // overwrite this function to implement
-    // signal handler.
-    virtual void signaled() {}
+    ~Timer();
 
 private:
     boost::scoped_ptr<TimerThread> timer_thread_;

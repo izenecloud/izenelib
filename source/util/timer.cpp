@@ -9,24 +9,28 @@ class TimerThread
 {
 public:
     TimerThread(uint32_t due_time, uint32_t interval,
-                Timer *timer)
+                const Timer::TimerCBType& cb)
             : due_time_(due_time),
             interval_(interval),
-            timer_(timer),
+            callback_(cb),
             stop_(false)
     {
         thread_.reset(new boost::thread(boost::bind(&TimerThread::run, this)));
     }
 
-    ~TimerThread() {}
+    ~TimerThread() 
+    {
+    }
 
-    void stop()
+    void stop(bool wait = false)
     {
         {
             boost::mutex::scoped_lock lock(mutex_);
             stop_ = true;
             cond_.notify_all();
         }
+        if (!wait)
+            return;
         if (boost::this_thread::get_id() == thread_->get_id())
         {
             return;
@@ -41,13 +45,16 @@ public:
             cond_.timed_wait(lock,boost::get_system_time() + boost::posix_time::milliseconds(due_time_));
             if (stop_)
             {
+                callback_ = NULL;
                 return;
             }
         }
-        timer_->timerCallback();
+
+        callback_();
 
         if (interval_ == 0)
         {
+            callback_ = NULL;
             return;
         }
         else
@@ -60,50 +67,51 @@ public:
                         boost::posix_time::milliseconds(interval_));
                     if (stop_)
                     {
+                        callback_ = NULL;
                         return;
                     }
                 }
                 
-                timer_->timerCallback();
+                callback_();
             }
         }
+        callback_ = NULL;
     }
 
 private:
     boost::scoped_ptr<boost::thread> thread_;
     uint32_t due_time_;
     uint32_t interval_;
-    Timer *timer_;
+    Timer::TimerCBType callback_;
     bool stop_;
     boost::condition_variable cond_;
     boost::mutex mutex_;
 };
 
-bool Timer::start(uint32_t due_time, uint32_t interval)
+bool Timer::start(uint32_t due_time, uint32_t interval, const TimerCBType& cb)
 {
-    if (timer_thread_.get() != NULL)
+    if (timer_thread_ || cb == NULL)
     {
-        stop();
+        // can not start timer twice or without timer callback.
+        return false;
     }
-    timer_thread_.reset(new TimerThread(due_time, interval, this));
+    timer_thread_.reset(new TimerThread(due_time, interval, cb));
     return true;
 }
 
-void Timer::stop()
+void Timer::stop(bool wait)
 {
-    if (timer_thread_.get() == NULL)
+    if (!timer_thread_)
     {
         return;
     }
-    timer_thread_->stop();
-    timer_thread_.reset(NULL);
+    timer_thread_->stop(wait);
 }
 
 Timer::Timer() {}
 
 Timer::~Timer()
 {
-    stop();
 }
 
 }
