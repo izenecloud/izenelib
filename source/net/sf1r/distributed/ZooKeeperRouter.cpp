@@ -274,13 +274,9 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 		    LOG(INFO) << "Node not in topology, skipping";
 		    return;
 	    }
-
-	    LOG(INFO) << "updating SF1 node: [" << path << "]";
-
 	    client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
-	    LOG(INFO) << "node data: [" << data << "]";
-
     }
+
     WriteLockT rwlock(shared_mutex);
     WaitingMapT::value_type element(path, 1);
     std::pair<WaitingMapT::iterator, bool> insert_wait = waiting_update_path_.insert(element);
@@ -318,11 +314,13 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     }
     else
     {
-        if (cur_wait_info < 10)
+        if (cur_wait_info < 100)
         {
             cur_wait_info++;
             return;
         }
+	    LOG(INFO) << "updating SF1 node: [" << path << "]";
+	    LOG(INFO) << "node data: [" << data << "]";
         topology->updateNode(path, data);
         cur_wait_info = 0;
     }
