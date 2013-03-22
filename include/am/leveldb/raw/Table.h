@@ -99,7 +99,7 @@ public:
     bool flush()
     {
         // reopen to flush cached data.
-        return checkHandle_(db_) && open();
+        return checkHandle_(db_);
     }
 
     size_type size() const

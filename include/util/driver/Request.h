@@ -23,6 +23,7 @@ public:
     {
         FromAPI = 0,
         FromDistribute,
+        FromOtherShard,
         FromPrimaryWorker,
         FromLog,
     };
