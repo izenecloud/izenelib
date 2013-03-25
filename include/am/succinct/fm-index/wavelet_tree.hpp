@@ -45,14 +45,14 @@ public:
             std::vector<char_type> &result) const = 0;
 
     virtual void topKUnion(
-            const pattern_tuple_list_type &patterns,
+            const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const = 0;
 
     virtual void topKUnionWithFilters(
-            const filter_list_type &filter,
-            const pattern_tuple_list_type &patterns,
+            const range_list_type &filter,
+            const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const = 0;

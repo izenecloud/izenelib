@@ -22,7 +22,7 @@ class WaveletTreeBinary : public WaveletTree<CharT>
 public:
     typedef CharT char_type;
     typedef WaveletTreeBinary<CharT> self_type;
-    typedef std::vector<FilterList<self_type> * , stl_allocator<FilterList<self_type> * > > aux_filter_list_type;
+    typedef std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> > aux_filter_list_type;
 
     WaveletTreeBinary(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeBinary();
@@ -42,14 +42,14 @@ public:
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const pattern_tuple_list_type &patterns,
+            const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
 
     void topKUnionWithFilters(
-            const filter_list_type &filters,
-            const pattern_tuple_list_type &patterns,
+            const range_list_type &filters,
+            const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
@@ -57,7 +57,7 @@ public:
     void topKUnionWithAuxFilters(
             const aux_filter_list_type &aux_filters,
             const std::vector<std::pair<size_t, size_t> > &filters,
-            const pattern_tuple_list_type &patterns,
+            const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
@@ -417,7 +417,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnion(
-        const pattern_tuple_list_type &patterns,
+        const range_list_type &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
         boost::auto_alloc& alloc) const
@@ -437,9 +437,9 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
     results.reserve(topK);
 
-    std::vector<PatternList *, stl_allocator<PatternList * > > recyc_queue(alloc);
+    std::vector<PatternList *, boost::stl_allocator<PatternList *> > recyc_queue(alloc);
     recyc_queue.reserve(max_queue_size + 1);
-    std::deque<std::pair<PatternList *, size_t>, stl_allocator<std::pair<PatternList *, size_t> > > top_queue(alloc);
+    std::deque<std::pair<PatternList *, size_t>, boost::stl_allocator<std::pair<PatternList *, size_t> > > top_queue(alloc);
 
     PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
@@ -499,7 +499,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
             recyc_queue.pop_back();
         }
 
-        for (pattern_tuple_list_type::const_iterator it = top_ranges->patterns_.begin();
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
             rank_start = node->rank1(start + it->get<0>()) - before;
@@ -601,8 +601,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithFilters(
-        const filter_list_type &filters,
-        const pattern_tuple_list_type &patterns,
+        const range_list_type &filters,
+        const range_list_type &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
         boost::auto_alloc& alloc) const
@@ -623,9 +623,9 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
     results.reserve(topK);
 
-    std::vector<FilteredPatternList *, stl_allocator<FilteredPatternList * > > recyc_queue(alloc);
+    std::vector<FilteredPatternList *, boost::stl_allocator<FilteredPatternList *> > recyc_queue(alloc);
     recyc_queue.reserve(max_queue_size + 1);
-    std::deque<std::pair<FilteredPatternList *, size_t>, stl_allocator<std::pair<FilteredPatternList *, size_t> > > top_queue(alloc);
+    std::deque<std::pair<FilteredPatternList *, size_t>, boost::stl_allocator<std::pair<FilteredPatternList *, size_t> > > top_queue(alloc);
 
     FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
@@ -685,14 +685,14 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             recyc_queue.pop_back();
         }
 
-        for (filter_list_type::const_iterator it = top_ranges->filters_.begin();
+        for (range_list_type::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->rank1(start + it->first) - before;
-            rank_end = node->rank1(start + it->second) - before;
+            rank_start = node->rank1(start + it->get<0>()) - before;
+            rank_end = node->rank1(start + it->get<1>()) - before;
 
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
+            zero_ranges->addFilter(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            one_ranges->addFilter(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
         if (zero_ranges->filters_.empty())
@@ -711,7 +711,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        for (pattern_tuple_list_type::const_iterator it = top_ranges->patterns_.begin();
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
             rank_start = node->rank1(start + it->get<0>()) - before;
@@ -827,7 +827,7 @@ template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         const aux_filter_list_type &aux_filters,
         const std::vector<std::pair<size_t, size_t> > &filters,
-        const pattern_tuple_list_type &patterns,
+        const range_list_type &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
         boost::auto_alloc& alloc) const
@@ -853,9 +853,9 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
     }
 
-    std::vector<AuxFilteredPatternList<self_type> *, stl_allocator<AuxFilteredPatternList<self_type> * > > recyc_queue(alloc);
+    std::vector<AuxFilteredPatternList<self_type> *, boost::stl_allocator<AuxFilteredPatternList<self_type> *> > recyc_queue(alloc);
     recyc_queue.reserve(max_queue_size + 1);
-    std::deque<std::pair<AuxFilteredPatternList<self_type> *, size_t>, stl_allocator<std::pair<AuxFilteredPatternList<self_type> *, size_t> > > top_queue(alloc);
+    std::deque<std::pair<AuxFilteredPatternList<self_type> *, size_t>, boost::stl_allocator<std::pair<AuxFilteredPatternList<self_type> *, size_t> > > top_queue(alloc);
 
     AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
@@ -931,19 +931,19 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
                 one_filter = one_ranges->getAuxFilter((*it)->tree_, node->right_, max_filter_size);
             }
 
-            for (std::vector<std::pair<size_t, size_t>, stl_allocator<std::pair<size_t, size_t> > >::const_iterator fit = (*it)->filters_.begin();
+            for (range_list_type::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->rank1(filter_start + fit->first) - before;
-                rank_end = node->rank1(filter_start + fit->second) - before;
+                rank_start = node->rank1(filter_start + fit->get<0>()) - before;
+                rank_end = node->rank1(filter_start + fit->get<1>()) - before;
 
                 if (zero_ranges)
                 {
-                    zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
+                    zero_filter->addFilter(boost::make_tuple(fit->get<0>() - rank_start, fit->get<1>() - rank_end, fit->get<2>()));
                 }
                 if (one_ranges)
                 {
-                    one_filter->addFilter(std::make_pair(rank_start, rank_end));
+                    one_filter->addFilter(boost::make_tuple(rank_start, rank_end, fit->get<2>()));
                 }
             }
 
@@ -970,7 +970,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        for (pattern_tuple_list_type::const_iterator it = top_ranges->patterns_.begin();
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
             rank_start = node->rank1(start + it->get<0>()) - before;

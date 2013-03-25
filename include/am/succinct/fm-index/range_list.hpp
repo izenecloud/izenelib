@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <memory>
 
-using boost::stl_allocator;
 
-#define cacheline_size() 64
+#define CACHELINE_SIZE 64
 
 NS_IZENELIB_AM_BEGIN
 
@@ -18,18 +17,18 @@ namespace succinct
 {
 namespace fm_index
 {
-typedef boost::tuple<size_t, size_t, double> pattern_tuple_type;
-typedef std::vector<boost::tuple<size_t, size_t, double>, stl_allocator<boost::tuple<size_t, size_t, double> > > pattern_tuple_list_type;
-typedef std::vector<std::pair<size_t, size_t>, stl_allocator<std::pair<size_t, size_t> > > filter_list_type;
+
+typedef boost::tuple<size_t, size_t, double> range_type;
+typedef std::vector<range_type, boost::stl_allocator<range_type> > range_list_type;
 
 namespace detail
 {
 
-static double getScore(const pattern_tuple_list_type &patterns)
+static double getPatternScore(const range_list_type &patterns)
 {
     double score = 0.0;
 
-    for (pattern_tuple_list_type::const_iterator it = patterns.begin();
+    for (range_list_type::const_iterator it = patterns.begin();
             it != patterns.end(); ++it)
     {
         score += it->get<2>();
@@ -38,6 +37,18 @@ static double getScore(const pattern_tuple_list_type &patterns)
     return score;
 }
 
+static double getFilterScore(const range_list_type &filters)
+{
+    double score = 0.0;
+
+    for (range_list_type::const_iterator it = filters.begin();
+            it != filters.end(); ++it)
+    {
+        score = std::max(score, it->get<2>());
+    }
+
+    return score;
+}
 
 }
 
@@ -47,13 +58,13 @@ public:
     PatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            const pattern_tuple_list_type &patterns)
+            const range_list_type &patterns)
         : level_(level)
         , sym_(sym)
         , node_(node)
         , patterns_(patterns)
     {
-        score_ = detail::getScore(patterns);
+        score_ = detail::getPatternScore(patterns);
     }
 
     PatternList(
@@ -81,7 +92,7 @@ public:
         patterns_.clear();
     }
 
-    bool addPattern(const pattern_tuple_type &pattern)
+    bool addPattern(const range_type &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
         {
@@ -93,7 +104,7 @@ public:
 
     void calcScore()
     {
-        score_ = detail::getScore(patterns_);
+        score_ = detail::getPatternScore(patterns_);
     }
 
     bool operator<(const PatternList &rhs) const
@@ -106,8 +117,8 @@ public:
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
-    pattern_tuple_list_type patterns_;
-}__attribute__((aligned(cacheline_size())));
+    range_list_type patterns_;
+} __attribute__((aligned(CACHELINE_SIZE)));
 
 class FilteredPatternList
 {
@@ -115,8 +126,8 @@ public:
     FilteredPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            const filter_list_type &filters,
-            const pattern_tuple_list_type &patterns)
+            const range_list_type &filters,
+            const range_list_type &patterns)
         : level_(level)
         , sym_(sym)
         , score_()
@@ -126,7 +137,7 @@ public:
     {
         if (!filters_.empty())
         {
-            score_ = detail::getScore(patterns_);
+            score_ = detail::getPatternScore(patterns_)/* * detail::getFilterScore(filters_)*/;
         }
     }
 
@@ -158,9 +169,9 @@ public:
         patterns_.clear();
     }
 
-    bool addFilter(const std::pair<size_t, size_t> &filter)
+    bool addFilter(const range_type &filter)
     {
-        if (filter.first < filter.second)
+        if (filter.get<0>() < filter.get<1>())
         {
             filters_.push_back(filter);
             return true;
@@ -168,7 +179,7 @@ public:
         return false;
     }
 
-    bool addPattern(const pattern_tuple_type &pattern)
+    bool addPattern(const range_type &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
         {
@@ -180,7 +191,7 @@ public:
 
     void calcScore()
     {
-        score_ = detail::getScore(patterns_);
+        score_ = detail::getPatternScore(patterns_)/* * detail::getFilterScore(filters_)*/;
     }
 
     bool operator<(const FilteredPatternList &rhs) const
@@ -193,9 +204,9 @@ public:
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
-    filter_list_type filters_;
-    pattern_tuple_list_type patterns_;
-}__attribute__((aligned(cacheline_size())));
+    range_list_type filters_;
+    range_list_type patterns_;
+} __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
 class FilterList
@@ -203,7 +214,7 @@ class FilterList
 public:
     FilterList(
             const WaveletTreeType *tree, const WaveletTreeNode *node,
-            const std::vector<std::pair<size_t, size_t> > &filters,
+            const range_list_type &filters,
             boost::auto_alloc& alloc)
         : tree_(tree) , node_(node)
         , filters_(alloc)
@@ -231,9 +242,9 @@ public:
         filters_.clear();
     }
 
-    bool addFilter(const std::pair<size_t, size_t> &filter)
+    bool addFilter(const range_type &filter)
     {
-        if (filter.first < filter.second)
+        if (filter.get<0>() < filter.get<1>())
         {
             filters_.push_back(filter);
             return true;
@@ -244,20 +255,20 @@ public:
 public:
     const WaveletTreeType *tree_;
     const WaveletTreeNode *node_;
-    std::vector<std::pair<size_t, size_t>, stl_allocator<std::pair<size_t, size_t> > > filters_;
-}__attribute__((aligned(cacheline_size())));
+    range_list_type filters_;
+} __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
 class AuxFilteredPatternList
 {
 public:
-    typedef std::vector<FilterList<WaveletTreeType> *, stl_allocator<FilterList<WaveletTreeType> * > > auxfilter_type;
+    typedef std::vector<FilterList<WaveletTreeType> *, boost::stl_allocator<FilterList<WaveletTreeType> *> > auxfilter_list_type;
 
     AuxFilteredPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            const auxfilter_type &aux_filters,
-            const pattern_tuple_list_type&patterns,
+            const auxfilter_list_type &aux_filters,
+            const range_list_type &patterns,
             boost::auto_alloc& alloc)
         : level_(level)
         , sym_(sym)
@@ -270,7 +281,9 @@ public:
     {
         if (!aux_filters_.empty())
         {
-            score_ = detail::getScore(patterns_);
+            score_ = detail::getPatternScore(patterns_);
+//          for (size_t i = 0; i < aux_filters_.size(); ++i)
+//              score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
             recyc_aux_filters_.reserve(aux_filters_.size());
         }
     }
@@ -338,7 +351,7 @@ public:
         }
     }
 
-    bool addPattern(const boost::tuple<size_t, size_t, double> &pattern)
+    bool addPattern(const range_type &pattern)
     {
         if (pattern.get<0>() < pattern.get<1>())
         {
@@ -368,7 +381,9 @@ public:
 
     void calcScore()
     {
-        score_ = detail::getScore(patterns_);
+        score_ = detail::getPatternScore(patterns_);
+//      for (size_t i = 0; i < aux_filters_.size(); ++i)
+//          score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
     }
 
     bool operator<(const AuxFilteredPatternList &rhs) const
@@ -381,11 +396,11 @@ public:
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
-    auxfilter_type aux_filters_;
-    pattern_tuple_list_type patterns_;
-    auxfilter_type recyc_aux_filters_;
+    auxfilter_list_type aux_filters_;
+    range_list_type patterns_;
+    auxfilter_list_type recyc_aux_filters_;
     boost::auto_alloc& alloc_;
-}__attribute__((aligned(cacheline_size())));
+} __attribute__((aligned(CACHELINE_SIZE)));
 
 }
 }

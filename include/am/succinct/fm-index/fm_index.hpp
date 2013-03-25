@@ -475,10 +475,10 @@ void FMIndex<CharT>::getTopKDocIdList(
         return;
 
     //std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
-    boost::auto_alloc alloc;    
-    pattern_tuple_list_type match_ranges(alloc);
+    boost::auto_alloc alloc;
+    range_list_type match_ranges(alloc);
     match_ranges.resize(match_ranges_list.size());
-    
+
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
         match_ranges[i].get<0>() = match_ranges_list[i].first;

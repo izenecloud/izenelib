@@ -441,9 +441,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
 
     if (!doc_array_item.doc_array_ptr)
         return;
-    boost::auto_alloc alloc;    
+    boost::auto_alloc alloc;
     //std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
-    pattern_tuple_list_type match_ranges(alloc);
+    range_list_type match_ranges(alloc);
     match_ranges.resize(match_ranges_list.size());
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
@@ -485,8 +485,8 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     if (!doc_array_item.doc_array_ptr)
         return;
     //std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
-    boost::auto_alloc alloc;    
-    pattern_tuple_list_type match_ranges(alloc);
+    boost::auto_alloc alloc;
+    range_list_type match_ranges(alloc);
     match_ranges.resize(match_ranges_list.size());
     for (size_t i = 0; i < match_ranges_list.size(); ++i)
     {
@@ -500,7 +500,6 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     }
     else
     {
-        boost::auto_alloc alloc;    
         //std::vector<FilterList<DocArrayWaveletT> *> aux_filters;
         typename DocArrayWaveletT::aux_filter_list_type aux_filters(alloc);
 
@@ -518,14 +517,21 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             if (!wlt)
                 continue;
             //aux_filters.push_back(new FilterList<DocArrayWaveletT>(wlt, wlt->getRoot(), filter_ranges[i]));
-            aux_filters.push_back(BOOST_NEW(alloc, FilterList<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i], alloc));
+            FilterList<DocArrayWaveletT> *aux_filter =
+                BOOST_NEW(alloc, FilterList<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
+            for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
+                    it != filter_ranges[i].end(); ++it)
+            {
+                aux_filter->filters_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+            }
+            aux_filters.push_back(aux_filter);
         }
 
         doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, match_ranges, max_docs, res_list, alloc);
     }
     for (size_t i = 0; i < res_list.size(); ++i)
     {
-        res_list[i].second++;
+        ++res_list[i].second;
     }
 }
 
