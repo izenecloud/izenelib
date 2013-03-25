@@ -91,7 +91,7 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/decGamma.cpp
     compression/int/decDelta.cpp
     compression/int/decUnary.cpp
-    
+
     compression/int/fastpfor/bitpackingaligned.cpp
     compression/int/fastpfor/bitpacking.cpp
     compression/int/fastpfor/bitpackingunaligned.cpp
@@ -171,9 +171,11 @@ IF(izene_util_SHOULD_BUILD)
     osgi/util/LoggerImpl.cpp
     osgi/util/StringTokenizer.cpp
     osgi/util/LoggerFactory.cpp
+    madoka/sketch.cc
+    madoka/file.cc
 
     string/StringUtils.cpp
-    
+
     test/BoostTestThreadSafety.cpp
     )
 
