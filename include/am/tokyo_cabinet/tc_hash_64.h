@@ -31,7 +31,7 @@ public:
     /**
      *   constructor
      */
-    tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),hdb_(NULL),isOpen_(false), cacheSize_(0)
+    tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName + ".tch"),hdb_(NULL),isOpen_(false), cacheSize_(0)
     {
         initHandle_();
     }
