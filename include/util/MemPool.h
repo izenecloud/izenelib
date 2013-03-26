@@ -9,7 +9,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/pool/pool.hpp>
 
-#include <3rdparty/boost/lockfree/fifo.hpp>
 #include <util/singleton.h>
 
 #include <types.h>
@@ -243,6 +242,7 @@ inline char* Arena::Allocate(size_t bytes)
 /// lock-free caches to achieve nearly wait-free, constant
 /// time performance when used for an extended period of time
 ///
+#if 0
 template <std::size_t MinSize = 16, std::size_t MaxSize = 256>
 class MemPoolAllocator : private boost::noncopyable
 {
@@ -347,7 +347,7 @@ protected:
     /// data structure used to represent a free node
     typedef void* FreeListNode;
     /// data type for a tagged free-list pointer
-    typedef boost::lockfree::fifo<FreeListNode> FreeList;
+    typedef boost::lockfree::queue<FreeListNode> FreeList;
 
     /// ensure that:
     ///   a) MaxSize >= MinSize
@@ -408,7 +408,7 @@ private:
     /// a collection of fixed-size pool allocators
     boost::array<boost::scoped_ptr<FixedSizeAlloc>, NumberOfAllocs> pools_;
 };
-
+#endif
 
 }}
 
