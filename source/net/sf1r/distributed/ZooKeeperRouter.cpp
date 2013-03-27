@@ -17,6 +17,7 @@
 #include <boost/regex.hpp>
 #include <glog/logging.h>
 #include <util/scheduler.h>
+#include "../Utils.hpp"
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -267,6 +268,7 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 void 
 ZooKeeperRouter::updateNodeData(const string& path) {
     string data;
+    bool force_update = false;
     {
 	    ReadLockT lock(shared_mutex);
 
@@ -275,6 +277,17 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 		    return;
 	    }
 	    client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
+        // check if collection changed.
+        izenelib::util::kv2string parser;
+        parser.loadKvString(data);
+        std::string new_coll = parser.getStrValue(SearchService + COLLECTION_KEY);
+        std::vector<std::string> collections;
+        split(new_coll, DELIMITER_CHAR, collections);
+        if (collections != topology->getNodeAt(path).getCollections())
+        {
+            LOG(INFO) << "collection changed in node, need update immediatly.";
+            force_update = true;
+        }
     }
 
     WriteLockT rwlock(shared_mutex);
@@ -314,7 +327,7 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     }
     else
     {
-        if (cur_wait_info < 100)
+        if (!force_update && cur_wait_info < 100)
         {
             cur_wait_info++;
             return;

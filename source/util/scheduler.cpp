@@ -144,7 +144,7 @@ public:
                     boost::mutex::scoped_lock job_guard(job->jobmutex);
                     job->immediatly_running = false;
                 }
-                throw e;
+                throw;
             }
             {
                 boost::mutex::scoped_lock job_guard(job->jobmutex);
