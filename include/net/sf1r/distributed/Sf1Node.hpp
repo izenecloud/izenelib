@@ -68,7 +68,7 @@ public:
         return port;
     }
     
-    std::string getServiceState() const {
+    const std::string& getServiceState() const {
         return service_state;
     }
    /**

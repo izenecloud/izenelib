@@ -69,7 +69,8 @@ RoundRobinPolicy::getNodeFor(const std::string& collection) {
     size_t trynext = 0;
     while(trynext < list.size())
     {
-        if (list[index].second.getServiceState() == "ReadyForRead")
+        const std::string& state_str = list[index].second.getServiceState();
+        if (state_str.empty() || state_str == "ReadyForRead")
             break;
         ++trynext;
         LOG(INFO) << "!!!! one of node is busy, try next !!!!!!" << list[index].second.getPath();
