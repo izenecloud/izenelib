@@ -31,7 +31,8 @@ NS_IZENELIB_SF1R_BEGIN
 const std::string ROOT_NODE = "/";
 
 /** Topology namespace within a node. */
-const std::string  TOPOLOGY = "/Topology";
+//const std::string  TOPOLOGY = "/Topology";
+const std::string  TOPOLOGY = "/Servers";
 
 /**
  * Regular expression matching a topology namespace. 
@@ -43,13 +44,13 @@ const boost::regex SF1R_ROOT_REGEX("\\/SF1R-[^\\/]+");
  * Regular expression matching a search topologu namespace. 
  * Example: /SF1R-host23/SearchTopology
  */
-const boost::regex TOPOLOGY_REGEX("\\/SF1R-[^\\/]+\\/Topology");
+const boost::regex TOPOLOGY_REGEX("\\/SF1R-[^\\/]+\\/Servers");
 
 /**
  * Regular expression matching a SF1 node on search topology.
  * Example: /SF1R-host23/SearchTopology/Replica1/Node1
  */
-const boost::regex SF1R_NODE_REGEX("\\/SF1R-[^\\/]+\\/Topology\\/Replica\\d+\\/Node\\d+");
+const boost::regex SF1R_NODE_REGEX("\\/SF1R-[^\\/]+\\/Servers\\/Server\\d+");
 
 const std::string SearchService = "search";
 const std::string RecommendService = "recommend";

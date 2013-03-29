@@ -139,17 +139,15 @@ ZooKeeperRouter::addSearchTopology(const string& searchTopology) {
         }
         
         BOOST_FOREACH(const string& replica, replicas) {
-            LOG(INFO) << "replica: " << replica;
-            
-            DLOG(INFO) << "Searching for nodes ...";
+
+            addSf1Node(replica);
+
             strvector nodes;
             client->getZNodeChildren(replica, nodes, ZooKeeper::WATCH);
 
             if (nodes.empty()) {
-                DLOG(INFO) << "no node found";
                 continue;
             }
-            
             BOOST_FOREACH(const string& path, nodes) {
                 addSf1Node(path);
             }
