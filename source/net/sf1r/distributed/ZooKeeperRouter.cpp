@@ -283,7 +283,7 @@ ZooKeeperRouter::updateNodeData(const string& path) {
         split(new_coll, DELIMITER_CHAR, collections);
         if (collections != topology->getNodeAt(path).getCollections())
         {
-            LOG(INFO) << "collection changed in node, need update immediatly.";
+            LOG(INFO) << "collection changed in node, need update immediatly." << path;
             force_update = true;
         }
     }

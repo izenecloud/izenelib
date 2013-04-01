@@ -211,10 +211,11 @@ void DriverConnection::handleRequest(
         }
         context->request.assignTmp(requestValue);
 
-        DriverThreadPool::schedule_task(boost::bind(&DriverConnection::handleRequestFunc,
-                shared_from_this(), context),
-            asString(context->request[driver::Keys::collection]),
-            asBool(context->request[driver::Keys::may_slow]));
+        handleRequestFunc(context);
+        //DriverThreadPool::schedule_task(boost::bind(&DriverConnection::handleRequestFunc,
+        //        shared_from_this(), context),
+        //    asString(context->request[driver::Keys::collection]),
+        //    asBool(context->request[driver::Keys::may_slow]));
     }
     // Error if send end is closed, just ignore it
 }
