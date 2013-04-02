@@ -1,6 +1,6 @@
 #include <new>
 
-#include "keyset.h"
+#include <am/succinct/marisa/keyset.h>
 
 namespace marisa {
 
