@@ -399,6 +399,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
         //make sure the order is always deterministic
         std::sort( childrenList.begin(), childrenList.end() );
+        deallocate_String_vector(&children);
     }
 }
 
