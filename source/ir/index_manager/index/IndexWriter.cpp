@@ -143,7 +143,7 @@ void IndexWriter::deletebinlog()
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
-    boost::lock_guard<boost::mutex> lock(indexMutex_);
+    //boost::lock_guard<boost::mutex> lock(indexMutex_);
 
     if (!pCurBarrelInfo_) createBarrelInfo();
 
@@ -250,7 +250,7 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
 
 void IndexWriter::optimizeIndex()
 {
-    boost::lock_guard<boost::mutex> lock(indexMutex_);
+    //boost::lock_guard<boost::mutex> lock(indexMutex_);
     flush();
     if(pIndexer_->isRealTime())
         deletebinlog();

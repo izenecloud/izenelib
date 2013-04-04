@@ -316,6 +316,7 @@ void Indexer::flush(bool force)
     {
         try
         {
+            boost::mutex::scoped_lock lock(indexMutex_);
             pIndexWriter_->flush();
         }
         catch (const EmptyBarrelException& e)
@@ -326,6 +327,7 @@ void Indexer::flush(bool force)
     }
     else
     {
+        boost::mutex::scoped_lock lock(indexMutex_);
         pIndexWriter_->flushDocLen();
     }
     pIndexReader_->flush();
@@ -333,6 +335,7 @@ void Indexer::flush(bool force)
 
 void Indexer::optimizeIndex()
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->optimizeIndex();
 }
 
