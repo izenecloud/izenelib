@@ -286,6 +286,11 @@ ZooKeeperRouter::updateNodeData(const string& path) {
             LOG(INFO) << "collection changed in node, need update immediatly." << path;
             force_update = true;
         }
+        if (topology->getNodeAt(path).getServiceState() != parser.getStrValue(SERVICE_STATE_KEY))
+        {
+            LOG(INFO) << "service state changed in node, need update immediatly." << path;
+            force_update = true;
+        }
     }
 
     WriteLockT rwlock(shared_mutex);
