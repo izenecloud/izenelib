@@ -473,7 +473,6 @@ void WaveletTreeHuffman<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<PatternList *> ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(new PatternList(0, (char_type)0, root_, patterns, alloc));
     ranges_heap.insert(BOOST_NEW(alloc, PatternList)(0, (char_type)0, root_, patterns));
 
     if (ranges_heap.get_max()->score_ == 0.0)
@@ -521,7 +520,6 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new PatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, PatternList)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -533,7 +531,6 @@ void WaveletTreeHuffman<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new PatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, PatternList)(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -656,7 +653,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<FilteredPatternList *> ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(new FilteredPatternList(0, (char_type)0, root_, filters, patterns, alloc));
     ranges_heap.insert(BOOST_NEW(alloc, FilteredPatternList)(0, (char_type)0, root_, filters, patterns));
 
     if (ranges_heap.get_max()->score_ == 0.0)
@@ -704,7 +700,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, FilteredPatternList)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -716,7 +711,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new FilteredPatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, FilteredPatternList)(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -878,7 +872,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<AuxFilteredPatternList<self_type> *> ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(new AuxFilteredPatternList<self_type>(0, (char_type)0, root_, aux_filters, filters, patterns, alloc));
     ranges_heap.insert(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, root_, aux_filters, filters, patterns, alloc));
 
     if (ranges_heap.get_max()->score_ == 0.0)
@@ -933,7 +926,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -945,7 +937,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new AuxFilteredPatternList<self_type>(zero_ranges->level_, node->c1_, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(zero_ranges->level_, node->c1_, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else

@@ -59,8 +59,8 @@ public:
     void getMatchedDocIdList(const MatchRangeListT &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     void getTopKDocIdList(
-            const MatchRangeListT &match_ranges_list,
-            const std::vector<double> &max_match_list,
+            const MatchRangeListT &raw_range_list,
+            const std::vector<double> &score_list,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
@@ -465,8 +465,8 @@ void FMIndex<CharT>::getMatchedDocIdList(
 
 template <class CharT>
 void FMIndex<CharT>::getTopKDocIdList(
-    const MatchRangeListT &match_ranges_list,
-    const std::vector<double> &max_match_list,
+    const MatchRangeListT &raw_range_list,
+    const std::vector<double> &score_list,
     size_t max_docs,
     std::vector<std::pair<double, uint32_t> > &res_list,
     std::vector<size_t> &doclen_list) const
@@ -474,19 +474,18 @@ void FMIndex<CharT>::getTopKDocIdList(
     if (!doc_array_ || docCount() == 0)
         return;
 
-    //std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
     boost::auto_alloc alloc;
-    range_list_type match_ranges(alloc);
-    match_ranges.resize(match_ranges_list.size());
+    range_list_type range_list(alloc);
+    range_list.resize(raw_range_list.size());
 
-    for (size_t i = 0; i < match_ranges_list.size(); ++i)
+    for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        match_ranges[i].get<0>() = match_ranges_list[i].first;
-        match_ranges[i].get<1>() = match_ranges_list[i].second;
-        match_ranges[i].get<2>() = max_match_list[i];
+        range_list[i].get<0>() = raw_range_list[i].first;
+        range_list[i].get<1>() = raw_range_list[i].second;
+        range_list[i].get<2>() = score_list[i];
     }
 
-    doc_array_->topKUnion(match_ranges, max_docs, res_list, alloc);
+    doc_array_->topKUnion(range_list, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)
