@@ -79,7 +79,7 @@ private:
             char_type symbol,
             std::vector<char_type> &results) const;
 
-private:
+protected:
     sdarray::SDArray occ_;
     std::vector<size_t> zero_counts_;
     std::vector<WaveletTreeNode *> nodes_;
