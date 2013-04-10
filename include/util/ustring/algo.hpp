@@ -155,17 +155,16 @@ NS_IZENELIB_UTIL_BEGIN
  *@brief An string algorithm set.
  **/
 template <
-class StringT = std::string,
-      class IS_NUMERIC = is_numeric<typename StringT::value_type>,
-      class IS_ALPHABET = is_alphabet<typename StringT::value_type>
-      >
+    class StringT = std::string,
+    class IS_NUMERIC = is_numeric<typename StringT::value_type>,
+    class IS_ALPHABET = is_alphabet<typename StringT::value_type>
+    >
 class Algorithm
 {
     typedef typename StringT::value_type CharT;
     typedef typename StringT::size_t size_t;
 
 public:
-
     //*******************KMP**********************
     static void get_nextval(const StringT& s, uint64_t* next, StrCompMode caseChk=SM_SENSITIVE)
     {
@@ -258,8 +257,6 @@ public:
     }
 
     //*******************rKMP**********************
-
-
     static void rget_nextval(const StringT& s, uint64_t next[], StrCompMode caseChk=SM_SENSITIVE)
     {
         uint64_t j = s.length()-1, k = s.length();
@@ -1339,32 +1336,42 @@ public:
         return s;
     }
 
-    static StringT trimToOneSpace(const StringT& str)
+    static StringT padForAlphaNum(const StringT& str)
     {
         StringT s;
-        s.reserve(str.length()*3/4);
+        if (str.empty()) return s;
+        s.reserve(str.length());
 
-        size_t i=0;
-        size_t last = i;
-        for (; i<str.length(); i++)
+        if (IS_ALPHABET::value(str[0]) || IS_NUMERIC::value(str[0]))
+            s.push_back(' ');
+
+        size_t last = 0;
+        for (size_t current = 1; current < str.length(); ++current)
         {
-            if (!IS_ALPHABET::is_space(str[i]))
-                continue;
-
-            if (last<i )
+            if (str[current] == ' ')
             {
-                s += str.substr(last, i-last+1);
+                if (str[current - 1] != ' ')
+                    s.push_back(' ');
             }
-
-            last = i+1;
+            else if (IS_ALPHABET::value(str[current]) || IS_NUMERIC::value(str[current]))
+            {
+                if (str[current - 1] != ' ' && !IS_ALPHABET::value(str[current - 1]) && !IS_NUMERIC::value(str[current - 1]))
+                    s.push_back(' ');
+                s.push_back(str[current]);
+            }
+            else
+            {
+                if (IS_ALPHABET::value(str[current - 1]) || IS_NUMERIC::value(str[current - 1]))
+                    s.push_back(' ');
+                s.push_back(str[current]);
+            }
         }
 
-        if (last < str.length())
-            s += str.substr(last);
+        if (IS_ALPHABET::value(str[str.length() - 1]) || IS_NUMERIC::value(str[str.length() - 1]))
+            s.push_back(' ');
 
         return s;
     }
-
 
     static StringT trimHead(const StringT& str)
     {
