@@ -1336,6 +1336,32 @@ public:
         return s;
     }
 
+    static StringT trimToOneSpace(const StringT& str)
+    {
+        StringT s;
+        s.reserve(str.length()*3/4);
+
+        size_t i=0;
+        size_t last = i;
+        for (; i<str.length(); i++)
+        {
+            if (!IS_ALPHABET::is_space(str[i]))
+                continue;
+
+            if (last<i )
+            {
+                s += str.substr(last, i-last+1);
+            }
+
+            last = i+1;
+        }
+
+        if (last < str.length())
+            s += str.substr(last);
+
+        return s;
+    }
+
     static StringT padForAlphaNum(const StringT& str)
     {
         StringT s;
