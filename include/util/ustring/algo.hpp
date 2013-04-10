@@ -1370,6 +1370,7 @@ public:
 
         if (IS_ALPHABET::value(str[0]) || IS_NUMERIC::value(str[0]))
             s.push_back(' ');
+        s.push_back(str[0]);
 
         size_t last = 0;
         for (size_t current = 1; current < str.length(); ++current)
