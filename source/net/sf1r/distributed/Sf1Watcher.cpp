@@ -74,7 +74,7 @@ Sf1Watcher::onDataChanged(const string& path) {
 void 
 Sf1Watcher::onChildrenChanged(const string& path) {
     LOG(INFO) << "children changed: " << path;
-    if (boost::regex_search(path, SF1R_ROOT_REGEX)) {
+    if (boost::regex_search(path, SF1R_ROOT_REGEX) || path == ROOT_NODE) {
         router.watchChildren(path);
     }
 }
