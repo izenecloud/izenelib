@@ -9,7 +9,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-ParallelTermPosition::ParallelTermPosition(collectionid_t colID, IndexReader* pIndexReader, vector<string>& properties)
+ParallelTermPosition::ParallelTermPosition(collectionid_t colID, IndexReader* pIndexReader, const std::vector<std::string>& properties)
         :colID_(colID)
         ,pIndexReader_(pIndexReader)
         ,properties_(properties)
