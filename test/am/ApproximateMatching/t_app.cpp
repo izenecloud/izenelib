@@ -1,12 +1,14 @@
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <am/ApproximateMatching/MatchIndex.h>
 
 #include <util/ustring/UString.h>
 //#include <common/ScdParser.h>
 #include <iostream>
 #include <map>
+
 using namespace std;
 using namespace izenelib::util;
-using namespace izenelib;
+using namespace izenelib::am;
 string toString(UString us)
 {
     string str;
@@ -18,9 +20,12 @@ int main()
 {
 
 MatchIndex Mi;
-string scd_file="unmatch";
+
+string scd_file="SPU.SCD";
 
 ifstream in;
+int i=0;
+/*
     if(!scd_file.empty())
     {
         in.open(scd_file.c_str(),ios::in);
@@ -31,12 +36,18 @@ ifstream in;
         while( getline(in, title))
         {
             //cout<<line<<endl;
-             Mi.add(UString(title,UString::UTF_8));
+             if(title.find("<Title>")==0)
+             {
+                  i++;
+                  //if(i>2) break;
+                  Mi.Add(UString(title.substr(7),UString::UTF_8));
+             }
+
         }
 
 
     }
-/*
+
     ScdParser parser(izenelib::util::UString::UTF_8);
     parser.load(scd_file);
     uint32_t n=0;
@@ -61,7 +72,7 @@ ifstream in;
               const std::string& property_name = p->first;
               if(property_name=="Title")
               {
-                      Mi.add(p->second);
+                      Mi.Add(p->second);
               };
         }
 
@@ -69,27 +80,67 @@ ifstream in;
 */
 /*
 Mi.BuildIndex();
-Mi.Match(UString("酒鬼酒 五星湘魂酒 馥郁香型白酒 52度 500ml",UString::UTF_8),5);
-  
-*/
-UString a("abcdefdsewdda",UString::UTF_8);
-UString b("dsadaefe",UString::UTF_8);
-UString c("dsadfeffsa",UString::UTF_8);
-UString d("fdsfedd",UString::UTF_8);
-UString e("ddcsdefre",UString::UTF_8);
-cout<<Mi.EditDistance(a,b)<<endl;
-Mi.add(a);
-Mi.add(b);
-Mi.add(c);
-Mi.add(d);
-Mi.add(e);    
-Mi.BuildIndex();
+Mi.Match(UString("酒鬼酒 五星湘魂酒 馥郁香型白酒 52度 500ml",UString::UTF_8),4);
+  /*
 
-vector<UString> can=Mi.Match(UString("酒鬼酒 五星湘魂酒 馥郁香型白酒 52度 500ml",UString::UTF_8),5);
-    for(unsigned i=0;i<can.size();i++)
-    {  
-         cout<<toString(can[i])<<endl;
+Mi.BuildIndex();
+ofstream doc;
+doc.open("doc",ios::out);
+doc<<Mi;
+doc.close();
+cout<<"save"<<endl;
+
+Mi.Clear();
+*/
+ifstream docin;
+docin.open("doc",ios::in);
+docin>>Mi;
+
+docin.close();
+cout<<"begin"<<endl;
+string match_file="unmatch";
+ofstream out;
+
+ boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"MatchBegin"<<boost::posix_time::to_iso_string(time_now)<<endl;
+/**/
+out.open("outputd",ios::out);
+in.close();
+
+
+    if(!match_file.empty())
+    {
+        //cout<<"asdasdd"<<endl;
+        in.open(match_file.c_str(),ios::in);
+        string title;
+
+        while( getline(in, title))
+        {
+             //cout<<title<<endl;
+             {
+                  out<<title<<endl;
+                  vector<UString> can=Mi.Match(UString(title,UString::UTF_8),5);
+                  for(unsigned i=0;i<can.size();i++)
+                  {  
+                       out<<toString(can[i])<<endl;
+                  }
+             }
+             out<<endl;
+        }
+
+
     }
+
+/*
+ vector<UString> can=Mi.Match(UString("Lenovo/联想 A210",UString::UTF_8),3);
+                  for(unsigned i=0;i<can.size();i++)
+                  {  
+                       cout<<toString(can[i])<<endl;
+                  }
+*/
+    time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"MatchEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
+
 //Mi.show();
 
 }
