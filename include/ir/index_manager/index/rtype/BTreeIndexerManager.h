@@ -78,7 +78,7 @@ public:
 
     void getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
-    void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter = true);
 
     void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
 
@@ -94,7 +94,13 @@ public:
 
     void getValueGreatEqual(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
-    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs);
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs, bool needFilter = true);
+
+    /**
+     * @param bitVector used as temp storage for performance consideration, it might not store the output docids.
+     * @param docs store the output docids
+     */
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<uint32_t>& docs);
 
     void getValueNotIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs);
 
