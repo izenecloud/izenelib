@@ -63,11 +63,12 @@ ZooKeeperRouter::ZooKeeperRouter(PoolFactory* poolFactory,
     // 2. obtain the list of actually running SF1 servers
     LOG(INFO) << "Getting actual topology ...";
     topology.reset(new Sf1Topology);
+    backup_topology.reset(new Sf1Topology);
     loadTopology();
     
     // 3. set the routing policy
     LOG(INFO) << "Routing policy ...";
-    policy.reset(new RoundRobinPolicy(*topology));
+    policy.reset(new RoundRobinPolicy(*topology, *backup_topology));
     
     LOG(INFO) << "ZooKeeperRouter ready";
     Scheduler::addJob("UpdateNodeDataOnTimer", 30*1000, 30*1000,
@@ -121,6 +122,7 @@ ZooKeeperRouter::loadTopology() {
             LOG(INFO) << "not sf1r node : " << s;
     }
     LOG(INFO) << "found (" << topology->count() << ") active nodes";
+    LOG(INFO) << "found (" << backup_topology->count() << ") backup active nodes";
 }
 
 
@@ -166,6 +168,10 @@ ZooKeeperRouter::addSf1Node(const string& path) {
         LOG(INFO) << "node already exists, skipping";
         return true;
     }
+    if (backup_topology->isPresent(path)) {
+        LOG(INFO) << "node already exists, skipping";
+        return true;
+    }
     
     string data;
     client->getZNodeData(path, data, ZooKeeper::WATCH);
@@ -175,6 +181,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     parser.loadKvString(data);
     //
     // replicaid and set_seq_ both start from 1.
+    Sf1Topology* adding_topology = topology.get();
     int32_t replicaid = parser.getUInt32Value(REPLICAID_KEY);
     if (((replicaid - 1) % total_set_num_) == (set_seq_ - 1))
     {
@@ -182,9 +189,9 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     }
     else
     {
-        LOG(INFO) << "current set_seq_ : " << set_seq_ << " ignore node in replica : " << replicaid;
-        client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
-        return false;
+        LOG(INFO) << "current set_seq_ : " << set_seq_ << " using as backup node in replica : " << replicaid;
+        // adding to backup node.
+        adding_topology = backup_topology.get();
     }
 
     if (not parser.hasKey(MASTERPORT_KEY)) {
@@ -212,7 +219,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
     UpgradeUniqueLockT uniqueLock(lock);
     // add node into topology
-    topology->addNode(path, data);
+    adding_topology->addNode(path, data);
 
 #ifdef ENABLE_ZK_TEST
     if (factory == NULL) { // Should be NULL only in tests
@@ -222,7 +229,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 #endif
     
     // add pool for the node
-    const Sf1Node& node = topology->getNodeAt(path);
+    const Sf1Node& node = adding_topology->getNodeAt(path);
     DLOG(INFO) << "Getting connection pool for node: " << node.getPath();
 
     try
@@ -234,7 +241,7 @@ ZooKeeperRouter::addSf1Node(const string& path) {
     {
         LOG(ERROR) << "connect failed.";
         // remove node from topology
-        topology->removeNode(path);
+        adding_topology->removeNode(path);
         return false;
     }
 
@@ -259,6 +266,16 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
             topology->updateNode(it->first, data);
             it->second = 0;
         }
+        if (it->second > 0 && backup_topology->isPresent(it->first))
+        {
+            // update
+            LOG(INFO) << "updating SF1 node in timer : [" << it->first << "]";
+            string data;
+            client->getZNodeData(it->first, data, iz::ZooKeeper::WATCH);
+            LOG(INFO) << "node data: [" << data << "]";
+            backup_topology->updateNode(it->first, data);
+            it->second = 0;
+        }
         ++it;
     }
 }
@@ -267,12 +284,18 @@ void
 ZooKeeperRouter::updateNodeData(const string& path) {
     string data;
     bool force_update = false;
+    Sf1Topology* updating_topology = topology.get();
     {
 	    ReadLockT lock(shared_mutex);
 
 	    if (not topology->isPresent(path)) {
 		    LOG(INFO) << "Node not in topology, skipping";
-		    return;
+            if (backup_topology->isPresent(path))
+            {
+                updating_topology = backup_topology.get();
+            }
+            else
+                return;
 	    }
 	    client->getZNodeData(path, data, iz::ZooKeeper::WATCH);
         // check if collection changed.
@@ -281,12 +304,12 @@ ZooKeeperRouter::updateNodeData(const string& path) {
         std::string new_coll = parser.getStrValue(SearchService + COLLECTION_KEY);
         std::vector<std::string> collections;
         split(new_coll, DELIMITER_CHAR, collections);
-        if (collections != topology->getNodeAt(path).getCollections())
+        if (collections != updating_topology->getNodeAt(path).getCollections())
         {
             LOG(INFO) << "collection changed in node, need update immediatly." << path;
             force_update = true;
         }
-        if (topology->getNodeAt(path).getServiceState() != parser.getStrValue(SERVICE_STATE_KEY))
+        if (updating_topology->getNodeAt(path).getServiceState() != parser.getStrValue(SERVICE_STATE_KEY))
         {
             LOG(INFO) << "service state changed in node, need update immediatly." << path;
             force_update = true;
@@ -306,7 +329,7 @@ ZooKeeperRouter::updateNodeData(const string& path) {
         cur_wait_info = 0;
         LOG(INFO) << "update node data is empty, remove it." << path;
         // remove node from topology
-        topology->removeNode(path);
+        updating_topology->removeNode(path);
 
 #ifdef ENABLE_ZK_TEST
         if (factory == NULL) { // Should be NULL only in tests
@@ -337,7 +360,7 @@ ZooKeeperRouter::updateNodeData(const string& path) {
         }
 	    LOG(INFO) << "updating SF1 node: [" << path << "]";
 	    LOG(INFO) << "node data: [" << data << "]";
-        topology->updateNode(path, data);
+        updating_topology->updateNode(path, data);
         cur_wait_info = 0;
     }
 }
@@ -345,12 +368,15 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 
 void
 ZooKeeperRouter::removeSf1Node(const string& path) {
+    Sf1Topology* removing_topology = topology.get();
 	{
 		ReadLockT lock(shared_mutex);
 
 		if (not topology->isPresent(path)) {
 			LOG(INFO) << "Node not in topology, skipping";
-			return;
+            if (not backup_topology->isPresent(path))
+                return;
+            removing_topology = backup_topology.get();
 		}
 	}
     
@@ -358,7 +384,7 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     
     WriteLockT rwlock(shared_mutex);
     // remove node from topology
-    topology->removeNode(path);
+    removing_topology->removeNode(path);
 
     waiting_update_path_.erase(path);
 
@@ -451,7 +477,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
 
 const Sf1Node& 
 ZooKeeperRouter::resolve(const string collection) const {
-    if (topology->count() == 0) {
+    if (topology->count() == 0 && backup_topology->count() == 0) {
         LOG(WARNING) << "Empty topology, throwing RoutingError";
         throw RoutingError("Empty topology");
     }
@@ -467,7 +493,9 @@ ZooKeeperRouter::resolve(const string collection) const {
         if (topology->count(collection) == 0) {
             LOG(WARNING) << "No routes for collection: " << collection 
                          << ", throwing RoutingError";
-            throw RoutingError("No routes for " + collection);
+            if (backup_topology->count(collection) == 0)
+                throw RoutingError("No routes for " + collection);
+            LOG(INFO) << "found in backup.";
         }
         
         // choose a node according to the routing policy
@@ -525,27 +553,32 @@ addConnection(vector<RawClient*>& list, const Sf1Node& node, PoolContainer& pool
 vector<RawClient*> 
 ZooKeeperRouter::getConnections(const string& collection) {
     ReadLockT lock(shared_mutex);
+    Sf1Topology* cur_topology = topology.get();
     if (topology->count() == 0) {
-        LOG(WARNING) << "Empty topology, throwing RoutingError";
-        throw RoutingError("Empty topology");
+        if (backup_topology->count() == 0)
+        {
+            LOG(WARNING) << "Empty topology, throwing RoutingError";
+            throw RoutingError("Empty topology");
+        }
+        cur_topology = backup_topology.get();
     }
     
     if (collection.empty()) {
         vector<RawClient*> list;
-        NodeListRange nodes = topology->getNodes();
+        NodeListRange nodes = cur_topology->getNodes();
         BOOST_FOREACH(const Sf1Node& node, nodes) {
             addConnection(list, node, pools);
         }
         return list;
     } else {
-        if (topology->count(collection) == 0) {
+        if (cur_topology->count(collection) == 0) {
             LOG(WARNING) << "No routes for collection: " << collection 
                          << ", throwing RoutingError";
             throw RoutingError("No routes for " + collection);
         }
         
         vector<RawClient*> list;
-        NodeCollectionsRange range = topology->getNodesFor(collection);
+        NodeCollectionsRange range = cur_topology->getNodesFor(collection);
         NodeCollectionsList nodes(range.first, range.second);
         BOOST_FOREACH(const NodeCollectionsList::value_type& value, nodes) {
             const Sf1Node& node = value.second;

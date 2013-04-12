@@ -156,6 +156,7 @@ private:
     
     /// Actual SF1 instances.
     boost::scoped_ptr<Sf1Topology> topology;
+    boost::scoped_ptr<Sf1Topology> backup_topology;
     
     /// Routing policy.
     boost::scoped_ptr<RoutingPolicy> policy;

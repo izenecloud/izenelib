@@ -24,7 +24,7 @@ class RoundRobinPolicy : public RoutingPolicy {
 public:
     
     /// Constructor.
-    RoundRobinPolicy(Sf1Topology&);
+    RoundRobinPolicy(Sf1Topology&, Sf1Topology& backup_nodes);
     
     /// Destructor.
     ~RoundRobinPolicy();
@@ -42,6 +42,8 @@ private:
     
     /// Update the map of collections.
     void updateCollections();
+    const Sf1Node& getNodeFor(const std::string& collection, const NodeCollectionsList& chose_from);
+    const Sf1Node& getBackupNodeFor(const std::string& collection);
     
 private:
     
@@ -52,6 +54,8 @@ private:
     boost::ptr_map<std::string, NodeCollectionsList> collections;
     /// Map of counters used for randomly access nodes hosting a collection.
     std::map<std::string, size_t> ccounter;
+    boost::ptr_map<std::string, NodeCollectionsList> backup_collections;
+    Sf1Topology& backup_topology;
     
 };
 
