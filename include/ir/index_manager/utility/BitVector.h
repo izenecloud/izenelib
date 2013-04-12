@@ -104,23 +104,24 @@ public:
     void compressed(EWAHBoolArray<uint32_t>& compressedBitMap) const
     {
         const size_t byteNum = getBytesNum(size_);
-        unsigned int wordinbytes = sizeof(uint32_t);
-        for(size_t i = 0; i < byteNum/wordinbytes; i++)
+        const size_t wordByteNum = sizeof(uint32_t);
+
+        const unsigned int wordNum = byteNum / wordByteNum;
+        unsigned int* pWord = reinterpret_cast<unsigned int*>(bits_);
+        unsigned int* pWordEnd = pWord + wordNum;
+        for (; pWord < pWordEnd; ++pWord)
         {
-            uint32_t currentword(0);
-            for(size_t j = 0; j < wordinbytes; j++)
-            {
-                currentword |= static_cast<uint32_t>(bits_[i * wordinbytes + j]) << (j * 8);
-            }
-            compressedBitMap.add(currentword);
+            compressedBitMap.add(*pWord);
         }
-        unsigned int leftBytes = byteNum % wordinbytes;
-        if ( leftBytes != 0 )
+
+        const unsigned int leftByteNum = byteNum % wordByteNum;
+        if (leftByteNum > 0)
         {
-            uint32_t lastWord(0);
-            for (size_t k = 0 ; k < leftBytes; k++)
+            uint32_t lastWord = 0;
+            unsigned char* pByte = reinterpret_cast<unsigned char*>(pWordEnd);
+            for (unsigned int i = 0; i < leftByteNum; ++i)
             {
-                lastWord |= static_cast<uint32_t>(bits_[(byteNum / wordinbytes) * wordinbytes + k]) << (k * 8);
+                lastWord |= pByte[i] << (i << 3);
             }
             compressedBitMap.add(lastWord);
         }
@@ -206,7 +207,7 @@ public:
         return *this;
     }
 
-    bool operator==(const BitVector& b)
+    bool operator==(const BitVector& b) const
     {
         if(size()!=b.size())
         {
