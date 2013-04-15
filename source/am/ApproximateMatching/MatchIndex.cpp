@@ -63,7 +63,7 @@ void MatchIndex::Add(vector<UString> textVec)
 void MatchIndex::BuildIndex()
 {
     std::map<UString,PostingList >::iterator it;
-
+/*
     for(size_t i=2; i<=MaxDepth; i++)
     {
         int k=0;
@@ -71,6 +71,8 @@ void MatchIndex::BuildIndex()
         {
             UString ustr=it->first;
             k++;
+            if(k%1000==0)
+            cout<<k<<endl;
             if(ustr.length()==i)
             {
                 it->second=prefixVec[ustr.substr(0,i-1)]|prefixVec[ustr.substr(i-1)];
@@ -78,6 +80,7 @@ void MatchIndex::BuildIndex()
 
         }
     }
+*/
     build=true;
 }
 vector<UString> MatchIndex::Match(UString  query,int MaxError)
@@ -85,21 +88,23 @@ vector<UString> MatchIndex::Match(UString  query,int MaxError)
     vector<UString> ret;
     if(MaxError>=query.length())
         return ret;
-
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time(); 
     uint32_t i=0;
     int k=1;
     PostingList ps;
     ps.StrLength=0;
-    ps.MaxError=MaxError;
+    ps.MaxError=0;
     bool begin=true;
     while((i+k)<=query.length())
     {
         UString  temp;
-        while(prefixVec.find(query.substr(i,k))!=prefixVec.end()&&(i+k)<=query.length()&&MaxError<ps.MaxError+(query.length()-i-k))
+        while(prefixVec.find(query.substr(i,k))!=prefixVec.end()&&(i+k)<=query.length()&&MaxError<ps.MaxError+1+(query.length()-i-k)+1)
         {
             temp=query.substr(i,k);
             k++;
         }
+        //cout<<"prefixVec.find(query.substr(i,k))!=prefixVec.end()"<<(prefixVec.find(query.substr(i,k))!=prefixVec.end())<<((i+k)<=query.length())<<(MaxError<ps.MaxError+(query.length()-i-k))<<endl;
+        //cout<<"MaxError"<<MaxError<<"ps.MaxError"<<ps.MaxError<<"i"<<i<<"k"<<k<<"length"<<query.length()<<endl;
         if(temp.length()==0)
         {
             PostingList Empty;
@@ -111,13 +116,17 @@ vector<UString> MatchIndex::Match(UString  query,int MaxError)
             continue;
         }
         ps=mergeWihthMaxError ( ps,prefixVec[temp],MaxError,true);
-        //cout<<toString(temp)<<endl;
+        cout<<toString(temp)<<endl;
         //prefixVec[temp].Show();
-        //ps.Show();
+        ps.Show();
+        time_now = boost::posix_time::microsec_clock::local_time(); 
+        cout<<"MatchEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
         i=i+k-1;
         k=1;
     }
-
+    time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"CandidatesEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
+    /*
     for(unsigned i=0; i<ps.Candidates.size(); i++)
     {
         for(unsigned j=0; j<ps.Candidates[i].k.size(); j++)
@@ -125,20 +134,31 @@ vector<UString> MatchIndex::Match(UString  query,int MaxError)
             ret.push_back(GetText(ps.Candidates[i].k[j].ID));
         }
     }
+    */
 
-    std::sort(ret.begin(),ret.end());
-    vector<UString>::iterator end_unique=unique(ret.begin(),ret.end());
-    ret.erase(end_unique,ret.end());
-
+    vector<uint32_t> IDs=MergeSort (ps.Candidates);//Multi-way merge sort
+    //cout<<IDs.size()<<endl;
+    time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"InsertEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
+    //std::sort(ret.begin(),ret.end());
+    vector<uint32_t>::iterator end_unique=unique(IDs.begin(),IDs.end());
+    IDs.erase(end_unique,IDs.end());
+    time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"removeEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
+    //cout<<IDs.size()<<endl;
     vector<UString> result;
-    for(unsigned i=0; i<ret.size(); i++)
+    for(unsigned i=0; i<IDs.size(); i++)
     {
-        if(ret[i].length()>query.length()+MaxError||query.length()>ret[i].length()+MaxError)
+        UString ustr=GetText(IDs[i]);
+        //cout<<toString(ustr)<<endl;
+        if(ustr.length()>query.length()+MaxError||query.length()>ustr.length()+MaxError)
             continue;
-        if (EditDistance(ret[i],query)<=MaxError)
-            result.push_back(ret[i]);
+        if (EditDistance(ustr,query)<=MaxError)
+            result.push_back(ustr);
     }
-
+    //cout<<result.size()<<endl;
+    time_now = boost::posix_time::microsec_clock::local_time(); 
+    cout<<"filterEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
     return result;
     /*
        return ret;
