@@ -13,6 +13,7 @@
 #include <ir/index_manager/store/IndexOutput.h>
 
 #include <am/bitmap/Ewah.h>
+#include <boost/detail/endian.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -106,24 +107,20 @@ public:
         const size_t byteNum = getBytesNum(size_);
         const size_t wordByteNum = sizeof(uint32_t);
 
-        const unsigned int wordNum = byteNum / wordByteNum;
-        unsigned int* pWord = reinterpret_cast<unsigned int*>(bits_);
-        unsigned int* pWordEnd = pWord + wordNum;
-        for (; pWord < pWordEnd; ++pWord)
+        const size_t wordNum = byteNum / wordByteNum;
+        uint32_t* pWord = reinterpret_cast<uint32_t*>(bits_);
+        for (std::size_t i = 0; i < wordNum; ++i)
         {
-            compressedBitMap.add(*pWord);
+            uint32_t word = getWord(pWord++);
+            compressedBitMap.add(word);
         }
 
-        const unsigned int leftByteNum = byteNum % wordByteNum;
+        const size_t leftByteNum = byteNum % wordByteNum;
         if (leftByteNum > 0)
         {
-            uint32_t lastWord = 0;
-            unsigned char* pByte = reinterpret_cast<unsigned char*>(pWordEnd);
-            for (unsigned int i = 0; i < leftByteNum; ++i)
-            {
-                lastWord |= pByte[i] << (i << 3);
-            }
-            compressedBitMap.add(lastWord);
+            unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
+            uint32_t word = getWord(pBytes, leftByteNum);
+            compressedBitMap.add(word);
         }
     }
 
@@ -412,6 +409,47 @@ private:
             result <<= 1;
 
         return result;
+    }
+
+    /**
+     * Get the word value from the bytes.
+     * @param pWord pointer to the bytes, in little endian order.
+     * @return the word value
+     * @note this function runs faster on little endian machine than on big
+     *       endian machine, because the word value could be read out directly
+     *       on little endian machine.
+     */
+    uint32_t getWord(uint32_t* pWord) const
+    {
+#if defined(BOOST_LITTLE_ENDIAN)
+        return *pWord;
+
+#elif defined(BOOST_BIG_ENDIAN)
+        unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
+        return getWord(pBytes, sizeof(uint32_t));
+
+#else
+#error "BOOST_LITTLE_ENDIAN or BOOST_BIG_ENDIAN not defined"
+#endif
+    }
+
+    /**
+     * Get the word value from the bytes.
+     * @param pBytes pointer to the bytes, in little endian order.
+     * @param byteNum the number of bytes,
+     *                it should not be greater than sizeof(uint32_t).
+     * @return the word value
+     */
+    uint32_t getWord(unsigned char* pBytes, std::size_t byteNum) const
+    {
+        uint32_t word = 0;
+
+        for (std::size_t i = 0; i < byteNum; ++i)
+        {
+            word |= pBytes[i] << (i << 3);
+        }
+
+        return word;
     }
 
     /**
