@@ -87,7 +87,7 @@ class ParallelTermPosition
 
 
 public:
-    ParallelTermPosition(collectionid_t colID, IndexReader* pIndexReader, vector<string>& properties);
+    ParallelTermPosition(collectionid_t colID, IndexReader* pIndexReader, const std::vector<std::string>& properties);
 
     ~ParallelTermPosition();
 public:

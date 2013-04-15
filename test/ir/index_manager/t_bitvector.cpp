@@ -13,6 +13,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <cstdlib>
 
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/store/FSDirectory.h>
@@ -129,6 +130,47 @@ void checkBitVector(size_t count, bool isCheckEachBit = true)
     BOOST_CHECK(! bitvector.test(count + 7));
 }
 
+void compress(const BitVector& bitVector)
+{
+    BOOST_TEST_MESSAGE("origin: " << bitVector);
+
+    EWAHBoolArray<uint32_t> ewahBoolArray;
+    bitVector.compressed(ewahBoolArray);
+
+    BitVector uncompress;
+    uncompress.importFromEWAH(ewahBoolArray);
+    BOOST_TEST_MESSAGE("uncomp: " << uncompress);
+
+    const std::size_t bitNum = bitVector.size();
+    BOOST_CHECK_LE(uncompress.size(), bitNum);
+
+    for (std::size_t i = 0; i < bitNum; ++i)
+    {
+        BOOST_CHECK_EQUAL(uncompress.test(i), bitVector.test(i));
+    }
+}
+
+void testCompressBitNum(std::size_t bitNum)
+{
+    BOOST_TEST_MESSAGE("testCompressBitNum, bitNum: " << bitNum);
+
+    BitVector bitVector(bitNum);
+
+    bitVector.setAll();
+    compress(bitVector);
+
+    bitVector.clear();
+    compress(bitVector);
+
+    const std::size_t setBitNum = bitNum / 2;
+    for (std::size_t i = 0; i < setBitNum; ++i)
+    {
+        int k = std::rand() % bitNum;
+        bitVector.set(k);
+    }
+    compress(bitVector);
+}
+
 BOOST_AUTO_TEST_SUITE(t_bitvector)
 
 BOOST_AUTO_TEST_CASE(bitvector)
@@ -142,6 +184,15 @@ BOOST_AUTO_TEST_CASE(bitvector)
     checkBitVector(10000000, false); // 10M
     checkBitVector(134217728, false); // 128M
     checkBitVector(1073741825, false); // 1G + 1
+}
+
+BOOST_AUTO_TEST_CASE(compressToEWAHBoolArray)
+{
+    const std::size_t maxBitNum = 100;
+    for (std::size_t i = 0; i <= maxBitNum; ++i)
+    {
+        testCompressBitNum(i);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

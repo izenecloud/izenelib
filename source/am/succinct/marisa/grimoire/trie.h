@@ -4,10 +4,8 @@
 #include "trie/state.h"
 #include "trie/louds-trie.h"
 
-namespace marisa
-{
-namespace grimoire
-{
+namespace marisa {
+namespace grimoire {
 
 using trie::State;
 using trie::LoudsTrie;

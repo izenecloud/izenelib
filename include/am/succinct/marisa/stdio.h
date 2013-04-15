@@ -3,8 +3,7 @@
 
 #include <cstdio>
 
-namespace marisa
-{
+namespace marisa {
 
 class Trie;
 

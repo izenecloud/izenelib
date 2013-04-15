@@ -3,8 +3,7 @@
 
 #include <iosfwd>
 
-namespace marisa
-{
+namespace marisa {
 
 class Trie;
 
