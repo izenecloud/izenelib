@@ -558,8 +558,12 @@ public:
     void flush()
     {
         if ( !isOpen() ) return;
-        close();
-        open();
+        try{
+            close();
+            open();
+        }catch(const std::exception& e){
+            std::cerr << "flush tc hash error.";
+        }
         //commit();
     }
 
