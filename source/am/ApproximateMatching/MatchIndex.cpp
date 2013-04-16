@@ -19,18 +19,18 @@ string toString(UString us)
 
 MatchIndex::MatchIndex()
 {
-
+    build=false;
 }
 MatchIndex::~MatchIndex()
 {
 }
-void MatchIndex::Add(UString text)
+void MatchIndex::Add(const UString& text)
 {
     uint32_t id=AddText(text);
-    int length=text.length();
-    for(unsigned i=0; i<length; i++)
+    size_t length=text.length();
+    for(size_t i=0; i<length; i++)
     {
-        for(unsigned k=1; k<=MaxDepth; k++)
+        for(size_t k=1; k<=min(size_t(MaxDepth),(length-i)); k++)
         {
             OneSubstr substr;
             substr.ID=id;
@@ -53,7 +53,7 @@ void MatchIndex::Add(UString text)
     }
 }
 
-void MatchIndex::Add(vector<UString> textVec)
+void MatchIndex::Add(vector<UString>& textVec)
 {
     for(unsigned i=0; i<=textVec.size(); i++)
         Add(textVec[i]);
@@ -62,117 +62,164 @@ void MatchIndex::Add(vector<UString> textVec)
 
 void MatchIndex::BuildIndex()
 {
-    std::map<UString,PostingList >::iterator it;
-/*
-    for(size_t i=2; i<=MaxDepth; i++)
-    {
-        int k=0;
-        for ( it = prefixVec.begin(); it != prefixVec.end(); it++ )
+    /*
+        std::map<UString,PostingList >::iterator it;
+        for(size_t i=2; i<=MaxDepth; i++)
         {
-            UString ustr=it->first;
-            k++;
-            if(k%1000==0)
-            cout<<k<<endl;
-            if(ustr.length()==i)
+            int k=0;
+            for ( it = prefixVec.begin(); it != prefixVec.end(); it++ )
             {
-                it->second=prefixVec[ustr.substr(0,i-1)]|prefixVec[ustr.substr(i-1)];
-            }
+                UString ustr=it->first;
+                k++;
+                if(k%1000==0)
+                cout<<k<<endl;
+                if(ustr.length()==i)
+                {
+                    it->second=prefixVec[ustr.substr(0,i-1)]|prefixVec[ustr.substr(i-1)];
+                }
 
+            }
+        }
+    */
+    build=true;
+}
+int MatchIndex::SizeOfPosting(const UString &query)
+{
+    if(prefixVec.find(query)!=prefixVec.end())
+    {
+        return prefixVec[query].Candidates[0].k.size();
+    }
+    return 0;
+}
+std::pair<int,std::vector<UString> > MatchIndex::Spilit(UString  query,int MaxError)
+{
+
+    int n=query.length();
+    int m=MaxError;
+    typedef vector< vector<int> >  Tmatrix;
+    typedef vector< vector<vector<UString > > >  STmatrix;
+    Tmatrix matrix(n+1);
+    STmatrix segment(n+1);
+    for(int i=0; i<=n; i++)
+    {
+        matrix[i].resize(m+1);
+        segment[i].resize(m+1);
+    }
+    for(int i=1; i<=n; i++)
+        for(int j=1; j<=m; j++) matrix[i][j]=LargeNum;
+
+
+    for(int i=1; i<=n; i++)
+    {
+        matrix[i][0]=SizeOfPosting(query.substr(max(0,(i-MaxDepth)),min(MaxDepth,i)));
+
+        int k=0;
+        while(k<max(0,(i-MaxDepth)))
+        {
+            segment[i][0].push_back(query.substr(k,min(MaxDepth,i-MaxDepth-k)));
+            k=k+MaxDepth;
+        }
+        segment[i][0].push_back(query.substr(max(0,(i-MaxDepth)),min(MaxDepth,i)));
+    }
+    for(int i=1; i<=n; i++)
+    {
+        for(int j=1; j<=min(m,i-1); j++)
+        {
+            for(int k=max(1,i-MaxDepth); k<i; k++)
+            {
+                if(SizeOfPosting(query.substr(k,(i-k)))+matrix[i][j-1]<matrix[i][j])
+                {
+                    matrix[i][j]=SizeOfPosting(query.substr(k,(i-k)))+matrix[k][j-1];
+                    segment[i][j]=segment[k][j-1];
+                    segment[i][j].push_back(query.substr(k,i-k));
+                    /*
+                    if(j==m&&matrix[i][j]<20)
+                    {
+                       while(k<(n-MaxDepth))
+                       {
+                            segment[i][0].push_back(query.substr(k,MaxDepth));
+                            k=k+MaxDepth;
+                       }
+                       segment[i][0].push_back(query.substr(k));
+                       return   make_pair(matrix[i][j],segment[i][j]);
+                    }
+                    */
+                }
+            }
         }
     }
-*/
-    build=true;
+
+
+    return   make_pair(matrix[n][m],segment[n][m]);
 }
 vector<UString> MatchIndex::Match(UString  query,int MaxError)
 {
     vector<UString> ret;
-    if(MaxError>=query.length())
+    if(MaxError>=int(query.length()))
         return ret;
-    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time(); 
-    uint32_t i=0;
-    int k=1;
+    std::pair<int,std::vector<UString> > seg=Spilit(query,MaxError);
     PostingList ps;
     ps.StrLength=0;
     ps.MaxError=0;
-    bool begin=true;
-    while((i+k)<=query.length())
+    for(unsigned i=0; i<seg.second.size(); i++)
     {
-        UString  temp;
-        while(prefixVec.find(query.substr(i,k))!=prefixVec.end()&&(i+k)<=query.length()&&MaxError<ps.MaxError+1+(query.length()-i-k)+1)
-        {
-            temp=query.substr(i,k);
-            k++;
-        }
-        //cout<<"prefixVec.find(query.substr(i,k))!=prefixVec.end()"<<(prefixVec.find(query.substr(i,k))!=prefixVec.end())<<((i+k)<=query.length())<<(MaxError<ps.MaxError+(query.length()-i-k))<<endl;
-        //cout<<"MaxError"<<MaxError<<"ps.MaxError"<<ps.MaxError<<"i"<<i<<"k"<<k<<"length"<<query.length()<<endl;
-        if(temp.length()==0)
+        UString  temp=seg.second[i];
+        if(SizeOfPosting(temp)==0)
         {
             PostingList Empty;
             Empty.MaxError=0;
-            Empty.StrLength=1;
-            i++;
-            k=1;
+            Empty.StrLength=temp.length();
             ps=mergeWihthMaxError ( ps,Empty,MaxError,true);
             continue;
         }
         ps=mergeWihthMaxError ( ps,prefixVec[temp],MaxError,true);
-        cout<<toString(temp)<<endl;
-        //prefixVec[temp].Show();
-        ps.Show();
-        time_now = boost::posix_time::microsec_clock::local_time(); 
-        cout<<"MatchEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
-        i=i+k-1;
-        k=1;
     }
-    time_now = boost::posix_time::microsec_clock::local_time(); 
-    cout<<"CandidatesEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
-    /*
+    vector<Candidate> temp;
+    temp.resize(ps.Candidates.size());
     for(unsigned i=0; i<ps.Candidates.size(); i++)
     {
         for(unsigned j=0; j<ps.Candidates[i].k.size(); j++)
         {
-            ret.push_back(GetText(ps.Candidates[i].k[j].ID));
+
+            {
+                temp[i].k.push_back(ps.Candidates[i].k[j]);
+            }
         }
     }
-    */
-
-    vector<uint32_t> IDs=MergeSort (ps.Candidates);//Multi-way merge sort
-    //cout<<IDs.size()<<endl;
-    time_now = boost::posix_time::microsec_clock::local_time(); 
-    cout<<"InsertEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
-    //std::sort(ret.begin(),ret.end());
+    vector<uint32_t> IDs=MergeSort (temp);//Multi-way merge sort
+    std::sort(ret.begin(),ret.end());
     vector<uint32_t>::iterator end_unique=unique(IDs.begin(),IDs.end());
     IDs.erase(end_unique,IDs.end());
-    time_now = boost::posix_time::microsec_clock::local_time(); 
-    cout<<"removeEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
-    //cout<<IDs.size()<<endl;
     vector<UString> result;
     for(unsigned i=0; i<IDs.size(); i++)
     {
         UString ustr=GetText(IDs[i]);
-        //cout<<toString(ustr)<<endl;
         if(ustr.length()>query.length()+MaxError||query.length()>ustr.length()+MaxError)
             continue;
         if (EditDistance(ustr,query)<=MaxError)
             result.push_back(ustr);
     }
-    //cout<<result.size()<<endl;
-    time_now = boost::posix_time::microsec_clock::local_time(); 
-    cout<<"filterEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
     return result;
-    /*
-       return ret;
-    */
 }
 
-
+vector<UString> MatchIndex::NaiveMatch(UString  query,int MaxError)
+{
+    vector<UString> result;
+    for(unsigned i=0; i<Context.size(); i++)
+    {
+        UString ustr=GetText(i);
+        if (EditDistance(ustr,query)<=MaxError)
+            result.push_back(ustr);
+    }
+    return result;
+}
 void MatchIndex::Save(ostream &ofs)
 {
 
     size_t size=Context.size();
     ofs.write((const char*)&size,sizeof(size));
 
-    for(int i=0; i<Context.size(); i++)
+    for(size_t i=0; i<Context.size(); i++)
     {
 
         std::string str;
@@ -180,7 +227,6 @@ void MatchIndex::Save(ostream &ofs)
         size_t len=sizeof(str[0])*(str.size());
         ofs.write((const char*)&len, sizeof(len));
         ofs.write((const char*)&str[0], sizeof(str[0])*(str.size()) );
-        //Context[i];
     }
 
     size=prefixVec.size();
@@ -193,7 +239,6 @@ void MatchIndex::Save(ostream &ofs)
         ofs.write((const char*)&len, sizeof(len));
         ofs.write((const char*)&str[0], sizeof(str[0])*(str.size()) );
         ofs<<it->second;
-        //f<<Context[i];
     }
 
 
@@ -204,34 +249,27 @@ void MatchIndex::Load(istream &ifs)
     ifs.read(( char*)&size, sizeof(size));
     Context.resize(size);
     size_t len;
-    //cout<<"Context"<<size<<endl;
-    for(int i=0; i<size; i++)
+    for(size_t i=0; i<size; i++)
     {
         ifs.read(( char*)&len, sizeof(len));
         std::string str;
         str.resize(len);
         ifs.read(( char*)&str[0], len);
-        //cout<<"context"<<str<<endl;
         Context[i]=UString(str,UString::UTF_8);
     }
     ifs.read(( char*)&size, sizeof(size));
-    //cout<<"prefixVec"<<size<<endl;
-    for(int i=0; i<size; i++)
+    for(size_t i=0; i<size; i++)
     {
         size_t len;
         ifs.read(( char*)&len, sizeof(len));
         std::string str;
         str.resize(len);
         ifs.read(( char*)&str[0], len);
-        //cout<<"prefix"<<str<<str.size()<<endl;
         PostingList ps;
         ifs>>ps;
-        //cout<<"psload"<<endl;
         prefixVec.insert(make_pair(UString(str,UString::UTF_8), ps) );
 
     }
-    cout<<"Context"<<Context.size()<<endl;
-    cout<<"prefixVec"<<prefixVec.size()<<endl;
     build=true;
 }
 int  MatchIndex::EditDistance(UString source,UString target)
@@ -300,7 +338,6 @@ void MatchIndex::Show()
 {
 
 }
-/**/
 
 
 

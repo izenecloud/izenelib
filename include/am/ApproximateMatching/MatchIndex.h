@@ -3,11 +3,6 @@
 
 #include <util/ustring/UString.h>
 #include <vector>
-
-//#include <ir/id_manager/IDManager.h>
-//#include <am/succinct/fm-index/wavelet_matrix.hpp>
-//#include "bit_trie.hpp"
-//#include <am/ApproximateMatching/wavelet_matrix.hpp>
 #include <list>
 #include <fstream>
 #include <math.h>
@@ -15,7 +10,7 @@
 
 #define MaxDepth 3  //Mean the max length of segment in a pattern
 #define MaxListSize 1000 //Increase MaxListSize can Save memory and build time,but will lose the search performance.MaxListSize can't too large or it
-#define LargeNum 100000000000
+#define LargeNum 1000000
 #define MaxErrorDepth 0 //0 means tradional Q-gram, >0 means  postlist can permit errors in it;
 namespace izenelib
 {
@@ -39,6 +34,18 @@ bool operator == (const OneSubstr& left ,const OneSubstr& right)
 {
     return left.ID==right.ID&&left.BeginPos==right.BeginPos&&left.EndPos==right.EndPos;
 }
+bool IDEqual (const OneSubstr& left ,const OneSubstr& right)
+{
+    return left.ID==right.ID;
+}
+OneSubstr operator & (const OneSubstr& left ,const OneSubstr& right)
+{
+    OneSubstr ret;
+    ret.ID=left.ID;
+    ret.BeginPos=min(left.BeginPos,right.BeginPos);
+    ret.EndPos=max(left.EndPos,right.EndPos);
+    return ret;
+}
 struct Candidate
 {
     std::vector<OneSubstr> k;
@@ -48,7 +55,7 @@ struct Candidate
     }
 
 };
-vector<Candidate> BeginWith  ( Candidate& right,int startPos)
+vector<Candidate> BeginWith  ( Candidate& right,int startPos,int maxError=0)
 {
     vector<Candidate> answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=right.k.begin(),SubstrIter_a_end=right.k.end();
@@ -57,7 +64,13 @@ vector<Candidate> BeginWith  ( Candidate& right,int startPos)
         if(SubstrIter_a->BeginPos<size_t(startPos+1))
         {
             answer.resize(max(size_t(1),answer.size()));
-            answer[0].k.push_back(*SubstrIter_a);
+            if(SubstrIter_a->BeginPos<size_t(startPos+1-maxError))
+            {
+                answer.resize(max(size_t(startPos+1-maxError-SubstrIter_a->BeginPos+1),answer.size()));
+                answer[startPos+1-maxError-SubstrIter_a->BeginPos].k.push_back(*SubstrIter_a);
+            }
+            else
+                answer[0].k.push_back(*SubstrIter_a);
             ++SubstrIter_a;
             continue;
         }
@@ -86,7 +99,17 @@ vector<Candidate> MergeInOrder ( Candidate& left , Candidate& right)
         }
         else
         {
-            if(SubstrIter_b->BeginPos<SubstrIter_a->EndPos+1);
+            if(SubstrIter_b->BeginPos<SubstrIter_a->EndPos+1)
+            {
+                if(SubstrIter_b->BeginPos>SubstrIter_a->BeginPos+1)
+                {
+                    if(answer.size()==0)
+                    {
+                        answer.resize(1);
+                    }
+                    answer[0].k.push_back((*SubstrIter_b)&(*SubstrIter_a));
+                }
+            }
             else
             {
                 if(SubstrIter_b->BeginPos-SubstrIter_a->EndPos>answer.size())
@@ -117,24 +140,24 @@ vector<uint32_t> MergeSort ( vector<Candidate> input)//Multi-way merge sort
     std::vector< std::vector<OneSubstr>::iterator> iter,iterend;
     iter.resize(input.size());
     iterend.resize(input.size());
-    for(int i=0;i<input.size();i++)
+    for(size_t i=0; i<input.size(); i++)
     {
         iter[i]=input[i].k.begin();
         iterend[i]=input[i].k.end();
     }
     while(true)
     {
-        int IDNow =LargeNum;
-        int j = 0;
-        for(int i = 0; i < input.size(); ++i)
+        size_t IDNow =LargeNum;
+        size_t j = 0;
+        for(size_t i = 0; i < input.size(); ++i)
         {
-              if(iter[i]!=iterend[i] && iter[i]->ID <= IDNow)
-              {
-                    IDNow = iter[i]->ID;
-                    j=i;
-              }
+            if(iter[i]!=iterend[i] && iter[i]->ID <= IDNow)
+            {
+                IDNow = iter[i]->ID;
+                j=i;
+            }
         }
-        if(j == 0 && iter[0]==iterend[0]) break; 
+        if(j == 0 && iter[0]==iterend[0]) break;
         iter[j]++;
         answer.push_back(IDNow);
     }
@@ -147,12 +170,11 @@ int RBinarySearchIntersection ( OneSubstr& x,     std::vector<OneSubstr>  &right
 
     int end=right.size()-1;
     int mid=(front+end)/2;
-    //<<"RBinarySearchIntersection"<<front<<" "<<end<<endl;
     while(front<end&&right[mid].ID!=x.ID)
     {
-       if(right[mid].ID<x.ID)front=mid+1;
-       if(right[mid].ID>x.ID)end=mid-1;
-       mid=front + (end - front)/2;
+        if(right[mid].ID<x.ID)front=mid+1;
+        if(right[mid].ID>x.ID)end=mid-1;
+        mid=front + (end - front)/2;
     }
     if(right[mid].ID!=x.ID)
     {
@@ -160,34 +182,34 @@ int RBinarySearchIntersection ( OneSubstr& x,     std::vector<OneSubstr>  &right
     }
     while(right[mid].ID==x.ID)
     {
-       mid--;
-       if(mid<0)
-       {
-          break;
-       }
+        mid--;
+        if(mid<0)
+        {
+            break;
+        }
     }
     mid++;
     int orginmid=mid;
-    while(right[mid].ID==x.ID)//&&(x.EndPos+1 < right[mid].BeginPos))
+    while(right[mid].ID==x.ID)
     {
-            if(right[mid].BeginPos<x.EndPos+1);
-            else
-            {
+        if(right[mid].BeginPos<x.EndPos+1);
+        else
+        {
 
-                if(right[mid].BeginPos-x.EndPos>answer.size())
-                    answer.resize(right[mid].BeginPos-x.EndPos);
-                OneSubstr mergeSubstr;
-                mergeSubstr.ID=  x.ID;
-                mergeSubstr.BeginPos= x.BeginPos;
-                mergeSubstr.EndPos= right[mid].EndPos;
-                answer[right[mid].BeginPos-x.EndPos-1].k.push_back(mergeSubstr);
-            }
-            mid++;
-            if(mid<0||mid>right.size()-1) break;
+            if(right[mid].BeginPos-x.EndPos>answer.size())
+                answer.resize(right[mid].BeginPos-x.EndPos);
+            OneSubstr mergeSubstr;
+            mergeSubstr.ID=  x.ID;
+            mergeSubstr.BeginPos= x.BeginPos;
+            mergeSubstr.EndPos= right[mid].EndPos;
+            answer[right[mid].BeginPos-x.EndPos-1].k.push_back(mergeSubstr);
+        }
+        mid++;
+        if(mid<0||mid>int(right.size()-1)) break;
 
     }
     return orginmid;
-    
+
 }
 int LBinarySearchIntersection ( OneSubstr& x,     std::vector<OneSubstr>  &right,int front,  vector<Candidate> &answer)
 {
@@ -196,9 +218,9 @@ int LBinarySearchIntersection ( OneSubstr& x,     std::vector<OneSubstr>  &right
     int mid=(front+end)/2;
     while(front<end&&right[mid].ID!=x.ID)
     {
-       if(right[mid].ID<x.ID)front=mid+1;
-       if(right[mid].ID>x.ID)end=mid-1;
-       mid=front + (end - front)/2;
+        if(right[mid].ID<x.ID)front=mid+1;
+        if(right[mid].ID>x.ID)end=mid-1;
+        mid=front + (end - front)/2;
     }
     if(right[mid].ID!=x.ID)
     {
@@ -206,40 +228,40 @@ int LBinarySearchIntersection ( OneSubstr& x,     std::vector<OneSubstr>  &right
     }
     while(right[mid].ID==x.ID)
     {
-       mid--;
-       if(mid<0) break;
+        mid--;
+        if(mid<0) break;
     }
     mid++;
     int orginmid=mid;
     while(right[mid].ID==x.ID&&( right[mid].EndPos+1 < x.BeginPos))
     {
-            if(x.BeginPos<right[mid].EndPos+1);
-            else
-            {
-                if(x.BeginPos-right[mid].EndPos>answer.size())
-                    answer.resize(x.BeginPos-right[mid].EndPos);
-                OneSubstr mergeSubstr;
-                mergeSubstr.ID=  right[mid].ID;
-                mergeSubstr.BeginPos= right[mid].BeginPos;
-                mergeSubstr.EndPos= x.EndPos;
-                answer[x.BeginPos-right[mid].EndPos-1].k.push_back(mergeSubstr);
-            }
-            mid++;
-            if(mid>=right.size())break;
+        if(x.BeginPos<right[mid].EndPos+1);
+        else
+        {
+            if(x.BeginPos-right[mid].EndPos>answer.size())
+                answer.resize(x.BeginPos-right[mid].EndPos);
+            OneSubstr mergeSubstr;
+            mergeSubstr.ID=  right[mid].ID;
+            mergeSubstr.BeginPos= right[mid].BeginPos;
+            mergeSubstr.EndPos= x.EndPos;
+            answer[x.BeginPos-right[mid].EndPos-1].k.push_back(mergeSubstr);
+        }
+        mid++;
+        if(mid>=int(right.size()))break;
     }
     return orginmid;
-    
+
 }
 vector<Candidate> BinarySearchIntersection ( Candidate& left , Candidate& right, bool rightmore)
 {
     vector<Candidate> answer;
     int front=0;
-    for(size_t i=0;i<left.k.size();i++)
+    for(size_t i=0; i<left.k.size(); i++)
     {
         if(rightmore)
-         front=RBinarySearchIntersection ( left.k[i], right.k,front,answer);
+            front=RBinarySearchIntersection ( left.k[i], right.k,front,answer);
         else
-         front=LBinarySearchIntersection ( left.k[i], right.k, front,answer);
+            front=LBinarySearchIntersection ( left.k[i], right.k, front,answer);
     }
     return answer;
 }
@@ -257,21 +279,21 @@ vector<Candidate> operator & ( Candidate& left , Candidate& right)
 
     if(leftsize*(log(rightsize)/log(2))-leftsize<rightsize+leftsize)
     {
-        
+
          return  BinarySearchIntersection ( left , right, true);
     }
-    
-    if(rightsize*(log(leftsize)/log(2))-leftsize<leftsize+rightsize)  time_now = boost::posix_time::microsec_clock::local_time(); 
+
+    if(rightsize*(log(leftsize)/log(2))-leftsize<leftsize+rightsize)  time_now = boost::posix_time::microsec_clock::local_time();
     cout<<"MatchEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
     {
          return  BinarySearchIntersection ( right , left, false);
     }
     */
     return  MergeInOrder ( left , right);
-    
+
 }
 
-Candidate operator >> (Candidate left ,size_t n)
+Candidate operator >> (Candidate& left ,size_t n)
 {
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     while(SubstrIter_a < SubstrIter_a_end)
@@ -282,7 +304,7 @@ Candidate operator >> (Candidate left ,size_t n)
     }
     return left;
 }
-Candidate operator << (Candidate left ,size_t n)
+Candidate operator << (Candidate& left ,size_t n)
 {
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     while(SubstrIter_a < SubstrIter_a_end)
@@ -293,10 +315,33 @@ Candidate operator << (Candidate left ,size_t n)
     }
     return left;
 }
-
+Candidate unique  ( Candidate& left )
+{
+    Candidate answer;
+    if(left.k.size()==0)
+    {
+        return left;
+    }
+    std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
+    OneSubstr last=*SubstrIter_a;
+    while(SubstrIter_a < SubstrIter_a_end)
+    {
+        if(IDEqual(*SubstrIter_a,last))
+        {
+            last=last&(*SubstrIter_a);
+        }
+        else
+        {
+            answer.k.push_back(last);
+            last=*SubstrIter_a;
+        }
+        SubstrIter_a++;
+    }
+    answer.k.push_back(last);
+    return answer;
+}
 Candidate operator | ( Candidate left , Candidate right)
 {
-
     Candidate answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_b=right.k.begin(),SubstrIter_a_end=left.k.end(),SubstrIter_b_end=right.k.end();
     OneSubstr last;
@@ -356,7 +401,7 @@ Candidate operator | ( Candidate left , Candidate right)
             ++SubstrIter_b;
         }
     }
-    return answer;
+    return  unique(answer);
 
 }
 struct PostingList
@@ -420,9 +465,6 @@ PostingList mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t
     PostingList ret;
     uint32_t leftLength=left.StrLength;
     uint32_t rightLength=right.StrLength;
-    //if(!match)
-    //     ret.MaxError=MaxError;
-    //else
     ret.MaxError=left.MaxError+right.MaxError+1;
     ret.StrLength=leftLength+rightLength;
     ret.Candidates.resize(MaxError+1);
@@ -432,45 +474,34 @@ PostingList mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t
         {
             if(i+j>MaxError) break;
             vector<Candidate>  mergeResult=left.Candidates[i]&right.Candidates[j];
-            cout<<"mergeResult"<<i<<"  "<<j<<endl;
-            for(size_t k=0; k<min(mergeResult.size(),size_t(3)); k++)
-            {
-                 cout<<mergeResult[k].k.size()<<endl;
-            }
             for(size_t k=i+j; k<ret.Candidates.size(); k++)
             {
 
                 if(k-i-j<mergeResult.size())
                 {
+
                     ret.Candidates[k]=ret.Candidates[k]|mergeResult[k-i-j];
                 }
             }
         }
     }
-    cout<<"CandidatesCorrect"<<ret.Candidates[0].k.size()<<endl;
-    //cout<<" 1"<<endl;
+
+
     for(size_t i=0; i<left.Candidates.size(); i++)
     {
-        //cout<<" 2"<<endl;
         if(MaxError>= i+right.Candidates.size())
         {
-            for(size_t k=0; k<=rightLength; k++)
-                ret.Candidates[right.Candidates.size()+i]=(ret.Candidates[right.Candidates.size()+i]|(left.Candidates[i]>>k));
+            ret.Candidates[right.Candidates.size()+i]=(ret.Candidates[right.Candidates.size()+i]|(left.Candidates[i]>>rightLength));
         }
     }
     for(size_t j=0; j<right.Candidates.size(); j++)
     {
-        //cout<<" 3"<<endl;
-        //cout<<"    for(size_t j=0; j<right.Candidates.size(); j++)"<<endl;
-        //cout<<" j"<<j<<"MaxError"<<MaxError<<"left.MaxError"<<left.MaxError<<endl;
         if(MaxError>= j+left.MaxError+1)
         {
-            //cout<<"           if(MaxError>= j+left.Candidates.size()+1) "<<endl;
             if(match)
             {
                 int StartPos=leftLength-1;
-                vector<Candidate>  mergeResult=BeginWith(right.Candidates[j],StartPos);
-                //cout<<"startpos"<<StartPos<<"mergeResult"<<mergeResult[0].k.size()<<endl;
+                vector<Candidate>  mergeResult=BeginWith(right.Candidates[j],StartPos,left.MaxError);
                 for(size_t k=0; k<mergeResult.size(); k++)
                 {
                     if(j+left.MaxError+1+k<=MaxError)
@@ -568,7 +599,23 @@ std::istream& operator>>(std::istream &f, PostingList &mi )
     return f;
 }
 
+class QEPair
+{
 
+public:
+    UString query;
+    int MaxError;
+    QEPair(UString &query_ , int &MaxError_):query(query_),MaxError(MaxError_)
+    {};
+};
+bool operator < (const QEPair& left ,const QEPair& right)
+{
+    return left.query==right.query?left.MaxError==right.MaxError:left.query<right.query;
+}
+bool operator == (const QEPair& left ,const QEPair& right)
+{
+    return left.query==right.query&&left.MaxError==right.MaxError;
+}
 class  MatchIndex
 {
 
@@ -579,16 +626,19 @@ class  MatchIndex
 public:
     MatchIndex();
     ~MatchIndex();
-    void Add(UString text);
-    void Add(vector<UString> textVec);
+    void Add(const UString& text);
+    void Add(vector<UString>& textVec);
     void BuildIndex();
     bool Hasbuild();
     vector<UString> Match(UString  query,int MaxError);
+    vector<UString> NaiveMatch(UString  query,int MaxError);
     void Save(ostream &ofs);
     void Load(istream &ifs);
     int  EditDistance(UString source,UString target);
     void Show();
     void Clear();
+    int SizeOfPosting(const UString &query);
+    std::pair<int,std::vector<UString> > Spilit(UString  query,int MaxError);
     friend istream& operator>> ( istream &f, MatchIndex &mi );
     friend ostream& operator<< ( ostream &f, const MatchIndex &mi );
 private:
