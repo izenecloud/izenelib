@@ -102,16 +102,17 @@ public:
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
-    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap) const
+    template <typename word_t>
+    void compressed(EWAHBoolArray<word_t>& compressedBitMap) const
     {
         const size_t byteNum = getBytesNum(size_);
-        const size_t wordByteNum = sizeof(uint32_t);
+        const size_t wordByteNum = sizeof(word_t);
 
         const size_t wordNum = byteNum / wordByteNum;
-        uint32_t* pWord = reinterpret_cast<uint32_t*>(bits_);
+        word_t* pWord = reinterpret_cast<word_t*>(bits_);
         for (std::size_t i = 0; i < wordNum; ++i)
         {
-            uint32_t word = getWord(pWord++);
+            word_t word = getWord(pWord++);
             compressedBitMap.add(word);
         }
 
@@ -119,37 +120,49 @@ public:
         if (leftByteNum > 0)
         {
             unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
-            uint32_t word = getWord(pBytes, leftByteNum);
+            word_t word = getWord<word_t>(pBytes, leftByteNum);
             compressedBitMap.add(word);
         }
     }
 
-    void importFromEWAH(const EWAHBoolArray<uint32_t>& ewahBitmap)
+    template <typename word_t>
+    void importFromEWAH(const EWAHBoolArray<word_t>& ewahBitmap)
     {
         uint pointer(0);
         uint currentoffset(0);
-        const vector<uint32_t>& buffer = ewahBitmap.getBuffer();
-        while (pointer <buffer.size())
+        const uint wordBitNum = sizeof(word_t) << 3;
+        const vector<word_t>& buffer = ewahBitmap.getBuffer();
+
+        while (pointer < buffer.size())
         {
-            ConstRunningLengthWord<uint32_t> rlw(buffer[pointer]);
+            ConstRunningLengthWord<word_t> rlw(buffer[pointer]);
+            const uint bitNum = rlw.getRunningLength() * wordBitNum;
+
             if (rlw.getRunningBit())
             {
-                for (uint x = 0; x < static_cast<uint>(rlw.getRunningLength() * 32); ++x)
+                for (uint bi = 0; bi < bitNum; ++bi)
                 {
-                    set(currentoffset + x);
+                    set(currentoffset + bi);
                 }
             }
-            currentoffset+=rlw.getRunningLength()*32;
+
+            currentoffset += bitNum;
             ++pointer;
-            for (uint k = 0; k<rlw.getNumberOfLiteralWords();++k)
+
+            const uint literalWordNum = rlw.getNumberOfLiteralWords();
+            for (uint wi = 0; wi < literalWordNum; ++wi)
             {
-                const uint32_t currentword = buffer[pointer];
-                for (uint k = 0; k < 32; ++k)
+                const word_t currentWord = buffer[pointer];
+                word_t mask = 1;
+                for (uint bi = 0; bi < wordBitNum; ++bi)
                 {
-                    if ( (currentword & (static_cast<uint32_t>(1) << k)) != 0)
-                        set(currentoffset + k);
+                    if (currentWord & mask)
+                    {
+                        set(currentoffset);
+                    }
+                    mask <<= 1;
+                    ++currentoffset;
                 }
-                currentoffset+=32;
                 ++pointer;
             }
         }
@@ -276,10 +289,27 @@ public:
 
     void logicalNotAnd(const BitVector& b)
     {
+        typedef uint64_t word_t;
         const size_t byteNum = getBytesNum(size_);
-        for( size_t i = 0; i < byteNum; ++i )
+        const size_t wordByteNum = sizeof(word_t);
+
+        const size_t wordNum = byteNum / wordByteNum;
+        word_t* pWord1 = reinterpret_cast<word_t*>(bits_);
+        word_t* pWord2 = reinterpret_cast<word_t*>(b.bits_);
+        for (std::size_t i = 0; i < wordNum; ++i)
         {
-            bits_[i] &= ~b.bits_[i];
+            *pWord1++ &= ~*pWord2++;
+        }
+
+        const size_t leftByteNum = byteNum % wordByteNum;
+        if (leftByteNum > 0)
+        {
+            unsigned char* pBytes1 = reinterpret_cast<unsigned char*>(pWord1);
+            unsigned char* pBytes2 = reinterpret_cast<unsigned char*>(pWord2);
+            for (std::size_t i = 0; i < leftByteNum; ++i)
+            {
+                *pBytes1++ &= ~*pBytes2++;
+            }
         }
     }
 
@@ -419,14 +449,15 @@ private:
      *       endian machine, because the word value could be read out directly
      *       on little endian machine.
      */
-    uint32_t getWord(uint32_t* pWord) const
+    template <typename word_t>
+    word_t getWord(word_t* pWord) const
     {
 #if defined(BOOST_LITTLE_ENDIAN)
         return *pWord;
 
 #elif defined(BOOST_BIG_ENDIAN)
         unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
-        return getWord(pBytes, sizeof(uint32_t));
+        return getWord<word_t>(pBytes, sizeof(word_t));
 
 #else
 #error "BOOST_LITTLE_ENDIAN or BOOST_BIG_ENDIAN not defined"
@@ -437,16 +468,17 @@ private:
      * Get the word value from the bytes.
      * @param pBytes pointer to the bytes, in little endian order.
      * @param byteNum the number of bytes,
-     *                it should not be greater than sizeof(uint32_t).
+     *                it should not be greater than sizeof(word_t).
      * @return the word value
      */
-    uint32_t getWord(unsigned char* pBytes, std::size_t byteNum) const
+    template <typename word_t>
+    word_t getWord(unsigned char* pBytes, std::size_t byteNum) const
     {
-        uint32_t word = 0;
+        word_t word = 0;
 
         for (std::size_t i = 0; i < byteNum; ++i)
         {
-            word |= pBytes[i] << (i << 3);
+            word |= static_cast<word_t>(*pBytes++) << (i << 3);
         }
 
         return word;
