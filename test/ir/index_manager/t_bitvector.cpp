@@ -131,11 +131,12 @@ void checkBitVector(size_t count, bool isCheckEachBit = true)
     BOOST_CHECK(! bitvector.test(count + 7));
 }
 
+template <typename word_t>
 void compress(const BitVector& bitVector)
 {
     BOOST_TEST_MESSAGE("origin: " << bitVector);
 
-    EWAHBoolArray<uint32_t> ewahBoolArray;
+    EWAHBoolArray<word_t> ewahBoolArray;
     bitVector.compressed(ewahBoolArray);
 
     BitVector uncompress;
@@ -161,21 +162,23 @@ void setBitVector(BitVector& bitVector, std::size_t setBitNum)
     }
 }
 
+template <typename word_t>
 void testCompressBitNum(std::size_t bitNum)
 {
-    BOOST_TEST_MESSAGE("testCompressBitNum, bitNum: " << bitNum);
+    BOOST_TEST_MESSAGE("testCompressBitNum, sizeof(word_t): " << sizeof(word_t)
+                       << ", bitNum: " << bitNum);
 
     BitVector bitVector(bitNum);
 
     bitVector.setAll();
-    compress(bitVector);
+    compress<word_t>(bitVector);
 
     bitVector.clear();
-    compress(bitVector);
+    compress<word_t>(bitVector);
 
     const std::size_t setBitNum = bitNum / 2;
     setBitVector(bitVector, setBitNum);
-    compress(bitVector);
+    compress<word_t>(bitVector);
 }
 
 void testLogicalNotAnd(std::size_t bitNum)
@@ -240,10 +243,11 @@ BOOST_AUTO_TEST_CASE(bitvector)
 
 BOOST_AUTO_TEST_CASE(compressToEWAHBoolArray)
 {
-    const std::size_t maxBitNum = 100;
+    const std::size_t maxBitNum = 300;
     for (std::size_t i = 0; i <= maxBitNum; ++i)
     {
-        testCompressBitNum(i);
+        testCompressBitNum<uint32_t>(i);
+        testCompressBitNum<uint64_t>(i);
     }
 }
 
