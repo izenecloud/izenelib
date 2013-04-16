@@ -62,7 +62,7 @@ BTreeIndexerManager::~BTreeIndexerManager()
 
 void BTreeIndexerManager::doFilter_(BitVector& docs)
 {
-    if ( pFilter_&& pFilter_->any() )
+    if (pFilter_)
     {
         docs.logicalNotAnd(*pFilter_);
     }

@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <cstdlib>
+#include <util/ClockTimer.h>
 
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/store/FSDirectory.h>
@@ -150,6 +151,16 @@ void compress(const BitVector& bitVector)
     }
 }
 
+void setBitVector(BitVector& bitVector, std::size_t setBitNum)
+{
+    std::size_t bitNum = bitVector.size();
+    for (std::size_t i = 0; i < setBitNum; ++i)
+    {
+        int k = std::rand() % bitNum;
+        bitVector.set(k);
+    }
+}
+
 void testCompressBitNum(std::size_t bitNum)
 {
     BOOST_TEST_MESSAGE("testCompressBitNum, bitNum: " << bitNum);
@@ -163,12 +174,53 @@ void testCompressBitNum(std::size_t bitNum)
     compress(bitVector);
 
     const std::size_t setBitNum = bitNum / 2;
-    for (std::size_t i = 0; i < setBitNum; ++i)
-    {
-        int k = std::rand() % bitNum;
-        bitVector.set(k);
-    }
+    setBitVector(bitVector, setBitNum);
     compress(bitVector);
+}
+
+void testLogicalNotAnd(std::size_t bitNum)
+{
+    BitVector bitVector1(bitNum);
+    BitVector bitVector2(bitNum);
+
+    const std::size_t setBitNum = bitNum / 2;
+    setBitVector(bitVector1, setBitNum);
+    setBitVector(bitVector2, setBitNum);
+
+    BitVector gold(bitNum);
+    for (std::size_t i = 0; i < bitNum; ++i)
+    {
+        if (bitVector1.test(i) && bitVector2.test(i) == false)
+        {
+            gold.set(i);
+        }
+    }
+
+    bitVector1.logicalNotAnd(bitVector2);
+
+    BOOST_CHECK_EQUAL(bitVector1, gold);
+}
+
+void runLogicalNotAnd(std::size_t bitNum, std::size_t runNum)
+{
+    const std::size_t setBitNum = bitNum / 2;
+
+    BitVector bitVector1(bitNum);
+    BitVector bitVector2(bitNum);
+
+    setBitVector(bitVector1, setBitNum);
+    setBitVector(bitVector2, setBitNum);
+
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        bitVector1.logicalNotAnd(bitVector2);
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "BitVector::logicalNotAnd() of " << runNum << " times "
+                       "on " << bitNum << " bits");
 }
 
 BOOST_AUTO_TEST_SUITE(t_bitvector)
@@ -193,6 +245,24 @@ BOOST_AUTO_TEST_CASE(compressToEWAHBoolArray)
     {
         testCompressBitNum(i);
     }
+}
+
+BOOST_AUTO_TEST_CASE(logicalNotAnd)
+{
+    const std::size_t maxBitNum = 100;
+
+    for (std::size_t i = 0; i <= maxBitNum; ++i)
+    {
+        testLogicalNotAnd(i);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(benchLogicalNotAnd)
+{
+    const std::size_t bitNum = 1e7;
+    const std::size_t runNum = 1e4;
+
+    runLogicalNotAnd(bitNum, runNum);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

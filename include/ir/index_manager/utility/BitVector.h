@@ -276,10 +276,27 @@ public:
 
     void logicalNotAnd(const BitVector& b)
     {
+        typedef uint64_t word_t;
         const size_t byteNum = getBytesNum(size_);
-        for( size_t i = 0; i < byteNum; ++i )
+        const size_t wordByteNum = sizeof(word_t);
+
+        const size_t wordNum = byteNum / wordByteNum;
+        word_t* pWord1 = reinterpret_cast<word_t*>(bits_);
+        word_t* pWord2 = reinterpret_cast<word_t*>(b.bits_);
+        for (std::size_t i = 0; i < wordNum; ++i)
         {
-            bits_[i] &= ~b.bits_[i];
+            *pWord1++ &= ~*pWord2++;
+        }
+
+        const size_t leftByteNum = byteNum % wordByteNum;
+        if (leftByteNum > 0)
+        {
+            unsigned char* pBytes1 = reinterpret_cast<unsigned char*>(pWord1);
+            unsigned char* pBytes2 = reinterpret_cast<unsigned char*>(pWord2);
+            for (std::size_t i = 0; i < leftByteNum; ++i)
+            {
+                *pBytes1++ &= ~*pBytes2++;
+            }
         }
     }
 
