@@ -427,8 +427,8 @@ void WaveletTreeBinary<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<PatternList *, size_t> > ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(std::make_pair(new PatternList(0, (char_type)0, nodes_[0], patterns, alloc), 0));
     ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, PatternList)(0, (char_type)0, nodes_[0], patterns), 0));
+
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
         //delete ranges_heap.get_max().first;
@@ -477,7 +477,6 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new PatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, PatternList)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -489,7 +488,6 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new PatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, PatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -612,7 +610,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<FilteredPatternList *, size_t> > ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(std::make_pair(new FilteredPatternList(0, (char_type)0, nodes_[0], filters, patterns), 0));
     ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, FilteredPatternList)(0, (char_type)0, nodes_[0], filters, patterns), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
@@ -663,7 +660,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, FilteredPatternList)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -675,7 +671,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new FilteredPatternList(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, FilteredPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -837,8 +832,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<AuxFilteredPatternList<self_type> *, size_t> > ranges_heap(max_queue_size + 1);
-    //ranges_heap.insert(std::make_pair(new AuxFilteredPatternList<self_type>(0, (char_type)0, nodes_[0], aux_filters, filters, patterns, alloc), 0));
     ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, filters, patterns, alloc), 0));
+
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
         //delete ranges_heap.get_max().first;
@@ -893,7 +888,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            //zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             zero_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
@@ -905,7 +899,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            //one_ranges = new AuxFilteredPatternList<self_type>(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
             one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else

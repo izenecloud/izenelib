@@ -5,10 +5,8 @@
 #include "io/reader.h"
 #include "io/writer.h"
 
-namespace marisa
-{
-namespace grimoire
-{
+namespace marisa {
+namespace grimoire {
 
 using io::Mapper;
 using io::Reader;

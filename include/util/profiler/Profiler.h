@@ -11,10 +11,10 @@
 #include <string>
 #include <iostream>
 
-#define ATOMIC 
+//#define ATOMIC 
 
 #ifdef ATOMIC
-#include <3rdparty/boost/atomic.hpp>
+#include <boost/atomic.hpp>
 #endif
 
 using namespace std;

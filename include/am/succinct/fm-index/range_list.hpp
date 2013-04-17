@@ -367,7 +367,6 @@ public:
     {
         if (recyc_aux_filters_.empty())
         {
-            //return new FilterList<WaveletTreeType>(tree, node, filter_count);
             return BOOST_NEW(alloc_,FilterList<WaveletTreeType>)(tree, node, filter_count, alloc_);
         }
         else

@@ -2,6 +2,16 @@
 #include <am/sequence_file/ssfr.h>
 #include <boost/serialization/variant.hpp>
 
+namespace
+{
+/**
+ * if the number of docids is less than this value (256K),
+ * we use std::sort() on std::vector, otherwise, we use BitVector
+ * to avoid the cost of sorting too many docids.
+ */
+const std::size_t kDocIdNumSortLimit = 1 << 18;
+}
+
 NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
@@ -139,14 +149,16 @@ void BTreeIndexerManager::getNoneEmptyList(const std::string& property_name, con
 {
     if(!checkType_(property_name, key)) return;
     getValue(property_name, key, docs);
-    doFilter_(docs);
 }
 
-void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, BitVector& docs)
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter)
 {
     if(!checkType_(property_name, key)) return;
     izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docs)), key);
-    doFilter_(docs);
+    if (needFilter)
+    {
+        doFilter_(docs);
+    }
 }
 
 void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
@@ -223,17 +235,60 @@ void BTreeIndexerManager::getValueGreatEqual(const std::string& property_name, c
     doFilter_(docs);
 }
 
-void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs)
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs, bool needFilter)
 {
     for(std::size_t i=0;i<keys.size();i++)
     {
-        if(!checkType_(property_name, keys[i])) return;
+        if(!checkType_(property_name, keys[i]))
+            return;
     }
+
     for(std::size_t i=0;i<keys.size();i++)
     {
-        BitVector bv;
-        getValue(property_name, keys[i], bv);
-        docs |= bv;
+        izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docs)), keys[i]);
+    }
+
+    if (needFilter)
+    {
+        doFilter_(docs);
+    }
+}
+
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<uint32_t>& docs)
+{
+    for (std::size_t i = 0; i < keys.size(); ++i)
+    {
+        if (!checkType_(property_name, keys[i]))
+            return;
+    }
+
+    std::vector<docid_t> docList;
+    for (std::size_t i = 0; i < keys.size(); ++i)
+    {
+        std::vector<docid_t> tempDocList;
+        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
+        docList.insert(docList.end(), tempDocList.begin(), tempDocList.end());
+    }
+
+    if (docList.size() < kDocIdNumSortLimit)
+    {
+        std::sort(docList.begin(), docList.end());
+        for (std::size_t i = 0; i < docList.size(); ++i)
+        {
+            if (!pFilter_ || !pFilter_->test(docList[i]))
+            {
+                docs.set(docList[i]);
+            }
+        }
+    }
+    else
+    {
+        for (std::size_t i = 0; i < docList.size(); ++i)
+        {
+            bitVector.set(docList[i]);
+        }
+        doFilter_(bitVector);
+        bitVector.compressed(docs);
     }
 }
 
@@ -243,7 +298,7 @@ void BTreeIndexerManager::getValueNotIn(const std::string& property_name, const 
     {
         if(!checkType_(property_name, keys[i])) return;
     }
-    getValueIn(property_name, keys, docs);
+    getValueIn(property_name, keys, docs, false);
     docs.toggle();
     doFilter_(docs);
 }
