@@ -42,7 +42,7 @@ class is_alphabet
 public:
     static bool value(CHAR_T c)
     {
-        return c>='a' && c<='z'||c>='A' && c<= 'Z';
+        return (c>='a' && c<='z') ||(c>='A' && c<= 'Z');
     }
 
     static bool is_upper(CHAR_T c)
@@ -1372,7 +1372,7 @@ public:
             s.push_back(' ');
         s.push_back(str[0]);
 
-        size_t last = 0;
+        //size_t last = 0;
         for (size_t current = 1; current < str.length(); ++current)
         {
             if (str[current] == ' ')
