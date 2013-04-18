@@ -91,9 +91,9 @@ int MatchIndex::SizeOfPosting(const UString &query)
     }
     return 0;
 }
-std::pair<int,std::vector<UString> > MatchIndex::Spilit(UString  query,int MaxError)
-{
 
+void MatchIndex::Spilit(const UString&  query,const int& MaxError,std::pair<int,std::vector<UString> > & ret)
+{
     int n=query.length();
     int m=MaxError;
     typedef vector< vector<int> >  Tmatrix;
@@ -150,14 +150,14 @@ std::pair<int,std::vector<UString> > MatchIndex::Spilit(UString  query,int MaxEr
     }
 
 
-    return   make_pair(matrix[n][m],segment[n][m]);
+    ret=make_pair(matrix[n][m],segment[n][m]);
 }
-vector<UString> MatchIndex::Match(UString  query,int MaxError)
+void MatchIndex::Match(const UString&  query,const int& MaxError, vector<UString>& result )
 {
-    vector<UString> ret;
     if(MaxError>=int(query.length()))
-        return ret;
-    std::pair<int,std::vector<UString> > seg=Spilit(query,MaxError);
+        return;
+    std::pair<int,std::vector<UString> > seg;
+    Spilit(query,MaxError,seg);
     PostingList ps;
     ps.StrLength=0;
     ps.MaxError=0;
@@ -187,10 +187,8 @@ vector<UString> MatchIndex::Match(UString  query,int MaxError)
         }
     }
     vector<uint32_t> IDs=MergeSort (temp);//Multi-way merge sort
-    std::sort(ret.begin(),ret.end());
     vector<uint32_t>::iterator end_unique=unique(IDs.begin(),IDs.end());
     IDs.erase(end_unique,IDs.end());
-    vector<UString> result;
     for(unsigned i=0; i<IDs.size(); i++)
     {
         UString ustr=GetText(IDs[i]);
@@ -199,19 +197,16 @@ vector<UString> MatchIndex::Match(UString  query,int MaxError)
         if (EditDistance(ustr,query)<=MaxError)
             result.push_back(ustr);
     }
-    return result;
 }
 
-vector<UString> MatchIndex::NaiveMatch(UString  query,int MaxError)
+void MatchIndex::NaiveMatch(const UString&  query,const int& MaxError,  vector<UString>& result)
 {
-    vector<UString> result;
     for(unsigned i=0; i<Context.size(); i++)
     {
         UString ustr=GetText(i);
         if (EditDistance(ustr,query)<=MaxError)
             result.push_back(ustr);
     }
-    return result;
 }
 void MatchIndex::Save(ostream &ofs)
 {
@@ -272,7 +267,7 @@ void MatchIndex::Load(istream &ifs)
     }
     build=true;
 }
-int  MatchIndex::EditDistance(UString source,UString target)
+int MatchIndex::EditDistance(const UString& source,const UString& target)
 {
     int n=source.length();
     int m=target.length();
@@ -310,11 +305,11 @@ int  MatchIndex::EditDistance(UString source,UString target)
 
 }
 
-UString MatchIndex::GetText(int num)
+UString MatchIndex::GetText(const int& num)
 {
     return Context[num];
 }
-int MatchIndex::AddText(UString text)
+int MatchIndex::AddText(const UString& text)
 {
     Context.push_back(text);
     return Context.size()-1;

@@ -74,12 +74,11 @@ int main()
         //cout<<"asdasdd"<<endl;
         in.open(match_file.c_str(),ios::in);
         string title;
-
         while( getline(in, title))
         {
-
             {
-                vector<UString> can=Mi.Match(UString(title,UString::UTF_8),5);
+                vector<UString> can;
+                Mi.Match(UString(title,UString::UTF_8),5,can);
                 /*
                 out<<title<<endl;
                 for(unsigned i=0; i<can.size(); i++)
@@ -87,7 +86,8 @@ int main()
                     out<<toString(can[i])<<endl;
                 }
                 */
-                vector<UString> cannaive=Mi.NaiveMatch(UString(title,UString::UTF_8),5);//Right Test
+                vector<UString> cannaive;
+                Mi.NaiveMatch(UString(title,UString::UTF_8),5,cannaive);//Right Test
                 if(can.size()!=cannaive.size())
                 {
 

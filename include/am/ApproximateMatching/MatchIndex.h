@@ -309,7 +309,6 @@ Candidate operator << (Candidate& left ,size_t n)
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     while(SubstrIter_a < SubstrIter_a_end)
     {
-
         (*SubstrIter_a).BeginPos-=((*SubstrIter_a).BeginPos<n)?(*SubstrIter_a).BeginPos:n;
         ++SubstrIter_a;
     }
@@ -630,21 +629,20 @@ public:
     void Add(vector<UString>& textVec);
     void BuildIndex();
     bool Hasbuild();
-    vector<UString> Match(UString  query,int MaxError);
-    vector<UString> NaiveMatch(UString  query,int MaxError);
+    void Match(const UString&  query,const int& MaxError, vector<UString>& ret );
+    void NaiveMatch(const UString&  query,const int& MaxError,  vector<UString>& ret);
     void Save(ostream &ofs);
     void Load(istream &ifs);
-    int  EditDistance(UString source,UString target);
     void Show();
     void Clear();
-    int SizeOfPosting(const UString &query);
-    std::pair<int,std::vector<UString> > Spilit(UString  query,int MaxError);
     friend istream& operator>> ( istream &f, MatchIndex &mi );
     friend ostream& operator<< ( ostream &f, const MatchIndex &mi );
 private:
-    bool getCandidate(vector< vector<std::pair<size_t,UString> > > &Matrix,size_t i,unsigned j,vector<uint32_t>& ret);
-    UString GetText(int num);
-    int AddText(UString text);
+    void Spilit(const UString  &query,const int &MaxError,    std::pair<int,std::vector<UString> >& ret);
+    int SizeOfPosting(const UString &query);
+    int  EditDistance(const UString& source,const UString& target);
+    UString GetText(const int& num);
+    int AddText(const UString& text);
     int TextSize();
 
 
