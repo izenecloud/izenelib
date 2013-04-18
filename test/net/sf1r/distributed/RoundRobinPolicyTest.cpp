@@ -33,7 +33,7 @@ struct Nodes {
         topology.addNode("/test/node3", "collection#coll1,coll2$dataport#18121$baport#18181$masterport#18131$host#host3");
         topology.addNode("/test/node4", "collection#coll1,coll3$dataport#18121$baport#18181$masterport#18131$host#host4");
         
-        policy = new RoundRobinPolicy(topology);
+        policy = new RoundRobinPolicy(topology, backup_topology);
     }
     
     ~Nodes() {
@@ -54,6 +54,7 @@ struct Nodes {
     }
     
     Sf1Topology topology;
+    Sf1Topology backup_topology;
     RoutingPolicy* policy;
 };
 

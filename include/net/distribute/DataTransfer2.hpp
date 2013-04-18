@@ -71,7 +71,7 @@ private:
     bool sendFile(const std::string& file, const std::string& dest);
     
     /// Send a directory.
-    bool sendDir(const std::string& dir, const std::string& dest, bool recursive);
+    bool sendDir(const bfs::path& dir, const bfs::path& dest, bool recursive);
     
     /// Actually send files in directory.
     bool sendPath(const bfs::path& path, const bfs::path& dest);

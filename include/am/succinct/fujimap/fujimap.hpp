@@ -33,6 +33,7 @@
 #include <util/hashFunction.h>
 
 #include <boost/unordered_map.hpp>
+#include <map>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -644,8 +645,15 @@ int Fujimap<KeyType, ValueType>::save(const char* index)
 
     uint64_t tmpEdgeSize = static_cast<uint64_t>(tmpEdges_.size());
     ofs.write((const char*)(&tmpEdgeSize), sizeof(tmpEdgeSize));
+    std::map<KeyType, ValueType> saved_tmp_map;
     for (typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
             it != tmpEdges_.end(); ++it)
+    {
+        saved_tmp_map[it->first] = it->second;
+    }
+
+    for (typename std::map<KeyType, ValueType>::const_iterator it = saved_tmp_map.begin();
+            it != saved_tmp_map.end(); ++it)
     {
         char* kbuf;
         std::size_t klen;

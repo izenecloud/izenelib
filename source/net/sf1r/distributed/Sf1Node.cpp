@@ -24,8 +24,9 @@ Sf1Node::Sf1Node(const string& path_, const string& data)
     
     host = parser.getStrValue(HOST_KEY);
     port = parser.getUInt32Value(BAPORT_KEY);
+    service_state = parser.getStrValue(SERVICE_STATE_KEY);
     
-    split(parser.getStrValue(COLLECTION_KEY), DELIMITER_CHAR, collections);
+    split(parser.getStrValue(SearchService + COLLECTION_KEY), DELIMITER_CHAR, collections);
 }
 
 
@@ -43,9 +44,10 @@ Sf1Node::update(const string& data) {
     
     host = parser.getStrValue(HOST_KEY);
     port = parser.getUInt32Value(BAPORT_KEY);
+    service_state = parser.getStrValue(SERVICE_STATE_KEY);
     
     collections.clear();
-    split(parser.getStrValue(COLLECTION_KEY), DELIMITER_CHAR, collections);
+    split(parser.getStrValue(SearchService + COLLECTION_KEY), DELIMITER_CHAR, collections);
 }
 
 

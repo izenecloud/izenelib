@@ -69,14 +69,20 @@ Sf1Topology::removeNode(const string& path, bool emit) {
             nodeCollections.erase(col);
             collectionsIndex.erase(col);
             
-            break;
+            continue;
         }
         
         NodeCollectionsRange range = nodeCollections.equal_range(col);
-        for (NodeCollectionsIterator it = range.first; it != range.second; ++it) {
+        NodeCollectionsIterator it = range.first;
+        while ( it != range.second) {
             if (it->second.getPath() == path) {
                 nodeCollections.erase(it);
+                //LOG(INFO) << "remove from sf1topology : " << it->second.getPath() << ", in col:" << col;
+                range = nodeCollections.equal_range(col);
+                it = range.first;
             }
+            else
+                ++it;
         }
     }
     

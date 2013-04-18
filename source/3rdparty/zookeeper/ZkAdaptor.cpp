@@ -419,6 +419,7 @@ vector< string > ZooKeeperAdapter::getNodeChildren (const string &path) throw (Z
 
         //make sure the order is always deterministic
         sort( nodeList.begin(), nodeList.end() );
+        deallocate_String_vector(&children);
         return nodeList;
     }
 }

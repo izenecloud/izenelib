@@ -101,6 +101,7 @@ void IndexMergeManager::optimizeIndex()
 {
     if(isAsync_)
     {
+        boost::lock_guard<boost::mutex> lock(mergeThreadMutex_);
         tasks_.clear();
         MergeOP op(OPTIMIZE_ALL);
         tasks_.push(op);

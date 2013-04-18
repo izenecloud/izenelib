@@ -78,7 +78,7 @@ public:
     {
         if (db_)
         {
-            flush();
+            checkHandle_(db_);
             delete db_;
             db_ = NULL;
         }
@@ -98,6 +98,7 @@ public:
 
     bool flush()
     {
+        // reopen to flush cached data.
         return checkHandle_(db_);
     }
 
