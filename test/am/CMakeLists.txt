@@ -92,13 +92,12 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     ${Glog_LIBRARIES}
     )
 
- ADD_EXECUTABLE(t_app ApproximateMatching/t_app.cpp)
+ ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
   TARGET_LINK_LIBRARIES(t_app
    ${Boost_LIBRARIES}
    am
    izene_util
    bz2
-   jemalloc
    ${Glog_LIBRARIES}
     )
 
