@@ -1,5 +1,5 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
-  COMPONENTS unit_test_framework serialization iostreams)
+  COMPONENTS unit_test_framework serialization iostreams filesystem date_time)
 
 IF(Boost_FOUND)
 
