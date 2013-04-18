@@ -94,11 +94,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
  ADD_EXECUTABLE(t_app ApproximateMatching/t_app.cpp)
   TARGET_LINK_LIBRARIES(t_app
-   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-   ${Boost_SYSTEM_LIBRARY}
-   ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}
-   ${Boost_IOSTREAMS_LIBRARY}
+   ${Boost_LIBRARIES}
    am
    izene_util
    bz2
