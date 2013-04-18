@@ -1,5 +1,5 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <am/ApproximateMatching/MatchIndex.h>
+#include <am/approximate_matching/MatchIndex.h>
 
 #include <util/ustring/UString.h>
 //#include <common/ScdParser.h>
