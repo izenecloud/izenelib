@@ -74,6 +74,8 @@ Sf1Driver::call(const string& uri, const string& tokens, string& request) {
             throw e;
         }
     } while (retry);
+    throw ServerError("");
+    return "";
 }
 
 

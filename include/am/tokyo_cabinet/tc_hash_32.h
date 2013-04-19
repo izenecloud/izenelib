@@ -31,7 +31,7 @@ public:
     /**
      *   constructor
      */
-    tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),hdb_(NULL),isOpen_(false), cacheSize_(0)
+    tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName + ".tch"),hdb_(NULL),isOpen_(false), cacheSize_(0)
     {
         initHandle_();
     }
@@ -558,7 +558,13 @@ public:
     void flush()
     {
         if ( !isOpen() ) return;
-        commit();
+        try{
+            close();
+            open();
+        }catch(const std::exception& e){
+            std::cerr << "flush tc hash error.";
+        }
+        //commit();
     }
 
     /**

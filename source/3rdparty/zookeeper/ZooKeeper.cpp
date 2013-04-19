@@ -377,6 +377,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
     if (rc == ZOK)
     {
+        childrenList.reserve(children.count);
         for (int i = 0; i < children.count; ++i)
         {
             if (inAbsPath)
@@ -398,6 +399,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
         //make sure the order is always deterministic
         std::sort( childrenList.begin(), childrenList.end() );
+        deallocate_String_vector(&children);
     }
 }
 

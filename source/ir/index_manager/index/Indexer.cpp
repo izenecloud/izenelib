@@ -133,15 +133,15 @@ void Indexer::setIndexManagerConfig(
     setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
     pIndexWriter_->tryResumeExistingBarrels();
 
-    if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
-    {
-        using namespace izenelib::util;
-        int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
-        char uuidstr[10];
-        memset(uuidstr,0,10);
-        sprintf(uuidstr,"%d",uuid);
-        pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
-    }
+    //if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
+    //{
+    //    using namespace izenelib::util;
+    //    int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
+    //    char uuidstr[10];
+    //    memset(uuidstr,0,10);
+    //    sprintf(uuidstr,"%d",uuid);
+    //    pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
+    //}
 //add binlog
     checkbinlog();
 }
@@ -314,6 +314,7 @@ void Indexer::flush(bool force)
     {
         try
         {
+            boost::mutex::scoped_lock lock(indexMutex_);
             pIndexWriter_->flush();
         }
         catch (const EmptyBarrelException& e)
@@ -324,6 +325,7 @@ void Indexer::flush(bool force)
     }
     else
     {
+        boost::mutex::scoped_lock lock(indexMutex_);
         pIndexWriter_->flushDocLen();
     }
     pIndexReader_->flush();
@@ -331,6 +333,7 @@ void Indexer::flush(bool force)
 
 void Indexer::optimizeIndex()
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->optimizeIndex();
 }
 

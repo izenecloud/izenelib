@@ -19,6 +19,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/threadpool.hpp>
 
 namespace izenelib {
 namespace driver {
@@ -67,6 +68,7 @@ private:
     /// @brief Handle the request
     void handleRequest(const context_ptr& context,
                        const boost::system::error_code& e);
+    void handleRequestFunc(const context_ptr& context);
 
     /// @brief Write response asynchronously.
     void asyncWriteResponse(const context_ptr& context);
@@ -113,6 +115,21 @@ private:
     enum {
         kLimitSize = 64 * 1024 * 1024 // 64M
     };
+};
+
+class DriverThreadPool
+{
+public:
+    typedef boost::shared_ptr<boost::threadpool::pool> threadpool_ptr;
+    static void init(size_t slow_size, size_t normal_size);
+    static void schedule_task(const boost::threadpool::pool::task_type& task,
+        const std::string& col, bool may_slow = false);
+
+private:
+    static threadpool_ptr slow_pool_;
+    static std::vector<threadpool_ptr>  normal_pools_;
+    static size_t slow_size_;
+    static size_t normal_size_;
 };
 
 class DriverConnectionFactory

@@ -68,22 +68,34 @@ public:
     {
         __assert(r < kSmallBlockSize);
 
-        for (size_t nblock = 0; nblock < kSmallBlockSize; nblock += 8)
-        {
-            size_t cnt = popcount(blk >> nblock & 0xff);
+//      for (size_t nblock = 0; nblock < kSmallBlockSize; nblock += 8)
+//      {
+//          size_t cnt = popcount(blk >> nblock & 0xff);
 
-            if (r < cnt)
-            {
-                return nblock + kSelectPos_[r][blk >> nblock & 0xff];
-            }
-            else
-            {
-                r -= cnt;
-            }
-        }
+//          if (r < cnt)
+//          {
+//              return nblock + kSelectPos_[r][blk >> nblock & 0xff];
+//          }
+//          else
+//          {
+//              r -= cnt;
+//          }
+//      }
 
-        __assert(false);
-        return kSmallBlockSize;
+//      __assert(false);
+//      return kSmallBlockSize;
+
+        uint64_t s = blk - ((blk >> 1) & 0x5555555555555555LLU);
+        s = (s & 0x3333333333333333LLU) + ((s >> 2) & 0x3333333333333333LLU);
+        s = (s + (s >> 4)) & 0x0f0f0f0f0f0f0f0fLLU;
+        s *= 0x0101010101010101LLU;
+
+        __assert(r < s >> 56);
+
+        size_t nblock = __builtin_ctzl((s + kPsOverflow_[r]) & 0x8080808080808080LLU) - 7;
+        r -= s << 8 >> nblock & 0xff;
+
+        return nblock + kSelectPos_[r][blk >> nblock & 0xff];
     }
 
 #if defined(__GNUC__) && __GNUC_PREREQ(2, 2)
@@ -120,6 +132,7 @@ public:
 #endif /* __USE_POSIX_MEMALIGN__ */
 
 private:
+    static const uint64_t kPsOverflow_[64];
     static const uint8_t kSelectPos_[8][256];
 };
 

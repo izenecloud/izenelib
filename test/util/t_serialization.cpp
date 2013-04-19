@@ -59,6 +59,164 @@ void test3() {
 	cout<<"deserialization: "<<str1<<endl;
 }
 
+void test_padding()
+{
+    cout << "runing serialization padding test.=====" << endl;
+    std::pair<char, uint64_t> t1;
+    t1.first = 0x03;
+    t1.second = 0x12345678;
+    std::pair<char, uint64_t> t11;
+    t11.first = 0x03;
+    t11.second = 0x12345678;
+    std::pair<uint64_t, char> t2;
+    t2.first = 0x12345678;
+    t2.second = 0x03;
+    std::pair<uint64_t, char> t22;
+    t22.first = 0x12345678;
+    t22.second = 0x03;
+
+    boost::tuple<char, uint64_t, int> t3;
+    t3.get<0>() = 0x03;
+    t3.get<1>() = 0x1234;
+    t3.get<2>() = 0x12345678;
+
+    boost::tuple<char, uint64_t, int> t33;
+    t33.get<0>() = 0x03;
+    t33.get<1>() = 0x1234;
+    t33.get<2>() = 0x12345678;
+
+    boost::tuple<uint64_t, char, int> t4;
+    t4.get<0>() = 0x12345678;
+    t4.get<1>() = 0x03;
+    t4.get<2>() = 0x1234;
+
+    boost::tuple<uint64_t, char, int> t44;
+    t44.get<0>() = 0x12345678;
+    t44.get<1>() = 0x03;
+    t44.get<2>() = 0x1234;
+
+
+	char* ptr1;
+	size_t sz1;
+    izene_serialization_memcpy<std::pair<char, uint64_t> > ism1(t1);
+    ism1.write_image(ptr1, sz1);
+	char* ptr11;
+	size_t sz11;
+    izene_serialization_memcpy<std::pair<char, uint64_t> > ism11(t11);
+    ism11.write_image(ptr11, sz11);
+
+    BOOST_CHECK(memcmp(ptr1, ptr11, sz1) == 0);
+
+    izene_deserialization_memcpy<std::pair<char, uint64_t> > idm11(ptr11, sz11);
+    std::pair<char, uint64_t> out_t1;
+    idm11.read_image(out_t1);
+    BOOST_CHECK(out_t1.first == t1.first);
+    BOOST_CHECK(out_t1.second == t1.second);
+
+	izene_serialization_febird<std::pair<char, uint64_t> > isf1(t1);
+    isf1.write_image(ptr1, sz1);
+	izene_serialization_febird<std::pair<char, uint64_t> > isf11(t11);
+    isf11.write_image(ptr11, sz11);
+
+    BOOST_CHECK(memcmp(ptr1, ptr11, sz1) == 0);
+
+    izene_serialization_boost<std::pair<char, uint64_t> > isb1(t1);
+    isb1.write_image(ptr1, sz1);
+    izene_serialization_boost<std::pair<char, uint64_t> > isb11(t11);
+    isb11.write_image(ptr11, sz11);
+
+    BOOST_CHECK(memcmp(ptr1, ptr11, sz1) == 0);
+
+	char* ptr2;
+	size_t sz2;
+    izene_serialization_memcpy<std::pair<uint64_t, char> > ism2(t2);
+    ism2.write_image(ptr2, sz2);
+	char* ptr22;
+	size_t sz22;
+    izene_serialization_memcpy<std::pair<uint64_t, char> > ism22(t22);
+    ism22.write_image(ptr22, sz22);
+
+    BOOST_CHECK(memcmp(ptr2, ptr22, sz2) == 0);
+
+    izene_deserialization_memcpy<std::pair<uint64_t, char> > idm22(ptr22, sz22);
+    std::pair<uint64_t, char> out_t2;
+    idm22.read_image(out_t2);
+    BOOST_CHECK(out_t2.first == t2.first);
+    BOOST_CHECK(out_t2.second == t2.second);
+
+
+	izene_serialization_febird<std::pair<uint64_t, char> > isf2(t2);
+    isf2.write_image(ptr2, sz2);
+	izene_serialization_febird<std::pair<uint64_t, char> > isf22(t22);
+    isf22.write_image(ptr22, sz22);
+
+    BOOST_CHECK(memcmp(ptr2, ptr22, sz2) == 0);
+
+    izene_serialization_boost<std::pair<uint64_t, char> > isb2(t2);
+    isb2.write_image(ptr2, sz2);
+    izene_serialization_boost<std::pair<uint64_t, char> > isb22(t22);
+    isb22.write_image(ptr22, sz22);
+
+    BOOST_CHECK(memcmp(ptr2, ptr22, sz2) == 0);
+
+	char* ptr3;
+	size_t sz3;
+    izene_serialization_memcpy<boost::tuple<char, uint64_t, int> > ism3(t3);
+    ism3.write_image(ptr3, sz3);
+	char* ptr33;
+	size_t sz33;
+    izene_serialization_memcpy<boost::tuple<char, uint64_t, int> > ism33(t33);
+    ism33.write_image(ptr33, sz33);
+
+    BOOST_CHECK(memcmp(ptr3, ptr33, sz3) == 0);
+
+    izene_deserialization_memcpy<boost::tuple<char, uint64_t, int> > idm33(ptr33, sz33);
+    boost::tuple<char, uint64_t, int>  out_t3;
+    idm33.read_image(out_t3);
+    BOOST_CHECK(out_t3.get<0>() == t3.get<0>());
+    BOOST_CHECK(out_t3.get<1>() == t3.get<1>());
+    BOOST_CHECK(out_t3.get<2>() == t3.get<2>());
+
+	izene_serialization_febird<boost::tuple<char, uint64_t, int> > isf3(t3);
+    isf3.write_image(ptr3, sz3);
+	izene_serialization_febird<boost::tuple<char, uint64_t, int> > isf33(t33);
+    isf33.write_image(ptr33, sz33);
+
+    BOOST_CHECK(memcmp(ptr3, ptr33, sz3) == 0);
+
+    izene_serialization_boost<boost::tuple<char, uint64_t, int> > isb3(t3);
+    isb3.write_image(ptr3, sz3);
+    izene_serialization_boost<boost::tuple<char, uint64_t, int> > isb33(t33);
+    isb33.write_image(ptr33, sz33);
+
+    BOOST_CHECK(memcmp(ptr3, ptr33, sz3) == 0);
+
+	char* ptr4;
+	size_t sz4;
+    izene_serialization_memcpy<boost::tuple<uint64_t, char, int> > ism4(t4);
+    ism4.write_image(ptr4, sz4);
+	char* ptr44;
+	size_t sz44;
+    izene_serialization_memcpy<boost::tuple<uint64_t, char, int> > ism44(t44);
+    ism44.write_image(ptr44, sz44);
+
+    BOOST_CHECK(memcmp(ptr4, ptr44, sz4) == 0);
+
+	izene_serialization_febird<boost::tuple<uint64_t, char, int> > isf4(t4);
+    isf4.write_image(ptr4, sz4);
+	izene_serialization_febird<boost::tuple<uint64_t, char, int> > isf44(t44);
+    isf44.write_image(ptr44, sz44);
+
+    BOOST_CHECK(memcmp(ptr4, ptr44, sz4) == 0);
+
+    izene_serialization_boost<boost::tuple<uint64_t, char, int> > isb4(t4);
+    isb4.write_image(ptr4, sz4);
+    izene_serialization_boost<boost::tuple<uint64_t, char, int> > isb44(t44);
+    isb44.write_image(ptr44, sz44);
+
+    BOOST_CHECK(memcmp(ptr4, ptr44, sz4) == 0);
+}
+
 void test_performance() {
 	clock_t t1;
 	{
@@ -97,7 +255,7 @@ void test_performance() {
 	 izene_deserialization_boost1<string> idb(ptr, sz);
 	 idb.read_image(str1);
 	 //cout<<"deserialization: "<<str1<<endl;
-	 assert(str == str1);
+	 BOOST_CHECK(str == str1);
 	 }
 	 cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 	 printf("izene_serialization_boost1 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
@@ -143,7 +301,7 @@ void test_performance() {
 			izene_deserialization_memcpy<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
-			assert(str == str1);
+			BOOST_CHECK(str == str1);
 		}
 		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
@@ -360,6 +518,8 @@ BOOST_AUTO_TEST_CASE(izene_serialization_test)
 	test_serialization_boost(ustr);
 	cout<<"!!!"<<endl;
 	test_serialization(ustr);
+
+    test_padding();
 
 	/*	test1();
 	 test2();

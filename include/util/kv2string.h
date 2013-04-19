@@ -15,6 +15,7 @@ class kv2string
     //typedef std::map<std::string, std::string> map_t;
     //typedef std::map<std::string, std::string>::iterator map_iter_t;
     typedef boost::unordered_map<std::string, std::string> map_t;
+    typedef map_t::const_iterator map_const_iter_t;
     typedef map_t::iterator map_iter_t;
     map_t kvMap_;
 
@@ -39,13 +40,13 @@ public:
     void setValue(const std::string& key, const uint32_t value);
     void setValue(const std::string& key, const uint64_t value);
 
-    std::string getStrValue(const std::string& key);
-    unsigned int getUInt32Value(const std::string& key);
-    uint64_t getUInt64Value(const std::string& key);
-    bool getValue(const std::string& key, std::string& value);
-    bool getValue(const std::string& key, unsigned int& value);
+    std::string getStrValue(const std::string& key) const;
+    unsigned int getUInt32Value(const std::string& key) const;
+    uint64_t getUInt64Value(const std::string& key) const;
+    bool getValue(const std::string& key, std::string& value) const;
+    bool getValue(const std::string& key, unsigned int& value) const;
 
-    bool hasKey(const std::string& key) { return (kvMap_.find(key) != kvMap_.end()); }
+    bool hasKey(const std::string& key) const { return (kvMap_.find(key) != kvMap_.end()); }
     void clear() { kvMap_.clear(); }
     bool empty() const { return kvMap_.empty(); }
     size_t size() const { return kvMap_.size(); }
@@ -53,7 +54,7 @@ public:
     /**
      * key-values to string
      */
-    std::string serialize(bool verbose = false);
+    std::string serialize(bool verbose = false) const;
 
     /**
      * load key-values from string

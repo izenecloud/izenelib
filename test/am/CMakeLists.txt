@@ -21,6 +21,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     b-trie/t_btrie_en.cpp
     b-trie/t_btrie_cjk.cpp
 
+    tc/tc_hash.cpp
     tc/String.cpp
     tc/Iter.cpp
     tc/Db.cpp
@@ -83,6 +84,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     ${CMAKE_THREAD_LIBS_INIT}
     am
     compressor
+    snappy
     febird
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
@@ -90,17 +92,12 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     ${Glog_LIBRARIES}
     )
 
- ADD_EXECUTABLE(t_app ApproximateMatching/t_app.cpp)
+ ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
   TARGET_LINK_LIBRARIES(t_app
-   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-   ${Boost_SYSTEM_LIBRARY}
-   ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}
-   ${Boost_IOSTREAMS_LIBRARY}
+   ${Boost_LIBRARIES}
    am
    izene_util
    bz2
-   jemalloc
    ${Glog_LIBRARIES}
     )
 

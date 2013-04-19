@@ -18,6 +18,8 @@
 (success)\
 (timers)\
 (total_server_time)\
+(collection)\
+(may_slow)\
 (warnings)
 
 
