@@ -68,7 +68,7 @@ private:
 };
 
 template <class KeyType, class ValueType>
-KeyFile<KeyType, ValueType>::KeyFile(const char* fn) :  fns_(fn), num_(0), maxID_(0)
+KeyFile<KeyType, ValueType>::KeyFile(const char* fn) :  fns_(fn), num_(0), maxID_(KEYBLOCK)
 {
     initWorkingFile(fns_.c_str());
 }
@@ -122,6 +122,11 @@ template <class KeyType, class ValueType>
 void KeyFile<KeyType, ValueType>::initMaxID(const uint64_t maxID)
 {
     maxID_ = maxID;
+    if (!fns_.empty())
+    {
+        ofstream ofs(fns_.c_str());
+        ofs.write((const char*)(&maxID_), sizeof(uint64_t));
+    }
     buffers_.resize(maxID_);
     nextPointers_.resize(maxID_);
     firstPointers_.resize(maxID_);

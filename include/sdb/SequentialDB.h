@@ -380,7 +380,9 @@ public:
     void flush()
     {
         ScopedWriteLockType lock(lock_);
-        container_.flush();
+        try{
+            container_.flush();
+        }catch(const std::exception& e){}
     }
 
     /// Note that,  getnext, getPrev, getNearest, getValueForwar,getValueBackWard, getValuePrefix, getValueBetween

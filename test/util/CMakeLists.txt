@@ -34,6 +34,7 @@ ADD_EXECUTABLE(t_util
   t_bloomfilter.cpp
   t_cpuinfo.cpp
   t_levenshteinautomata.cpp
+  t_kv2string.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util

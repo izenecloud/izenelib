@@ -16,7 +16,8 @@
 #include "3rdparty/zookeeper/ZooKeeper.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <map>
 #include <string>
@@ -50,7 +51,9 @@ public:
      * @throw ZooKeeperException if cannot connect to ZooKeeper.
      */
     ZooKeeperRouter(PoolFactory* poolFactory,
-            const std::string& hosts, const int timeout);
+            const std::string& hosts, const int timeout,
+            const std::string& match_master_name,
+            int set_seq, int total_set_num);
     
     /**
      * Destructor.
@@ -64,6 +67,7 @@ public:
         return client->isConnected();
     }
 
+    void reconnect();
     /**
      * Get a connection to a node hosting the given collection.
      * @param collection The collection name.
@@ -97,14 +101,14 @@ public:
      * Get all the nodes from the actual topology.
      * @return A range of nodes.
      */
-    NodeListRange getSf1Nodes() const;
+    //NodeListRange getSf1Nodes() const;
     
     /**
      * Get all the nodes hosting the given collection from the actual topology.
      * @param collection The collection name
      * @return A range of nodes.
      */
-    NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
+    //NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
  
 private:
     
@@ -115,7 +119,7 @@ private:
     void addSearchTopology(const std::string& path);
     
     /** Add a new SF1 node in the topology. */
-    void addSf1Node(const std::string& path);
+    bool addSf1Node(const std::string& path);
     
     /** Updates the SF1 node information. */
     void updateNodeData(const std::string& path);
@@ -131,13 +135,18 @@ private:
     
     /** Resolve to a node in the topology. */
     const Sf1Node& resolve(const std::string collection) const;
+    void updateNodeDataOnTimer(int calltype);
     
 private:
     
     /// Mutex for topology changes.
-    boost::mutex mutex;
+    boost::shared_mutex shared_mutex;
+    typedef boost::shared_lock<boost::shared_mutex> ReadLockT;
+    typedef boost::unique_lock<boost::shared_mutex> WriteLockT;
+    typedef boost::upgrade_lock<boost::shared_mutex> UpgradeLockT;
+    typedef boost::upgrade_to_unique_lock<boost::shared_mutex> UpgradeUniqueLockT;
     /// Condition variable for connection pool deletion.
-    boost::condition_variable condition;
+    boost::condition_variable_any condition;
     
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;
@@ -147,6 +156,7 @@ private:
     
     /// Actual SF1 instances.
     boost::scoped_ptr<Sf1Topology> topology;
+    boost::scoped_ptr<Sf1Topology> backup_topology;
     
     /// Routing policy.
     boost::scoped_ptr<RoutingPolicy> policy;
@@ -157,6 +167,15 @@ private:
     /// Connection pools.
     PoolContainer pools;
     
+    std::string match_master_name_;
+    // used for distinct the connections to sf1r nodes to avoid the performance 
+    // downgrade while a single node slow down.
+    // sf1r node connections will be grouped by connection set.
+    // The set sequence will determinate the node set to connect to.
+    int  set_seq_;
+    int  total_set_num_;
+    typedef std::map<std::string, int> WaitingMapT;
+    WaitingMapT waiting_update_path_;
 };
 
 NS_IZENELIB_SF1R_END

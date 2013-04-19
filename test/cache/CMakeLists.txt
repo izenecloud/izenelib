@@ -16,13 +16,6 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(t_cache
   Runner.cc  
   t_izenecache.cc
-  t_CacheDB.cc
-  t_MCache.cc
-  t_MFCache.cc
-  t_mfserialize.cc
-  t_MLRUCache.cc
-  t_mserialize.cc
-  t_mul_cache.cc 
   )
 
 TARGET_LINK_LIBRARIES(t_cache

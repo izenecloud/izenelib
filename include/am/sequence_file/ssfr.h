@@ -32,6 +32,7 @@ public:
     
     ~Reader()
     {
+        Close();
     }
     
     bool Failed()
@@ -42,16 +43,19 @@ public:
     
     bool Open()
     {
+        Close();
       stream_.open(file_.c_str());
       if(Failed()) 
       {
         std::cerr<<"open "<<file_<<" failed"<<std::endl;
+        perror("reason: ") ;
         return false;
       }
       LoadCount_();
       if(Failed()) 
       {
         std::cerr<<"open "<<file_<<" failed"<<std::endl;
+        perror("reason: ") ;
         return false;
       }
       return true;
@@ -236,6 +240,7 @@ public:
     
     ~Reader2()
     {
+        Close();
     }
     
     bool Failed()
@@ -246,16 +251,19 @@ public:
     
     bool Open()
     {
+        Close();
       stream_.open(file_.c_str());
       if(Failed()) 
       {
         std::cerr<<"open "<<file_<<" failed"<<std::endl;
+        perror("reason: ") ;
         return false;
       }
       LoadCount_();
       if(Failed()) 
       {
         std::cerr<<"open "<<file_<<" failed"<<std::endl;
+        perror("reason: ") ;
         return false;
       }
       return true;
@@ -424,6 +432,7 @@ public:
     
     ~Writer()
     {
+        Close();
     }
     
     bool Failed()
@@ -436,8 +445,10 @@ public:
       if (!boost::filesystem::exists(file_))
       {
           std::ofstream ostream(file_.c_str());
+          ostream << std::flush;
           ostream.close();
       }
+      Close();
       stream_.open(file_.c_str());
       if (Failed())
       {

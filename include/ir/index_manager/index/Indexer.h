@@ -96,45 +96,47 @@ public:
     ///API for query
     size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);
 
-    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
+    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, const std::vector<std::string>& properties, std::deque<docid_t>& docIds);
 
-    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
+    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, const std::vector<std::string>& properties, std::deque<CommonItem>& commonSet);
 
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );
 
 public:
     ///API for BTreeIndex
-    bool seekTermFromBTreeIndex(collectionid_t colID, std::string property, PropertyType value);
+    bool seekTermFromBTreeIndex(collectionid_t colID, const std::string& property, const PropertyType& value);
 
-    bool getDocsByNumericValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
+    bool getDocsByNumericValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs);
 
-    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs);
 
-    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, EWAHBoolArray<uint32_t>& docs);
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList);
 
-    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docList);
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<uint32_t>& docs);
 
-    bool getDocsByPropertyValueRange(collectionid_t colID, std::string property, PropertyType value1, PropertyType value2, BitVector& docs);
+    bool getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, BitVector& docs);
 
-    bool getDocsByPropertyValueLessThan(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueLessThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, BitVector&docList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
 
-    bool getDocsByPropertyValueNotIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, BitVector&docList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<uint32_t>& docsList);
 
-    bool getDocsByPropertyValueNotEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
 
-    bool getDocsByPropertyValueStart(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueNotEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueEnd(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueStart(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
-    bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
+    bool getDocsByPropertyValueEnd(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+
+    bool getDocsByPropertyValueSubString(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
 
 public:
     ///API for configuration
@@ -157,7 +159,7 @@ public:
 
     Directory* getDirectory() { return pDirectory_; }
 
-    void setBasePath(std::string basePath);
+    void setBasePath(const std::string& basePath);
 
     void setDirty();
 
@@ -171,7 +173,7 @@ public:
 
     size_t numDocs() { return pBarrelsInfo_->getDocCount(); }
 
-    fieldid_t getPropertyIDByName(collectionid_t colID, string property)
+    fieldid_t getPropertyIDByName(collectionid_t colID, const std::string& property)
     {
         return property_name_id_map_[colID][property];
     }

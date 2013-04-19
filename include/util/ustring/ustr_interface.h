@@ -551,7 +551,7 @@ bool FuzzyFilter(std::vector<std::pair<SelfT,uint32_t> >& filterList) const //TO
     else
     {
         typename std::vector<std::pair<SelfT,uint32_t> >::iterator iter=filterList.begin();
-// int k=0;
+        // int k=0;
         //for (uint32_t j = 0; j < filterList.size(); j++,k++)
         for (iter=filterList.begin(); iter!=filterList.end(); )
         {

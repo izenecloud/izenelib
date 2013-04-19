@@ -10,9 +10,6 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
 
 SET(libs
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${TokyoCabinet_LIBRARIES}
   febird
   luxio
   am
@@ -21,6 +18,9 @@ SET(libs
   procmeminfo
   leveldb
   snappy
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
 
 )
 

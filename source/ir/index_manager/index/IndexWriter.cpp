@@ -38,8 +38,8 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 
 IndexWriter::~IndexWriter()
 {
-    if (!optimizeJobDesc_.empty())
-        Scheduler::removeJob(optimizeJobDesc_);
+    //if (!optimizeJobDesc_.empty())
+    //    Scheduler::removeJob(optimizeJobDesc_);
     if (pIndexMergeManager_)
         delete pIndexMergeManager_;
     if (pIndexBarrelWriter_)
@@ -143,7 +143,7 @@ void IndexWriter::deletebinlog()
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
-    boost::lock_guard<boost::mutex> lock(indexMutex_);
+    //boost::lock_guard<boost::mutex> lock(indexMutex_);
 
     if (!pCurBarrelInfo_) createBarrelInfo();
 
@@ -250,50 +250,50 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
 
 void IndexWriter::optimizeIndex()
 {
-    boost::lock_guard<boost::mutex> lock(indexMutex_);
+    //boost::lock_guard<boost::mutex> lock(indexMutex_);
     flush();
     if(pIndexer_->isRealTime())
         deletebinlog();
     pIndexMergeManager_->optimizeIndex();
 }
 
-void IndexWriter::lazyOptimizeIndex()
-{
-    using namespace boost::posix_time;
-    using namespace boost::gregorian;
-    using namespace izenelib::util;
-
-    boost::posix_time::ptime now = second_clock::local_time();
-    boost::gregorian::date date = now.date();
-    boost::posix_time::time_duration du = now.time_of_day();
-    int dow = date.day_of_week();
-    int month = date.month();
-    int day = date.day();
-    int hour = du.hours();
-    int minute = du.minutes();
-    if (scheduleExpression_.matches(minute, hour, day, month, dow))
-    {
-        boost::lock_guard<boost::mutex> lock(indexMutex_);
-        flush();
-        if(pIndexer_->isRealTime())
-            deletebinlog();
-        pIndexMergeManager_->optimizeIndex();
-    }
-}
-
-void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
-{
-    scheduleExpression_.setExpression(expression);
-
-    const string optimizeJob = "optimizeindex"+uuid;
-    ///we need an uuid here because scheduler is an singleton in the system
-    Scheduler::removeJob(optimizeJob);
-
-    optimizeJobDesc_ = optimizeJob;
-    boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
-    Scheduler::addJob(optimizeJob, 60*1000, 0, task);
-}
-
+//void IndexWriter::lazyOptimizeIndex(int calltype)
+//{
+//    using namespace boost::posix_time;
+//    using namespace boost::gregorian;
+//    using namespace izenelib::util;
+//
+//    boost::posix_time::ptime now = second_clock::local_time();
+//    boost::gregorian::date date = now.date();
+//    boost::posix_time::time_duration du = now.time_of_day();
+//    int dow = date.day_of_week();
+//    int month = date.month();
+//    int day = date.day();
+//    int hour = du.hours();
+//    int minute = du.minutes();
+//    if (scheduleExpression_.matches(minute, hour, day, month, dow))
+//    {
+//        boost::lock_guard<boost::mutex> lock(indexMutex_);
+//        flush();
+//        if(pIndexer_->isRealTime())
+//            deletebinlog();
+//        pIndexMergeManager_->optimizeIndex();
+//    }
+//}
+//
+//void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
+//{
+//    scheduleExpression_.setExpression(expression);
+//
+//    const string optimizeJob = "optimizeindex"+uuid;
+//    ///we need an uuid here because scheduler is an singleton in the system
+//    Scheduler::removeJob(optimizeJob);
+//
+//    optimizeJobDesc_ = optimizeJob;
+//    boost::function<void (int)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this, _1);
+//    Scheduler::addJob(optimizeJob, 60*1000, 0, task);
+//}
+//
 void IndexWriter::setIndexMode(bool realtime)
 {
     if (!pIndexBarrelWriter_)
