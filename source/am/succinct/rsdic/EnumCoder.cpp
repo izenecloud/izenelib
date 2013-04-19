@@ -31,11 +31,11 @@ namespace rsdic
 uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
     uint64_t code = 0;
-    for (size_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kBlockSize; ++i)
     {
         if (val >> i & 1LLU)
         {
-            code += kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+            code += kCombinationTable64_[kBlockSize - i - 1][rank_sb];
             --rank_sb;
         }
     }
@@ -46,9 +46,9 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 {
     uint64_t ret = 0;
     uint64_t zero_case_num;
-    for (size_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kBlockSize; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             ret |= 1LLU << i;
@@ -61,25 +61,25 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return code >> pos & 1LLU;
 
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
             --rank_sb;
         }
     }
-    return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
+    return code >= kCombinationTable64_[kBlockSize - pos - 1][rank_sb];
 }
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
     {
         rank = SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
         return code >> pos & 1LLU;
@@ -89,7 +89,7 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -97,19 +97,19 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
         }
     }
     rank -= rank_sb;
-    return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
+    return code >= kCombinationTable64_[kBlockSize - pos - 1][rank_sb];
 }
 
 size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
 
     size_t cur_rank = rank_sb;
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][cur_rank];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][cur_rank];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -122,13 +122,13 @@ size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::selectBlock(~code, num);
 
     uint64_t zero_case_num;
-    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -147,13 +147,13 @@ size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 size_t EnumCoder::Select1(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::selectBlock(code, num);
 
     uint64_t zero_case_num;
-    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
         {
             if (num == 0) return offset;

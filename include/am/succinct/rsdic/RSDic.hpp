@@ -108,10 +108,10 @@ private:
 
     std::vector<uint64_t> bits_;
     std::vector<rsdic_uint> pointer_blocks_;
-    std::vector<rsdic_uint> rank_blocks_;
+    std::vector<rsdic_uint> rank_large_blocks_;
     std::vector<rsdic_uint> select_one_inds_;
     std::vector<rsdic_uint> select_zero_inds_;
-    std::vector<uint8_t> rank_small_blocks_;
+    std::vector<uint8_t> rank_blocks_;
 };
 
 }
