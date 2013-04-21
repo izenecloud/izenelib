@@ -20,11 +20,7 @@ DBitV::~DBitV()
 
 void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 {
-    bits_.reserve(len / kSmallBlockSize + 1);
-    rank_blocks_.reserve(len / kHugeBlockSize + 1);
-    rank_small_blocks_.reserve(len / kSmallBlockSize + 1);
-
-    rank_blocks_.push_back(0);
+    super_blocks_.resize(len / kSuperBlockSize + 1);
 
     if (support_select_)
     {
@@ -32,27 +28,36 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
         select_zero_inds_.push_back(0);
     }
 
-    size_t index = len / kSmallBlockSize;
-    size_t offset = len % kSmallBlockSize;
-    size_t rank_lb = 0;
+    size_t index = len / kBlockSize;
+    size_t offset = len % kBlockSize;
+    size_t sb_index = 0;
+    size_t sb_offset = 0;
 
     for (size_t i = 0; i < index; ++i)
     {
-        buildBlock_(bv[i], kSmallBlockSize, rank_lb);
+        super_blocks_[sb_index].bits_[sb_offset] = bv[i];
+        buildBlock_(bv[i], kBlockSize);
+        len_ += kBlockSize;
 
-        if ((i + 1) % kSmallBlockPerHugeBlock == 0)
+        if (++sb_offset == kBlockPerSuperBlock)
         {
-            rank_blocks_.push_back(one_count_);
-            rank_lb = 0;
+            sb_offset = 0;
+            super_blocks_[++sb_index].rank_ = one_count_;
         }
     }
 
-    buildBlock_(offset ? bv[index] & ((1LLU << offset) - 1) : 0, offset, rank_lb);
+    if (offset)
+    {
+        size_t block = bv[index] & ((1LLU << offset) - 1);
+        super_blocks_[sb_index].bits_[sb_offset] = block;
+        buildBlock_(block, offset);
+        len_ += offset;
+    }
 
     if (support_select_)
     {
-        select_one_inds_.push_back(rank_small_blocks_.size());
-        select_zero_inds_.push_back(rank_small_blocks_.size());
+        select_one_inds_.push_back(len_ / kSuperBlockSize + 1);
+        select_zero_inds_.push_back(len_ / kSuperBlockSize + 1);
 
         if (select_one_inds_.capacity() > select_one_inds_.size())
         {
@@ -65,34 +70,23 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
     }
 }
 
-void DBitV::buildBlock_(uint64_t block, size_t offset, size_t &rank_lb)
+void DBitV::buildBlock_(uint64_t block, size_t offset)
 {
     size_t rank_sb = SuccinctUtils::popcount(block);
-
-    bits_.push_back(block);
-    rank_small_blocks_.push_back(rank_lb);
 
     if (support_select_)
     {
         if (one_count_ % kSelectBlockSize + rank_sb >= kSelectBlockSize)
         {
-            select_one_inds_.push_back(len_ / kSmallBlockSize + 1);
+            select_one_inds_.push_back(len_ / kSuperBlockSize + 1);
         }
         if ((len_ - one_count_) % kSelectBlockSize + offset - rank_sb >= kSelectBlockSize)
         {
-            select_zero_inds_.push_back(len_ / kSmallBlockSize + 1);
+            select_zero_inds_.push_back(len_ / kSuperBlockSize + 1);
         }
     }
 
-    len_ += offset;
     one_count_ += rank_sb;
-
-    rank_lb += rank_sb;
-}
-
-size_t DBitV::rankOutOfSmallBlock_(size_t sblock) const
-{
-    return rank_blocks_[sblock / kSmallBlockPerHugeBlock] + rank_small_blocks_[sblock];
 }
 
 void DBitV::clear()
@@ -100,31 +94,39 @@ void DBitV::clear()
     len_ = 0;
     one_count_ = 0;
 
-    std::vector<uint64_t>().swap(bits_);
-    std::vector<size_t>().swap(rank_blocks_);
-    std::vector<uint16_t>().swap(rank_small_blocks_);
+    std::vector<SuperBlock>().swap(super_blocks_);
+
+    if (support_select_)
+    {
+        std::vector<size_t>().swap(select_one_inds_);
+        std::vector<size_t>().swap(select_zero_inds_);
+    }
 }
 
 bool DBitV::lookup(size_t pos) const
 {
     __assert(pos < len_);
-    return bits_[pos / kSmallBlockSize] & (uint64_t(1) << (pos % kSmallBlockSize));
+    return super_blocks_[pos / kSuperBlockSize].bits_[pos % kSuperBlockSize / kBlockSize] & (uint64_t(1) << (pos % kBlockSize));
 }
 
 bool DBitV::lookup(size_t pos, size_t &r) const
 {
     __assert(pos < len_);
 
-    size_t sblock = pos / kSmallBlockSize;
-    bool bit = bits_[sblock] & (uint64_t(1) << (pos % kSmallBlockSize));
+    const SuperBlock &sb = super_blocks_[pos / kSuperBlockSize];
+    size_t sb_offset = pos % kSuperBlockSize / kBlockSize;
+    size_t b_offset = pos % kBlockSize;
+    bool bit = sb.bits_[sb_offset] & (uint64_t(1) << b_offset);
 
-    if (bit)
+    r = sb.rank_ + SuccinctUtils::popcount(sb.bits_[sb_offset] & ((uint64_t(1) << b_offset) - 1));
+    for (size_t i = 0; i < sb_offset; ++i)
     {
-        r = rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        r += SuccinctUtils::popcount(sb.bits_[i]);
     }
-    else
+
+    if (!bit)
     {
-        r = pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+        r = pos - r;
     }
 
     return bit;
@@ -132,50 +134,43 @@ bool DBitV::lookup(size_t pos, size_t &r) const
 
 size_t DBitV::rank0(size_t pos) const
 {
-    __assert(pos <= len_);
-
-    size_t sblock = pos / kSmallBlockSize;
-
-    return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+    return pos - rank1(pos);
 }
 
 size_t DBitV::rank1(size_t pos) const
 {
     __assert(pos <= len_);
 
-    size_t sblock = pos / kSmallBlockSize;
+    const SuperBlock &sb = super_blocks_[pos / kSuperBlockSize];
+    size_t sb_offset = pos % kSuperBlockSize / kBlockSize;
 
-    return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
+    size_t r = sb.rank_ + SuccinctUtils::popcount(sb.bits_[sb_offset] & ((uint64_t(1) << (pos % kBlockSize)) - 1));
+    for (size_t i = 0; i < sb_offset; ++i)
+    {
+        r += SuccinctUtils::popcount(sb.bits_[i]);
+    }
+
+    return r;
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const
 {
-    __assert(pos <= len_);
-
-    size_t sblock = pos / kSmallBlockSize;
-
-    if (bit)
-    {
-        return rankOutOfSmallBlock_(sblock) + SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
-    }
-    else
-    {
-        return pos - rankOutOfSmallBlock_(sblock) - SuccinctUtils::popcount(bits_[sblock] & ((uint64_t(1) << (pos % kSmallBlockSize)) - 1));
-    }
+    if (bit) return rank1(pos);
+    else return pos - rank1(pos);
 }
 
-size_t DBitV::select0(size_t ind) const
+size_t DBitV::select0(size_t rank) const
 {
-    __assert(support_select_ && ind < len_ - one_count_);
+    __assert(support_select_ && rank < len_ - one_count_);
 
-    size_t select_ind = ind / kSelectBlockSize;
+    size_t select_ind = rank / kSelectBlockSize;
     size_t low = select_zero_inds_[select_ind];
     size_t high = select_zero_inds_[select_ind + 1];
 
     while (low < high)
     {
         size_t mid = (low + high) / 2;
-        if (mid * kSmallBlockSize - rankOutOfSmallBlock_(mid) <= ind)
+        if (mid * kSuperBlockSize - super_blocks_[mid].rank_ <= rank)
         {
             low = mid + 1;
         }
@@ -188,21 +183,31 @@ size_t DBitV::select0(size_t ind) const
     __assert(low > 0);
     --low;
 
-    return low * kSmallBlockSize + SuccinctUtils::selectBlock(~bits_[low], ind - low * kSmallBlockSize + rankOutOfSmallBlock_(low));
+    const SuperBlock &sb = super_blocks_[low];
+    rank = rank - low * kSuperBlockSize + sb.rank_;
+    size_t sb_offset = 0;
+    for (; sb_offset < kBlockPerSuperBlock; ++sb_offset)
+    {
+        size_t b_rank = SuccinctUtils::popcount(~sb.bits_[sb_offset]);
+        if (rank < b_rank) break;
+        rank -= b_rank;
+    }
+
+    return low * kSuperBlockSize + sb_offset * kBlockSize + SuccinctUtils::selectBlock(~sb.bits_[sb_offset], rank);
 }
 
-size_t DBitV::select1(size_t ind) const
+size_t DBitV::select1(size_t rank) const
 {
-    __assert(support_select_ && ind < one_count_);
+    __assert(support_select_ && rank < one_count_);
 
-    size_t select_ind = ind / kSelectBlockSize;
+    size_t select_ind = rank / kSelectBlockSize;
     size_t low = select_one_inds_[select_ind];
     size_t high = select_one_inds_[select_ind + 1];
 
     while (low < high)
     {
         size_t mid = (low + high) / 2;
-        if (rankOutOfSmallBlock_(mid) <= ind)
+        if (super_blocks_[mid].rank_ <= rank)
         {
             low = mid + 1;
         }
@@ -215,13 +220,23 @@ size_t DBitV::select1(size_t ind) const
     __assert(low > 0);
     --low;
 
-    return low * kSmallBlockSize + SuccinctUtils::selectBlock(bits_[low], ind - rankOutOfSmallBlock_(low));
+    const SuperBlock &sb = super_blocks_[low];
+    rank -= sb.rank_;
+    size_t sb_offset = 0;
+    for (; sb_offset < kBlockPerSuperBlock; ++sb_offset)
+    {
+        size_t b_rank = SuccinctUtils::popcount(sb.bits_[sb_offset]);
+        if (rank < b_rank) break;
+        rank -= b_rank;
+    }
+
+    return low * kSuperBlockSize + sb_offset * kBlockSize + SuccinctUtils::selectBlock(sb.bits_[sb_offset], rank);
 }
 
-size_t DBitV::select(size_t ind, bool bit) const
+size_t DBitV::select(size_t rank, bool bit) const
 {
-    if (bit) return select1(ind);
-    else return select0(ind);
+    if (bit) return select1(rank);
+    else return select0(rank);
 }
 
 void DBitV::save(std::ostream &os) const
@@ -230,14 +245,12 @@ void DBitV::save(std::ostream &os) const
     os.write((const char *)&len_, sizeof(len_));
     os.write((const char *)&one_count_, sizeof(one_count_));
 
-    save(os, bits_);
-    save(os, rank_blocks_);
-    save(os, rank_small_blocks_);
+    save_(os, super_blocks_);
 
     if (support_select_)
     {
-        save(os, select_one_inds_);
-        save(os, select_zero_inds_);
+        save_(os, select_one_inds_);
+        save_(os, select_zero_inds_);
     }
 }
 
@@ -247,23 +260,19 @@ void DBitV::load(std::istream &is)
     is.read((char *)&len_, sizeof(len_));
     is.read((char *)&one_count_, sizeof(one_count_));
 
-    load(is, bits_);
-    load(is, rank_blocks_);
-    load(is, rank_small_blocks_);
+    load_(is, super_blocks_);
 
     if (support_select_)
     {
-        load(is, select_one_inds_);
-        load(is, select_zero_inds_);
+        load_(is, select_one_inds_);
+        load_(is, select_zero_inds_);
     }
 }
 
 size_t DBitV::allocSize() const
 {
     return sizeof(DBitV)
-        + sizeof(bits_[0]) * bits_.size()
-        + sizeof(rank_blocks_[0]) * rank_blocks_.size()
-        + sizeof(rank_small_blocks_[0]) * rank_small_blocks_.size()
+        + sizeof(super_blocks_[0]) * super_blocks_.size()
         + sizeof(select_one_inds_[0]) * select_one_inds_.size()
         + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
 }

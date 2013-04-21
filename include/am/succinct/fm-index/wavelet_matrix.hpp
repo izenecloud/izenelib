@@ -249,7 +249,7 @@ size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
         {
             pos = nodes_[i]->select0(pos);
         }
-        //pos++;
+
         if (pos == (size_t)-1) return -1;
     }
 

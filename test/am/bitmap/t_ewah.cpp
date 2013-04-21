@@ -1,4 +1,6 @@
 #include <am/bitmap/Ewah.h>
+#include <ir/index_manager/utility/BitVector.h>
+#include <util/ClockTimer.h>
 
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
@@ -7,9 +9,11 @@
 #include <fstream>
 #include <iostream>
 #include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 using namespace izenelib::am;
+using namespace izenelib::ir::indexmanager;
 namespace bfs = boost::filesystem;
 
 static uint32_t *int_data;
@@ -304,6 +308,99 @@ bool testEWAHBoolArrayLogical() {
     return isOk;
 }
 
+template <typename word_t>
+void checkCompressBitVector(const BitVector& bitVector)
+{
+    BOOST_TEST_MESSAGE("origin: " << bitVector);
+
+    EWAHBoolArray<word_t> ewahBoolArray;
+    bitVector.compressed(ewahBoolArray);
+
+    BitVector uncompress;
+    uncompress.importFromEWAH(ewahBoolArray);
+    BOOST_TEST_MESSAGE("uncomp: " << uncompress);
+
+    const std::size_t bitNum = bitVector.size();
+    BOOST_CHECK_LE(uncompress.size(), bitNum);
+
+    for (std::size_t i = 0; i < bitNum; ++i)
+    {
+        BOOST_CHECK_EQUAL(uncompress.test(i), bitVector.test(i));
+    }
+}
+
+void setBitVector(BitVector& bitVector, std::size_t setBitNum)
+{
+    std::size_t bitNum = bitVector.size();
+    for (std::size_t i = 0; i < setBitNum; ++i)
+    {
+        int k = std::rand() % bitNum;
+        bitVector.set(k);
+    }
+}
+
+template <typename word_t>
+void testCompressBitVector(std::size_t bitNum)
+{
+    BOOST_TEST_MESSAGE("testCompressBitVector, sizeof(word_t): " << sizeof(word_t)
+                       << ", bitNum: " << bitNum);
+
+    BitVector bitVector(bitNum);
+
+    bitVector.setAll();
+    checkCompressBitVector<word_t>(bitVector);
+
+    bitVector.clear();
+    checkCompressBitVector<word_t>(bitVector);
+
+    const std::size_t setBitNum = bitNum / 2;
+    setBitVector(bitVector, setBitNum);
+    checkCompressBitVector<word_t>(bitVector);
+}
+
+template <typename word_t>
+void runCompressToEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
+{
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        EWAHBoolArray<word_t> ewahBoolArray;
+        bitVector.compressed(ewahBoolArray);
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "BitVector::compressed() of " << runNum << " times "
+                       "on " << bitVector.size() << " bits, "
+                       "sizeof(word_t): " << sizeof(word_t));
+}
+
+template <typename word_t>
+void runIterateEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
+{
+    EWAHBoolArray<word_t> ewahBoolArray;
+    bitVector.compressed(ewahBoolArray);
+
+    std::size_t setBitNum = 0;
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        EWAHBoolArrayBitIterator<word_t> bitIter = ewahBoolArray.bit_iterator();
+        setBitNum = bitIter.numberOfOnes();
+
+        while (bitIter.next())
+        {
+            bitIter.getCurr();
+        }
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "EWAHBoolArrayBitIterator::next() of " << runNum << " times "
+                       "on " << setBitNum << "/" << bitVector.size() << " bits, "
+                       "sizeof(word_t): " << sizeof(word_t)
+                       << ", EWAHBoolArray::sizeInBytes(): " << ewahBoolArray.sizeInBytes());
+}
 
 BOOST_AUTO_TEST_SUITE(bitmap_ewah_test)
 
@@ -362,5 +459,31 @@ BOOST_AUTO_TEST_CASE(ewahBitIterator)
     delete[] copy_data;
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_CASE(compressBitVector)
+{
+    const std::size_t maxBitNum = 300;
+    for (std::size_t i = 0; i <= maxBitNum; ++i)
+    {
+        testCompressBitVector<uint32_t>(i);
+        testCompressBitVector<uint64_t>(i);
+    }
+}
 
+BOOST_AUTO_TEST_CASE(benchEWAHBoolArray)
+{
+    const std::size_t bitNum = 1e5;
+    const std::size_t setBitNum = bitNum / 5;
+    const std::size_t compressNum = 1e4;
+    const std::size_t iterateNum = 1e2;
+
+    BitVector bitVector(bitNum);
+    setBitVector(bitVector, setBitNum);
+
+    runCompressToEWAHBoolArray<uint32_t>(bitVector, compressNum);
+    runIterateEWAHBoolArray<uint32_t>(bitVector, iterateNum);
+
+    runCompressToEWAHBoolArray<uint64_t>(bitVector, compressNum);
+    runIterateEWAHBoolArray<uint64_t>(bitVector, iterateNum);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

@@ -36,7 +36,7 @@ WaveletTreeNode::WaveletTreeNode(WaveletTreeNode *left, WaveletTreeNode *right, 
     , dense_bit_vector_(support_select)
     , dense_(dense)
     , freq_(left->freq_ + right->freq_), len_()
-    , raw_array_((freq_ + kSmallBlockSize - 1) / kSmallBlockSize)
+    , raw_array_((freq_ + kBlockSize - 1) / kBlockSize)
 {
     left->parent_ = this;
     right->parent_ = this;
@@ -49,7 +49,7 @@ WaveletTreeNode::~WaveletTreeNode()
 void WaveletTreeNode::resize(size_t len)
 {
     len_ = len;
-    raw_array_.resize((len_ + kSmallBlockSize - 1) / kSmallBlockSize);
+    raw_array_.resize((len_ + kBlockSize - 1) / kBlockSize);
 }
 
 void WaveletTreeNode::setBit(size_t pos)
@@ -58,9 +58,9 @@ void WaveletTreeNode::setBit(size_t pos)
 //  if (pos >= len_)
 //  {
 //      len_ = pos + 1;
-//      raw_array_.resize(pos / kSmallBlockSize + 1);
+//      raw_array_.resize(pos / kBlockSize + 1);
 //  }
-    raw_array_[pos / kSmallBlockSize] |= 1LLU << (pos % kSmallBlockSize);
+    raw_array_[pos / kBlockSize] |= 1LLU << (pos % kBlockSize);
 }
 
 void WaveletTreeNode::unsetBit(size_t pos)
@@ -69,9 +69,9 @@ void WaveletTreeNode::unsetBit(size_t pos)
 //  if (pos >= len_)
 //  {
 //      len_ = pos + 1;
-//      raw_array_.resize(pos / kSmallBlockSize + 1);
+//      raw_array_.resize(pos / kBlockSize + 1);
 //  }
-//  raw_array_[pos / kSmallBlockSize] &= ~(1LLU << (pos % kSmallBlockSize));
+//  raw_array_[pos / kBlockSize] &= ~(1LLU << (pos % kBlockSize));
 }
 
 void WaveletTreeNode::changeBit(bool bit, size_t pos)
@@ -82,17 +82,17 @@ void WaveletTreeNode::changeBit(bool bit, size_t pos)
 
 void WaveletTreeNode::append0()
 {
-    assert(len_ / kSmallBlockSize < raw_array_.size());
-//  raw_array_.resize(len_ / kSmallBlockSize + 1);
-//  raw_array_[len_ / kSmallBlockSize] &= ~(1LLU << (len_ % kSmallBlockSize));
+    assert(len_ / kBlockSize < raw_array_.size());
+//  raw_array_.resize(len_ / kBlockSize + 1);
+//  raw_array_[len_ / kBlockSize] &= ~(1LLU << (len_ % kBlockSize));
     ++len_;
 }
 
 void WaveletTreeNode::append1()
 {
-    assert(len_ / kSmallBlockSize < raw_array_.size());
-//  raw_array_.resize(len_ / kSmallBlockSize + 1);
-    raw_array_[len_ / kSmallBlockSize] |= 1LLU << (len_ % kSmallBlockSize);
+    assert(len_ / kBlockSize < raw_array_.size());
+//  raw_array_.resize(len_ / kBlockSize + 1);
+    raw_array_[len_ / kBlockSize] |= 1LLU << (len_ % kBlockSize);
     ++len_;
 }
 

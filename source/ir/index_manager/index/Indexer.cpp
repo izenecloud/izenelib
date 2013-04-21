@@ -1,8 +1,6 @@
 #include <boost/timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/assert.hpp>
-#include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
@@ -590,13 +588,6 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& pr
     return true;
 }
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<uint32_t>& docs)
-{
-    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-    pBTreeIndexer_->getValue(property, value, docs);
-    return true;
-}
-
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
@@ -636,13 +627,6 @@ bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& 
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueIn(property, values, docList);
-    return true;
-}
-
-bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<uint32_t>& docList)
-{
-    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-    pBTreeIndexer_->getValueIn(property, values, bitVector, docList);
     return true;
 }
 

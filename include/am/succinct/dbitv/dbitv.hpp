@@ -1,7 +1,7 @@
 #ifndef _IZENELIB_AM_SUCCINCT_DBITV_DBITV_HPP
 #define _IZENELIB_AM_SUCCINCT_DBITV_DBITV_HPP
 
-#include <types.h>
+#include <am/succinct/constants.hpp>
 
 #include <vector>
 #include <iostream>
@@ -29,9 +29,9 @@ public:
     size_t rank1(size_t pos) const;
     size_t rank(size_t pos, bool bit) const;
 
-    size_t select0(size_t ind) const;
-    size_t select1(size_t ind) const;
-    size_t select(size_t ind, bool bit) const;
+    size_t select0(size_t rank) const;
+    size_t select1(size_t rank) const;
+    size_t select(size_t rank, bool bit) const;
 
     void save(std::ostream &os) const;
     void load(std::istream &is);
@@ -51,20 +51,21 @@ public:
         return len_;
     }
 
-    inline size_t bsize() const
-    {
-        return bits_.size();
-    }
-
     size_t allocSize() const;
 
 private:
-    void buildBlock_(uint64_t block, size_t offset, size_t &rank_lb);
+    struct SuperBlock
+    {
+        uint64_t rank_;
+        uint64_t bits_[kBlockPerSuperBlock];
 
-    inline size_t rankOutOfSmallBlock_(size_t sblock) const;
+        SuperBlock() : rank_(), bits_() {}
+    };
+
+    void buildBlock_(uint64_t block, size_t offset);
 
     template <class T>
-    void save(std::ostream &os, const std::vector<T> &vs) const
+    void save_(std::ostream &os, const std::vector<T> &vs) const
     {
         size_t size = vs.size();
         os.write((const char *)&size, sizeof(size));
@@ -72,7 +73,7 @@ private:
     }
 
     template <class T>
-    void load(std::istream &is, std::vector<T> &vs)
+    void load_(std::istream &is, std::vector<T> &vs)
     {
         size_t size = 0;
         is.read((char *)&size, sizeof(size));
@@ -84,9 +85,7 @@ private:
     size_t len_;
     size_t one_count_;
 
-    std::vector<uint64_t> bits_;
-    std::vector<size_t> rank_blocks_;
-    std::vector<uint16_t> rank_small_blocks_;
+    std::vector<SuperBlock> super_blocks_;
 
     std::vector<size_t> select_one_inds_;
     std::vector<size_t> select_zero_inds_;

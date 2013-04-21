@@ -20,7 +20,7 @@
 #ifndef RSDIC_RSDIC_HPP_
 #define RSDIC_RSDIC_HPP_
 
-#include <types.h>
+#include <am/succinct/constants.hpp>
 
 #include <vector>
 #include <iostream>
@@ -79,13 +79,11 @@ public:
         return num_ - one_num_;
     }
 
-    bool operator == (const RSDic& bv) const;
-
 private:
-    void BuildBlock_(uint64_t block, size_t offset, size_t& global_offset);
+    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
 
     template <class T>
-    void Save(std::ostream& os, const std::vector<T>& vs) const
+    void Save_(std::ostream& os, const std::vector<T>& vs) const
     {
         size_t size = vs.size();
         os.write((const char*)&size, sizeof(size));
@@ -93,7 +91,7 @@ private:
     }
 
     template <class T>
-    void Load(std::istream& is, std::vector<T>& vs)
+    void Load_(std::istream& is, std::vector<T>& vs)
     {
         size_t size = 0;
         is.read((char*)&size, sizeof(size));
@@ -102,16 +100,24 @@ private:
     }
 
 private:
+    struct RankBlock
+    {
+        rsdic_uint large_block_;
+        uint8_t small_blocks_[kBlockPerLargeBlock];
+
+        RankBlock() : large_block_(), small_blocks_() {}
+    };
+
     bool support_select_;
     rsdic_uint num_;
     rsdic_uint one_num_;
 
     std::vector<uint64_t> bits_;
     std::vector<rsdic_uint> pointer_blocks_;
-    std::vector<rsdic_uint> rank_blocks_;
+    std::vector<RankBlock> rank_blocks_;
+
     std::vector<rsdic_uint> select_one_inds_;
     std::vector<rsdic_uint> select_zero_inds_;
-    std::vector<uint8_t> rank_small_blocks_;
 };
 
 }

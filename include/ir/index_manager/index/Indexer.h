@@ -10,7 +10,7 @@
 
 
 #include <ir/index_manager/utility/IndexManagerConfig.h>
-
+#include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexerDocument.h>
@@ -22,6 +22,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/assert.hpp>
 
 #include <map>
 #include <deque>
@@ -40,7 +41,7 @@ enum IndexStatus
 
 class BarrelsInfo;
 class IndexReader;
-class BTreeIndexerManager;
+
 /**
 *The interface class of IndexManager component in SF1v5.0
  * @brief It is the interface component of the IndexManager.
@@ -112,7 +113,8 @@ public:
 
     bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList);
 
-    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<uint32_t>& docs);
+    template <typename word_t>
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<word_t>& docs);
 
     bool getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, BitVector& docs);
 
@@ -126,7 +128,8 @@ public:
 
     bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
 
-    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<uint32_t>& docsList);
+    template <typename word_t>
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<word_t>& docsList);
 
     bool getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
 
@@ -238,6 +241,22 @@ protected:
 
     friend class IndexMergeManager;
 };
+
+template <typename word_t>
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<word_t>& docs)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    pBTreeIndexer_->getValue(property, value, docs);
+    return true;
+}
+
+template <typename word_t>
+bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<word_t>& docList)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    pBTreeIndexer_->getValueIn(property, values, bitVector, docList);
+    return true;
+}
 
 }
 NS_IZENELIB_IR_END
