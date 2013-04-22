@@ -50,7 +50,7 @@ public:
 
 private:
     static const uint8_t kEnumCodeLength_[65];
-    static const uint64_t kCombinationTable64_[65][65];
+    static const uint64_t kCombinationTable64_[64][65];
 };
 
 }

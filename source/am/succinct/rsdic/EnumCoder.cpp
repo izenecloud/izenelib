@@ -31,11 +31,11 @@ namespace rsdic
 uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
     uint64_t code = 0;
-    for (size_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kBlockSize; ++i)
     {
         if (val >> i & 1LLU)
         {
-            code += kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+            code += kCombinationTable64_[kBlockSize - i - 1][rank_sb];
             --rank_sb;
         }
     }
@@ -46,9 +46,9 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 {
     uint64_t ret = 0;
     uint64_t zero_case_num;
-    for (size_t i = 0; i < kSmallBlockSize; ++i)
+    for (size_t i = 0; i < kBlockSize; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             ret |= 1LLU << i;
@@ -61,25 +61,25 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return code >> pos & 1LLU;
 
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
             --rank_sb;
         }
     }
-    return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
+    return code >= kCombinationTable64_[kBlockSize - pos - 1][rank_sb];
 }
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
     {
         rank = SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
         return code >> pos & 1LLU;
@@ -89,7 +89,7 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -97,19 +97,19 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
         }
     }
     rank -= rank_sb;
-    return code >= kCombinationTable64_[kSmallBlockSize - pos - 1][rank_sb];
+    return code >= kCombinationTable64_[kBlockSize - pos - 1][rank_sb];
 }
 
 size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
 
     size_t cur_rank = rank_sb;
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - i - 1][cur_rank];
+        zero_case_num = kCombinationTable64_[kBlockSize - i - 1][cur_rank];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -122,13 +122,14 @@ size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::selectBlock(~code, num);
 
+    rank_sb = kBlockSize - rank_sb;
     uint64_t zero_case_num;
-    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -147,13 +148,13 @@ size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 size_t EnumCoder::Select1(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kSmallBlockSize)
+    if (Len(rank_sb) == kBlockSize)
         return SuccinctUtils::selectBlock(code, num);
 
     uint64_t zero_case_num;
-    for (size_t offset = 0; offset < kSmallBlockSize; ++offset)
+    for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[kSmallBlockSize - offset - 1][rank_sb];
+        zero_case_num = kCombinationTable64_[kBlockSize - offset - 1][rank_sb];
         if (code >= zero_case_num)
         {
             if (num == 0) return offset;
@@ -181,7 +182,7 @@ const uint8_t EnumCoder::kEnumCodeLength_[65] =
     0
 };
 
-const uint64_t EnumCoder::kCombinationTable64_[65][65] =
+const uint64_t EnumCoder::kCombinationTable64_[64][65] =
 {
     { 1LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU },
     { 1LLU, 1LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU, 0LLU },
@@ -247,7 +248,6 @@ const uint64_t EnumCoder::kCombinationTable64_[65][65] =
     { 1LLU, 61LLU, 1830LLU, 35990LLU, 521855LLU, 5949147LLU, 55525372LLU, 436270780LLU, 2944827765LLU, 17341763505LLU, 90177170226LLU, 418094152866LLU, 1742058970275LLU, 6566222272575LLU, 22512762077400LLU, 70539987842520LLU, 202802465047245LLU, 536830054536825LLU, 1312251244423350LLU, 2969831763694950LLU, 6236646703759395LLU, 12176310231149295LLU, 22138745874816900LLU, 37539612570341700LLU, 59437719903041025LLU, 87967825456500717LLU, 121801604478231762LLU, 157890968768078210LLU, 191724747789809255LLU, 218169540588403635LLU, 232714176627630544LLU, 232714176627630544LLU, 218169540588403635LLU, 191724747789809255LLU, 157890968768078210LLU, 121801604478231762LLU, 87967825456500717LLU, 59437719903041025LLU, 37539612570341700LLU, 22138745874816900LLU, 12176310231149295LLU, 6236646703759395LLU, 2969831763694950LLU, 1312251244423350LLU, 536830054536825LLU, 202802465047245LLU, 70539987842520LLU, 22512762077400LLU, 6566222272575LLU, 1742058970275LLU, 418094152866LLU, 90177170226LLU, 17341763505LLU, 2944827765LLU, 436270780LLU, 55525372LLU, 5949147LLU, 521855LLU, 35990LLU, 1830LLU, 61LLU, 1LLU, 0LLU, 0LLU, 0LLU },
     { 1LLU, 62LLU, 1891LLU, 37820LLU, 557845LLU, 6471002LLU, 61474519LLU, 491796152LLU, 3381098545LLU, 20286591270LLU, 107518933731LLU, 508271323092LLU, 2160153123141LLU, 8308281242850LLU, 29078984349975LLU, 93052749919920LLU, 273342452889765LLU, 739632519584070LLU, 1849081298960175LLU, 4282083008118300LLU, 9206478467454345LLU, 18412956934908690LLU, 34315056105966195LLU, 59678358445158600LLU, 96977332473382725LLU, 147405545359541742LLU, 209769429934732479LLU, 279692573246309972LLU, 349615716557887465LLU, 409894288378212890LLU, 450883717216034179LLU, 465428353255261088LLU, 450883717216034179LLU, 409894288378212890LLU, 349615716557887465LLU, 279692573246309972LLU, 209769429934732479LLU, 147405545359541742LLU, 96977332473382725LLU, 59678358445158600LLU, 34315056105966195LLU, 18412956934908690LLU, 9206478467454345LLU, 4282083008118300LLU, 1849081298960175LLU, 739632519584070LLU, 273342452889765LLU, 93052749919920LLU, 29078984349975LLU, 8308281242850LLU, 2160153123141LLU, 508271323092LLU, 107518933731LLU, 20286591270LLU, 3381098545LLU, 491796152LLU, 61474519LLU, 6471002LLU, 557845LLU, 37820LLU, 1891LLU, 62LLU, 1LLU, 0LLU, 0LLU },
     { 1LLU, 63LLU, 1953LLU, 39711LLU, 595665LLU, 7028847LLU, 67945521LLU, 553270671LLU, 3872894697LLU, 23667689815LLU, 127805525001LLU, 615790256823LLU, 2668424446233LLU, 10468434365991LLU, 37387265592825LLU, 122131734269895LLU, 366395202809685LLU, 1012974972473835LLU, 2588713818544245LLU, 6131164307078475LLU, 13488561475572645LLU, 27619435402363035LLU, 52728013040874885LLU, 93993414551124795LLU, 156655690918541325LLU, 244382877832924467LLU, 357174975294274221LLU, 489462003181042451LLU, 629308289804197437LLU, 759510004936100355LLU, 860778005594247069LLU, 916312070471295267LLU, 916312070471295267LLU, 860778005594247069LLU, 759510004936100355LLU, 629308289804197437LLU, 489462003181042451LLU, 357174975294274221LLU, 244382877832924467LLU, 156655690918541325LLU, 93993414551124795LLU, 52728013040874885LLU, 27619435402363035LLU, 13488561475572645LLU, 6131164307078475LLU, 2588713818544245LLU, 1012974972473835LLU, 366395202809685LLU, 122131734269895LLU, 37387265592825LLU, 10468434365991LLU, 2668424446233LLU, 615790256823LLU, 127805525001LLU, 23667689815LLU, 3872894697LLU, 553270671LLU, 67945521LLU, 7028847LLU, 595665LLU, 39711LLU, 1953LLU, 63LLU, 1LLU, 0LLU },
-    { 1LLU, 64LLU, 2016LLU, 41664LLU, 635376LLU, 7624512LLU, 74974368LLU, 621216192LLU, 4426165368LLU, 27540584512LLU, 151473214816LLU, 743595781824LLU, 3284214703056LLU, 13136858812224LLU, 47855699958816LLU, 159518999862720LLU, 488526937079580LLU, 1379370175283520LLU, 3601688791018080LLU, 8719878125622720LLU, 19619725782651120LLU, 41107996877935680LLU, 80347448443237920LLU, 146721427591999680LLU, 250649105469666120LLU, 401038568751465792LLU, 601557853127198688LLU, 846636978475316672LLU, 1118770292985239888LLU, 1388818294740297792LLU, 1620288010530347424LLU, 1777090076065542336LLU, 1832624140942590534LLU, 1777090076065542336LLU, 1620288010530347424LLU, 1388818294740297792LLU, 1118770292985239888LLU, 846636978475316672LLU, 601557853127198688LLU, 401038568751465792LLU, 250649105469666120LLU, 146721427591999680LLU, 80347448443237920LLU, 41107996877935680LLU, 19619725782651120LLU, 8719878125622720LLU, 3601688791018080LLU, 1379370175283520LLU, 488526937079580LLU, 159518999862720LLU, 47855699958816LLU, 13136858812224LLU, 3284214703056LLU, 743595781824LLU, 151473214816LLU, 27540584512LLU, 4426165368LLU, 621216192LLU, 74974368LLU, 7624512LLU, 635376LLU, 41664LLU, 2016LLU, 64LLU, 1LLU }
 };
 
 }
