@@ -162,7 +162,8 @@ public:
         return getValue_(key, docs);
     }
 
-    bool getValue(const KeyType& key, EWAHBoolArray<uint32_t>& docs)
+    template <typename word_t>
+    bool getValue(const KeyType& key, EWAHBoolArray<word_t>& docs)
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         ValueType value;

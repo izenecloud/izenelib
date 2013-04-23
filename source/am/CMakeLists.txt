@@ -19,7 +19,7 @@ IF(am_SHOULD_BUILD)
     "succinct/*.cpp"
     "succinct/*.cc"    
     "succinct/*.c"  
-    "ApproximateMatching/*.cpp"      
+    "approximate_matching/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(

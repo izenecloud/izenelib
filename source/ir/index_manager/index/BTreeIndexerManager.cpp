@@ -2,16 +2,6 @@
 #include <am/sequence_file/ssfr.h>
 #include <boost/serialization/variant.hpp>
 
-namespace
-{
-/**
- * if the number of docids is less than this value (256K),
- * we use std::sort() on std::vector, otherwise, we use BitVector
- * to avoid the cost of sorting too many docids.
- */
-const std::size_t kDocIdNumSortLimit = 1 << 18;
-}
-
 NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
@@ -177,28 +167,6 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     }
 }
 
-void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<uint32_t>& docs)
-{
-    if(!checkType_(property_name, key)) return;
-    if (pFilter_)
-    {
-        std::vector<docid_t> docList;    
-        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
-        std::vector<docid_t> tmpIdList;
-        for(size_t i = 0; i < docList.size(); i++)
-        {
-            if(!pFilter_->test(docList[i]))
-                tmpIdList.push_back(docList[i]);
-        }
-        docList.swap(tmpIdList);
-        std::sort(docList.begin(), docList.end());
-        for(unsigned i = 0; i < docList.size(); ++i)
-            docs.set(docList[i]);
-    }
-    else
-        izenelib::util::boost_variant_visit(boost::bind(mget_ewah_visitor(), this, property_name, _1, boost::ref(docs)), key);
-}
-
 void BTreeIndexerManager::getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs)
 {
     if(!checkType_(property_name, key1)) return;
@@ -251,44 +219,6 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
     if (needFilter)
     {
         doFilter_(docs);
-    }
-}
-
-void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<uint32_t>& docs)
-{
-    for (std::size_t i = 0; i < keys.size(); ++i)
-    {
-        if (!checkType_(property_name, keys[i]))
-            return;
-    }
-
-    std::vector<docid_t> docList;
-    for (std::size_t i = 0; i < keys.size(); ++i)
-    {
-        std::vector<docid_t> tempDocList;
-        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
-        docList.insert(docList.end(), tempDocList.begin(), tempDocList.end());
-    }
-
-    if (docList.size() < kDocIdNumSortLimit)
-    {
-        std::sort(docList.begin(), docList.end());
-        for (std::size_t i = 0; i < docList.size(); ++i)
-        {
-            if (!pFilter_ || !pFilter_->test(docList[i]))
-            {
-                docs.set(docList[i]);
-            }
-        }
-    }
-    else
-    {
-        for (std::size_t i = 0; i < docList.size(); ++i)
-        {
-            bitVector.set(docList[i]);
-        }
-        doFilter_(bitVector);
-        bitVector.compressed(docs);
     }
 }
 

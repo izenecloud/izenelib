@@ -35,12 +35,12 @@ public:
                              size_t pos, size_t len)
     {
         if (len == 0) return 0;
-        size_t block = pos / kSmallBlockSize;
-        size_t offset = pos % kSmallBlockSize;
+        size_t block = pos / kBlockSize;
+        size_t offset = pos % kBlockSize;
         uint64_t ret = bits[block] >> offset;
-        if (offset + len > kSmallBlockSize)
+        if (offset + len > kBlockSize)
         {
-            ret |= bits[block + 1] << (kSmallBlockSize - offset);
+            ret |= bits[block + 1] << (kBlockSize - offset);
         }
         if (len == 64) return ret;
         return ret & ((1LLU << len) - 1);
@@ -50,12 +50,12 @@ public:
                          size_t pos, size_t len, uint64_t val)
     {
         if (len == 0) return;
-        size_t block = pos / kSmallBlockSize;
-        size_t offset = pos % kSmallBlockSize;
+        size_t block = pos / kBlockSize;
+        size_t offset = pos % kBlockSize;
         bits[block] |= val << offset;
-        if (offset + len > kSmallBlockSize)
+        if (offset + len > kBlockSize)
         {
-            bits[block + 1] |= val >> (kSmallBlockSize - offset);
+            bits[block + 1] |= val >> (kBlockSize - offset);
         }
     }
 
@@ -66,24 +66,7 @@ public:
 
     static size_t selectBlock(uint64_t blk, size_t r)
     {
-        __assert(r < kSmallBlockSize);
-
-//      for (size_t nblock = 0; nblock < kSmallBlockSize; nblock += 8)
-//      {
-//          size_t cnt = popcount(blk >> nblock & 0xff);
-
-//          if (r < cnt)
-//          {
-//              return nblock + kSelectPos_[r][blk >> nblock & 0xff];
-//          }
-//          else
-//          {
-//              r -= cnt;
-//          }
-//      }
-
-//      __assert(false);
-//      return kSmallBlockSize;
+        __assert(r < kBlockSize);
 
         uint64_t s = blk - ((blk >> 1) & 0x5555555555555555LLU);
         s = (s & 0x3333333333333333LLU) + ((s >> 2) & 0x3333333333333333LLU);
@@ -92,10 +75,26 @@ public:
 
         __assert(r < s >> 56);
 
-        size_t nblock = __builtin_ctzl((s + kPsOverflow_[r]) & 0x8080808080808080LLU) - 7;
-        r -= s << 8 >> nblock & 0xff;
+        size_t nblock = __builtin_ctzl((s + (0x7fLLU - r) * 0x0101010101010101LLU) & 0x8080808080808080LLU) - 7;
 
-        return nblock + kSelectPos_[r][blk >> nblock & 0xff];
+        return nblock + kSelectPos_[r - (s << 8 >> nblock & 0xffLLU)][blk >> nblock & 0xffLLU];
+    }
+
+    template <class T>
+    static void saveVec(std::ostream& os, const std::vector<T>& vs)
+    {
+        size_t size = vs.size();
+        os.write((const char*)&size, sizeof(size));
+        os.write((const char*)&vs[0], sizeof(vs[0]) * size);
+    }
+
+    template <class T>
+    static void loadVec(std::istream& is, std::vector<T>& vs)
+    {
+        size_t size = 0;
+        is.read((char*)&size, sizeof(size));
+        vs.resize(size);
+        is.read((char*)&vs[0], sizeof(vs[0]) * size);
     }
 
 #if defined(__GNUC__) && __GNUC_PREREQ(2, 2)
@@ -132,7 +131,6 @@ public:
 #endif /* __USE_POSIX_MEMALIGN__ */
 
 private:
-    static const uint64_t kPsOverflow_[64];
     static const uint8_t kSelectPos_[8][256];
 };
 

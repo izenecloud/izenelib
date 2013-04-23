@@ -42,11 +42,10 @@ RSDic::~RSDic()
 void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 {
     pointer_blocks_.reserve(len / kLargeBlockSize + 1);
-    rank_blocks_.reserve(len / kLargeBlockSize + 1);
-    rank_small_blocks_.reserve(len / kSmallBlockSize + 1);
+    rank_blocks_.resize(len / kLargeBlockSize + 1);
 
     pointer_blocks_.push_back(0);
-    rank_blocks_.push_back(0);
+
     if (support_select_)
     {
         select_one_inds_.push_back(0);
@@ -54,36 +53,47 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
     }
 
     size_t global_offset = 0;
-    size_t index = len / kSmallBlockSize;
-    size_t offset = len % kSmallBlockSize;
+    size_t index = len / kBlockSize;
+    size_t offset = len % kBlockSize;
+    size_t rb_index = 0;
+    size_t rb_offset = 0;
 
     for (size_t i = 0; i < index; ++i)
     {
-        BuildBlock_(bv[i], kSmallBlockSize, global_offset);
+        BuildBlock_(bv[i], kBlockSize, rank_blocks_[rb_index].small_blocks_[rb_offset], global_offset);
 
-        if ((i + 1) % kSmallBlockPerLargeBlock == 0)
+        if (++rb_offset == kBlockPerLargeBlock)
         {
+            rb_offset = 0;
             pointer_blocks_.push_back(global_offset);
-            rank_blocks_.push_back(one_num_);
+            rank_blocks_[++rb_index].large_block_ = one_num_;
         }
     }
-    BuildBlock_(offset ? bv[index] & ((1LLU << offset) - 1) : 0, offset, global_offset);
+
+    if (offset)
+    {
+        BuildBlock_(bv[index] & ((1LLU << offset) - 1), offset, rank_blocks_[rb_index].small_blocks_[rb_offset], global_offset);
+    }
 
     if (bits_.capacity() > bits_.size())
     {
         std::vector<uint64_t>(bits_).swap(bits_);
     }
-    if (select_one_inds_.capacity() > select_one_inds_.size())
+
+    if (support_select_)
     {
-        std::vector<rsdic_uint>(select_one_inds_).swap(select_one_inds_);
-    }
-    if (select_zero_inds_.capacity() > select_zero_inds_.size())
-    {
-        std::vector<rsdic_uint>(select_zero_inds_).swap(select_zero_inds_);
+        if (select_one_inds_.capacity() > select_one_inds_.size())
+        {
+            std::vector<rsdic_uint>(select_one_inds_).swap(select_one_inds_);
+        }
+        if (select_zero_inds_.capacity() > select_zero_inds_.size())
+        {
+            std::vector<rsdic_uint>(select_zero_inds_).swap(select_zero_inds_);
+        }
     }
 }
 
-void RSDic::BuildBlock_(uint64_t block, size_t offset, size_t& global_offset)
+void RSDic::BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset)
 {
     size_t rank_sb = SuccinctUtils::popcount(block);
 
@@ -102,11 +112,11 @@ void RSDic::BuildBlock_(uint64_t block, size_t offset, size_t& global_offset)
     num_ += offset;
     one_num_ += rank_sb;
 
-    rank_small_blocks_.push_back(rank_sb);
+    rank_small_block = rank_sb;
 
     size_t len = EnumCoder::Len(rank_sb);
     uint64_t code;
-    if (len == kSmallBlockSize)
+    if (len == kBlockSize)
     {
         code = block; // use raw
     }
@@ -115,7 +125,7 @@ void RSDic::BuildBlock_(uint64_t block, size_t offset, size_t& global_offset)
         code = EnumCoder::Encode(block, rank_sb);
     }
 
-    size_t new_size = SuccinctUtils::Ceiling(global_offset + len, kSmallBlockSize);
+    size_t new_size = SuccinctUtils::Ceiling(global_offset + len, kBlockSize);
     if (new_size > bits_.size())
     {
         bits_.push_back(0);
@@ -128,12 +138,16 @@ void RSDic::Clear()
 {
     num_ = 0;
     one_num_ = 0;
+
     std::vector<uint64_t>().swap(bits_);
     std::vector<rsdic_uint>().swap(pointer_blocks_);
-    std::vector<rsdic_uint>().swap(rank_blocks_);
-    std::vector<rsdic_uint>().swap(select_one_inds_);
-    std::vector<rsdic_uint>().swap(select_zero_inds_);
-    std::vector<uint8_t>().swap(rank_small_blocks_);
+    std::vector<RankBlock>().swap(rank_blocks_);
+
+    if (support_select_)
+    {
+        std::vector<rsdic_uint>().swap(select_one_inds_);
+        std::vector<rsdic_uint>().swap(select_zero_inds_);
+    }
 }
 
 bool RSDic::GetBit(size_t pos) const
@@ -142,15 +156,16 @@ bool RSDic::GetBit(size_t pos) const
 
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
-    size_t sblock = pos / kSmallBlockSize;
-    for (size_t i = lblock * kSmallBlockPerLargeBlock; i < sblock; ++i)
-    {
-        pointer += EnumCoder::Len(rank_small_blocks_[i]);
-    }
-    size_t rank_sb = rank_small_blocks_[sblock];
-    uint64_t code = SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb));
-    return EnumCoder::GetBit(code, rank_sb, pos % kSmallBlockSize);
+    const RankBlock& rb = rank_blocks_[lblock];
+    size_t sblock = pos % kLargeBlockSize / kBlockSize;
 
+    for (size_t i = 0; i < sblock; ++i)
+    {
+        pointer += EnumCoder::Len(rb.small_blocks_[i]);
+    }
+    size_t rank_sb = rb.small_blocks_[sblock];
+
+    return EnumCoder::GetBit(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize);
 }
 
 bool RSDic::GetBit(size_t pos, size_t& rank) const
@@ -159,19 +174,20 @@ bool RSDic::GetBit(size_t pos, size_t& rank) const
 
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
-    size_t sblock = pos / kSmallBlockSize;
-    rank = rank_blocks_[lblock];
+    const RankBlock& rb = rank_blocks_[lblock];
+    size_t sblock = pos % kLargeBlockSize / kBlockSize;
+    rank = rb.large_block_;
 
     size_t rank_sb;
-    for (size_t i = lblock * kSmallBlockPerLargeBlock; i < sblock; ++i)
+    for (size_t i = 0; i < sblock; ++i)
     {
-        rank_sb = rank_small_blocks_[i];
+        rank_sb = rb.small_blocks_[i];
         rank += rank_sb;
         pointer += EnumCoder::Len(rank_sb);
     }
-    rank_sb = rank_small_blocks_[sblock];
-    uint64_t code = SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb));
-    if (EnumCoder::GetBit(code, rank_sb, pos % kSmallBlockSize, rank_sb))
+    rank_sb = rb.small_blocks_[sblock];
+
+    if (EnumCoder::GetBit(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize, rank_sb))
     {
         rank += rank_sb;
         return true;
@@ -195,20 +211,20 @@ size_t RSDic::Rank1(size_t pos) const
 
     size_t lblock = pos / kLargeBlockSize;
     size_t pointer = pointer_blocks_[lblock];
-    size_t sblock = pos / kSmallBlockSize;
-    size_t rank = rank_blocks_[lblock];
+    const RankBlock& rb = rank_blocks_[lblock];
+    size_t sblock = pos % kLargeBlockSize / kBlockSize;
+    size_t rank = rb.large_block_;
 
     size_t rank_sb;
-    for (size_t i = lblock * kSmallBlockPerLargeBlock; i < sblock; ++i)
+    for (size_t i = 0; i < sblock; ++i)
     {
-        rank_sb = rank_small_blocks_[i];
+        rank_sb = rb.small_blocks_[i];
         rank += rank_sb;
         pointer += EnumCoder::Len(rank_sb);
     }
-    rank_sb = rank_small_blocks_[sblock];
-    uint64_t code = SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb));
-    rank += EnumCoder::Rank(code, rank_sb, pos % kSmallBlockSize);
-    return rank;
+    rank_sb = rb.small_blocks_[sblock];
+
+    return rank + EnumCoder::Rank(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize);
 }
 
 size_t RSDic::Rank(size_t pos, bool bit) const
@@ -225,25 +241,25 @@ size_t RSDic::Select0(size_t ind) const
     size_t lblock = select_zero_inds_[select_ind];
     for (; lblock < rank_blocks_.size(); ++lblock)
     {
-        if (lblock * kLargeBlockSize - rank_blocks_[lblock] > ind) break;
+        if (lblock * kLargeBlockSize - rank_blocks_[lblock].large_block_ > ind) break;
     }
     --lblock;
 
-    size_t sblock = lblock * kSmallBlockPerLargeBlock;
     size_t pointer = pointer_blocks_[lblock];
-    size_t remain = ind - lblock * kLargeBlockSize + rank_blocks_[lblock];
+    const RankBlock& rb = rank_blocks_[lblock];
+    ind -= lblock * kLargeBlockSize - rb.large_block_;
 
     size_t rank_sb;
-    for (; sblock < rank_small_blocks_.size(); ++sblock)
+    size_t sblock = 0;
+    for (; sblock < kBlockPerLargeBlock; ++sblock)
     {
-        rank_sb = kSmallBlockSize - rank_small_blocks_[sblock];
-        if (remain <= rank_sb) break;
-        remain -= rank_sb;
+        rank_sb = kBlockSize - rb.small_blocks_[sblock];
+        if (ind < rank_sb) break;
+        ind -= rank_sb;
         pointer += EnumCoder::Len(rank_sb);
     }
-    rank_sb = rank_small_blocks_[sblock];
-    uint64_t code = SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb));
-    return sblock * kSmallBlockSize + EnumCoder::Select0(code, rank_sb, remain);
+
+    return lblock * kLargeBlockSize + sblock * kBlockSize + EnumCoder::Select0(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, ind);
 }
 
 size_t RSDic::Select1(size_t ind) const
@@ -254,25 +270,25 @@ size_t RSDic::Select1(size_t ind) const
     size_t lblock = select_one_inds_[select_ind];
     for (; lblock < rank_blocks_.size(); ++lblock)
     {
-        if (ind < rank_blocks_[lblock]) break;
+        if (rank_blocks_[lblock].large_block_ > ind) break;
     }
     --lblock;
 
-    size_t sblock = lblock * kSmallBlockPerLargeBlock;
     size_t pointer = pointer_blocks_[lblock];
-    size_t remain = ind - rank_blocks_[lblock];
+    const RankBlock& rb = rank_blocks_[lblock];
+    ind -= rb.large_block_;
 
     size_t rank_sb;
-    for (; sblock < rank_small_blocks_.size(); ++sblock)
+    size_t sblock = 0;
+    for (; sblock < kBlockPerLargeBlock; ++sblock)
     {
-        rank_sb = rank_small_blocks_[sblock];
-        if (remain <= rank_sb) break;
-        remain -= rank_sb;
+        rank_sb = rb.small_blocks_[sblock];
+        if (ind < rank_sb) break;
+        ind -= rank_sb;
         pointer += EnumCoder::Len(rank_sb);
     }
-    rank_sb = rank_small_blocks_[sblock];
-    uint64_t code = SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb));
-    return sblock * kSmallBlockSize + EnumCoder::Select1(code, rank_sb, remain);
+
+    return lblock * kLargeBlockSize + sblock * kBlockSize + EnumCoder::Select1(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, ind);
 }
 
 size_t RSDic::Select(size_t ind, bool bit) const
@@ -286,15 +302,16 @@ void RSDic::Save(std::ostream& os) const
     os.write((const char*)&support_select_, sizeof(support_select_));
     os.write((const char*)&num_, sizeof(num_));
     os.write((const char*)&one_num_, sizeof(one_num_));
-    Save(os, bits_);
-    Save(os, pointer_blocks_);
-    Save(os, rank_blocks_);
+
+    SuccinctUtils::saveVec(os, bits_);
+    SuccinctUtils::saveVec(os, pointer_blocks_);
+    SuccinctUtils::saveVec(os, rank_blocks_);
+
     if (support_select_)
     {
-        Save(os, select_one_inds_);
-        Save(os, select_zero_inds_);
+        SuccinctUtils::saveVec(os, select_one_inds_);
+        SuccinctUtils::saveVec(os, select_zero_inds_);
     }
-    Save(os, rank_small_blocks_);
 }
 
 void RSDic::Load(std::istream& is)
@@ -302,15 +319,16 @@ void RSDic::Load(std::istream& is)
     is.read((char*)&support_select_, sizeof(support_select_));
     is.read((char*)&num_, sizeof(num_));
     is.read((char*)&one_num_, sizeof(one_num_));
-    Load(is, bits_);
-    Load(is, pointer_blocks_);
-    Load(is, rank_blocks_);
+
+    SuccinctUtils::loadVec(is, bits_);
+    SuccinctUtils::loadVec(is, pointer_blocks_);
+    SuccinctUtils::loadVec(is, rank_blocks_);
+
     if (support_select_)
     {
-        Load(is, select_one_inds_);
-        Load(is, select_zero_inds_);
+        SuccinctUtils::loadVec(is, select_one_inds_);
+        SuccinctUtils::loadVec(is, select_zero_inds_);
     }
-    Load(is, rank_small_blocks_);
 }
 
 size_t RSDic::GetUsageBytes() const
@@ -320,21 +338,7 @@ size_t RSDic::GetUsageBytes() const
         + sizeof(pointer_blocks_[0]) * pointer_blocks_.size()
         + sizeof(rank_blocks_[0]) * rank_blocks_.size()
         + sizeof(select_one_inds_[0]) * select_one_inds_.size()
-        + sizeof(select_zero_inds_[0]) * select_zero_inds_.size()
-        + sizeof(rank_small_blocks_[0]) * rank_small_blocks_.size();
-}
-
-bool RSDic::operator == (const RSDic& bv) const
-{
-    return support_select_ == bv.support_select_
-        && num_ == bv.num_
-        && one_num_ == bv.one_num_
-        && bits_ == bv.bits_
-        && pointer_blocks_ == bv.pointer_blocks_
-        && rank_blocks_ == bv.rank_blocks_
-        && select_one_inds_ == bv.select_one_inds_
-        && select_zero_inds_ == bv.select_zero_inds_
-        && rank_small_blocks_ == bv.rank_small_blocks_;
+        + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
 }
 
 }
