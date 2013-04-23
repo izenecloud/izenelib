@@ -80,26 +80,6 @@ public:
     }
 
 private:
-    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
-
-    template <class T>
-    void Save_(std::ostream& os, const std::vector<T>& vs) const
-    {
-        size_t size = vs.size();
-        os.write((const char*)&size, sizeof(size));
-        os.write((const char*)&vs[0], sizeof(vs[0]) * size);
-    }
-
-    template <class T>
-    void Load_(std::istream& is, std::vector<T>& vs)
-    {
-        size_t size = 0;
-        is.read((char*)&size, sizeof(size));
-        vs.resize(size);
-        is.read((char*)&vs[0], sizeof(vs[0]) * size);
-    }
-
-private:
     struct RankBlock
     {
         rsdic_uint large_block_;
@@ -107,6 +87,8 @@ private:
 
         RankBlock() : large_block_(), small_blocks_() {}
     };
+
+    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
 
     bool support_select_;
     rsdic_uint num_;

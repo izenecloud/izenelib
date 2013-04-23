@@ -64,23 +64,6 @@ private:
 
     void buildBlock_(uint64_t block, size_t offset);
 
-    template <class T>
-    void save_(std::ostream &os, const std::vector<T> &vs) const
-    {
-        size_t size = vs.size();
-        os.write((const char *)&size, sizeof(size));
-        os.write((const char *)&vs[0], sizeof(vs[0]) * size);
-    }
-
-    template <class T>
-    void load_(std::istream &is, std::vector<T> &vs)
-    {
-        size_t size = 0;
-        is.read((char *)&size, sizeof(size));
-        vs.resize(size);
-        is.read((char *)&vs[0], sizeof(vs[0]) * size);
-    }
-
     bool support_select_;
     size_t len_;
     size_t one_count_;

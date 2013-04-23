@@ -532,12 +532,21 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
     if (docList.size() < kDocIdNumSortLimit)
     {
         std::sort(docList.begin(), docList.end());
-        for (std::size_t i = 0; i < docList.size(); ++i)
+
+        docid_t lastDocId = 0;
+        for (std::vector<docid_t>::const_iterator it = docList.begin();
+             it != docList.end(); ++it)
         {
-            if (!pFilter_ || !pFilter_->test(docList[i]))
+            // skip duplicated docid, required by EWAHBoolArray::set()
+            if (*it == lastDocId)
+                continue;
+
+            if (!pFilter_ || !pFilter_->test(*it))
             {
-                docs.set(docList[i]);
+                docs.set(*it);
             }
+
+            lastDocId = *it;
         }
     }
     else

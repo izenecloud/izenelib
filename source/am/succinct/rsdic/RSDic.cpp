@@ -303,14 +303,14 @@ void RSDic::Save(std::ostream& os) const
     os.write((const char*)&num_, sizeof(num_));
     os.write((const char*)&one_num_, sizeof(one_num_));
 
-    Save_(os, bits_);
-    Save_(os, pointer_blocks_);
-    Save_(os, rank_blocks_);
+    SuccinctUtils::saveVec(os, bits_);
+    SuccinctUtils::saveVec(os, pointer_blocks_);
+    SuccinctUtils::saveVec(os, rank_blocks_);
 
     if (support_select_)
     {
-        Save_(os, select_one_inds_);
-        Save_(os, select_zero_inds_);
+        SuccinctUtils::saveVec(os, select_one_inds_);
+        SuccinctUtils::saveVec(os, select_zero_inds_);
     }
 }
 
@@ -320,14 +320,14 @@ void RSDic::Load(std::istream& is)
     is.read((char*)&num_, sizeof(num_));
     is.read((char*)&one_num_, sizeof(one_num_));
 
-    Load_(is, bits_);
-    Load_(is, pointer_blocks_);
-    Load_(is, rank_blocks_);
+    SuccinctUtils::loadVec(is, bits_);
+    SuccinctUtils::loadVec(is, pointer_blocks_);
+    SuccinctUtils::loadVec(is, rank_blocks_);
 
     if (support_select_)
     {
-        Load_(is, select_one_inds_);
-        Load_(is, select_zero_inds_);
+        SuccinctUtils::loadVec(is, select_one_inds_);
+        SuccinctUtils::loadVec(is, select_zero_inds_);
     }
 }
 

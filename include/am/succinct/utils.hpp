@@ -80,6 +80,23 @@ public:
         return nblock + kSelectPos_[r - (s << 8 >> nblock & 0xffLLU)][blk >> nblock & 0xffLLU];
     }
 
+    template <class T>
+    static void saveVec(std::ostream& os, const std::vector<T>& vs)
+    {
+        size_t size = vs.size();
+        os.write((const char*)&size, sizeof(size));
+        os.write((const char*)&vs[0], sizeof(vs[0]) * size);
+    }
+
+    template <class T>
+    static void loadVec(std::istream& is, std::vector<T>& vs)
+    {
+        size_t size = 0;
+        is.read((char*)&size, sizeof(size));
+        vs.resize(size);
+        is.read((char*)&vs[0], sizeof(vs[0]) * size);
+    }
+
 #if defined(__GNUC__) && __GNUC_PREREQ(2, 2)
 #define __USE_POSIX_MEMALIGN__
 #endif
