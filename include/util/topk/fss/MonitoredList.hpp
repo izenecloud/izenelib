@@ -12,9 +12,16 @@
 #include <stdint.h>
 #include <iterator>
 #include <vector>
+#include <map>
 #include <iostream>
+#include <boost/unordered_map.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
 
 namespace izenelib{ namespace util {
+
+template<typename ElemType, typename CountType, typename ErrorType>
+class MonitoredBucket;
 
 template<typename ElemType, typename CountType, typename ErrorType>
 class MonitoredItem
@@ -31,7 +38,7 @@ public:
 
     ElemType element_;
     ErrorType error_;
-//    MonitoredBucket<ElemType, CountType, ErrorType>* bucket_;
+    MonitoredBucket<ElemType, CountType, ErrorType>* bucket_;
 };
 
 template<typename ElemType, typename CountType, typename ErrorType>
@@ -176,10 +183,12 @@ public:
         for(;iter!=buckets_.end();iter++)
         {
             ErrorType error = 0;
-            if(iter->bucket_size_ == 1 && iter->items_.begin()->element_ == elem)
+            it = iter; it++;
+
+            if(iter->bucket_size_ == 1 && iter->items_.begin()->element_ == elem &&(it == buckets_.end() || it->count_ != iter->count_+1))
             {
-                    iter->count_++;
-                    return true;
+                iter->count_++;
+                return true;
             }
             else if(iter->del(elem, error))
             {
@@ -195,6 +204,8 @@ public:
                 else
                 {
                     it->insert(elem, error);
+                    if(iter->bucket_size_ == 0)
+                        buckets_.erase(iter);
                 }
                 return true;
             }
@@ -203,8 +214,6 @@ public:
         CountType count = 1;
         ErrorType error = 0;
 
-        std::cout << "ELem: " << elem << std::endl;
-
         if(current_size_ < MAXSIZE)
         {
             current_size_++;
@@ -212,14 +221,11 @@ public:
         else
         {
             error = buckets_.begin()->count_;
-            std::cout << "OK " <<buckets_.begin()->items_.size()<< std::endl;
             count = error+1;
             buckets_.begin()->erase();
-            std::cout <<"OK" << std::endl;
             if(buckets_.begin()->bucket_size_==0 && buckets_.begin()->count_ != count)
                 buckets_.pop_front();
         }
-        std::cout << "Elem: " << elem << std::endl;
         iter = buckets_.begin();
         do
         {
@@ -266,6 +272,8 @@ private:
     CountType MAXSIZE;
     CountType current_size_;
     std::list<MonitoredBucketT> buckets_;
+
+    boost::unordered_map<ElemType, boost::shared_ptr<MonitoredItemT> > elem_pos_map_;
 };
 
 }
