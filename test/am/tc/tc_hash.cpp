@@ -70,22 +70,22 @@ BOOST_AUTO_TEST_CASE(tc_hash)
     h.flush();
 
     std::cout << "first finished insert, wait check" << std::endl;
-    sleep(30);
+    sleep(1);
     std::cout << "reopen first" << std::endl;
     h.close();
     h.open();
     h.flush();
-    sleep(30);
+    sleep(1);
     std::cout << "reopen first 2" << std::endl;
     h.close();
     h.open();
     h.flush();
-    sleep(30);
+    sleep(1);
     std::cout << "reopen first 3" << std::endl;
     h.close();
     h.open();
     h.flush();
-    sleep(30);
+    sleep(1);
 
     std::cout << "second insert testing" << std::endl;
     TcHashType h2(db_dir_str+"/tchash_test_2");
@@ -122,22 +122,22 @@ BOOST_AUTO_TEST_CASE(tc_hash)
     h2.flush();
 
     std::cout << "second finished insert, wait check" << std::endl;
-    sleep(30);
+    sleep(1);
     std::cout << "reopen second" << std::endl;
     h2.close();
     h2.open();
     h2.flush();
-    sleep(30);
+    sleep(1);
     std::cout << "reopen second 2" << std::endl;
     h2.close();
     h2.open();
     h2.flush();
-    sleep(30);
+    sleep(1);
     std::cout << "reopen second 3" << std::endl;
     h2.close();
     h2.open();
     h2.flush();
-    sleep(30);
+    sleep(1);
 }
 
 BOOST_AUTO_TEST_SUITE_END() // tc_Db_test
