@@ -171,8 +171,8 @@ IF(izene_util_SHOULD_BUILD)
     osgi/util/LoggerImpl.cpp
     osgi/util/StringTokenizer.cpp
     osgi/util/LoggerFactory.cpp
-    sketch/madoka/sketch.cc
-    sketch/madoka/file.cc
+    datastream/sketch/madoka/sketch.cc
+    datastream/sketch/madoka/file.cc
 
     string/StringUtils.cpp
 
