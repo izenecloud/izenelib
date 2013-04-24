@@ -145,34 +145,6 @@ namespace graphchi {
         return ss.str();
     }
     
-    /**
-     * Configuration file name
-     */
-    static std::string filename_config();
-    static std::string filename_config() {
-        char * chi_root = getenv("GRAPHCHI_ROOT");
-        if (chi_root != NULL) {
-            return std::string(chi_root) + "/conf/graphchi.cnf";
-        } else {
-            return "conf/graphchi.cnf";
-        }
-    }
-    
-    /**
-     * Configuration file name - local version which can
-     * override the version in the version control.
-     */
-    static std::string filename_config_local();
-    static std::string filename_config_local() {
-        char * chi_root = getenv("GRAPHCHI_ROOT");
-        if (chi_root != NULL) {
-            return std::string(chi_root) + "/conf/graphchi.local.cnf";
-        } else {
-            return "conf/graphchi.local.cnf";
-        }
-    }
-    
-    
     static bool file_exists(std::string sname);
     static bool file_exists(std::string sname) {
         int tryf = open(sname.c_str(), O_RDONLY);
