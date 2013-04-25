@@ -8,10 +8,20 @@
 #include <math.h>
 //using namespace boost;
 
-#define MaxDepth 3  //Mean the max length of segment in a pattern
+#define MaxDepth  3 //Mean the max length of segment in a pattern
 #define MaxListSize 1000 //Increase MaxListSize can Save memory and build time,but will lose the search performance.MaxListSize can't too large or it
-#define LargeNum 1000000
+#define LargeNum 100000000
 #define MaxErrorDepth 0 //0 means tradional Q-gram, >0 means  postlist can permit errors in it;
+
+//#define TimeDebug
+boost::posix_time::time_duration ortime ;
+boost::posix_time::time_duration andtime ;
+boost::posix_time::time_duration uniquetime ;
+boost::posix_time::time_duration movetime ;
+boost::posix_time::time_duration begintime ;
+boost::posix_time::time_duration runtime ;
+boost::posix_time::time_duration mergesorttime ;
+boost::posix_time::time_duration amtime ;
 namespace izenelib
 {
 namespace am
@@ -55,22 +65,30 @@ struct Candidate
     }
 
 };
-vector<Candidate> BeginWith  ( Candidate& right,int startPos,int maxError=0)
+void BeginWith  ( Candidate& right,int startPos,vector<Candidate>& answer,int maxError=0)
 {
-    vector<Candidate> answer;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
+
+    //vector<Candidate> answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=right.k.begin(),SubstrIter_a_end=right.k.end();
+    answer.resize(50);
     while(SubstrIter_a < SubstrIter_a_end)
     {
         if(SubstrIter_a->BeginPos<size_t(startPos+1))
         {
-            answer.resize(max(size_t(1),answer.size()));
+
             if(SubstrIter_a->BeginPos<size_t(startPos+1-maxError))
             {
-                answer.resize(max(size_t(startPos+1-maxError-SubstrIter_a->BeginPos+1),answer.size()));
+                if(answer.size()<startPos+1-maxError-SubstrIter_a->BeginPos+1)
+                    answer.resize(startPos+1-maxError-SubstrIter_a->BeginPos+1);
                 answer[startPos+1-maxError-SubstrIter_a->BeginPos].k.push_back(*SubstrIter_a);
             }
             else
+            {
                 answer[0].k.push_back(*SubstrIter_a);
+            }
             ++SubstrIter_a;
             continue;
         }
@@ -81,10 +99,18 @@ vector<Candidate> BeginWith  ( Candidate& right,int startPos,int maxError=0)
         answer[SubstrIter_a->BeginPos-startPos-1].k.push_back(*SubstrIter_a);
         ++SubstrIter_a;
     }
-    return answer;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    begintime =begintime+( time_then - time_now);//
+#endif
+
+    //return answer;
 }
 vector<Candidate> MergeInOrder ( Candidate& left , Candidate& right)
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     vector<Candidate> answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_b=right.k.begin(),SubstrIter_a_end=left.k.end(),SubstrIter_b_end=right.k.end();
     while(SubstrIter_a < SubstrIter_a_end && SubstrIter_b < SubstrIter_b_end)
@@ -126,12 +152,19 @@ vector<Candidate> MergeInOrder ( Candidate& left , Candidate& right)
                 ++SubstrIter_b;
         }
     }
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    andtime =andtime+( time_then - time_now);//
+#endif
     return answer;
 
 
 }
 vector<uint32_t> MergeSort ( vector<Candidate> input)//Multi-way merge sort
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     vector<uint32_t>  answer;
     if(input.size()==0)
     {
@@ -161,6 +194,10 @@ vector<uint32_t> MergeSort ( vector<Candidate> input)//Multi-way merge sort
         iter[j]++;
         answer.push_back(IDNow);
     }
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    mergesorttime =mergesorttime+( time_then - time_now);//
+#endif
     return answer;
 
 
@@ -268,7 +305,7 @@ vector<Candidate> BinarySearchIntersection ( Candidate& left , Candidate& right,
 
 vector<Candidate> operator & ( Candidate& left , Candidate& right)
 {
-    /*
+
     vector<Candidate> answer;
     size_t leftsize=left.k.size();
     size_t rightsize=right.k.size();
@@ -276,7 +313,7 @@ vector<Candidate> operator & ( Candidate& left , Candidate& right)
     {
          return answer;
     }
-
+/*
     if(leftsize*(log(rightsize)/log(2))-leftsize<rightsize+leftsize)
     {
 
@@ -288,13 +325,89 @@ vector<Candidate> operator & ( Candidate& left , Candidate& right)
     {
          return  BinarySearchIntersection ( right , left, false);
     }
-    */
-    return  MergeInOrder ( left , right);
+*/
+   // int ratel=left.k.size()/right.k.size()+1;
+   // int rater=right.k.size()/left.k.size()+1;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
+
+
+    std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_b=right.k.begin(),SubstrIter_a_end=left.k.end(),SubstrIter_b_end=right.k.end();
+    while(SubstrIter_a < SubstrIter_a_end && SubstrIter_b < SubstrIter_b_end)
+    {
+        if((*SubstrIter_a).ID< (*SubstrIter_b).ID)
+        {
+            SubstrIter_a++;
+/*
+            if((*(SubstrIter_a+ratel)).ID< (*SubstrIter_b).ID)
+            SubstrIter_a+=ratel;
+            else
+            SubstrIter_a++;
+*/
+        }
+        else if((*SubstrIter_b).ID < (*SubstrIter_a).ID)
+        {
+            SubstrIter_b++;
+/*
+            SubstrIter_b+=rater;
+            if((*(SubstrIter_b+rater)).ID< (*SubstrIter_a).ID)
+            SubstrIter_b+=rater;
+            else
+            SubstrIter_b++;
+*/
+        }
+        else
+        {
+#ifdef TimeDebug
+       //     boost::posix_time::ptime time_now2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            if(SubstrIter_b->BeginPos<SubstrIter_a->EndPos+1)
+            {
+                if(SubstrIter_b->BeginPos>SubstrIter_a->BeginPos+1)
+                {
+                    if(answer.size()==0)
+                    {
+                        answer.resize(1);
+                    }
+                    answer[0].k.push_back((*SubstrIter_b)&(*SubstrIter_a));
+                }
+            }
+            else
+            {
+                if(SubstrIter_b->BeginPos-SubstrIter_a->EndPos>answer.size())
+                    answer.resize(SubstrIter_b->BeginPos-SubstrIter_a->EndPos);
+                OneSubstr mergeSubstr;
+                mergeSubstr.ID=  SubstrIter_a->ID;
+                mergeSubstr.BeginPos= SubstrIter_a->BeginPos;
+                mergeSubstr.EndPos= SubstrIter_b->EndPos;
+                answer[SubstrIter_b->BeginPos-SubstrIter_a->EndPos-1].k.push_back(mergeSubstr);
+            }
+            if((*SubstrIter_a).EndPos+1 < (*SubstrIter_b).BeginPos)
+                ++SubstrIter_a;
+            else
+                ++SubstrIter_b;
+#ifdef TimeDebug
+         //   boost::posix_time::ptime time_then2 = boost::posix_time::microsec_clock::local_time();
+         //   amtime =amtime+( time_then2 - time_now2);//
+#endif
+        }
+    }
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    andtime =andtime+( time_then - time_now);//
+#endif
+    return answer;
+
+   // return  MergeInOrder ( left , right);
 
 }
 
-Candidate operator >> (Candidate& left ,size_t n)
+Candidate& operator >> (Candidate& left ,size_t n)
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     while(SubstrIter_a < SubstrIter_a_end)
     {
@@ -302,25 +415,39 @@ Candidate operator >> (Candidate& left ,size_t n)
         (*SubstrIter_a).EndPos+=n;
         ++SubstrIter_a;
     }
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    movetime =movetime+( time_then - time_now);//
+#endif
     return left;
 }
-Candidate operator << (Candidate& left ,size_t n)
+Candidate& operator << (Candidate& left ,size_t n)
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     while(SubstrIter_a < SubstrIter_a_end)
     {
         (*SubstrIter_a).BeginPos-=((*SubstrIter_a).BeginPos<n)?(*SubstrIter_a).BeginPos:n;
         ++SubstrIter_a;
     }
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    movetime =movetime+( time_then - time_now);//
+#endif
     return left;
 }
-Candidate unique  ( Candidate& left )
+void unique  ( Candidate& left )
 {
-    Candidate answer;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     if(left.k.size()==0)
     {
-        return left;
+        return;
     }
+    Candidate answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_a_end=left.k.end();
     OneSubstr last=*SubstrIter_a;
     while(SubstrIter_a < SubstrIter_a_end)
@@ -337,25 +464,39 @@ Candidate unique  ( Candidate& left )
         SubstrIter_a++;
     }
     answer.k.push_back(last);
-    return answer;
+    left=answer;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    uniquetime =uniquetime+( time_then - time_now);//
+#endif
+
 }
-Candidate operator | ( Candidate left , Candidate right)
+Candidate operator | (Candidate& left ,Candidate& right)
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     Candidate answer;
     std::vector<OneSubstr>::iterator SubstrIter_a=left.k.begin(),SubstrIter_b=right.k.begin(),SubstrIter_a_end=left.k.end(),SubstrIter_b_end=right.k.end();
+    //cout<<"0"<<endl;
     OneSubstr last;
-    last.ID=LargeNum;
-    last.BeginPos=0;
-    last.EndPos=0;
+    if(SubstrIter_a < SubstrIter_a_end&&SubstrIter_b < SubstrIter_b_end)
+    last=(*SubstrIter_a < *SubstrIter_b)?(*SubstrIter_a):(*SubstrIter_b);
+    else  if(SubstrIter_a < SubstrIter_a_end&&SubstrIter_b==SubstrIter_b_end)
+    last=(*SubstrIter_a);
+    else  if(SubstrIter_a == SubstrIter_a_end&&SubstrIter_b < SubstrIter_b_end)
+    last=(*SubstrIter_b);
+
+    //cout<<"1"<<endl;
     while(SubstrIter_a < SubstrIter_a_end&&SubstrIter_b < SubstrIter_b_end)
     {
-
+        //    cout<<"2"<<endl;
         if((*SubstrIter_a)< (*SubstrIter_b))
         {
-            if(*SubstrIter_a==last);
+            if(IDEqual(*SubstrIter_a,last)){ last=last&(*SubstrIter_a);}
             else
             {
-                answer.k.push_back(*SubstrIter_a);
+                answer.k.push_back(last);
                 last=*SubstrIter_a;
             }
             ++SubstrIter_a;
@@ -364,24 +505,26 @@ Candidate operator | ( Candidate left , Candidate right)
         {
             if((*SubstrIter_b)<(*SubstrIter_a))
             {
-                if(*SubstrIter_b==last);
+                if(IDEqual(*SubstrIter_b,last)){ last=last&(*SubstrIter_b);}
                 else
                 {
-                    answer.k.push_back(*SubstrIter_b);
+                    answer.k.push_back(last);
                     last=*SubstrIter_b;
                 }
             }
             ++SubstrIter_b;
         }
     }
+        //    cout<<"3"<<endl;
     if (SubstrIter_a < SubstrIter_a_end)
     {
         while(SubstrIter_a < SubstrIter_a_end)
         {
-            if(*SubstrIter_a==last);
+            //cout<<"4"<<endl;
+            if(IDEqual(*SubstrIter_a,last)){ last=last&(*SubstrIter_a);}
             else
             {
-                answer.k.push_back(*SubstrIter_a);
+                answer.k.push_back(last);
                 last=*SubstrIter_a;
             }
             ++SubstrIter_a;
@@ -391,16 +534,24 @@ Candidate operator | ( Candidate left , Candidate right)
     {
         while(SubstrIter_b < SubstrIter_b_end)
         {
-            if(*SubstrIter_b==last);
+            //cout<<"4"<<endl;
+            if(IDEqual(*SubstrIter_b,last)){ last=last&(*SubstrIter_b);}
             else
             {
-                answer.k.push_back(*SubstrIter_b);
+                answer.k.push_back(last);
                 last=*SubstrIter_b;
             }
             ++SubstrIter_b;
         }
     }
-    return  unique(answer);
+    if(left.k.size()+right.k.size()>0)
+         answer.k.push_back(last);
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    ortime =ortime+( time_then - time_now);//
+#endif
+    //unique  ( answer );
+    return answer;
 
 }
 struct PostingList
@@ -420,6 +571,7 @@ struct PostingList
     void Show()
     {
         cout<<"Size"<<Size()<<endl;
+        cout<<"StrLength"<<StrLength<<endl;
         cout<<"MaxError"<<MaxError<<endl;
         cout<<"Candidates"<<Candidates.size()<<endl;
         for(uint32_t i=0; i<Candidates.size(); i++)
@@ -431,6 +583,7 @@ struct PostingList
 };
 PostingList BeginWihthMaxError ( PostingList& right,uint32_t MaxError,int startPos=-1)
 {
+
     PostingList ret;
     ret.MaxError=right.MaxError;
     //cout<<"    ret.MaxError"<<right.MaxError<<endl;
@@ -440,7 +593,8 @@ PostingList BeginWihthMaxError ( PostingList& right,uint32_t MaxError,int startP
     for(size_t j=0; j<right.Candidates.size(); j++)
     {
         if(j>MaxError) break;
-        vector<Candidate>  mergeResult=BeginWith(right.Candidates[j],startPos);
+        vector<Candidate>  mergeResult;
+        BeginWith(right.Candidates[j],startPos,mergeResult);
 
         for(size_t k=j; k<ret.Candidates.size(); k++)
         {
@@ -452,14 +606,22 @@ PostingList BeginWihthMaxError ( PostingList& right,uint32_t MaxError,int startP
 
     }
 
-
     return ret;
 }
-PostingList mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t MaxError,bool match=false)
+//PostingList
+void mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t MaxError,uint32_t beginPos=0,bool match=false)
 {
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     if(left.StrLength==0&&match)
     {
-        return  BeginWihthMaxError(right,MaxError);
+#ifdef TimeDebug
+        boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+        runtime =runtime+( time_then - time_now);//
+#endif
+        left=BeginWihthMaxError(right,MaxError,beginPos-1);
+        return;
     }
     PostingList ret;
     uint32_t leftLength=left.StrLength;
@@ -500,7 +662,8 @@ PostingList mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t
             if(match)
             {
                 int StartPos=leftLength-1;
-                vector<Candidate>  mergeResult=BeginWith(right.Candidates[j],StartPos,left.MaxError);
+                vector<Candidate>  mergeResult;
+                BeginWith(right.Candidates[j],StartPos+beginPos,mergeResult,left.MaxError);
                 for(size_t k=0; k<mergeResult.size(); k++)
                 {
                     if(j+left.MaxError+1+k<=MaxError)
@@ -516,14 +679,20 @@ PostingList mergeWihthMaxError ( PostingList& left , PostingList& right,uint32_t
             }
         }
     }
-    return ret;
+    left=ret;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    runtime =runtime+( time_then - time_now);//
+#endif
+    //return ret;
 
 }
 
 PostingList operator | ( PostingList& left , PostingList& right)
 {
 
-    return mergeWihthMaxError(left,right,min(left.MaxError+right.MaxError+1,left.Size()+right.Size()>MaxListSize?0:uint32_t(MaxErrorDepth)));
+    mergeWihthMaxError(left,right,min(left.MaxError+right.MaxError+1,left.Size()+right.Size()>MaxListSize?0:uint32_t(MaxErrorDepth)));
+    return left;
 }
 
 
@@ -622,6 +791,11 @@ class  MatchIndex
     std::map<UString,PostingList > prefixVec;
     vector<UString > Context;
     bool build;
+    boost::posix_time::time_duration spilt ;
+    boost::posix_time::time_duration candidate;
+    boost::posix_time::time_duration filter ;
+    boost::posix_time::time_duration merge ;
+    boost::posix_time::time_duration tg ;
 public:
     MatchIndex();
     ~MatchIndex();
