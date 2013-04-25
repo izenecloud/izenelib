@@ -13,7 +13,6 @@
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
 
-using namespace std;
 namespace izenelib { namespace util {
 
 template<typename ElemType, typename CountType>
@@ -139,10 +138,58 @@ public:
         size_=th_=0;
         return true;
     }
+    bool insert(ElemType elem, CountType count)
+    {
+        if(gps_.find(elem) != gps_.end())
+        {
+            return update(elem, count);
+        }
+        else if(size_ >= MAXSIZE_ && count <= th_)
+            return true;
+        else if(size_ >= MAXSIZE_)
+        {
+            return replace(elem, count);
+        }
+        else
+        {
+            return additem(elem, count);
+        }
+    }
 
+    bool get(std::list<ElemType>& elem, std::list<CountType>& count)
+    {
+        BucketT* bp = bs_->next_;
+        while(bp)
+        {
+            ItemT* i=bp->head_;
+            while(i)
+            {
+                elem.push_back(i->elem_);
+                count.push_back(i->b_->c_);
+                i=i->next_;
+            }
+            bp=bp->next_;
+        }
+        return true;
+    }
+    bool get(std::list<std::pair<ElemType, CountType> >& topk)
+    {
+        BucketT* bp = bs_->next_;
+        while(bp)
+        {
+            ItemT* i=bp->head_;
+            while(i)
+            {
+                topk.push_back(make_pair(i->elem_, i->b_->c_));
+                i=i->next_;
+            }
+            bp=bp->next_;
+        }
+        return true;
+    }
+private:
     bool update(ElemType elem, CountType count)
     {
-//        cout << "update elem: " <<elem <<" count: " << count << endl;
         ItemT* i = gps_[elem];
         BucketT* bp = i->b_;
         count = bp->c_+1;
@@ -211,40 +258,7 @@ public:
         th_=bs_->next_->c_;
         return true;
     }
-    bool insert(ElemType elem, CountType count)
-    {
-        if(gps_.find(elem) != gps_.end())
-        {
-            return update(elem, count);
-        }
-        else if(size_ >= MAXSIZE_ && count <= th_)
-            return true;
-        else if(size_ >= MAXSIZE_)
-        {
-            return replace(elem, count);
-        }
-        else
-        {
-            return additem(elem, count);
-        }
-    }
 
-    bool get(std::list<ElemType>& elem, std::list<CountType>& count)
-    {
-        BucketT* bp = bs_->next_;
-        while(bp)
-        {
-            ItemT* i=bp->head_;
-            while(i)
-            {
-                elem.push_back(i->elem_);
-                count.push_back(i->b_->c_);
-                i=i->next_;
-            }
-            bp=bp->next_;
-        }
-        return true;
-    }
     CountType MAXSIZE_;
     //current size
     CountType size_;
