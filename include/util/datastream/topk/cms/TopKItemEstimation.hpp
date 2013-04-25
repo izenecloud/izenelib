@@ -164,8 +164,8 @@ public:
             ItemT* i=bp->head_;
             while(i)
             {
-                elem.push_back(i->elem_);
-                count.push_back(i->b_->c_);
+                elem.push_front(i->elem_);
+                count.push_front(i->b_->c_);
                 i=i->next_;
             }
             bp=bp->next_;
@@ -180,7 +180,7 @@ public:
             ItemT* i=bp->head_;
             while(i)
             {
-                topk.push_back(make_pair(i->elem_, i->b_->c_));
+                topk.push_front(make_pair(i->elem_, i->b_->c_));
                 i=i->next_;
             }
             bp=bp->next_;
