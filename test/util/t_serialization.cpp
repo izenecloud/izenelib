@@ -95,6 +95,16 @@ void test_padding()
     t44.get<1>() = 0x03;
     t44.get<2>() = 0x1234;
 
+    std::vector<std::pair<float, uint128_t> > t5;
+
+    std::string str("568c15ffba1d46cdcc9c2cb56cbb3702");
+    unsigned long long high = 0, low = 0;
+    sscanf(str.c_str(), "%016llx%016llx", &high, &low);
+    uint128_t data = (uint128_t) high << 64 | (uint128_t) low;
+
+    t5.push_back(std::make_pair(0.01875, data));
+    std::vector<std::pair<float, uint128_t> > t55;
+    t55.push_back(std::make_pair(0.01875, data));
 
 	char* ptr1;
 	size_t sz1;
@@ -215,6 +225,30 @@ void test_padding()
     isb44.write_image(ptr44, sz44);
 
     BOOST_CHECK(memcmp(ptr4, ptr44, sz4) == 0);
+
+	char* ptr5;
+	size_t sz5;
+    izene_serialization<std::vector<std::pair<float, uint128_t> > > ism5(t5);
+    ism5.write_image(ptr5, sz5);
+	char* ptr55;
+	size_t sz55;
+    izene_serialization<std::vector<std::pair<float, uint128_t> > > ism55(t55);
+    ism55.write_image(ptr55, sz55);
+
+    BOOST_CHECK(memcmp(ptr5, ptr55, sz5) == 0);
+
+    izene_deserialization<std::vector<std::pair<float, uint128_t> > > idm55(ptr55, sz55);
+    std::vector<std::pair<float, uint128_t> >  out_t5;
+    idm55.read_image(out_t5);
+    BOOST_CHECK(out_t5.back().first == t5.back().first);
+    BOOST_CHECK(out_t5.back().second == t5.back().second);
+
+	izene_serialization_febird<std::vector<std::pair<float, uint128_t> > > isf5(t5);
+    isf5.write_image(ptr5, sz5);
+	izene_serialization_febird<std::vector<std::pair<float, uint128_t> > > isf55(t55);
+    isf55.write_image(ptr55, sz55);
+
+    BOOST_CHECK(memcmp(ptr5, ptr55, sz5) == 0);
 }
 
 void test_performance() {

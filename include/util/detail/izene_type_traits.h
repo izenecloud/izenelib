@@ -73,6 +73,26 @@ struct IsMemcpySerial
 };
 
 template <typename T>
+struct IsMemcpySerial<std::vector<std::pair<T, T> > >
+{
+    enum
+    {
+        yes = IsFixedType<T>::yes,
+        no = !yes
+    };
+};
+
+template <typename T1, typename T2>
+struct IsMemcpySerial<std::vector<std::pair<T1, T2> > >
+{
+    enum
+    {
+        yes = 0,
+        no = !yes
+    };
+};
+
+template <typename T>
 struct IsMemcpySerial<std::vector<T> >
 {
     enum
@@ -151,6 +171,16 @@ struct IsFebirdSerial<boost::tuple<T1, T2, T3> >
     {
         yes = IsFebirdSerial<T1>::yes && IsFebirdSerial<T2>::yes
                 && IsFebirdSerial<T3>::yes,
+        no = !yes
+    };
+};
+
+template <typename T1, typename T2>
+struct IsFebirdSerial<std::vector<std::pair<T1, T2> > >
+{
+    enum
+    {
+        yes = 1,
         no = !yes
     };
 };

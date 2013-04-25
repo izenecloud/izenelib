@@ -30,6 +30,10 @@
 /* Note: This class shares a lot of code with the degree_data.hpp. It might be
    useful to have a common base class "sequential-file". */
 
+#ifdef DYNAMICVERTEXDATA
+#include <am/graphchi/engine/auxdata/dynamicdata/vertex_data_dynamic.hpp>
+#else
+
 #ifndef DEF_GRAPHCHI_VERTEXDATA
 #define DEF_GRAPHCHI_VERTEXDATA
 
@@ -73,7 +77,7 @@ namespace graphchi {
             check_size(nvertices);
             iomgr->allow_preloading(filename);
             open_file(filename);
-        }
+        }    
         
         virtual ~vertex_data_store() {
             iomgr->close_session(filedesc);
@@ -146,5 +150,6 @@ namespace graphchi {
     };
 }
 
+#endif
 #endif
 
