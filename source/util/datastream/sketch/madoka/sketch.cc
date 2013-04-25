@@ -22,7 +22,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <util/sketch/madoka/sketch.h>
+#include <util/datastream/sketch/madoka/sketch.h>
 
 #include <cstring>
 #include <limits>
