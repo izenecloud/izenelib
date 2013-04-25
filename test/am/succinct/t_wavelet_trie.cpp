@@ -2,27 +2,21 @@
 #include <am/succinct/wavelet_trie/wavelet_trie.hpp>
 #include <util/ustring/UString.h>
 
-/*
-ustring is 50% slower than string in access/rank/select/rank_prefix/select_prefix
-and 70% in build.
-
-*/
-
-
-
 
 BOOST_AUTO_TEST_SUITE (t_wavelet_trie) // name of the test suite is t_wavelet_trie
 
 //typedef std::string string_type;
 typedef izenelib::util::UString string_type;
 
-string_type itos(size_t i, size_t N) {
+string_type itos(size_t i, size_t N)
+{
     string_type str;
 
     size_t p = i;
     size_t j = 1;
     while (N / j > 9) j *= 10;
-    while (j) {
+    while (j)
+    {
         str += static_cast<izenelib::util::UCS2Char>(p / j + 48);
 //		str.assign(tmp);
         p = p % j;
@@ -49,16 +43,19 @@ string_type itoc(size_t i, size_t N) {
 }
 */
 
-string_type rand(size_t S, size_t L, size_t x) {
+string_type rand(size_t S, size_t L, size_t x)
+{
     string_type str;
-    for (size_t i = 0; i < L; ++i) {
+    for (size_t i = 0; i < L; ++i)
+    {
         str += static_cast<izenelib::util::UCS2Char> (x % S +1);
 //		str += (x % S % 255 +1);
     }
     return str;
 }
 
-BOOST_AUTO_TEST_CASE( my_test ) {
+BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
+{
 //    clock_t time0, time1, time2, time3, time4, time5, time6;
     std::vector<std::string> B;
     std::vector<string_type> A;
@@ -77,7 +74,8 @@ BOOST_AUTO_TEST_CASE( my_test ) {
 
     T.build(A);
 
-    for(size_t i = 0; i < A.size(); ++i) {
+    for(size_t i = 0; i < A.size(); ++i)
+    {
         BOOST_CHECK_EQUAL(A[i],T.access(i));
     }
     /*
@@ -155,19 +153,3 @@ BOOST_AUTO_TEST_CASE( my_test ) {
 }
 
 BOOST_AUTO_TEST_SUITE_END( )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
