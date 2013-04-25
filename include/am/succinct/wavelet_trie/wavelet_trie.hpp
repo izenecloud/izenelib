@@ -9,11 +9,11 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <glibmm.h>
+#include <util/ustring/UString.h>
 
 NS_IZENELIB_AM_BEGIN
 
-namespace succinct{
+namespace succinct {
 
 namespace wavelet_trie {
 
@@ -75,11 +75,12 @@ public:
         bool alphabet_set[100000];
         memset(alphabet_set,0,sizeof(alphabet_set));
         memset(alphabet_map_,(size_t)(0),sizeof(alphabet_map_));
-        size_t string_set_size;
+
         for (size_t i = 0; i < string_set.size(); ++i) {
             size_t length = string_set[i].length();
             for (size_t j = 0; j < length; ++j)
-                if(!alphabet_set[string_set[i][j]])alphabet_set[string_set[i][j]]=1;
+                if(!alphabet_set[static_cast<size_t>(string_set[i][j])])
+                    alphabet_set[static_cast<size_t>(string_set[i][j])] = 1;
         }
 
         size_t j = 1;
@@ -246,7 +247,10 @@ public:
     	access(pos) return S[pos]
     */
     string_type access(const uint64_t pos) {
-        if (pos >= length_) return "ERROR\n";
+//        if (pos >= length_) return "ERROR\n";
+        if (pos >= length_) {
+            throw "wavelet_trie::access()";
+        }
         link_type cur = root_;
         word_type tmp_word_0, tmp_word_1;
         word_type ans;//answer after binarization
@@ -275,7 +279,7 @@ public:
             }
         } while (1);
 
-        string_type st = "";
+        string_type st;
         st = unbinarization_(ans);
         return st;
     }
@@ -551,7 +555,7 @@ private:
     }
 
     string_type unbinarization_(const word_type &x) {
-        string_type st = "";
+        string_type st;
         uint64_t mask = 0;
         uint64_t ans = 0;
         size_t tmp = 0;
@@ -563,19 +567,20 @@ private:
             ++tmp;
             mask >>= 1;
             if (tmp == alphabet_bit_num_) {
-                st += static_cast<gunichar>(alphabet_vec_[ans]);
+                st += static_cast<izenelib::util::UCS2Char>(alphabet_vec_[ans]);
                 ans = 0;
                 tmp = 0;
                 mask = 1LLU << (alphabet_bit_num_ - 1);
             }
         }
+        if (st[st.length()-1] == static_cast<izenelib::util::UCS2Char>('\0'))
+            st.erase(st.length() - 1, 1);
         return st;
     }
 
     word_type binarization_(const string_type &x, const uint64_t flag) {
         word_type ans;
         uint64_t mask = 0;
-
         for (size_t i = 0; i < x.length(); ++i) {
 
 //            if (alphabet_map_.find(x[i]) == alphabet_map_.end()) {
