@@ -54,6 +54,8 @@ public:
     }
     ~Bucket()
     {
+        if(head_)delete head_;
+        if(next_)delete next_;
     }
 
     bool insert(ItemT* i)
@@ -126,6 +128,16 @@ public:
 
     ~TopKEstimation()
     {
+        if(bs_)delete bs_;
+        gps_.clear();
+    }
+
+    bool reset()
+    {
+        if(bs_->next_) delete bs_->next_;
+        gps_.clear();
+        size_=th_=0;
+        return true;
     }
 
     bool update(ElemType elem, CountType count)
@@ -145,12 +157,19 @@ public:
         bp->erase(i);
         if(!(bp->next_))
             bp->next_=new BucketT(count, bp, NULL);
+        else if(bp->next_->c_ > count)
+        {
+            BucketT* tp=new BucketT(count, bp, bp->next_);
+            bp->next_=tp;
+            tp->next_->prev_=tp;
+        }
         bp->next_->insert(i);
 
         if(bp->size_==0)
         {
             bp->prev_->next_=bp->next_;
             bp->next_->prev_=bp->prev_;
+            bp->next_=bp->prev_=NULL;
             delete bp;
         }
         return true;
@@ -159,6 +178,7 @@ public:
     {
         count = bs_->next_->c_+1;
         ItemT* i = bs_->next_->end_;
+        gps_.erase(gps_.find(i->elem_));
         gps_[elem] = i;
         i->elem_=elem;
         return update(elem,count);
