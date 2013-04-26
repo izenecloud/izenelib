@@ -55,7 +55,6 @@ public:
 
     void topKUnionWithAuxFilters(
             const aux_filter_list_type &aux_filters,
-            const std::vector<std::pair<size_t, size_t> > &filters,
             const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
@@ -861,7 +860,6 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
         const aux_filter_list_type &aux_filters,
-        const std::vector<std::pair<size_t, size_t> > &filters,
         const range_list_type &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
@@ -872,7 +870,7 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<AuxFilteredPatternList<self_type> *> ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, root_, aux_filters, filters, patterns, alloc));
+    ranges_heap.insert(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, root_, aux_filters, patterns, alloc));
 
     if (ranges_heap.get_max()->score_ == 0.0)
     {
