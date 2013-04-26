@@ -92,18 +92,21 @@ int MatchIndex::SizeOfPosting(const UString &query)
     return 0;
 }
 
+
 void MatchIndex::Spilit(const UString&  query,const int& MaxError,std::pair<int,std::vector<UString> > & ret)
 {
     int n=query.length();
     int m=MaxError;
     typedef vector< vector<int> >  Tmatrix;
     typedef vector< vector<vector<UString > > >  STmatrix;
+    Tmatrix beginmatrix(n+1);
     Tmatrix matrix(n+1);
     STmatrix segment(n+1);
     for(int i=0; i<=n; i++)
     {
         matrix[i].resize(m+1);
         segment[i].resize(m+1);
+        beginmatrix[i].resize(m+1);
     }
     for(int i=1; i<=n; i++)
         for(int j=1; j<=m; j++) matrix[i][j]=LargeNum;
@@ -114,89 +117,127 @@ void MatchIndex::Spilit(const UString&  query,const int& MaxError,std::pair<int,
         matrix[i][0]=SizeOfPosting(query.substr(max(0,(i-MaxDepth)),min(MaxDepth,i)));
 
         int k=0;
+/*
         while(k<max(0,(i-MaxDepth)))
         {
             segment[i][0].push_back(query.substr(k,min(MaxDepth,i-MaxDepth-k)));
             k=k+MaxDepth;
         }
+*/
         segment[i][0].push_back(query.substr(max(0,(i-MaxDepth)),min(MaxDepth,i)));
+
+        beginmatrix[i][0]=max(0,(i-MaxDepth));
     }
+    int score=LargeNum;
     for(int i=1; i<=n; i++)
     {
         for(int j=1; j<=min(m,i-1); j++)
         {
             for(int k=max(1,i-MaxDepth); k<i; k++)
             {
-                if(SizeOfPosting(query.substr(k,(i-k)))+matrix[i][j-1]<matrix[i][j])
+                score=SizeOfPosting(query.substr(k,(i-k)))+matrix[k][j-1];
+                if(score<matrix[i][j])
                 {
-                    matrix[i][j]=SizeOfPosting(query.substr(k,(i-k)))+matrix[k][j-1];
+                    matrix[i][j]=score;
                     segment[i][j]=segment[k][j-1];
+                    beginmatrix[i][j]=beginmatrix[k][j-1];
                     segment[i][j].push_back(query.substr(k,i-k));
-                    /*
-                    if(j==m&&matrix[i][j]<20)
+
+
+                    if(j==m)
                     {
                        while(k<(n-MaxDepth))
                        {
-                            segment[i][0].push_back(query.substr(k,MaxDepth));
+                            segment[i][j].push_back(query.substr(k,MaxDepth));
                             k=k+MaxDepth;
                        }
-                       segment[i][0].push_back(query.substr(k));
-                       return   make_pair(matrix[i][j],segment[i][j]);
+                       segment[i][j].push_back(query.substr(k));
+
                     }
-                    */
+                    /**/
                 }
             }
         }
     }
 
+    score=LargeNum;
+    int k=0;
+    for(int i=0;i<n;i++)
+        if (matrix[i][m]<score&&matrix[i][m]>0)
+        {
+            score=matrix[i][m];
+            k=i;
+        }
+            
 
-    ret=make_pair(matrix[n][m],segment[n][m]);
+    ret=make_pair(beginmatrix[k][m],segment[k][m]);
+/*
+    ret=make_pair(beginmatrix[n][m],segment[n][m]);
+*/
 }
 void MatchIndex::Match(const UString&  query,const int& MaxError, vector<UString>& result )
 {
     if(MaxError>=int(query.length()))
         return;
-    std::pair<int,std::vector<UString> > seg;
+    std::pair<int,std::vector<UString> > seg,seg2;
+#ifdef TimeDebug
+    boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     Spilit(query,MaxError,seg);
+
+#ifdef TimeDebug
+    boost::posix_time::ptime time_then = boost::posix_time::microsec_clock::local_time();
+    spilt =spilt+( time_then - time_now);//
+    time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     PostingList ps;
     ps.StrLength=0;
     ps.MaxError=0;
     for(unsigned i=0; i<seg.second.size(); i++)
     {
         UString  temp=seg.second[i];
+        //cout<<toString(temp)<<endl;
         if(SizeOfPosting(temp)==0)
         {
             PostingList Empty;
             Empty.MaxError=0;
             Empty.StrLength=temp.length();
-            ps=mergeWihthMaxError ( ps,Empty,MaxError,true);
+            mergeWihthMaxError ( ps,Empty,MaxError,seg.first,true);
             continue;
         }
-        ps=mergeWihthMaxError ( ps,prefixVec[temp],MaxError,true);
-    }
-    vector<Candidate> temp;
-    temp.resize(ps.Candidates.size());
-    for(unsigned i=0; i<ps.Candidates.size(); i++)
-    {
-        for(unsigned j=0; j<ps.Candidates[i].k.size(); j++)
-        {
 
-            {
-                temp[i].k.push_back(ps.Candidates[i].k[j]);
-            }
-        }
+        mergeWihthMaxError ( ps,prefixVec[temp],MaxError,seg.first,true);
+        //if(ps.Size()<1000000000000000&&i>=MaxError)
+        //      break;
     }
-    vector<uint32_t> IDs=MergeSort (temp);//Multi-way merge sort
+#ifdef TimeDebug
+    time_then = boost::posix_time::microsec_clock::local_time();
+    merge = merge+(time_then - time_now2);//
+    time_now = boost::posix_time::microsec_clock::local_time();
+#endif
+
+    vector<uint32_t> IDs=MergeSort (ps.Candidates);//Multi-way merge sort
     vector<uint32_t>::iterator end_unique=unique(IDs.begin(),IDs.end());
     IDs.erase(end_unique,IDs.end());
+#ifdef TimeDebug
+    time_then = boost::posix_time::microsec_clock::local_time();
+    candidate = candidate+(time_then - time_now);//
+    time_now = boost::posix_time::microsec_clock::local_time();
+#endif
     for(unsigned i=0; i<IDs.size(); i++)
     {
         UString ustr=GetText(IDs[i]);
+        //cout<<"filter"<<toString(ustr)<<endl;
         if(ustr.length()>query.length()+MaxError||query.length()>ustr.length()+MaxError)
             continue;
         if (EditDistance(ustr,query)<=MaxError)
             result.push_back(ustr);
     }
+    IDs.erase(end_unique,IDs.end());
+#ifdef TimeDebug
+    time_then = boost::posix_time::microsec_clock::local_time();
+    filter =filter+( time_then - time_now);//
+#endif
 }
 
 void MatchIndex::NaiveMatch(const UString&  query,const int& MaxError,  vector<UString>& result)
@@ -331,7 +372,19 @@ void MatchIndex::Clear()
 }
 void MatchIndex::Show()
 {
-
+    cout<<"Spilt"<<boost::posix_time::to_iso_string(spilt)<<endl;
+    cout<<"merge"<<boost::posix_time::to_iso_string(merge)<<endl;
+    cout<<"tg"<<boost::posix_time::to_iso_string(tg)<<endl;
+    cout<<"candidate"<<boost::posix_time::to_iso_string(candidate)<<endl;
+    cout<<"filter"<<boost::posix_time::to_iso_string(filter)<<endl;
+    cout<<"runtime"<<boost::posix_time::to_iso_string(runtime)<<endl;
+    cout<<"ortime"<<boost::posix_time::to_iso_string(ortime)<<endl;
+    cout<<"andtime"<<boost::posix_time::to_iso_string(andtime)<<endl;
+    cout<<"uniquetime"<<boost::posix_time::to_iso_string(uniquetime)<<endl;
+    cout<<"begintime"<<boost::posix_time::to_iso_string(begintime)<<endl;
+    cout<<"movetime"<<boost::posix_time::to_iso_string(movetime)<<endl;
+    cout<<"mergesorttime"<<boost::posix_time::to_iso_string(mergesorttime)<<endl;
+    cout<<"amtime"<<boost::posix_time::to_iso_string(mergesorttime)<<endl;
 }
 
 
