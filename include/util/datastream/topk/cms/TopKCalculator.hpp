@@ -16,6 +16,7 @@
 #include <list>
 #include <string>
 #include <stdint.h>
+#include <map>
 
 namespace izenelib { namespace util {
 
@@ -24,8 +25,8 @@ class TopKCalculator
 {
 public:
     typedef TopKEstimation<ElemType, CountType> TopKEsT;
-    TopKCalculator(CountType sw, CountType tm)
-        :sketch_width_(sw), TOPK_MAXCOUNT_(tm)
+    TopKCalculator(CountType sw, uint64_t mv, CountType tm)
+        :sketch_width_(sw), sketch_maxvalue_(mv), TOPK_MAXCOUNT_(tm)
     {
         sketch_ = new madoka::Sketch();
         sketch_->create(sw);
@@ -43,7 +44,7 @@ public:
         return tke_->reset();
     }
 
-    bool info(std::map<std::string, uint64_t> inf)
+    bool infomation(std::map<std::string, uint64_t>& inf)
     {
         inf["sketch width: "] = sketch_->width();
         inf["sketch depth: "] = sketch_->depth();
@@ -66,7 +67,7 @@ public:
     }
 private:
     CountType sketch_width_;
-    CountType sketch_maxvalue_;
+    uint64_t sketch_maxvalue_;
     std::string sketch_path_;
 
     CountType TOPK_MAXCOUNT_;
