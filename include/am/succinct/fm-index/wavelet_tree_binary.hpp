@@ -56,7 +56,6 @@ public:
 
     void topKUnionWithAuxFilters(
             const aux_filter_list_type &aux_filters,
-            const std::vector<std::pair<size_t, size_t> > &filters,
             const range_list_type &patterns,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
@@ -821,7 +820,6 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         const aux_filter_list_type &aux_filters,
-        const std::vector<std::pair<size_t, size_t> > &filters,
         const range_list_type &patterns,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
@@ -832,7 +830,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<AuxFilteredPatternList<self_type> *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, filters, patterns, alloc), 0));
+    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, patterns, alloc), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
