@@ -6,6 +6,8 @@
  *  @        in dependence of "madoka" (a realize of count min sketch)
  *
  *           The type of element had better to be string, that depends on madoka
+ *
+ *           Each operation (insert, getTopK) is O(1)
  */
 
 #ifndef IZENELIB_UTIL_TOPK_CALCULATOR_H_

@@ -14,7 +14,9 @@
 #define IZENELIB_UTIL_SPACESAVING_H_
 
 #include <list>
+#include <iostream>
 #include <boost/unordered_map.hpp>
+using namespace std;
 
 namespace izenelib { namespace util {
 
@@ -81,7 +83,7 @@ public:
             return true;
         }
 
-        if(end_->error_ <= i->error_)
+        if(end_->error_ < i->error_)
         {
             i->prev_=end_;
             i->next_=NULL;
@@ -195,6 +197,23 @@ public:
             bp=bp->next_;
         }
         return true;
+    }
+    void show()
+    {
+        BucketT* bp = bs_->next_;
+        cout <<"*********************************************************"<<endl;
+        while(bp)
+        {
+            cout <<" Bucket[ " <<bp->c_<<"]: ";
+            ItemT* i=bp->head_;
+            while(i)
+            {
+                cout<<" (" <<i->elem_ <<", " <<i->error_<<") ";
+                i=i->next_;
+            }
+            cout << endl;
+            bp=bp->next_;
+        }
     }
 private:
     bool update(ElemType elem)
