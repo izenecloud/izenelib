@@ -179,7 +179,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
 
     occ_.build();
 
-    delete temp_seq;
+    delete[] temp_seq;
 
     for (size_t i = 1; i < nodes_.size(); ++i)
     {
