@@ -2,7 +2,6 @@
 #define IZENELIB_IR_BTREEINDEXER_H_
 
 #include <util/BoostVariantUtil.h>
-#include <am/bitmap/Ewah.h>
 #include <am/luxio/BTree.h>
 #include <am/tc/BTree.h>
 #include <am/leveldb/Table.h>
@@ -160,18 +159,6 @@ public:
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         return getValue_(key, docs);
-    }
-
-    template <typename word_t>
-    bool getValue(const KeyType& key, EWAHBoolArray<word_t>& docs)
-    {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        ValueType value;
-        if(!getValue_(key, value)) return false;
-        std::sort(value.begin(), value.end());
-        for(unsigned i = 0; i < value.size(); ++i)
-            docs.set(value[i]);
-        return true;
     }
 
     std::size_t convertAllValue(std::size_t maxDoc, uint32_t* & data);
