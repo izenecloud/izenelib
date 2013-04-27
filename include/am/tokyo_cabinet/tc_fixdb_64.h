@@ -137,7 +137,7 @@ public:
 
     char* get(int64_t key, int& sp)
     {
-        if ( !isOpen() ) return false;
+        if ( !isOpen() ) return NULL;
 
         void* pv = tcfdbget(fdb_, key, &sp);
         if ( pv == NULL )
