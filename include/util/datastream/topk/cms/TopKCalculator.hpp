@@ -67,6 +67,11 @@ public:
     {
         return tke_->get(topk);
     }
+
+    bool getTopK(CountType k, std::list<std::pair<ElemType, CountType> >& topk)
+    {
+        return tke_->get(k, topk);
+    }
 private:
     CountType sketch_width_;
     uint64_t sketch_maxvalue_;

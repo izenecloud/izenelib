@@ -187,6 +187,25 @@ public:
         }
         return true;
     }
+    bool get(CountType k, std::list<std::pair<ElemType, CountType> >& topk)
+    {
+        BucketT* bp = end_;
+        CountType tempk=0;
+        while(bp!=bs_)
+        {
+            ItemT* i=bp->head_;
+            while(i)
+            {
+                topk.push_back(make_pair(i->elem_, i->b_->c_));
+                tempk++;
+                if(tempk >= k || tempk >= size_)break;
+                i=i->next_;
+            }
+            if(tempk >= k || tempk >= size_)break;
+            bp=bp->prev_;
+        }
+        return true;
+    }
 private:
     bool update(ElemType elem, CountType count)
     {
@@ -203,7 +222,10 @@ private:
 
         bp->erase(i);
         if(!(bp->next_))
+        {
             bp->next_=new BucketT(count, bp, NULL);
+            end_=bp->next_;
+        }
         else if(bp->next_->c_ > count)
         {
             BucketT* tp=new BucketT(count, bp, bp->next_);
@@ -236,6 +258,7 @@ private:
         if(bs_->next_==NULL)
         {
             bs_->next_=new BucketT(count, bs_, NULL);
+            end_=bs_->next_;
         }
 
         BucketT* bp=bs_->next_;
@@ -265,6 +288,7 @@ private:
     //threshold
     CountType th_;
     BucketT* bs_;
+    BucketT* end_;
     boost::unordered_map<ElemType, ItemT* > gps_;
 };
 
