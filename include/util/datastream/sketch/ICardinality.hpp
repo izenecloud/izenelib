@@ -1,7 +1,7 @@
 #ifndef IZENELIB_UTIL_SKETCH_ICARDINALITY_H_
 #define IZENELIB_UTIL_SKETCH_ICARDINALITY_H_
 
-#include <common/type_defs.h>
+//#include <common/type_defs.h>
 #include <iostream>
 
 NS_IZENELIB_UTIL_BEGIN

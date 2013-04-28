@@ -4,7 +4,7 @@
 #include "ICardinality.hpp"
 #include "Level2Sketch.hpp"
 #include <util/hashFunction.h>
-#include <common/type_defs.h>
+//#include <common/type_defs.h>
 #include <vector>
 #include <stdint.h>
 #include <math.h>
@@ -22,7 +22,7 @@ public:
     typedef Level2Sketch<DataTypeT>  Level2SketchT;
 
     HyperLL(uint64_t seed, int k)
-        : seed_(seed), 
+        : seed_(seed),
         hll_k_(k)
     {
         assert(hll_k_ <= 16 && hll_k_ >=4);
@@ -223,8 +223,8 @@ private:
     double alphaMM_;
     HyperLLSketchT sketch_;
     std::vector<Level2SketchT> level2sketches_;
-    static const double POW_2_32 = 4294967296.0 ; 
-    static const double NEGATIVE_POW_2_32 = -4294967296.0; 
+    static const double POW_2_32 = 4294967296.0 ;
+    static const double NEGATIVE_POW_2_32 = -4294967296.0;
     static const double E = 0.618;
 };
 

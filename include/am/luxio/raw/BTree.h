@@ -274,9 +274,9 @@ public:
         if(isOpened())
         {
             cursor_type ans(bdb_->cursor_init());
-            Lux::IO::data_t k = {key.data(), key.size()};;
-			
-            //The cursor is set to the first record corresponding the key 
+            Lux::IO::data_t k = {key.data(), (uint32_t)key.size()};
+
+            //The cursor is set to the first record corresponding the key
             //or the next substitute if completely matching record does not exist.
             bool result = bdb_->lower_bound(ans.get(), &k);
             if(result) return ans;
