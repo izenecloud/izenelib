@@ -2,14 +2,14 @@
 #define IZENELIB_UTIL_bucket_LEVEL2SKETCH_H_
 
 #include <util/hashFunction.h>
-#include <common/type_defs.h>
+//#include <common/type_defs.h>
 #include <vector>
 #include <iostream>
 
 NS_IZENELIB_UTIL_BEGIN
 
 template <typename ElemType>
-class Level2Bucket 
+class Level2Bucket
 {
 public:
     typedef ElemType DataTypeT;
@@ -19,7 +19,7 @@ private:
 
 public:
     Level2Bucket()
-        : total_cnt_(0) 
+        : total_cnt_(0)
     {
         bucket_.resize(sizeof(DataTypeT)*8);
     }
@@ -207,7 +207,7 @@ public:
     bool singletonBucket(size_t index) const
     {
         assert(index < level2sketch_.size());
-        return level2sketch_[index].singletonBucket();        
+        return level2sketch_[index].singletonBucket();
     }
 
     bool identicalSingletonBucket(size_t index, const ThisType& other) const
