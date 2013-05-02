@@ -371,7 +371,7 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
     childrenList.clear();
 
@@ -414,6 +414,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
         std::sort( childrenList.begin(), childrenList.end() );
         deallocate_String_vector(&children);
     }
+    return true;
 }
 
 /// Asynchronous API
