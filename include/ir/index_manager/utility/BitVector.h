@@ -12,7 +12,7 @@
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
-#include <am/bitmap/Ewah.h>
+#include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>
 
 NS_IZENELIB_IR_BEGIN
