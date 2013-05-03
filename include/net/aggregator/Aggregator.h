@@ -57,7 +57,7 @@ public:
 
     virtual ~AggregatorBase(){}
 
-    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false) = 0;
 
     const std::string& collection() const { return collection_; }
 
@@ -91,7 +91,7 @@ public:
         const std::string& service,
         const std::string& collection);
 
-    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig);
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false);
 
     const std::vector<workerid_t>& getWorkerIdList() const { return workeridList_; }
 
@@ -269,9 +269,62 @@ Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
-void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
+void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update)
 {
     ScopedWriteLock lock(mutex_);
+
+    if (!force_update && timeout_ == aggregatorConfig.getTimeout())
+    {
+        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
+        bool need_reset = false;
+        size_t compared_num = 0;
+        for (size_t i = 0; i < workerSrvList.size(); i ++)
+        {
+            const WorkerServerInfo& workerSrv = workerSrvList[i];
+
+            // only 1 local is allowed
+            if (workerSrv.isLocal_ && localWorkerProxy_)
+            {
+                if (!hasLocalWorker_ || localWorkerId_ != workerSrv.workerid_)
+                {
+                    need_reset = true;
+                    break;
+                }
+                continue;
+            }
+            if (compared_num >= workeridList_.size() || compared_num >= workerSessionList_.size())
+            {
+                need_reset = true;
+                break;
+            }
+            if (workeridList_[compared_num] != workerSrv.workerid_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getWorkerId() != workerSrv.workerid_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getServerInfo().host_ != workerSrv.host_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getServerInfo().port_ != workerSrv.port_)
+            {
+                need_reset = true;
+                break;
+            }
+            ++compared_num;
+        }
+        if (!need_reset)
+        {
+            std::cout << "#[Aggregator] no need reset worker connection : " << aggregatorConfig.toString() << std::endl;
+            return;
+        }
+    }
 
     workeridList_.clear();
     workerSessionList_.clear();
