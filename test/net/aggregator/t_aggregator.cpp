@@ -63,6 +63,9 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
     SearchAggregator ag(mergerProxy, NULL, "search", "");
     ag.setDebug(true);
     ag.setAggregatorConfig(config);
+    // test reset again
+    ag.setAggregatorConfig(config);
+
 
     {
     SearchRequest req;
@@ -80,6 +83,34 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
     BOOST_CHECK(ag.distributeRequest("", "add", addRequest, addResult));
     BOOST_CHECK_EQUAL(addResult.sum, (1+2)*2);
     }
+}
+
+BOOST_AUTO_TEST_CASE( aggregator_reset_workers )
+{
+    std::cout << "--- Aggregate data reset test" << std::endl;
+
+    // aggregator
+    AggregatorConfig config;
+    config.addWorker("0.0.0.0", 18111, 1);
+    config.addWorker("0.0.0.0", 18112, 2);
+
+    boost::scoped_ptr<SearchMerger> searchMerger(new SearchMerger);
+    SearchMergerProxy* mergerProxy = new SearchMergerProxy(searchMerger.get());
+    BOOST_CHECK(searchMerger->bindCallProxy(*mergerProxy));
+
+    SearchAggregator ag(mergerProxy, NULL, "search", "");
+    ag.setDebug(true);
+    ag.setAggregatorConfig(config);
+    // test reset again
+    ag.setAggregatorConfig(config);
+
+    config.addWorker("0.0.0.0", 18113, 3);
+    config.addWorker("0.0.0.0", 18114, 4, true); // is local
+    config.addWorker("0.0.0.0", 18115, 5);
+    // test reset again
+    ag.setAggregatorConfig(config);
+    // test reset again
+    ag.setAggregatorConfig(config);
 }
 
 BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
@@ -101,6 +132,8 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
 
     SearchAggregator ag(mergerProxy, workerProxy, "search", "");
     ag.setDebug(true);
+    ag.setAggregatorConfig(config);
+    // test reset again
     ag.setAggregatorConfig(config);
 
     {
