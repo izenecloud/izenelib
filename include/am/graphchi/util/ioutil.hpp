@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <zlib.h>
  
 
 // Reads given number of bytes to a buffer
@@ -95,7 +96,27 @@ void pwritea(int f, T * tbuf, size_t nbytes, size_t off) {
         buf += a;
         nwritten += a;
     }
-} 
+}
+
+
+
+
+template <typename T>
+void checkarray_filesize(std::string fname, size_t nelements) {
+    // Check the vertex file is correct size
+    int f = open(fname.c_str(),  O_RDWR | O_CREAT, S_IROTH | S_IWOTH | S_IWUSR | S_IRUSR);
+    if (f < 1) {
+        logstream(LOG_ERROR) << "Error initializing the data-file: " << fname << " error:" <<  strerror(errno) << std::endl;    }
+    IASSERT(f>0);
+    int err = ftruncate(f, nelements * sizeof(T));
+    if (err != 0) {
+        logstream(LOG_ERROR) << "Error in adjusting file size: " << fname << " to size: " << nelements * sizeof(T)    
+                 << " error:" <<  strerror(errno) << std::endl;
+    }
+    IASSERT(err == 0);
+    close(f);
+}
+
 template <typename T>
 void writea(int f, T * tbuf, size_t nbytes) {
     size_t nwritten = 0;
@@ -104,30 +125,145 @@ void writea(int f, T * tbuf, size_t nbytes) {
         size_t a = write(f, buf, nbytes-nwritten);
         assert(a>0);
         if (a == size_t(-1)) {
-            logstream(LOG_ERROR) << "Could not write " << (nbytes-nwritten) << " bytes!" << " error:" <<  strerror(errno) << std::endl; 
+            logstream(LOG_ERROR) << "Could not write " << (nbytes-nwritten) << " bytes!" << " error:" <<  strerror(errno) << std::endl;
             assert(false);
         }
         buf += a;
         nwritten += a;
     }
+    
+}
 
-} 
+/*
+ * COMPRESSED
+ */
+
+
 
 template <typename T>
-void checkarray_filesize(std::string fname, size_t nelements) {
-    // Check the vertex file is correct size
-    int f = open(fname.c_str(),  O_RDWR | O_CREAT, S_IROTH | S_IWOTH | S_IWUSR | S_IRUSR);
-    if (f < 1) {
-        logstream(LOG_ERROR) << "Error initializing the data-file: " << fname << " error:" <<  strerror(errno) << std::endl;    }
-    assert(f>0);
-    int err = ftruncate(f, nelements * sizeof(T));
-    if (err != 0) {
-        logstream(LOG_ERROR) << "Error in adjusting file size: " << fname << " to size: " << nelements * sizeof(T)    
-                 << " error:" <<  strerror(errno) << std::endl;
-    }
-    assert(err == 0);
-    close(f);
+size_t write_compressed(int f, T * tbuf, size_t nbytes) {
+    
+#ifndef GRAPHCHI_DISABLE_COMPRESSION
+    unsigned char * buf = (unsigned char*)tbuf;
+    int ret;
+    unsigned have;
+    z_stream strm;
+    int CHUNK = (int) std::max((size_t)4096 * 1024, nbytes);
+    unsigned char * out = (unsigned char *) malloc(CHUNK);
+    lseek(f, 0, SEEK_SET);
+
+    /* allocate deflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    ret = deflateInit(&strm, Z_BEST_SPEED);
+    if (ret != Z_OK)
+        assert(false);
+    
+    /* compress until end of file */
+    strm.avail_in = (int) nbytes;
+    strm.next_in = buf;
+    
+    int trerr = ftruncate(f, 0);
+    IASSERT (trerr == 0);
+    size_t totwritten = 0;
+    
+   /* run deflate() on input until output buffer not full, finish
+     compression if all of source has been read in */
+    do {
+        strm.avail_out = CHUNK;
+        strm.next_out = out;
+        ret = deflate(&strm, Z_FINISH);    /* no bad return value */
+        assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+        have = CHUNK - strm.avail_out;
+        if (write(f, out, have) != have) {
+            (void)deflateEnd(&strm);
+            assert(false);
+        }
+        totwritten += have;
+    } while (strm.avail_out == 0);
+    IASSERT(strm.avail_in == 0);     /* all input will be used */
+        
+    IASSERT(ret == Z_STREAM_END);        /* stream will be complete */
+    
+    /* clean up and return */
+    (void)deflateEnd(&strm);
+    free(out);
+    return totwritten;
+#else
+    writea(f, tbuf, nbytes);
+    return nbytes;
+#endif 
+
 }
+
+/* Zlib-inflated read. Assume tbuf is correctly sized memory block. */
+template <typename T>
+void read_compressed(int f, T * tbuf, size_t nbytes) {
+#ifndef GRAPHCHI_DISABLE_COMPRESSION
+    unsigned char * buf = (unsigned char*)tbuf;
+    int ret;
+    unsigned have;
+    z_stream strm;
+    int CHUNK = (int) std::max((size_t)4096 * 1024, nbytes);
+
+    size_t fsize = lseek(f, 0, SEEK_END);
+    
+    unsigned char * in = (unsigned char *) malloc(fsize);
+    lseek(f, 0, SEEK_SET);
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+        assert(false);
+    
+    /* decompress until deflate stream ends or end of file */
+    do {
+        ssize_t a = 0;
+        do {
+            a = read(f, in + strm.avail_in, fsize - strm.avail_in); //fread(in, 1, CHUNK, source);
+            strm.avail_in += (int) a;
+            IASSERT(a != (ssize_t)(-1));
+        } while (a > 0);
+       
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+        
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = buf;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            IASSERT(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+                case Z_NEED_DICT:
+                    ret = Z_DATA_ERROR;     /* and fall through */
+                case Z_DATA_ERROR:
+                case Z_MEM_ERROR:
+                    assert(false);
+            }
+            have = CHUNK - strm.avail_out;
+            buf += have;
+        } while (strm.avail_out == 0);
+        
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+   // std::cout << "Read: " << (buf - (unsigned char*)tbuf) << std::endl;
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    free(in);
+#else
+    preada(f, tbuf, nbytes, 0);
+#endif
+}
+
+
 
 #endif
 

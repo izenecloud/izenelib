@@ -496,19 +496,16 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     if (!checkType_(property_name, key))
         return;
 
-    if (!pFilter_)
-    {
-        izenelib::util::boost_variant_visit(boost::bind(mget_ewah_visitor(), this, property_name, _1, boost::ref(docs)), key);
-        return;
-    }
-
     std::vector<docid_t> docList;
-    getValue(property_name, key, docList);
-    std::sort(docList.begin(), docList.end());
+    izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
 
-    for(unsigned i = 0; i < docList.size(); ++i)
+    for (std::vector<docid_t>::const_iterator it = docList.begin();
+         it != docList.end(); ++it)
     {
-        docs.set(docList[i]);
+        if (!pFilter_ || !pFilter_->test(*it))
+        {
+            docs.set(*it);
+        }
     }
 }
 
@@ -532,12 +529,21 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
     if (docList.size() < kDocIdNumSortLimit)
     {
         std::sort(docList.begin(), docList.end());
-        for (std::size_t i = 0; i < docList.size(); ++i)
+
+        docid_t lastDocId = 0;
+        for (std::vector<docid_t>::const_iterator it = docList.begin();
+             it != docList.end(); ++it)
         {
-            if (!pFilter_ || !pFilter_->test(docList[i]))
+            // skip duplicated docid, required by EWAHBoolArray::set()
+            if (*it == lastDocId)
+                continue;
+
+            if (!pFilter_ || !pFilter_->test(*it))
             {
-                docs.set(docList[i]);
+                docs.set(*it);
             }
+
+            lastDocId = *it;
         }
     }
     else

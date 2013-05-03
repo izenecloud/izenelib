@@ -112,49 +112,74 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
     nodes_.resize(this->alphabet_bit_num_);
 
     std::vector<size_t> prev_begin_pos(1), node_begin_pos(1);
-    char_type bit_mask, subscript;
+
+    char_type *temp_seq = new char_type[len];
+    char_type *curr = const_cast<char_type *>(char_seq);
+    char_type *next = temp_seq;
 
     for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
     {
-        node_begin_pos.clear();
-        node_begin_pos.resize((1ULL << (i + 1)) + 1);
-
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
 
-        bit_mask = (char_type)1 << i;
+        size_t zero_count = 0;
+        char_type bit_mask = (char_type)1 << i;
 
         for (size_t j = 0; j < len; ++j)
         {
-            subscript = char_seq[j] & (bit_mask - 1);
-
-            if (char_seq[j] & bit_mask)
+            if (curr[j] & bit_mask)
             {
-                nodes_[i]->setBit(prev_begin_pos[subscript]++);
-                ++node_begin_pos[subscript + bit_mask + 1];
+                nodes_[i]->setBit(j);
             }
             else
             {
-                nodes_[i]->unsetBit(prev_begin_pos[subscript]++);
-                ++node_begin_pos[subscript + 1];
+                nodes_[i]->unsetBit(j);
+                next[zero_count++] = curr[j];
             }
         }
 
         nodes_[i]->build();
+        zero_counts_[i] = zero_count;
 
-        prev_begin_pos = node_begin_pos;
-        for (size_t j = 2; j < prev_begin_pos.size(); ++j)
+        for (size_t j = 0; j < len; ++j)
         {
-            prev_begin_pos[j] += prev_begin_pos[j - 1];
+            if (curr[j] & bit_mask)
+            {
+                next[zero_count++] = curr[j];
+            }
         }
-        zero_counts_[i] = prev_begin_pos[bit_mask];
+        std::swap(curr, next);
     }
 
-    for (size_t i = 1; i <= this->alphabet_num_; ++i)
+    size_t curr_char = 0;
+    size_t curr_count = 0;
+
+    for (size_t i = 0; i < len; ++i)
     {
-        occ_.add(node_begin_pos[i]);
+        if (curr[i] == curr_char)
+        {
+            ++curr_count;
+        }
+        else
+        {
+            occ_.add(curr_count);
+            for (++curr_char; curr_char < curr[i]; ++curr_char)
+            {
+                occ_.add(0);
+            }
+            curr_count = 1;
+        }
     }
+
+    occ_.add(curr_count);
+    for (++curr_char; curr_char <= 1LLU << this->alphabet_bit_num_; ++curr_char)
+    {
+        occ_.add(0);
+    }
+
     occ_.build();
+
+    delete[] temp_seq;
 
     for (size_t i = 1; i < nodes_.size(); ++i)
     {

@@ -181,16 +181,15 @@ size_t DBitV::select0(size_t rank) const
     }
 
     __assert(low > 0);
-    --low;
+    const SuperBlock &sb = super_blocks_[--low];
+    rank -= low * kSuperBlockSize - sb.rank_;
 
-    const SuperBlock &sb = super_blocks_[low];
-    rank = rank - low * kSuperBlockSize + sb.rank_;
     size_t sb_offset = 0;
-    for (; sb_offset < kBlockPerSuperBlock; ++sb_offset)
+    size_t b_rank = SuccinctUtils::popcount(~sb.bits_[sb_offset]);
+    while (rank >= b_rank)
     {
-        size_t b_rank = SuccinctUtils::popcount(~sb.bits_[sb_offset]);
-        if (rank < b_rank) break;
         rank -= b_rank;
+        b_rank = SuccinctUtils::popcount(~sb.bits_[++sb_offset]);
     }
 
     return low * kSuperBlockSize + sb_offset * kBlockSize + SuccinctUtils::selectBlock(~sb.bits_[sb_offset], rank);
@@ -218,16 +217,15 @@ size_t DBitV::select1(size_t rank) const
     }
 
     __assert(low > 0);
-    --low;
-
-    const SuperBlock &sb = super_blocks_[low];
+    const SuperBlock &sb = super_blocks_[--low];
     rank -= sb.rank_;
+
     size_t sb_offset = 0;
-    for (; sb_offset < kBlockPerSuperBlock; ++sb_offset)
+    size_t b_rank = SuccinctUtils::popcount(sb.bits_[sb_offset]);
+    while (rank >= b_rank)
     {
-        size_t b_rank = SuccinctUtils::popcount(sb.bits_[sb_offset]);
-        if (rank < b_rank) break;
         rank -= b_rank;
+        b_rank = SuccinctUtils::popcount(sb.bits_[++sb_offset]);
     }
 
     return low * kSuperBlockSize + sb_offset * kBlockSize + SuccinctUtils::selectBlock(sb.bits_[sb_offset], rank);
@@ -245,12 +243,12 @@ void DBitV::save(std::ostream &os) const
     os.write((const char *)&len_, sizeof(len_));
     os.write((const char *)&one_count_, sizeof(one_count_));
 
-    save_(os, super_blocks_);
+    SuccinctUtils::saveVec(os, super_blocks_);
 
     if (support_select_)
     {
-        save_(os, select_one_inds_);
-        save_(os, select_zero_inds_);
+        SuccinctUtils::saveVec(os, select_one_inds_);
+        SuccinctUtils::saveVec(os, select_zero_inds_);
     }
 }
 
@@ -260,12 +258,12 @@ void DBitV::load(std::istream &is)
     is.read((char *)&len_, sizeof(len_));
     is.read((char *)&one_count_, sizeof(one_count_));
 
-    load_(is, super_blocks_);
+    SuccinctUtils::loadVec(is, super_blocks_);
 
     if (support_select_)
     {
-        load_(is, select_one_inds_);
-        load_(is, select_zero_inds_);
+        SuccinctUtils::loadVec(is, select_one_inds_);
+        SuccinctUtils::loadVec(is, select_zero_inds_);
     }
 }
 
