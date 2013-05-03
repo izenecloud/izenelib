@@ -49,96 +49,96 @@ NS_IZENELIB_AM_BEGIN
 
 static inline uint32_t ctz32(uint32_t n) {
 #if defined(__INTEL_COMPILER)
-	return _bit_scan_forward(n);
+    return _bit_scan_forward(n);
 
 #elif defined(__GNUC__) && UINT_MAX >= UINT32_MAX
-	return __builtin_ctz(n);
+    return __builtin_ctz(n);
 
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
-	uint32_t i;
-	__asm__("bsfl %1, %0" : "=r" (i) : "rm" (n));
-	return i;
+    uint32_t i;
+    __asm__("bsfl %1, %0" : "=r" (i) : "rm" (n));
+    return i;
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
-	uint32_t i;
-	_BitScanForward((unsigned long *) &i, n);
-	return i;
+    uint32_t i;
+    _BitScanForward((unsigned long *) &i, n);
+    return i;
 
 #else
-	uint32_t i = 0;
+    uint32_t i = 0;
 
-	if ((n & UINT32_C(0x0000FFFF)) == 0) {
-		n >>= 16;
-		i = 16;
-	}
+    if ((n & UINT32_C(0x0000FFFF)) == 0) {
+        n >>= 16;
+        i = 16;
+    }
 
-	if ((n & UINT32_C(0x000000FF)) == 0) {
-		n >>= 8;
-		i += 8;
-	}
+    if ((n & UINT32_C(0x000000FF)) == 0) {
+        n >>= 8;
+        i += 8;
+    }
 
-	if ((n & UINT32_C(0x0000000F)) == 0) {
-		n >>= 4;
-		i += 4;
-	}
+    if ((n & UINT32_C(0x0000000F)) == 0) {
+        n >>= 4;
+        i += 4;
+    }
 
-	if ((n & UINT32_C(0x00000003)) == 0) {
-		n >>= 2;
-		i += 2;
-	}
+    if ((n & UINT32_C(0x00000003)) == 0) {
+        n >>= 2;
+        i += 2;
+    }
 
-	if ((n & UINT32_C(0x00000001)) == 0)
-		++i;
+    if ((n & UINT32_C(0x00000001)) == 0)
+        ++i;
 
-	return i;
+    return i;
 #endif
 }
 
 
 static inline uint32_t ctz16(uint16_t n) {
 #if defined(__INTEL_COMPILER)
-	return _bit_scan_forward(n);
+    return _bit_scan_forward(n);
 
 #elif defined(__GNUC__) && UINT_MAX >= UINT32_MAX
-	return __builtin_ctz(n);
+    return __builtin_ctz(n);
 
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
-	uint32_t i;
-	__asm__("bsfl %1, %0" : "=r" (i) : "rm" (n));
-	return i;
+    uint32_t i;
+    __asm__("bsfl %1, %0" : "=r" (i) : "rm" (n));
+    return i;
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
-	uint32_t i;
-	_BitScanForward((unsigned long *) &i, n);
-	return i;
+    uint32_t i;
+    _BitScanForward((unsigned long *) &i, n);
+    return i;
 
 #else
-	uint32_t i = 0;
+    uint32_t i = 0;
 
-	if ((n & UINT16_C(0x0000FFFF)) == 0) {
-		n >>= 16;
-		i = 16;
-	}
+    if ((n & UINT16_C(0x0000FFFF)) == 0) {
+        n >>= 16;
+        i = 16;
+    }
 
-	if ((n & UINT16_C(0x000000FF)) == 0) {
-		n >>= 8;
-		i += 8;
-	}
+    if ((n & UINT16_C(0x000000FF)) == 0) {
+        n >>= 8;
+        i += 8;
+    }
 
-	if ((n & UINT16_C(0x0000000F)) == 0) {
-		n >>= 4;
-		i += 4;
-	}
+    if ((n & UINT16_C(0x0000000F)) == 0) {
+        n >>= 4;
+        i += 4;
+    }
 
-	if ((n & UINT16_C(0x00000003)) == 0) {
-		n >>= 2;
-		i += 2;
-	}
+    if ((n & UINT16_C(0x00000003)) == 0) {
+        n >>= 2;
+        i += 2;
+    }
 
-	if ((n & UINT16_C(0x00000001)) == 0)
-		++i;
+    if ((n & UINT16_C(0x00000001)) == 0)
+        ++i;
 
-	return i;
+    return i;
 #endif
 }
 
