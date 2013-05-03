@@ -268,7 +268,7 @@ public:
      * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
      * @param inAbsPath  Whether get children in absolute path or relative path
      */
-    void getZNodeChildren(
+    bool getZNodeChildren(
             const std::string &path, std::vector<std::string>& childrenList,
             ZNodeWatchType watch = NOT_WATCH,
             bool inAbsPath = true);
