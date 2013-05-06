@@ -79,12 +79,15 @@ private:
 	std::queue<kernel::event> m_queue;
 	kernel::backlog m_backlog;
 	volatile int m_watching;
+	pthread_mutex m_mutex;
 
 	void watch(int fd);
 	void* m_fdctx;
 
 private:
 	out(const out&);
+
+
 };
 
 
