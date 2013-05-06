@@ -523,7 +523,16 @@ ZooKeeperRouter::getConnection(const string& collection) {
     }
     ConnectionPool* pool = cit->second;
     CHECK(pool) << "NULL pool";
-    return pool->acquire();
+    try{
+        return pool->acquire();
+    }catch(NetworkError& e)
+    {
+        if (!client->isZNodeExists(node.getPath(), ZooKeeper::WATCH))
+        {
+            removeSf1Node(node.getPath());
+        }
+        throw;
+    }
 }
 
 
