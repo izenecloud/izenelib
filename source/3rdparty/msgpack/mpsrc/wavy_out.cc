@@ -55,12 +55,6 @@ public:
 
 	static bool execute(int fd, char* head, char** tail);
 
-public:
-	pthread_mutex& mutex() { return m_mutex; }
-
-private:
-	pthread_mutex m_mutex;
-
 private:
 	xfer_impl(const xfer_impl&);
 };
@@ -433,7 +427,7 @@ bool out::write_event(kernel::event e)
 	int ident = e.ident();
 
 	xfer_impl& ctx(ANON_fdctx[ident]);
-	pthread_scoped_lock lk(ctx.mutex());
+	pthread_scoped_lock lk(m_mutex);
 
 	bool cont;
 	try {
@@ -462,7 +456,7 @@ inline void out::watch(int fd)
 void out::commit_raw(int fd, char* xfbuf, char* xfendp)
 {
 	xfer_impl& ctx(ANON_fdctx[fd]);
-	pthread_scoped_lock lk(ctx.mutex());
+	pthread_scoped_lock lk(m_mutex);
 
 	if(!ctx.empty()) {
 		ctx.push_xfraw(xfbuf, xfendp - xfbuf);
@@ -478,7 +472,7 @@ void out::commit_raw(int fd, char* xfbuf, char* xfendp)
 void out::commit(int fd, xfer* xf)
 {
 	xfer_impl& ctx(ANON_fdctx[fd]);
-	pthread_scoped_lock lk(ctx.mutex());
+	pthread_scoped_lock lk(m_mutex);
 
 	if(!ctx.empty()) {
 		xf->migrate(&ctx);
@@ -494,7 +488,7 @@ void out::commit(int fd, xfer* xf)
 void out::write(int fd, const void* buf, size_t size)
 {
 	xfer_impl& ctx(ANON_fdctx[fd]);
-	pthread_scoped_lock lk(ctx.mutex());
+	pthread_scoped_lock lk(m_mutex);
 
 	if(ctx.empty()) {
 		ssize_t wl = ::write(fd, buf, size);
