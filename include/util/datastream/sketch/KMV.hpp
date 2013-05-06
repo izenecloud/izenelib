@@ -3,7 +3,6 @@
 
 #include "ICardinality.hpp"
 #include <util/hashFunction.h>
-#include <common/type_defs.h>
 #include <boost/unordered_set.hpp>
 #include <queue>
 #include <vector>
