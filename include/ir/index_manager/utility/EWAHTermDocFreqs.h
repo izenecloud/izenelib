@@ -10,7 +10,7 @@
 
 #include <ir/index_manager/index/TermDocFreqs.h>
 #include <ir/index_manager/utility/system.h>
-#include <am/bitmap/Ewah.h>
+#include <am/bitmap/ewah.h>
 #include <boost/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
@@ -23,18 +23,29 @@ class EWAHTermDocFreqs : public TermDocFreqs
 {
 public:
     typedef izenelib::am::EWAHBoolArray<word_t> bitmap_t;
-    typedef izenelib::am::EWAHBoolArrayBitIterator<word_t> bitmap_iterator_t;
+    typedef typename bitmap_t::const_iterator bitmap_iterator_t;
 
-    EWAHTermDocFreqs(const boost::shared_ptr<bitmap_t>& pBitMap)
+    EWAHTermDocFreqs(const boost::shared_ptr<const bitmap_t>& pBitMap)
         : TermDocFreqs()
         , pBitMap_(pBitMap)
-        , bitmapIter_(pBitMap->bit_iterator())
+        , curDoc_(BAD_DOCID)
+        , iter_(pBitMap->begin())
+        , iterEnd_(pBitMap->end())
+        , hasCallNext_(false)
+        , setBitNum_(0)
+        , hasInitSetBitNum_(false)
     {
     }
 
     EWAHTermDocFreqs(const EWAHTermDocFreqs& other)
         : TermDocFreqs(other)
-        , bitmapIter_(other.bitmapIter_)
+        , pBitMap_(other.pBitMap_)
+        , curDoc_(other.curDoc_)
+        , iter_(other.iter_)
+        , iterEnd_(other.iterEnd_)
+        , hasCallNext_(other.hasCallNext_)
+        , setBitNum_(other.setBitNum_)
+        , hasInitSetBitNum_(other.hasInitSetBitNum_)
     {
     }
 
@@ -42,33 +53,68 @@ public:
 
     void reset(PostingReader * pPosting, const TermInfo& ti, bool ownPosting) {}
 
-    freq_t docFreq() { return bitmapIter_.numberOfOnes(); }
+    freq_t docFreq()
+    {
+        if (!hasInitSetBitNum_)
+        {
+            setBitNum_ = pBitMap_->numberOfOnes();
+            hasInitSetBitNum_ = true;
+        }
+
+        return setBitNum_;
+    }
 
     int64_t getCTF() { return 1; }
 
     count_t freq() { return 1; }
 
-    docid_t doc() { return bitmapIter_.getCurr(); }
+    docid_t doc() { return curDoc_; }
 
     docid_t skipTo(docid_t target)
     {
-        docid_t currDoc;
-        do
+        while (next())
         {
-            if (!bitmapIter_.next())
-                return BAD_DOCID;
-            currDoc = doc();
+            if (curDoc_ >= target)
+                break;
         }
-        while (target > currDoc);
 
-        return currDoc;
+        return curDoc_;
     }
 
-    bool next() { return bitmapIter_.next(); }
+    bool next()
+    {
+        if (hasCallNext_)
+        {
+            ++iter_;
+        }
+        else
+        {
+            hasCallNext_ = true;
+        }
+
+        if (iter_ != iterEnd_)
+        {
+            curDoc_ = *iter_;
+            return true;
+        }
+        else
+        {
+            curDoc_ = BAD_DOCID;
+            return false;
+        }
+    }
 
 private:
-    boost::shared_ptr<bitmap_t> pBitMap_;
-    bitmap_iterator_t bitmapIter_;
+    boost::shared_ptr<const bitmap_t> pBitMap_;
+
+    docid_t curDoc_;
+
+    bitmap_iterator_t iter_;
+    const bitmap_iterator_t iterEnd_;
+    bool hasCallNext_; // whether member "next()" has been called
+
+    std::size_t setBitNum_;
+    bool hasInitSetBitNum_; // whether member "setBitNum_" has been initialized
 };
 
 }

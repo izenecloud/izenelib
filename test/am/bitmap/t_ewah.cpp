@@ -1,4 +1,4 @@
-#include <am/bitmap/Ewah.h>
+#include <am/bitmap/ewah.h>
 #include <ir/index_manager/utility/BitVector.h>
 #include <util/ClockTimer.h>
 
@@ -145,14 +145,12 @@ bool testEWAHBoolArrayAppend() {
     caggregate2.append(myarray2);
     caggregate1.append(myarray2);
     caggregate2.append(myarray1);
-    BoolArray<uword> aggregate1a;
-    caggregate1.toBoolArray(aggregate1a);
+    BoolArray<uword> aggregate1a = caggregate1.toBoolArray();
     if (aggregate1a != aggregate1) {
         cout << "aggregate 1 failed" << endl;
         isOk = false;
     }
-    BoolArray<uword> aggregate2a;
-    caggregate2.toBoolArray(aggregate2a);
+    BoolArray<uword> aggregate2a = caggregate2.toBoolArray();
     if (aggregate2a != aggregate2) {
         cout << "aggregate 2 failed" << endl;
         isOk = false;
@@ -208,13 +206,14 @@ bool testEWAHBoolArray() {
     lmyarray.read(in);
     in.close();
     BOOST_CHECK(myarray == lmyarray);
+
     {
     izene_serialization_febird<EWAHBoolArray<uword> > isb(myarray);
     char* ptr;
     size_t sz;
     isb.write_image(ptr, sz);
-    EWAHBoolArray<uword> newarray;
 
+    EWAHBoolArray<uword> newarray;
     izene_deserialization_febird<EWAHBoolArray<uword> > idb(ptr, sz);
     idb.read_image(newarray);
     BOOST_CHECK(myarray == newarray);
@@ -231,7 +230,7 @@ bool testEWAHBoolArray() {
         }
         uword val = i.next();
         uword val2 = j.next();
-        uword valref = ba.getWord(k++);
+        uword valref = ba.getWord(k);
         if (val != valref) {
             cout<<"the two arrays differ from uncompressed array at "<<k<<" "<< val<< " "<< val2<<" " <<valref << endl;
             isOk = false;
@@ -240,6 +239,7 @@ bool testEWAHBoolArray() {
             cout<<"the two arrays differ at "<<k<<" "<< val<< " "<< val2<<" " <<valref << endl;
             isOk = false;
         }
+        ++k;
     }
     return isOk;
 }
@@ -265,13 +265,10 @@ bool testEWAHBoolArrayLogical() {
         xxor[k] = x1[k] | x2[k];
     }
     EWAHBoolArray<uword> myand;
-    EWAHBoolArray<uword> mysparseand;
     EWAHBoolArray<uword> myor;
-    myarray1.rawlogicaland(myarray2,myand);
-    myarray1.sparselogicaland(myarray2,mysparseand);
-    myarray1.rawlogicalor(myarray2,myor);
+    myarray1.logicaland(myarray2,myand);
+    myarray1.logicalor(myarray2,myor);
     EWAHBoolArrayIterator<uword> i = myand.uncompress();
-    EWAHBoolArrayIterator<uword> ii = mysparseand.uncompress();
     EWAHBoolArrayIterator<uword> j = myor.uncompress();
     EWAHBoolArrayIterator<uword> it1 = myarray1.uncompress();
     EWAHBoolArrayIterator<uword> it2 = myarray2.uncompress();
@@ -282,20 +279,12 @@ bool testEWAHBoolArrayLogical() {
             cout<<"type 1 error"<<endl;
             isOk=false; break;
         }
-        if(!ii.hasNext()) {
-            cout<<"type 2 error"<<endl;
-            isOk=false; break;
-        }
         if(!j.hasNext()) {
             cout<<"type 3 error"<<endl;
             isOk=false; break;
         }
         if(i.next()!= xand[k]){
             cout<<"type 4 error"<<endl;
-            isOk=false; break;
-        }
-        if(ii.next()!= xand[k]){
-            cout<<"type 5 error"<<endl;
             isOk=false; break;
         }
         const uword jor = j.next();
@@ -386,12 +375,11 @@ void runIterateEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
 
     for (std::size_t i = 0; i < runNum; ++i)
     {
-        EWAHBoolArrayBitIterator<word_t> bitIter = ewahBoolArray.bit_iterator();
-        setBitNum = bitIter.numberOfOnes();
-
-        while (bitIter.next())
+        for (typename EWAHBoolArray<word_t>::const_iterator iter =
+                 ewahBoolArray.begin(); iter != ewahBoolArray.end(); ++iter)
         {
-            bitIter.getCurr();
+            *iter;
+            ++setBitNum;
         }
     }
 
@@ -440,7 +428,6 @@ BOOST_AUTO_TEST_CASE(ewahBitIterator)
     init_data(data_size, real_size);
 
     EWAHBoolArray<uint32_t> myarray1;
-    BoolArray<uint32_t> boolarray1;
     int i = 0;
 
     for(; i < real_size; ++i)
@@ -448,11 +435,11 @@ BOOST_AUTO_TEST_CASE(ewahBitIterator)
         myarray1.set(copy_data[i]);
     }
 
-    myarray1.toBoolArray(boolarray1);
-    EWAHBoolArrayBitIterator<uint32_t> iter = myarray1.bit_iterator();
-    while(iter.next())
+    BoolArray<uint32_t> boolarray1 = myarray1.toBoolArray();
+    for (EWAHBoolArray<uint32_t>::const_iterator iter = myarray1.begin();
+         iter != myarray1.end(); ++iter)
     {
-        BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
+        BOOST_CHECK(boolarray1.get(*iter));
     }
 
     delete[] int_data;

@@ -4,7 +4,6 @@
 #include "ICardinality.hpp"
 #include "Level2Sketch.hpp"
 #include <util/hashFunction.h>
-#include <common/type_defs.h>
 #include <vector>
 #include <stdint.h>
 #include <math.h>
@@ -24,7 +23,7 @@ public:
     typedef Level2Sketch<DataTypeT>  Level2SketchT;
 
     FMSketch(uint64_t seed, int k)
-        : seed_(seed), 
+        : seed_(seed),
         fm_k_((size_t)k)
     {
         sketch_.resize(fm_k_);
@@ -216,7 +215,7 @@ public:
     }
 
     static size_t setUnionWithIntersectEstimator(const std::vector<ThisType>& union_sketch,
-        const std::vector<ThisType>& filter_sketch) 
+        const std::vector<ThisType>& filter_sketch)
     {
         if(union_sketch.empty() || filter_sketch.empty())
             return 0;
