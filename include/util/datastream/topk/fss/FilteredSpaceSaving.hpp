@@ -8,7 +8,6 @@
 #ifndef IZENELIB_UTIL_FILTEREDSPACESAVING_H_
 #define IZENELIB_UTIL_FILTEREDSPACESAVING_H_
 
-
 #include <iostream>
 #include <list>
 #include <boost/unordered_map.hpp>
