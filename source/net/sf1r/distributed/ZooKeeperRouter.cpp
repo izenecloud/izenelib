@@ -378,16 +378,16 @@ void ZooKeeperRouter::clearSf1Nodes() {
     while (it != pools.end())
     {
         ConnectionPool* pool = it->second;
+        pools.erase(it);
         if (pool)
         {
             while(pool->isBusy())
             {
                 condition.wait(rwlock);
             }
+            delete pool;
         }
-        pools.erase(it);
         it = pools.begin();
-        delete pool;
     }
 }
 
