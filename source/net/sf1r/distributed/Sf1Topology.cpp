@@ -58,6 +58,13 @@ Sf1Topology::updateNode(const string& path, const string& data, bool emit) {
     }
 }
 
+void Sf1Topology::clearNodes()
+{
+    nodeCollections.clear();
+    collectionsIndex.clear();
+    nodes.clear();
+    changed();
+}
 
 void
 Sf1Topology::removeNode(const string& path, bool emit) {

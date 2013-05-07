@@ -93,6 +93,9 @@ void ZooKeeperRouter::reconnect()
         }
         usleep(100*1000);
     }
+    // clear old nodes.
+    clearSf1Nodes();
+
     loadTopology();
 }
 
@@ -365,6 +368,28 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     }
 }
 
+void ZooKeeperRouter::clearSf1Nodes() {
+    WriteLockT rwlock(shared_mutex);
+    LOG(INFO) << "clearing SF1 node";
+    topology->clearNodes();
+    backup_topology->clearNodes();
+    waiting_update_path_.clear();
+    PoolContainer::iterator it = pools.begin();
+    while (it != pools.end())
+    {
+        ConnectionPool* pool = it->second;
+        if (pool)
+        {
+            while(pool->isBusy())
+            {
+                condition.wait(rwlock);
+            }
+        }
+        pools.erase(it);
+        it = pools.begin();
+        delete pool;
+    }
+}
 
 void
 ZooKeeperRouter::removeSf1Node(const string& path) {
