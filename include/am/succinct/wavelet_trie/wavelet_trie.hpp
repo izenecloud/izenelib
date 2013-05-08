@@ -34,7 +34,7 @@ struct trie_node
 {
     word_type trie_data;
     wat_array::BitArray bit_array;
-	dense::DBitV bv(bool select = true);
+    dense::DBitV bv(bool select = true);
     uint64_t bit_len;
     uint64_t total;
     trie_node *left;
@@ -276,9 +276,9 @@ public:
     {
         cur->bit_array.Build();
 //		cur->bv.build(cur->bit_array.bit_blocks_, cur->bit_array.length_);
-        if (NULL != cur->left && NULL != cur->left->left) 
+        if (NULL != cur->left && NULL != cur->left->left)
             init_wavelet(cur->left);
-        if (NULL != cur->right && NULL != cur->right->right) 
+        if (NULL != cur->right && NULL != cur->right->right)
             init_wavelet(cur->right);
     }
 
@@ -335,48 +335,61 @@ public:
     /*
     	rank(s,pos) return the number of occurrences of string s in S[0..pos-1]
     */
-    uint64_t rank(const std::vector<size_t> &s, const uint64_t pos) {
+    uint64_t rank(const std::vector<size_t> &s, const uint64_t pos)
+    {
         uint64_t ans = pos;
         if (pos > length_ || 0 == pos) return EPS;
         if (0 == s.size()) return 0;
         uint64_t word_len = s.size() * alphabet_bit_num_;
         link_type cur = root_;
         size_t j = 0;
-		uint64_t tmp_bit = 0;
-		size_t p = 0;
-		size_t q = 0;
-        for (size_t i = 0; i < word_len; ++i) {
-			tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
-            if (j == cur->trie_data.len) {
-                if (!tmp_bit) {
+        uint64_t tmp_bit = 0;
+        size_t p = 0;
+        size_t q = 0;
+        for (size_t i = 0; i < word_len; ++i)
+        {
+            tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
+            if (j == cur->trie_data.len)
+            {
+                if (!tmp_bit)
+                {
                     if (NULL == cur->left) return 0;
-                    else {
+                    else
+                    {
                         ans = cur->bit_array.Rank(0, ans);
 //						ans = cur->bv.rank0(ans);
-						if (0 == ans) return ans;
+                        if (0 == ans) return ans;
                         cur = cur->left;
                         j = 0;
                     }
-                } else {
+                }
+                else
+                {
                     if (NULL == cur->right) return 0;
-                    else {
+                    else
+                    {
                         ans = cur->bit_array.Rank(1, ans);
 //						ans = cur->bv.rank1(ans);
-						if (0 == ans) return ans;
+                        if (0 == ans) return ans;
                         cur = cur->right;
                         j = 0;
                     }
                 }
-            } else if (get_bit_(cur->trie_data.data, j) != tmp_bit) {
+            }
+            else if (get_bit_(cur->trie_data.data, j) != tmp_bit)
+            {
                 return 0;
-            } else {
+            }
+            else
+            {
                 ++j;
             }
-			++q;
-			if (q == alphabet_bit_num_) {
-				q = 0;
-				++p;
-			}
+            ++q;
+            if (q == alphabet_bit_num_)
+            {
+                q = 0;
+                ++p;
+            }
         }
         return ans;
     }
@@ -384,7 +397,8 @@ public:
     /*
     	select(s,idx) return the position of the idx-th occurrence of s in S[0..n-1]
     */
-    uint64_t select(const std::vector<size_t> &s, const uint64_t idx) {
+    uint64_t select(const std::vector<size_t> &s, const uint64_t idx)
+    {
         uint64_t ans = idx;
 //        uint64_t ans = idx - 1;
         if (idx > length_ || 0 == idx) return EPS;
@@ -392,38 +406,51 @@ public:
         uint64_t word_len = s.size() * alphabet_bit_num_;
         link_type cur = root_;
         size_t j = 0;
-		uint64_t tmp_bit = 0;
-		size_t p = 0;
-		size_t q = 0;
-        for (size_t i = 0; i < word_len; ++i) {
-			tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
-            if (j == cur->trie_data.len) {
-                if (!tmp_bit) {
+        uint64_t tmp_bit = 0;
+        size_t p = 0;
+        size_t q = 0;
+        for (size_t i = 0; i < word_len; ++i)
+        {
+            tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
+            if (j == cur->trie_data.len)
+            {
+                if (!tmp_bit)
+                {
                     if (NULL == cur->left) return EPS;
-                    else {
+                    else
+                    {
                         cur = cur->left;
                         j = 0;
                     }
-                } else {
+                }
+                else
+                {
                     if (NULL == cur->right) return EPS;
-                    else {
+                    else
+                    {
                         cur = cur->right;
                         j = 0;
                     }
                 }
-            } else if (get_bit_(cur->trie_data.data, j) != tmp_bit) {
+            }
+            else if (get_bit_(cur->trie_data.data, j) != tmp_bit)
+            {
                 return EPS;
-            } else {
+            }
+            else
+            {
                 ++j;
             }
-			++q;
-			if (q == alphabet_bit_num_) {
-				q = 0;
-				++p;
-			}
+            ++q;
+            if (q == alphabet_bit_num_)
+            {
+                q = 0;
+                ++p;
+            }
         }
 
-        while (cur != root_) {
+        while (cur != root_)
+        {
             if (cur == cur->parent->left)
                 ans = cur->parent->bit_array.Select(0, ans) + 1;
 //                ans = cur->parent->bv.select0(ans);
@@ -440,48 +467,61 @@ public:
     /*
     	rank_prefix(s,pos) return the number of strings in S[0..pos-1] have prefix s
     */
-    uint64_t rank_prefix(const std::vector<size_t> &s, const uint64_t pos) {
+    uint64_t rank_prefix(const std::vector<size_t> &s, const uint64_t pos)
+    {
         uint64_t ans = pos;
         if (pos > length_ || 0 == pos) return EPS;
         if (0 == s.size()) return 0;
         uint64_t word_len = (s.size() - 1) * alphabet_bit_num_;
         link_type cur = root_;
         size_t j = 0;
-		uint64_t tmp_bit = 0;
-		size_t p = 0;
-		size_t q = 0;
-        for (size_t i = 0; i < word_len; ++i) {
-			tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
-            if (j == cur->trie_data.len) {
-                if (!tmp_bit) {
+        uint64_t tmp_bit = 0;
+        size_t p = 0;
+        size_t q = 0;
+        for (size_t i = 0; i < word_len; ++i)
+        {
+            tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
+            if (j == cur->trie_data.len)
+            {
+                if (!tmp_bit)
+                {
                     if (NULL == cur->left) return 0;
-                    else {
+                    else
+                    {
                         ans = cur->bit_array.Rank(0, ans);
 //						ans = cur->bv.rank0(ans);
-						if (0 == ans) return ans;
+                        if (0 == ans) return ans;
                         cur = cur->left;
                         j = 0;
                     }
-                } else {
+                }
+                else
+                {
                     if (NULL == cur->right) return 0;
-                    else {
+                    else
+                    {
                         ans = cur->bit_array.Rank(1, ans);
 //						ans = cur->bv.rank1(ans);
-						if (0 == ans) return ans;
+                        if (0 == ans) return ans;
                         cur = cur->right;
                         j = 0;
                     }
                 }
-            } else if (get_bit_(cur->trie_data.data, j) != tmp_bit) {
+            }
+            else if (get_bit_(cur->trie_data.data, j) != tmp_bit)
+            {
                 return 0;
-            } else {
+            }
+            else
+            {
                 ++j;
             }
-			++q;
-			if (q == alphabet_bit_num_) {
-				q = 0;
-				++p;
-			}
+            ++q;
+            if (q == alphabet_bit_num_)
+            {
+                q = 0;
+                ++p;
+            }
         }
         return ans;
     }
@@ -489,7 +529,8 @@ public:
     /*
     	select(s,idx) return the position of the idx-th string in S[0..n-1] has prefix s
     */
-    uint64_t select_prefix(const std::vector<size_t> &s, const uint64_t idx) {
+    uint64_t select_prefix(const std::vector<size_t> &s, const uint64_t idx)
+    {
         uint64_t ans = idx;
 //        uint64_t ans = idx - 1;
         if (idx > length_ || 0 == idx) return EPS;
@@ -497,38 +538,51 @@ public:
         uint64_t word_len = (s.size() - 1) * alphabet_bit_num_;
         link_type cur = root_;
         size_t j = 0;
-		uint64_t tmp_bit = 0;
-		size_t p = 0;
-		size_t q = 0;
-        for (size_t i = 0; i < word_len; ++i) {
-			tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
-            if (j == cur->trie_data.len) {
-                if (!tmp_bit) {
+        uint64_t tmp_bit = 0;
+        size_t p = 0;
+        size_t q = 0;
+        for (size_t i = 0; i < word_len; ++i)
+        {
+            tmp_bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - q -1)) & 1LLU;
+            if (j == cur->trie_data.len)
+            {
+                if (!tmp_bit)
+                {
                     if (NULL == cur->left) return EPS;
-                    else {
+                    else
+                    {
                         cur = cur->left;
                         j = 0;
                     }
-                } else {
+                }
+                else
+                {
                     if (NULL == cur->right) return EPS;
-                    else {
+                    else
+                    {
                         cur = cur->right;
                         j = 0;
                     }
                 }
-            } else if (get_bit_(cur->trie_data.data, j) != tmp_bit) {
+            }
+            else if (get_bit_(cur->trie_data.data, j) != tmp_bit)
+            {
                 return EPS;
-            } else {
+            }
+            else
+            {
                 ++j;
             }
-			++q;
-			if (q == alphabet_bit_num_) {
-				q = 0;
-				++p;
-			}
+            ++q;
+            if (q == alphabet_bit_num_)
+            {
+                q = 0;
+                ++p;
+            }
         }
 
-        while (cur != root_) {
+        while (cur != root_)
+        {
             if (cur == cur->parent->left)
                 ans = cur->parent->bit_array.Select(0, ans) + 1;
 //                ans = cur->parent->bv.select0(ans);
@@ -727,8 +781,10 @@ private:
         return ans;
     }
 
-    void print(word_type x) {
-        if (0 == x.len) {
+    void print(word_type x)
+    {
+        if (0 == x.len)
+        {
             std::cout<<"NULL\n";
             return ;
         }
