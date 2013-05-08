@@ -185,6 +185,24 @@ void runLogicalNotAnd(std::size_t bitNum, std::size_t runNum)
                        "on " << bitNum << " bits");
 }
 
+void runToggle(std::size_t bitNum, std::size_t runNum)
+{
+    BitVector bitVector(bitNum);
+    const std::size_t setBitNum = bitNum / 2;
+    setBitVector(bitVector, setBitNum);
+
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        bitVector.toggle();
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "BitVector::toggle() of " << runNum << " times "
+                       "on " << bitNum << " bits");
+}
+
 BOOST_AUTO_TEST_SUITE(t_bitvector)
 
 BOOST_AUTO_TEST_CASE(bitvector)
@@ -216,6 +234,14 @@ BOOST_AUTO_TEST_CASE(benchLogicalNotAnd)
     const std::size_t runNum = 1e4;
 
     runLogicalNotAnd(bitNum, runNum);
+}
+
+BOOST_AUTO_TEST_CASE(benchToggle)
+{
+    const std::size_t bitNum = 1e7;
+    const std::size_t runNum = 1e4;
+
+    runToggle(bitNum, runNum);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

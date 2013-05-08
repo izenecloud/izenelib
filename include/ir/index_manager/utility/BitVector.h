@@ -188,10 +188,25 @@ public:
 
     void toggle()
     {
+        typedef uint64_t word_t;
         const size_t byteNum = getBytesNum(size_);
-        for(size_t i = 0; i < byteNum; ++i )
+        const size_t wordByteNum = sizeof(word_t);
+
+        const size_t wordNum = byteNum / wordByteNum;
+        word_t* pWord = reinterpret_cast<word_t*>(bits_);
+        for (std::size_t i = 0; i < wordNum; ++i, ++pWord)
         {
-            bits_[i] = ~bits_[i];
+            *pWord = ~*pWord;
+        }
+
+        const size_t leftByteNum = byteNum % wordByteNum;
+        if (leftByteNum > 0)
+        {
+            unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
+            for (std::size_t i = 0; i < leftByteNum; ++i, ++pBytes)
+            {
+                *pBytes = ~*pBytes;
+            }
         }
 
         clearDirtyBits();
