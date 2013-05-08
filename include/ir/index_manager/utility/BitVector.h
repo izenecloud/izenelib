@@ -86,12 +86,10 @@ public:
         if(size_ == 0)
             return;
 
-        const size_t fullByteNum = getBytesNum(size_) - 1;
-        memset(bits_, 0xFF, fullByteNum);
+        const size_t byteNum = getBytesNum(size_);
+        memset(bits_, 0xFF, byteNum);
 
-        const size_t endBit = size_ - 1;
-        unsigned char endMask = (1 << ((endBit & 7) + 1)) - 1;
-        bits_[endBit >> 3] |= endMask;
+        clearDirtyBits();
     }
 
     bool test(size_t bit) const
@@ -192,7 +190,11 @@ public:
     {
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
+        {
             bits_[i] = ~bits_[i];
+        }
+
+        clearDirtyBits();
     }
 
     friend std::ostream& operator<<(std::ostream& output, const BitVector& bv) {
@@ -439,6 +441,23 @@ private:
             result <<= 1;
 
         return result;
+    }
+
+    /**
+     * Clear the dirty bits which positions are not less than @c size_.
+     * For example, if the @c bits_ content is "11111111", and size_ is 4,
+     * after calling this function, the last four dirty bits would be cleared,
+     * that is, the @c bits content would be "11110000".
+     */
+    void clearDirtyBits()
+    {
+        // no dirty bits when size_ is a multiple of 8
+        if ((size_ & 7) == 0)
+            return;
+
+        const size_t endBit = size_ - 1;
+        const unsigned char endMask = (1 << ((endBit & 7) + 1)) - 1;
+        bits_[endBit >> 3] &= endMask;
     }
 
     /**

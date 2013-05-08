@@ -345,6 +345,9 @@ void testCompressBitVector(std::size_t bitNum)
     const std::size_t setBitNum = bitNum / 2;
     setBitVector(bitVector, setBitNum);
     checkCompressBitVector<word_t>(bitVector);
+
+    bitVector.toggle();
+    checkCompressBitVector<word_t>(bitVector);
 }
 
 template <typename word_t>
