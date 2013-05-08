@@ -92,6 +92,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${TokyoCabinet_LIBRARIES}
+    ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
     )
 
@@ -101,6 +102,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
    am
    izene_util
    bz2
+   ${CMAKE_THREAD_LIBS_INIT}
    ${Glog_LIBRARIES}
     )
 
