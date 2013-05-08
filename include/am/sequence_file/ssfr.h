@@ -80,6 +80,7 @@ public:
       }
       LenType recodeSize = 0;
       stream_.read( (char*)&recodeSize, sizeof(recodeSize) );
+      //std::cerr<<"recode size "<<recodeSize<<std::endl;
       if ( Failed() )
       {
         return false;
@@ -98,6 +99,34 @@ public:
       return true;
     }
     
+    template <class T>
+    bool NextOne(T& t)
+    {
+      if(index_ >= Count() ) 
+      {
+        return false;
+      }
+      LenType recodeSize = 0;
+      stream_.read( (char*)&recodeSize, sizeof(recodeSize) );
+      //std::cerr<<"recode size "<<recodeSize<<std::endl;
+      if ( Failed() )
+      {
+        return false;
+      }
+      char* data = new char[recodeSize];
+      stream_.read( data, recodeSize );
+      if ( Failed() )
+      {
+        delete[] data;
+        return false;
+      }
+      typename Deserializer<T>::type izd_value(data,recodeSize);
+      izd_value.read_image(t);
+      delete[] data;
+      index_++;
+      return true;
+    }
+
     template <typename K, class V>
     bool Next(K& key, V& value)
     {
@@ -497,6 +526,28 @@ public:
       count_++;
       return true;
     }
+    template <class T>
+    bool AppendOne(const T& t)
+    {
+      char* ptr;
+      std::size_t valueSize;
+      typename Serializer<T>::type izs(t);
+      izs.write_image(ptr, valueSize);
+      LenType recodeSize = valueSize;
+      char* data = new char[recodeSize + sizeof(recodeSize)];
+      char* pData = data;
+      memcpy( pData, &recodeSize, sizeof(recodeSize) );
+      pData += sizeof(recodeSize);
+      memcpy( pData, ptr, valueSize );
+      stream_.write(data, recodeSize+ sizeof(recodeSize));
+      delete[] data;
+      if( Failed() )
+      {
+        return false;
+      }
+      count_++;
+      return true;
+    }
     
     template <typename K, class V>
     bool Append(const K& key, const V& value)
@@ -637,12 +688,23 @@ public:
     {
       return false;
     }
-    value.resize(reader.Count());
+    std::size_t count = reader.Count();
+    value.resize(count);
+    //value.reserve(count);
     std::size_t i=0;
-    while(reader.Next(value[i]))
+    while(i<count)
     {
-      ++i;
+        //if(i%1==0)
+        //{
+            //std::cerr<<"loading "<<i<<","<<value.size()<<std::endl;
+        //}
+        //T v;
+        //if(!reader.Next(v)) break;
+        //value.push_back(v);
+        //++i;
+        if(!reader.Next(value[i++])) break;
     }
+    //std::cerr<<"load i "<<i<<std::endl;
     return true;
   }
   
@@ -655,6 +717,44 @@ public:
     value = value_list[0];
     return true;
   }
+  template <class T>
+  static bool LoadOne(const std::string& file, std::vector<T>& value)
+  {
+    Reader<LenType> reader(file);
+    if(!reader.Open())
+    {
+      return false;
+    }
+    std::size_t count = reader.Count();
+    value.resize(count);
+    //value.reserve(count);
+    std::size_t i=0;
+    while(i<count)
+    {
+        //if(i%1==0)
+        //{
+            //std::cerr<<"loading "<<i<<","<<value.size()<<std::endl;
+        //}
+        //T v;
+        //if(!reader.Next(v)) break;
+        //value.push_back(v);
+        //++i;
+        if(!reader.NextOne(value[i++])) break;
+    }
+    //std::cerr<<"load i "<<i<<std::endl;
+    return true;
+  }
+  
+  template <class T>
+  static bool LoadOne(const std::string& file, T& value)
+  {
+    std::vector<T> value_list;
+    if(!LoadOne(file, value_list)) return false;
+    if(value_list.size()!=1) return false;
+    value = value_list[0];
+    return true;
+  }
+
   template <class T>
   static bool Save(const std::string& file, const std::vector<T>& value)
   {
@@ -687,6 +787,37 @@ public:
     return Save(file, value_list);
   }
   
+  template <class T>
+  static bool SaveOne(const std::string& file, const std::vector<T>& value)
+  {
+    try
+    {
+      boost::filesystem::remove_all(file);
+    }
+    catch(std::exception& ex)
+    {
+      std::cerr<<ex.what()<<std::endl;
+      return false;
+    }
+    Writer<LenType> writer(file);
+    if(!writer.Open())
+    {
+      return false;
+    }
+    for(std::size_t i=0;i<value.size();i++)
+    {
+      if(!writer.AppendOne(value[i])) return false;
+    }
+    writer.Close();
+    return true;
+  }
+  
+  template <class T>
+  static bool SaveOne(const std::string& file, const T& value)
+  {
+    std::vector<T> value_list(1, value);
+    return SaveOne(file, value_list);
+  }
   
 };
 
