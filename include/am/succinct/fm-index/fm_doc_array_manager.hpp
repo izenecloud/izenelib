@@ -250,7 +250,8 @@ bool FMDocArrayMgr<CharT>::getFilterRange(size_t prop_id, const FilterRangeT &fi
     if (prop_id >= filter_docarray_list_.size() || filter_id_range.second > filter_docarray_list_[prop_id].doc_delim.size())
         return false;
     match_range.first = filter_docarray_list_[prop_id].doc_delim.prefixSum(filter_id_range.first);
-    match_range.second = filter_docarray_list_[prop_id].doc_delim.prefixSum(filter_id_range.second);
+    match_range.second = std::min(filter_docarray_list_[prop_id].doc_delim.prefixSum(filter_id_range.second),
+        filter_docarray_list_[prop_id].doc_delim.getSum());
     return true;
 }
 
