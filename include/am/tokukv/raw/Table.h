@@ -2,7 +2,7 @@
 #define  AM_TOKUKV_RAW_TABLE_H
 
 #include <stdint.h>
-#include <config.h> 
+#include <config.h>
 #include <inttypes.h>
 #ifdef BDB
 #include <sys/types.h>
@@ -38,10 +38,14 @@
 using namespace izenelib::am;
 using izenelib::am::raw::Buffer;
 
-namespace izenelib {
-namespace am {
-namespace tokukv {
-namespace raw {
+namespace izenelib
+{
+namespace am
+{
+namespace tokukv
+{
+namespace raw
+{
 
 template<typename Comp>
 class Table
@@ -53,10 +57,9 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
-    //typedef boost::shared_ptr<DBC> cursor_type;
     typedef DBC* cursor_type;
     typedef DB*  raw_type_ptr;
- 
+
     explicit Table(const std::string& file = "")
         : comp_(),db_(NULL),parenttid_(NULL),tid_(NULL),file_(file)
     {
@@ -70,28 +73,22 @@ public:
     bool open(const std::string& file)
     {
         file_ = file;
-        dbenv_->set_default_bt_compare(dbenv_,comp_); 
+        dbenv_->set_default_bt_compare(dbenv_,&comp_.Compare);
         return open();
     }
 
     bool open ()
-    {   
+    {
         parenttid_=0;
         tid_=0;
         dbenv_=NULL;
-        file_=".";
         string sdbdir=(file_+"/bench.tokudb");
         string sdbfilename=(file_+"/bench.db");
         const char* dbdir=sdbdir.c_str();
-        cout<<dbdir<<endl;
         const char *dbfilename =sdbfilename.c_str();
-/*
-        const char* dbdir="./bench.tokudb";//).c_str();
-        const char *dbfilename = "./bench.db";
-*/
         if (!boost::filesystem::is_directory(file_))
         {
-                boost::filesystem::create_directories(file_);
+            boost::filesystem::create_directories(file_);
         }
         int r;
         bool do_append=false;
@@ -113,25 +110,24 @@ public:
                 assert(r == 0);
             }
         }
-
         bool do_txns=true;
-        r = db_env_create(&dbenv_, 0); 
-   cout<< "db_env_create"<<r<<endl;
-        if (dbenv_->set_cachesize) {
-           r = dbenv_->set_cachesize(dbenv_, 1, 0, 1);
-           if (r != 0) 
-            printf("WARNING: set_cachesize %d\n", r);
+        r = db_env_create(&dbenv_, 0);
+        if (dbenv_->set_cachesize)
+        {
+            r = dbenv_->set_cachesize(dbenv_, 1, 0, 1);
+            if (r != 0)
+                printf("WARNING: set_cachesize %d\n", r);
         }
-   cout<< "dbenv_->set_cachesize"<<r<<endl;
-	r = dbenv_->open(dbenv_, dbdir, DB_CREATE|DB_PRIVATE|DB_INIT_MPOOL|DB_INIT_TXN , 0644);//DB_CREATE|DB_INIT_LOG|DB_INIT_LOCK| DB_INIT_MPOOL|DB_INIT_TXN
-   cout<< "dbenv_->open"<<r<<endl;
-        r = db_create(&db_, dbenv_, 0);                                                           assert(r==0);
-        if (do_txns) {
-	    r = dbenv_->txn_begin(dbenv_, 0, &tid_, 0);                                           
+        r = dbenv_->open(dbenv_, dbdir, DB_CREATE|DB_PRIVATE|DB_INIT_MPOOL|DB_INIT_TXN , 0644);
+        r = db_create(&db_, dbenv_, 0);
+        assert(r==0);
+        if (do_txns)
+        {
+            r = dbenv_->txn_begin(dbenv_, 0, &tid_, 0);
         }
-        r = db_->open(db_, tid_, dbfilename, NULL, DB_BTREE, DB_CREATE, 0);//  CKERR(r);|DB_INIT_TXN 
+        r = db_->open(db_, tid_, dbfilename, NULL, DB_BTREE, DB_CREATE, 0);
         r = db_->pre_acquire_table_lock(db_, tid_);
-	assert(r==0);
+        assert(r==0);
         return true;//r==0;
     }
 
@@ -181,7 +177,7 @@ public:
         size_type size = 0;
         if (checkHandle_(db_))
         {
-            for (cursor_type cursor=begin();cursor; iterNext(cursor))
+            for (cursor_type cursor=begin(); cursor; iterNext(cursor))
             {
                 ++size;
             }
@@ -228,9 +224,9 @@ public:
      * @return If successful, the return value is @c true, else, it is @c false.
      */
     bool insert(const Buffer& key, const Buffer& value)
-    {      
+    {
         return checkHandle_(db_) && (
-             db_->put(db_, tid_, fill_dbt_(key.data(),key.size()), fill_dbt_(value.data(),value.size()), 0)==0);    
+                   db_->put(db_, tid_, fill_dbt_(key.data(),key.size()), fill_dbt_(value.data(),value.size()), 0)==0);
     }
     /**
      * @brief Insert new data into database.
@@ -276,7 +272,7 @@ public:
     }
     bool get(const Buffer& key, Buffer& value) const
     {
-         if (checkHandle_(db_) )
+        if (checkHandle_(db_) )
         {
             DBT val;
             memset(&val, 0, sizeof val);
@@ -284,12 +280,12 @@ public:
             if(r==0)
             {
                 value.attach(const_cast<char*>((char*)val.data),
-                    static_cast<std::size_t>(val.size));
+                             static_cast<std::size_t>(val.size));
                 return true;
             }
             else
             {
-                return false; 
+                return false;
             }
         }
         return false;
@@ -298,7 +294,7 @@ public:
     bool del(const Buffer& key)
     {
         return checkHandle_(db_) &&
-            db_->del(db_, tid_, fill_dbt_(key.data(),key.size()), 0)==0;
+               db_->del(db_, tid_, fill_dbt_(key.data(),key.size()), 0)==0;
     }
 
     cursor_type begin() const
@@ -309,7 +305,7 @@ public:
             int r =db_->cursor(db_,tid_, &cursor, 0);
             DBT k,v;
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             r = cursor->c_get(cursor, &k, &v,  DB_FIRST);
             return cursor;
         }
@@ -329,12 +325,12 @@ public:
         if (isOpened())
         {
             cursor_type cursor;
-            
+
             int r = db_->cursor(db_, tid_, &cursor, 0);
-            assert(r==0); 
+            assert(r==0);
             DBT k,v;//TODO
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             cursor->c_get(cursor, fill_dbt_(key.data(),key.size()), &v, 0);
             return cursor;
         }
@@ -349,7 +345,7 @@ public:
             int r = db_->cursor(db_, tid_, &cursor, 0);
             DBT k,v;
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             r = cursor->c_get(cursor, &k, &v, DB_LAST);
             assert(r==0);
             return cursor;
@@ -363,12 +359,12 @@ public:
         {
             DBT k,v;
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             cursor->c_get(cursor, &k, &v, DB_CURRENT);
             key.attach(const_cast<char*>((char*)k.data),
-                    static_cast<std::size_t>(k.size));
+                       static_cast<std::size_t>(k.size));
             value.attach(const_cast<char*>((char*)v.data),
-                    static_cast<std::size_t>(v.size));
+                         static_cast<std::size_t>(v.size));
             return true;
         }
         return false;
@@ -380,15 +376,15 @@ public:
         {
             DBT k,v;
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             int r = cursor->c_get(cursor, &k, &v, DB_NEXT);
             if(r==DB_NOTFOUND)
             {
-               cursor=NULL;
-               return false;
+                cursor=NULL;
+                return false;
             }
             else
-               return true;
+                return true;
         }
         else
         {
@@ -403,15 +399,15 @@ public:
         {
             DBT k,v;
             memset(&k, 0, sizeof(k));
-	    memset(&v, 0, sizeof(v));
+            memset(&v, 0, sizeof(v));
             int r = cursor->c_get(cursor, &k, &v, DB_PREV);
             if(r==DB_NOTFOUND)
             {
-               cursor=NULL;
-               return false;
+                cursor=NULL;
+                return false;
             }
             else
-               return true;
+                return true;
         }
         else
         {
@@ -420,26 +416,18 @@ public:
         }
     }
 
-   
+
 
 private:
-  
+
     static DBT *fill_dbt_(const void *data, int size)
     {
-        DBT *dbt=new DBT(); 
+        DBT *dbt=new DBT();
         dbt->size = size;
         dbt->data = (void *) data;
         return dbt;
     }
-/*
-    DBT *fill_dbt_(DBT *dbt, const void *data, int size)
-    {
-        memset(dbt, 0, sizeof *dbt);
-        dbt->size = size;
-        dbt->data = (void *) data;
-        return dbt;
-    }
-*/
+
     static bool checkHandle_(DB* h)
     {
         return h;
@@ -459,6 +447,6 @@ private:
 }
 }
 }
- // namespace izenelib::am::raw
+// namespace izenelib::am::raw
 
 #endif // AM_tokukv_RAW_TABLE_H

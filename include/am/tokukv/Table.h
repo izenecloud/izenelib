@@ -9,21 +9,19 @@
 
 #include <boost/assert.hpp>
 
-namespace izenelib {
-namespace am {
-namespace tokukv {
+namespace izenelib
+{
+namespace am
+{
+namespace tokukv
+{
 //using namespace izenelib::am::tokukv::raw;
 
 template<typename KeyType>
-class TwoPartComparator 
+class TwoPartComparator
 {
 public:
-    // Three-way comparison function:
-    //   if a < b: negative result
-    //   if a > b: positive result
-    //   else: zero result
-    //   int Compare(const ::tokukv::Slice& a, const ::tokukv::Slice& b) const {
-    int Compare (DB * db, const DBT * a, const DBT * b) 
+    int Compare (DB * db, const DBT * a, const DBT * b)
     {
         //return a.compare(b);
         izenelib::am::CompareFunctor<KeyType> _comp;
@@ -36,9 +34,10 @@ public:
     }
 
     // Ignore the following methods for now:
-    const char* Name() const { return "TwoPartComparator"; }
-    //void FindShortestSeparator(std::string*, const ::tokukv::Slice&) const { }
-    //void FindShortSuccessor(std::string*) const { }
+    const char* Name() const
+    {
+        return "TwoPartComparator";
+    }
 };
 
 
@@ -47,9 +46,9 @@ template<typename KeyType,
          typename Comp=TwoPartComparator<KeyType> >
 class Table
     : public izenelib::am::raw::AmWrapper<Table<KeyType, ValueType, Comp>,
-                                          raw::Table<Comp>,
-                                          KeyType,
-                                          ValueType>
+      raw::Table<Comp>,
+      KeyType,
+      ValueType>
 {
     typedef Table<KeyType, ValueType, Comp> self_type;
 
@@ -62,7 +61,7 @@ public:
     typedef raw::Table<Comp> raw_am_type;
 
     explicit Table(const std::string& file = "")
-    : table_(file), comp_()
+        : table_(file), comp_()
     {
     }
 
@@ -82,6 +81,8 @@ private:
     friend struct izenelib::am::raw::detail::AmWrapperAccess;
 };
 /**/
-}}} // namespace izenelib::am::tokukv
+}
+}
+} // namespace izenelib::am::tokukv
 
 #endif // AM_tokukv_TABLE_H
