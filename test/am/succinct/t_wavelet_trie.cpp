@@ -29,9 +29,11 @@ string_type itos(size_t i, size_t N)
 
 //string_type ch = "零一二三四五六七八九";
 
-string_type create(size_t S, size_t L) {
+string_type create(size_t S, size_t L)
+{
     string_type str;
-    for (size_t i = 0; i < L; ++i) {
+    for (size_t i = 0; i < L; ++i)
+    {
         str += static_cast<izenelib::util::UCS2Char> (rand() % S +1);
 //		str += (x % S % 255 +1);
     }
@@ -67,11 +69,11 @@ BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
         size_t M = N / 10;
 
         size_t L = 10;
-		size_t S = 10000;
+    	size_t S = 10000;
         std::cout<<"N="<<N<<'\n';
     string_type str = A[1];
-	std::vector<size_t> C;
-	for(size_t i = 0; i <= str.length(); ++i)C.push_back(str[i]);
+    std::vector<size_t> C;
+    for(size_t i = 0; i <= str.length(); ++i)C.push_back(str[i]);
         for(size_t i = 0; i < N; ++i) {
     		string_type str = create(S, L);
     //std::cout<<str<<"!\n";
@@ -97,7 +99,7 @@ BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
         std::cout<<M<<" access cost "<<(double)(time2 - time1) / CLOCKS_PER_SEC<<"seconds.\n";
 
         for(size_t i = 0; i < M; ++i) {
-//    		string_type str = itos(i, N);
+    //    		string_type str = itos(i, N);
     //        string_type str = rand(S, L, i);
             T.rank(C, i + 1);
     //		BOOST_CHECK_EQUAL(1, T.rank(C, i + 1));
@@ -107,7 +109,7 @@ BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
         std::cout<<M<<" rank cost "<<(double)(time3 - time2) / CLOCKS_PER_SEC<<"seconds.\n";
 
         for(size_t i = 0; i < M; ++i) {
-//    		string_type str = itos(i, N);
+    //    		string_type str = itos(i, N);
     //        string_type str = rand(S, L, i);
             T.select(C, 1);
     //		BOOST_CHECK_EQUAL(i, T.select(C, 1));
@@ -117,7 +119,7 @@ BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
         std::cout<<M<<" select cost "<<(double)(time4 - time3) / CLOCKS_PER_SEC<<"seconds.\n";
 
         for(size_t i = 0; i < M; ++i) {
-//    		string_type str = itos(i, N);
+    //    		string_type str = itos(i, N);
     //        string_type str = rand(S, L, i);
             T.rank_prefix(C, i);
     //	BOOST_CHECK_EQUAL(1, T.rank_prefix(C, i + 1));
@@ -127,7 +129,7 @@ BOOST_AUTO_TEST_CASE( wavelet_trie_1 )
         std::cout<<M<<" rank_prefix cost "<<(double)(time5 - time4) / CLOCKS_PER_SEC<<"seconds.\n";
 
         for(size_t i = 0; i < M; ++i) {
-//    		string_type str = itos(i, N);
+    //    		string_type str = itos(i, N);
     //        string_type str = rand(S, L, i);
             T.select_prefix(C, 1);
     //	BOOST_CHECK_EQUAL(i, T.select_prefix(C, 1));
