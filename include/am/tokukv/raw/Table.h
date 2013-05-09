@@ -79,8 +79,20 @@ public:
         parenttid_=0;
         tid_=0;
         dbenv_=NULL;
-        const char* dbdir=(file_+"/bench.tokudb").c_str();
-        const char *dbfilename =(file_+ "/bench.db").c_str();
+        file_=".";
+        string sdbdir=(file_+"/bench.tokudb");
+        string sdbfilename=(file_+"/bench.db");
+        const char* dbdir=sdbdir.c_str();
+        cout<<dbdir<<endl;
+        const char *dbfilename =sdbfilename.c_str();
+/*
+        const char* dbdir="./bench.tokudb";//).c_str();
+        const char *dbfilename = "./bench.db";
+*/
+        if (!boost::filesystem::is_directory(file_))
+        {
+                boost::filesystem::create_directories(file_);
+        }
         int r;
         bool do_append=false;
         string strdbdir(dbdir);
@@ -97,18 +109,22 @@ public:
             if (strcmp(dbdir, ".") != 0)
             {
                 r = mkdir(dbdir, 0644);
+                cout<< "mkdir"<<r<<endl;
                 assert(r == 0);
             }
         }
 
         bool do_txns=true;
-        r = db_env_create(&dbenv_, 0);  
+        r = db_env_create(&dbenv_, 0); 
+   cout<< "db_env_create"<<r<<endl;
         if (dbenv_->set_cachesize) {
            r = dbenv_->set_cachesize(dbenv_, 1, 0, 1);
            if (r != 0) 
             printf("WARNING: set_cachesize %d\n", r);
         }
+   cout<< "dbenv_->set_cachesize"<<r<<endl;
 	r = dbenv_->open(dbenv_, dbdir, DB_CREATE|DB_PRIVATE|DB_INIT_MPOOL|DB_INIT_TXN , 0644);//DB_CREATE|DB_INIT_LOG|DB_INIT_LOCK| DB_INIT_MPOOL|DB_INIT_TXN
+   cout<< "dbenv_->open"<<r<<endl;
         r = db_create(&db_, dbenv_, 0);                                                           assert(r==0);
         if (do_txns) {
 	    r = dbenv_->txn_begin(dbenv_, 0, &tid_, 0);                                           
