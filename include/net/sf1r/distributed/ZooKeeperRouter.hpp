@@ -136,6 +136,7 @@ private:
     /** Resolve to a node in the topology. */
     const Sf1Node& resolve(const std::string collection) const;
     void updateNodeDataOnTimer(int calltype);
+    void clearSf1Nodes();
     
 private:
     

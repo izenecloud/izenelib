@@ -127,7 +127,6 @@ size_t SDArray::prefixSumLookup(size_t pos, size_t& val) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
-    size_t sum    = Ltable_[bpos * 2];
     size_t prev   = 0;
 
     if (offset == 0)
@@ -141,7 +140,7 @@ size_t SDArray::prefixSumLookup(size_t pos, size_t& val) const
 
     val = selectBlock_(offset, Ltable_[bpos * 2 + 1]) - prev;
 
-    return sum + prev;
+    return Ltable_[bpos * 2] + prev;
 }
 
 size_t SDArray::getVal(size_t pos) const

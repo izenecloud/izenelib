@@ -60,6 +60,15 @@ ADD_EXECUTABLE(t_indexer_util ${t_indexer_util_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexer_util ${libs})
 
+SET(t_EWAHTermDocFreqs_SRC
+  t_EWAHTermDocFreqs.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_EWAHTermDocFreqs ${t_EWAHTermDocFreqs_SRC})
+
+TARGET_LINK_LIBRARIES(t_EWAHTermDocFreqs ${libs})
+
 SET(t_indexsort_SRC
   t_indexsort.cpp
   t_master_suite.cpp

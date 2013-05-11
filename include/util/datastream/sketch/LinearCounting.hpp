@@ -3,7 +3,6 @@
 
 #include "ICardinality.hpp"
 #include <util/hashFunction.h>
-#include <common/type_defs.h>
 #include <bitset>
 #include <stdint.h>
 #include <math.h>

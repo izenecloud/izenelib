@@ -120,6 +120,7 @@ IF(izene_util_SHOULD_BUILD)
     modp_numtoa.cpp
     timestamp.cpp
     MemPool.cpp
+    mem_pool.cpp
     kv2string.cpp
     csv.cpp
 

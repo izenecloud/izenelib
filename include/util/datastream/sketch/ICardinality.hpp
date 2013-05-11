@@ -1,8 +1,8 @@
 #ifndef IZENELIB_UTIL_SKETCH_ICARDINALITY_H_
 #define IZENELIB_UTIL_SKETCH_ICARDINALITY_H_
 
-//#include <common/type_defs.h>
 #include <iostream>
+#include <util/izene_serialization.h>
 
 NS_IZENELIB_UTIL_BEGIN
 

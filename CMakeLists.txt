@@ -198,6 +198,7 @@ IF(VERBOSE)
     MESSAGE(STATUS "TokyoCabinet: not found")
   ENDIF(TokyoCabinet_FOUND)
 
+
   IF(Glog_FOUND)
     MESSAGE(STATUS "Google Glog:")
     MESSAGE(STATUS "  header: ${Glog_INCLUDE_DIRS}")
@@ -205,6 +206,16 @@ IF(VERBOSE)
   ELSE(Glog_FOUND)
     MESSAGE(STATUS "Google Glog: not found")
   ENDIF(Glog_FOUND)
+
+
+  IF(Toku_FOUND)
+    MESSAGE(STATUS "Toku_FOUND:")
+    MESSAGE(STATUS "  header: ${Toku_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${Toku_LIBS}")
+  ELSE(Toku_FOUND)
+    MESSAGE(STATUS "Toku_FOUND: not found")
+  ENDIF(Toku_FOUND)
+
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")

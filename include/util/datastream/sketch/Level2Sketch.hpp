@@ -2,7 +2,6 @@
 #define IZENELIB_UTIL_bucket_LEVEL2SKETCH_H_
 
 #include <util/hashFunction.h>
-//#include <common/type_defs.h>
 #include <vector>
 #include <iostream>
 

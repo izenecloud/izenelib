@@ -4,7 +4,6 @@
 #include "ICardinality.hpp"
 #include "Level2Sketch.hpp"
 #include <util/hashFunction.h>
-//#include <common/type_defs.h>
 #include <vector>
 #include <stdint.h>
 #include <math.h>

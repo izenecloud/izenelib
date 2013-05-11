@@ -230,6 +230,7 @@ void BTreeIndexerManager::getValueNotIn(const std::string& property_name, const 
     }
     getValueIn(property_name, keys, docs, false);
     docs.toggle();
+    docs.clear(0); // clear docid 0 after toggle
     doFilter_(docs);
 }
 
@@ -238,6 +239,7 @@ void BTreeIndexerManager::getValueNotEqual(const std::string& property_name, con
     if(!checkType_(property_name, key)) return;
     getValue(property_name, key, docs);
     docs.toggle();
+    docs.clear(0); // clear docid 0 after toggle
     doFilter_(docs);
 }
 

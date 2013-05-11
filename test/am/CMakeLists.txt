@@ -1,10 +1,10 @@
 LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
 
-IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
+IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 
   INCLUDE_DIRECTORIES(${TokyoCabinet_INCLUDE_DIRS})
   INCLUDE_DIRECTORIES(${Glog_INCLUDE_DIRS})
-
+  INCLUDE_DIRECTORIES(${Toku_INCLUDE_DIR})
   SET(t_am_SRC
     Runner.cpp
 
@@ -15,7 +15,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     #IntString.cpp
     #IntNull.cpp
     OpenClose.cpp
-   # am_perf.cpp
+    #am_perf.cpp
 
     raw/Buffer.cpp
     b-trie/t_btrie_en.cpp
@@ -30,6 +30,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
     luxio/Db.cpp
     leveldb/Db.cpp
+    tokukv/Db.cpp
 
     graphchi/t_basic_smoketest.cpp
     graphchi/t_pagerank.cpp
@@ -51,6 +52,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    luxio
    izene_log
    ${TokyoCabinet_LIBRARIES}
+   ${Toku_LIBS}
    compressor
    leveldb
    snappy
@@ -90,6 +92,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${TokyoCabinet_LIBRARIES}
+    ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
     )
 
@@ -99,6 +102,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    am
    izene_util
    bz2
+   ${CMAKE_THREAD_LIBS_INIT}
    ${Glog_LIBRARIES}
     )
 

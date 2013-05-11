@@ -98,7 +98,7 @@ ConnectionPool::acquire() {
         throw ConnectionPoolError(msg);
     }
     
-    LOG(INFO) << "Growing pool ..." << GET_PATH(path);
+    LOG(INFO) << "Growing pool ..." << GET_PATH(path) << ", " << host << ":" << port;
     try {
         reserved.push_back(new RawClient(service, host, port, timeout, path));
         ++size;

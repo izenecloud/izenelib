@@ -133,7 +133,8 @@ public:
 
     bool reset()
     {
-        if(bs_->next_) delete bs_->next_;
+        if(bs_) delete bs_;
+        bs_=new BucketT(0, NULL, NULL);
         gps_.clear();
         size_=th_=0;
         return true;
@@ -219,7 +220,6 @@ private:
             th_ = bs_->next_->c_;
             return true;
         }
-
         bp->erase(i);
         if(!(bp->next_))
         {
