@@ -51,7 +51,7 @@ static inline uint32_t ctz32(uint32_t n) {
 #if defined(__INTEL_COMPILER)
     return _bit_scan_forward(n);
 
-#elif defined(__GNUC__) && UINT_MAX >= UINT32_MAX
+#elif defined(__GNUC__) /*&& UINT_MAX >= UINT32_MAX*/
     return __builtin_ctz(n);
 
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
@@ -99,7 +99,7 @@ static inline uint32_t ctz16(uint16_t n) {
 #if defined(__INTEL_COMPILER)
     return _bit_scan_forward(n);
 
-#elif defined(__GNUC__) && UINT_MAX >= UINT32_MAX
+#elif defined(__GNUC__) /*&& UINT_MAX >= UINT32_MAX*/
     return __builtin_ctz(n);
 
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
