@@ -72,6 +72,11 @@ public:
     {
         return tke_->get(k, topk);
     }
+
+    madoka::Sketch* getSketch()
+    {
+        return sketch_;
+    }
 private:
     CountType sketch_width_;
     uint64_t sketch_maxvalue_;
