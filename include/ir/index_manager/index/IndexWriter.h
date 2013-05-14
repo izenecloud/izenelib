@@ -52,8 +52,6 @@ public:
     void close();
     /// flush index
     void flush();
-    /// flush barrels ifo 
-    void flushBarrelsInfo();
     /// flush doclen writer
     void flushDocLen();
     /// set schedule
