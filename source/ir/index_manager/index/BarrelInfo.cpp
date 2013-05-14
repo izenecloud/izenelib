@@ -365,12 +365,13 @@ void BarrelsInfo::write(Directory* pDirectory)
     while (iter != barrelInfos.end())
     {
         pBarrelInfo = *iter;
-        if(pBarrelInfo->getWriter())
+        /* Change for barrel consistency.*/
+        /*if(pBarrelInfo->getWriter())
         {
             DVLOG(2) << "ignore in-memory barrel " << pBarrelInfo->getName() << " in writing file \"barrels\"";
             iter ++;
             continue;
-        }
+        }*/
         pBarrelItem = pBarrelsItem->addElement("barrel");
         ///add <name></name> element
         pItem = pBarrelItem->addElement("name");
