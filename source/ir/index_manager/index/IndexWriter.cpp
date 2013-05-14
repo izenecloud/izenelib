@@ -112,13 +112,6 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
-/* change for distribute sf1. */
-void IndexWriter::flushBarrelsInfo()
-{
-    if (pBarrelsInfo_->getBarrelCount() > 0)
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-}
-
 void IndexWriter::flushDocLen()
 {
     if (pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen();
