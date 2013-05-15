@@ -326,6 +326,8 @@ void Indexer::flush(bool force)
     else
     {
         boost::mutex::scoped_lock lock(indexMutex_);
+        /* change for distribute sf1. */
+        pIndexWriter_->flushBarrelsInfo();
         pIndexWriter_->flushDocLen();
     }
     pIndexReader_->flush();
