@@ -201,8 +201,6 @@ public:
 
     bool isSearchable() { return searchable; }
 
-    bool isInMemoryBarrel() { return inMemoryBarrel; }
-
     void registerIndexInput(IndexInput* pIndexInput);
 
     void unRegisterIndexInput(IndexInput* pIndexInput);
@@ -230,8 +228,6 @@ public:
     IndexBarrelWriter* pBarrelWriter;
     ///whether this barrel contains updated documents
     bool isUpdate;
-    ///whether this barrel is in-memory barrel 
-    bool inMemoryBarrel;
     ///max doc of this barrel
     docid_t maxDocId;
 

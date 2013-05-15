@@ -133,8 +133,7 @@ void FieldIndexer::checkBinlog()
                     pIndexer_->getIndexWriter()->getBarrelInfo()->addBaseDocID(1,docidList[i]);
                 pIndexer_->getIndexWriter()->getBarrelInfo()->updateMaxDoc(docidList[i]);
                 pIndexer_->getIndexWriter()->getBarrelsInfo()->updateMaxDoc(docidList[i]);
-                /* A Document could have several fields and the field's number could vary. */
-                //++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
+                ++(pIndexer_->getIndexWriter()->getBarrelInfo()->nNumDocs);
                 addBinlog(docidList[i], (*iter));
                 i++;
             }
