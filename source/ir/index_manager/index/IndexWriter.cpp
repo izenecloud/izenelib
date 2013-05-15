@@ -51,13 +51,27 @@ void IndexWriter::tryResumeExistingBarrels()
     // in order to resume merging previous barrels,
     // add them into pIndexMergeManager_
     BarrelInfo* pBarrelInfo = NULL;
+    BarrelInfo* pBinlogInfo = NULL;
     boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
     pBarrelsInfo_->startIterator();
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
+        if (pBarrelInfo->isInMemoryBarrel())
+        {
+            pBinlogInfo=pBarrelInfo;
+            continue;
+        }
         assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
         pIndexMergeManager_->addToMerge(pBarrelInfo);
+    }
+
+    if (pBinlogInfo)
+    {
+        pCurBarrelInfo_=pBinlogInfo;
+        pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+        pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
+        pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     }
 }
 
@@ -112,6 +126,13 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
+/* change for distribute sf1. */
+void IndexWriter::flushBarrelsInfo()
+{
+    if (pBarrelsInfo_->getBarrelCount() > 0)
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
+}
+
 void IndexWriter::flushDocLen()
 {
     if (pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen();
@@ -119,7 +140,7 @@ void IndexWriter::flushDocLen()
 
 void IndexWriter::createBarrelInfo()
 {
-   DVLOG(2)<< "=> IndexWriter::createBarrelInfo()...";
+    DVLOG(2)<< "=> IndexWriter::createBarrelInfo()...";
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
@@ -132,7 +153,7 @@ void IndexWriter::createBarrelInfo()
 }
 
 void IndexWriter::checkbinlog() 
-{ 
+{
     pIndexBarrelWriter_->checkbinlog(); 
 }
 
@@ -158,6 +179,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
             flush();//
+            pCurBarrelInfo_->inMemoryBarrel = false;
             deletebinlog();
             createBarrelInfo();
         }
