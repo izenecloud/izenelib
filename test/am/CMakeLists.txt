@@ -101,8 +101,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
    ${Boost_LIBRARIES}
    am
    izene_util
-   bz2
-   ${CMAKE_THREAD_LIBS_INIT}
    ${Glog_LIBRARIES}
     )
 
