@@ -59,7 +59,7 @@ void IndexWriter::tryResumeExistingBarrels()
         pBarrelInfo = pBarrelsInfo_->next();
         if (pBarrelInfo->isInMemoryBarrel())
         {
-            pBinlogInfo=pBarrelInfo;
+            pBinlogInfo = pBarrelInfo;
             continue;
         }
         assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
@@ -68,7 +68,7 @@ void IndexWriter::tryResumeExistingBarrels()
 
     if (pBinlogInfo)
     {
-        pCurBarrelInfo_=pBinlogInfo;
+        pCurBarrelInfo_= pBinlogInfo;
         pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
         pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
         pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
