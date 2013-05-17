@@ -32,6 +32,15 @@ INCLUDE_DIRECTORIES(
   ${Glog_INCLUDE_DIRS}
  )
 
+SET(t_inMemoryBarrel_SRC
+  t_InMemoryBarrel.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_inMemoryBarrel ${t_inMemoryBarrel_SRC})
+
+TARGET_LINK_LIBRARIES(t_inMemoryBarrel ${libs})
+
 SET(t_indexer_SRC
   t_Indexer.cpp
   t_master_suite.cpp
