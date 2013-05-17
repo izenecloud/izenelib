@@ -191,7 +191,17 @@ RawClient::getResponse() {
     sequence = ntohl(sequence);
     length = ntohl(length);
 
-    char *data = new char[length];
+    static const uint32_t small_response_size = 1024*4;
+    static char stack_array[small_response_size];
+    char *data = NULL;
+    if (length > small_response_size)
+    {
+        data = new char[length];
+    }
+    else
+    {
+        data = stack_array;
+    }
 
     try {
         n = ba::read(socket, ba::buffer(data, length));
@@ -199,17 +209,20 @@ RawClient::getResponse() {
         status = Invalid;
         LOG(ERROR) << "get response body from socket error";
         LOG(ERROR) << e.what();
-        delete[] data;
+        if (length > small_response_size)
+            delete[] data;
         throw NetworkError(e.what());
     } catch(...)
     {
-        delete[] data;
+        if (length > small_response_size)
+            delete[] data;
         throw;
     }
     
     if (n != length) {
         status = Invalid;
-        delete[] data;
+        if (length > small_response_size)
+            delete[] data;
         throw ServerError("Read size mismatch");
     }
 
@@ -221,7 +234,9 @@ RawClient::getResponse() {
 
     LOG(INFO) << "Response received (" << n + HEADER_SIZE << " bytes)";
     
-    delete[] data;
+    if (length > small_response_size)
+        delete[] data;
+
     status = Idle;
     return boost::make_tuple(sequence, response);
 }
