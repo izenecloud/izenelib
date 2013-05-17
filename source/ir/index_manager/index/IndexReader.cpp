@@ -125,8 +125,6 @@ void IndexReader::createBarrelReader()
             if(pBarrelsInfo_->hasNext())
             {
                 BarrelInfo* pBarrelInfo = pBarrelsInfo_->next();
-                if(pBarrelInfo->isInMemoryBarrel())
-                    return;
                 if(pBarrelInfo->isSearchable() && pBarrelInfo->getDocCount() > 0)
                 {
                     if(IndexBarrelWriter* pBarrelWriter = pBarrelInfo->getWriter())

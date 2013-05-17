@@ -68,8 +68,7 @@ void IndexWriter::tryResumeExistingBarrels()
 
     if (pBinlogInfo)
     {
-        pCurBarrelInfo_= pBinlogInfo;
-        pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+        pCurBarrelInfo_ = pBinlogInfo;
         pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
         pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     }

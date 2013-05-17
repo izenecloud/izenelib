@@ -19,8 +19,6 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(
     while (pBarrelsInfo_->hasNext())
     {
         BarrelInfo* pBarrelInfo = pBarrelsInfo_->next();
-        if(pBarrelInfo->isInMemoryBarrel())
-            continue;
         if(!pBarrelInfo->isSearchable())
             continue;
         if (pBarrelInfo->getDocCount() > 0)
