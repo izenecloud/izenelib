@@ -423,7 +423,7 @@ void MRWorker::MapWork(boost::shared_ptr<Mapper> mapper)
     << " count_map_input = " << count_map_input << "\n"
     << " count_input_shards = " << count_input_shards << "\n";
 
-    map_output_send_buffer_.reset(NULL);
+    map_output_send_buffer_.reset();
 
     // Flush all reduce_input_buffers
     if (!mapper->IsMapOnly())
@@ -513,7 +513,7 @@ void MRWorker::ReduceWork(boost::shared_ptr<ReducerBase> reducer)
         }
     }
 
-    map_output_receive_buffer_.reset(NULL);
+    map_output_receive_buffer_.reset();
 
     // Invoke EndReduce in incremental reduction mode, or invoke Reduce
     // in batch reduction mode.

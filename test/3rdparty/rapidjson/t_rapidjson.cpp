@@ -7,8 +7,7 @@
 
 #include <rapidjson/reader.h>
 #include <rapidjson/writer.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/filewritestream.h>
+#include <rapidjson/filestream.h>
 
 
 //using namespace boost;

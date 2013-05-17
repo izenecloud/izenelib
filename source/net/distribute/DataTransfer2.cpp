@@ -179,25 +179,27 @@ DataTransfer2::sendFile(const string& file, const string& destination) {
 
 
 bool
-DataTransfer2::sendDir(const string& dir, const string& dest, bool recursive) {
+DataTransfer2::sendDir(const bfs::path& dirpath, const bfs::path& destpath, bool recursive) {
     DLOG(INFO) << "entering" << (recursive ? " (recursively) " : " ") 
-               << "into: " << dir;
-    
-    bfs::path dirpath(dir);
-    bfs::path destpath(dest);
+               << "into: " << dirpath;
     
     // select the proper iterator
     // XXX: cannot do: if (recursive) { typedef ... iterator; } else { typedef ... iterator; } ?
-    if (recursive) {
-        bfs::recursive_directory_iterator end;
-        for (bfs::recursive_directory_iterator it(dirpath); it != end; ++it) {
-            if (not sendPath(it->path(), destpath))
+    static const bfs::directory_iterator end;
+    for (bfs::directory_iterator it(dirpath); it != end; ++it) {
+
+        if (bfs::is_directory(it->path()))
+        {
+            if (recursive && !sendDir(it->path(), destpath/it->path().filename(), recursive))
                 return false;
         }
-    } else {
-        bfs::directory_iterator end;
-        for (bfs::directory_iterator it(dirpath); it != end; ++it) {
-            if (not sendPath(it->path(), destpath))
+        else if (bfs::is_regular_file(it->path()))
+        {
+            bfs::path send_dest = destpath;
+            if (it->path() == destpath/it->path().filename())
+                send_dest = it->path();
+
+            if (not sendFile(it->path().string(), send_dest.string()))
                 return false;
         }
     }

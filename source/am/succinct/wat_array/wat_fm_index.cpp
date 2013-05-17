@@ -39,7 +39,10 @@ void FMIndex::push_back(const izenelib::util::UString &doc)
 
 void FMIndex::build(char end_marker, uint64_t ddic, bool is_msg)
 {
-    if (is_msg) { cerr << "building burrows-wheeler transform." << endl; }
+    if (is_msg)
+    {
+        cerr << "building burrows-wheeler transform." << endl;
+    }
 
     doctails_.Build();
     substr_ += end_marker;
@@ -50,9 +53,15 @@ void FMIndex::build(char end_marker, uint64_t ddic, bool is_msg)
     head_ = b.head();
     b.clear();
     izenelib::util::UString().swap(substr_);
-    if (is_msg) { cerr << "done." << endl; }
+    if (is_msg)
+    {
+        cerr << "done." << endl;
+    }
 
-    if (is_msg) { cerr << "building wavelet tree." << endl; }
+    if (is_msg)
+    {
+        cerr << "building wavelet tree." << endl;
+    }
     vector<uint64_t> s_64(s.length());
     for (size_t i = 0; i < s.length(); ++i)
     {
@@ -62,9 +71,15 @@ void FMIndex::build(char end_marker, uint64_t ddic, bool is_msg)
     wt_.Init(s_64);
     size_t len = s_64.size();
     vector<uint64_t>().swap(s_64);
-    if (is_msg) { cerr << "done." << endl; }
+    if (is_msg)
+    {
+        cerr << "done." << endl;
+    }
 
-    if (is_msg) { cerr << "building dictionaries." << endl; }
+    if (is_msg)
+    {
+        cerr << "building dictionaries." << endl;
+    }
     for (uint64_t c = 0; c < 65536; c++)
     {
         rlt_[c] = wt_.RankLessThan(c, wt_.length());
@@ -87,8 +102,12 @@ void FMIndex::build(char end_marker, uint64_t ddic, bool is_msg)
         uint16_t c = wt_.Lookup(i);
         i = rlt_[c] + wt_.Rank(c, i); //LF
         pos--;
-    } while (i != head_);
-    if (is_msg) { cerr << "done." << endl; }
+    }
+    while (i != head_);
+    if (is_msg)
+    {
+        cerr << "done." << endl;
+    }
 }
 
 uint64_t FMIndex::GetRows(const izenelib::util::UString &key) const
@@ -234,18 +253,30 @@ void FMIndex::Write(ofstream &ofs) const
 void FMIndex::Write(const char *filename) const
 {
     ofstream ofs(filename, ios::out | ios::binary | ios::trunc);
-    if (!ofs) { throw "wat_array::FMIndex::Write()"; }
+    if (!ofs)
+    {
+        throw "wat_array::FMIndex::Write()";
+    }
     Write(ofs);
 }
 
 void FMIndex::Read(ifstream &ifs)
 {
     ifs.read((char *)&(ddic_), sizeof(uint64_t));
-    if (ifs.eof()) { throw "wat_array::FMIndex::read()"; }
+    if (ifs.eof())
+    {
+        throw "wat_array::FMIndex::read()";
+    }
     ifs.read((char *)&(head_), sizeof(uint64_t));
-    if (ifs.eof()) { throw "wat_array::FMIndex::read()"; }
+    if (ifs.eof())
+    {
+        throw "wat_array::FMIndex::read()";
+    }
     ifs.read((char *)&(rlt_), sizeof(uint64_t) * 65536);
-    if (ifs.eof()) { throw "wat_array::FMIndex::read()"; }
+    if (ifs.eof())
+    {
+        throw "wat_array::FMIndex::read()";
+    }
     wt_.Load(ifs);
     doctails_.Load(ifs);
 
@@ -254,14 +285,20 @@ void FMIndex::Read(ifstream &ifs)
     {
         uint64_t x = 0;
         ifs.read((char *)&x, sizeof(uint64_t));
-        if (ifs.eof()) { throw "wat_array::FMIndex::read()"; }
+        if (ifs.eof())
+        {
+            throw "wat_array::FMIndex::read()";
+        }
         posdic_.push_back(x);
     }
     for (uint64_t i = 0; i < length; i++)
     {
         uint64_t x = 0;
         ifs.read((char *)&x, sizeof(uint64_t));
-        if (ifs.eof()) { throw "wat_array::FMIndex::read()"; }
+        if (ifs.eof())
+        {
+            throw "wat_array::FMIndex::read()";
+        }
         idic_.push_back(x);
     }
 }
@@ -269,7 +306,10 @@ void FMIndex::Read(ifstream &ifs)
 void FMIndex::Read(const char *filename)
 {
     ifstream ifs(filename, ios::in | ios::binary);
-    if (!ifs) { throw "wat_array::FMIndex::Read()"; }
+    if (!ifs)
+    {
+        throw "wat_array::FMIndex::Read()";
+    }
     Read(ifs);
 }
 
@@ -370,7 +410,9 @@ void BWTransform::sort_(int64_t begin, int64_t end, uint64_t depth)
             c_ch = sa2char_(c, depth);
         }
         if (b > c) break;
-        swap(sa_[b], sa_[c]); b++; c--;
+        swap(sa_[b], sa_[c]);
+        b++;
+        c--;
     }
 
     int64_t eq_size = 0;

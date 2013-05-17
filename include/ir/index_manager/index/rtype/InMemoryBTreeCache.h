@@ -17,18 +17,168 @@ template <class KeyType, class ValueItemType>
 class InMemoryBTreeCache
 {
 public:
+
+    class ValueType;
+    class ValueTypeIterator
+    {
+    public:
+        const ValueType* value;
+        std::size_t index;
+        ValueTypeIterator() : value(NULL), index(0)
+        {
+        }
+        ValueTypeIterator(const ValueType* p1, std::size_t p2)
+        : value(p1), index(p2)
+        {
+            forward(0);
+        }
+        void forward(std::size_t p)
+        {
+            if(index>=value->size()) return;
+            std::size_t new_index = index+p;
+            while(true)
+            {
+                std::size_t next = new_index+1;
+                if(next>=value->size()) break;
+                if((*value).item[new_index]!=(*value).item[next]) break;
+                ++new_index;
+            }
+            //if(new_index>value->size())
+            //{
+                //new_index = value->size();
+            //}
+            index = new_index;
+        }
+        ValueTypeIterator operator++()
+        {
+            if(value!=NULL)
+            {
+                forward(1);
+            }
+            return *this;
+        }
+        ValueTypeIterator operator++(int)
+        {
+            ValueTypeIterator o(*this);
+            if(value!=NULL)
+            {
+                forward(1);
+            }
+            return o;
+        }
+        bool operator==(const ValueTypeIterator& o) const
+        {
+            return value==o.value&&index==o.index;
+            //if(value==NULL&&o.value==NULL) return true;
+            //if(value!=NULL&&o.value!=NULL)
+            //{
+                //return value.index==o.value.index;
+            //}
+            //return false;
+        }
+        bool operator!=(const ValueTypeIterator& o) const
+        {
+            return !(operator==(o));
+        }
+        ValueItemType operator*() const
+        {
+            return (*value).item[index];
+        }
+
+        bool test() const
+        {
+            return (*value).flag[index];
+        }
+    };
+
     struct ValueType
     {
+
         typedef std::vector<ValueItemType> VectorType;
         typedef boost::dynamic_bitset<> FlagType;
 
         typedef typename VectorType::iterator VectorIteratorType;
         typedef typename VectorType::const_iterator VectorConstIteratorType;
-
+        typedef ValueTypeIterator const_iterator;
 
         VectorType item;
         FlagType flag;
 
+        void merge(std::size_t low, std::size_t mid, std::size_t high, ValueType& b)
+        {
+            std::size_t h=low, i=low, j=mid+1;
+            //ValueType b(*this);
+            while( h<=mid && j<=high )
+            {
+                if(item[h]<=item[j])
+                {
+                    b.item[i] = item[h];
+                    b.flag[i] = flag[h];
+                    ++h;
+                }
+                else
+                {
+                    b.item[i] = item[j];
+                    b.flag[i] = flag[j];
+                    ++j;
+                }
+                ++i;
+            }
+            if(h>mid)
+            {
+                for(std::size_t k=j;k<=high;k++)
+                {
+                    b.item[i] = item[k];
+                    b.flag[i] = flag[k];
+                    ++i;
+                }
+            }
+            else
+            {
+                for(std::size_t k=h;k<=mid;k++)
+                {
+                    b.item[i] = item[k];
+                    b.flag[i] = flag[k];
+                    ++i;
+                }
+            }
+            for(std::size_t k=low;k<=high;k++)
+            {
+                item[k] = b.item[k];
+                flag[k] = b.flag[k];
+            }
+        }
+
+        void merge_sort(std::size_t low, std::size_t high, ValueType& buffer)
+        {
+            if(low<high)
+            {
+                std::size_t mid = (low+high)/2;
+                merge_sort(low, mid, buffer);
+                merge_sort(mid+1, high, buffer);
+                merge(low, mid, high, buffer);
+            }
+        }
+        ///stable merge sort
+        void sort()
+        {
+            //return;
+            if(size()<=1) return;
+            //std::cerr<<"before"<<std::endl;
+            //for(uint32_t i=0;i<size();i++)
+            //{
+                //std::cerr<<item[i]<<","<<flag[i]<<std::endl;
+            //}
+            ValueType buffer;
+            buffer.item.resize(size());
+            buffer.flag.resize(size());
+            merge_sort(0, size()-1, buffer);
+            //std::cerr<<"after"<<std::endl;
+            //for(uint32_t i=0;i<size();i++)
+            //{
+                //std::cerr<<item[i]<<","<<flag[i]<<std::endl;
+            //}
+        }
 
         void add(const ValueItemType& item_value, bool iorr)
         {
@@ -40,6 +190,21 @@ public:
         {
             std::swap(item, from.item);
             std::swap(flag, from.flag);
+        }
+
+        std::size_t size() const
+        {
+            return item.size();
+        }
+
+        const_iterator begin() const
+        {
+            return const_iterator(this, 0);
+        }
+
+        const_iterator end() const
+        {
+            return const_iterator(this, size());
         }
 
         friend std::ostream& operator<<(std::ostream& output, const ValueType& v)
@@ -119,7 +284,9 @@ public:
         typename AMType::iterator it = data_.begin();
         while (it != data_.end())
         {
-            func(*it);
+            std::pair<KeyType, ValueType> value = *it;
+            value.second.sort();
+            func(value);
             ++it;
         }
 
@@ -143,6 +310,7 @@ public:
             return false;
         }
         value = it->second;
+        value.sort();
         return true;
     }
 

@@ -2,7 +2,6 @@
 #define IZENELIB_IR_BTREEINDEXER_H_
 
 #include <util/BoostVariantUtil.h>
-#include <am/bitmap/Ewah.h>
 #include <am/luxio/BTree.h>
 #include <am/tc/BTree.h>
 #include <am/leveldb/Table.h>
@@ -22,6 +21,9 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/bind.hpp>
+#if BOOST_VERSION >= 105300
+#include <boost/atomic.hpp>
+#endif
 #include "dynamic_bitset2.hpp"
 #include <functional>
 
@@ -102,16 +104,20 @@ public:
 
     void add(const KeyType& key, docid_t docid)
     {
+    	{
         boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.add(key, docid);
+    	}
         checkCache_();
         count_has_modify_ = true;
     }
 
     void remove(const KeyType& key, docid_t docid)
     {
+        {
         boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
+    	}
         checkCache_();
         count_has_modify_ = true;
     }
@@ -159,18 +165,7 @@ public:
     bool getValue(const KeyType& key, std::vector<docid_t>& docs)
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-
-        ValueType value;
-        bool b_db = getDbValue_(key, value);
-        CacheValueType cache_value;
-        bool b_cache = getCacheValue_(key, cache_value);
-        if (!b_db && !b_cache) return false;
-        if (b_cache)
-        {
-            applyCacheValue_(value, cache_value);
-        }
-        docs.swap(value);
-        return true;
+        return getValue_(key, docs);
     }
 
     std::size_t convertAllValue(std::size_t maxDoc, uint32_t* & data);
@@ -320,13 +315,10 @@ public:
 
     void flush()
     {
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cacheClear_();
         db_.flush();
         count_has_modify_ = true;//force use db_.size() in count as cache will be empty
     }
-
-
 
 
 private:
@@ -415,6 +407,7 @@ private:
 #endif
         cache_num_ = 0;
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.clear();
     }
 
@@ -474,6 +467,7 @@ private:
 //#ifdef CACHE_TIME_INFO
 //      t3 += timer.elapsed();
 //#endif
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         if (common_value_.size() > 0)
         {
             db_.update(kvp.first, common_value_);
@@ -551,6 +545,18 @@ private:
         return true;
     }
 
+    bool getValue_(const KeyType& key, ValueType& value)
+    {
+        bool b_db = getDbValue_(key, value);
+        CacheValueType cache_value;
+        bool b_cache = getCacheValue_(key, cache_value);
+        if (!b_db && !b_cache) return false;
+        if (b_cache)
+        {
+            applyCacheValue_(value, cache_value);
+        }
+        return true;
+    }
 
     static void decompress_(const ValueType& compressed, BitVector& value)
     {
@@ -596,23 +602,74 @@ private:
     }
 
     /// called only in cacheIterator_, one thread, common_bv_ is safe.
+    /// value was already sorted, also cacheValue was sorted
     static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
-
-        for (std::size_t i = 0; i < cacheValue.item.size(); i++)
+        ValueType new_value;
+        new_value.reserve(value.size()+cacheValue.size()/2);
+        ValueType::const_iterator it1 = value.begin();
+        //std::cerr<<"value addr "<<&value<<std::endl;
+        //std::cerr<<"value size "<<value.size()<<std::endl;
+        //std::cerr<<"cache value size "<<cacheValue.size()<<std::endl;
+        typename CacheValueType::const_iterator it2 = cacheValue.begin();
+        typename CacheValueType::const_iterator it2_end = cacheValue.end();
+        while(it1!=value.end()&&it2!=it2_end)
         {
-            if (cacheValue.flag.test(i))
+            //uint32_t docid2 = *it2;
+            //bool b2 = it2.test();
+            //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
+            if(*it1<*it2)
             {
-                value.push_back(cacheValue.item[i]);
+                new_value.push_back(*it1);
+                ++it1;
+            }
+            else if(*it1>*it2)
+            {
+                if(it2.test())//is insert, not delete
+                {
+                    new_value.push_back(*it2);
+                }
+                ++it2;
             }
             else
             {
-                VectorRemove_(value, cacheValue.item[i]);
+                if(it2.test())
+                {
+                    new_value.push_back(*it1);
+                }
+                ++it1;
+                ++it2;
             }
         }
-        //duplicate
-        std::sort(value.begin(), value.end());
-        value.erase(std::unique(value.begin(), value.end()), value.end());
+        for(;it1!=value.end(); ++it1)
+        {
+            new_value.push_back(*it1);
+        }
+        for(;it2!=it2_end;++it2)
+        {
+            //uint32_t docid2 = *it2;
+            //bool b2 = it2.test();
+            //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
+            if(it2.test())
+            {
+                new_value.push_back(*it2);
+            }
+        }
+        value.swap(new_value);
+        //for (std::size_t i = 0; i < cacheValue.item.size(); i++)
+        //{
+            //if (cacheValue.flag.test(i))
+            //{
+                //value.push_back(cacheValue.item[i]);
+            //}
+            //else
+            //{
+                //VectorRemove_(value, cacheValue.item[i]);
+            //}
+        //}
+        ////duplicate
+        //std::sort(value.begin(), value.end());
+        //value.erase(std::unique(value.begin(), value.end()), value.end());
     }
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
@@ -630,11 +687,11 @@ private:
         }
     }
 
-    template <typename T>
-    static void VectorRemove_(std::vector<T>& vec, const T& value)
-    {
-        vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
-    }
+    //template <typename T>
+    //static void VectorRemove_(std::vector<T>& vec, const T& value)
+    //{
+        //vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
+    //}
 
 private:
     std::string path_;
@@ -647,7 +704,11 @@ private:
     ValueType common_value_;
     ///
     boost::optional<std::size_t> count_in_cache_;
+#if BOOST_VERSION >= 105300	
+    boost::atomic_bool count_has_modify_;
+#else
     bool count_has_modify_;
+#endif
     std::size_t cache_num_;
     boost::shared_mutex mutex_;
 };

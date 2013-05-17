@@ -420,35 +420,12 @@ namespace mp {
 
 
 inline void* pthread_thread::trampoline(void* user)
-try {
+{
 	std::auto_ptr<function_t> f(reinterpret_cast<function_t*>(user));
 	(*f)();
 	return NULL;
 
-} catch (std::exception& e) {
-	try {
-#ifndef MP_NO_CXX_ABI_H
-		int status;
-		std::cerr
-			<< "thread terminated with throwing an instance of '"
-			<< abi::__cxa_demangle(typeid(e).name(), 0, 0, &status)
-			<< "'\n" "  what():  " << e.what() << std::endl;
-#else
-		std::cerr
-			<< "thread terminated with throwing an instance of '"
-			<< typeid(e).name()
-			<< "'\n" "  what():  " << e.what() << std::endl;
-#endif
-	} catch (...) {}
-	throw;
-
-} catch (...) {
-	try {
-		std::cerr << "thread terminated with throwing an unknown object" << std::endl;
-	} catch (...) {}
-	throw;
 }
-
 
 }  // namespace mp
 

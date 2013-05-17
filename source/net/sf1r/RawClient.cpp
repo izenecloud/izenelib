@@ -63,6 +63,7 @@ RawClient::RawClient(ba::io_service& service,
         DLOG(INFO) << "connected (" << id << ")";
     } catch (bs::system_error& e) {
         status = Invalid;
+        LOG(ERROR) << "create rawclient error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
     }
@@ -93,7 +94,7 @@ bool
 RawClient::isConnected() {
     // is the socket open?
     if (not socket.is_open()) {
-        DLOG(WARNING) << "Socket is not open";
+        LOG(WARNING) << "Socket is not open";
         return false;
     }
     
@@ -101,7 +102,7 @@ RawClient::isConnected() {
     try {
         socket.remote_endpoint();
     } catch (bs::system_error& e) {
-        DLOG(WARNING) << "Endpoint error: " << e.what();
+        LOG(WARNING) << "Endpoint error: " << e.what();
         return false;
     }
     
@@ -114,7 +115,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw NetworkError("Not connected");
+        throw NetworkError("Not connected in RawClient");
     }
     
     CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
@@ -138,6 +139,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
         n += ba::write(socket, buffers);
     } catch (bs::system_error& e) {
         status = Invalid;
+        LOG(ERROR) << "write request to socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
     }
@@ -158,7 +160,7 @@ RawClient::getResponse() {
     if (not isConnected()) {
         // TODO: keep alive?
         status = Invalid;
-        throw NetworkError("Not connected");
+        throw NetworkError("Not connected in RawClient");
     }
     
     CHECK_EQ(Busy, status) << "not Busy (" << id << ")";
@@ -172,6 +174,7 @@ RawClient::getResponse() {
         n += ba::read(socket, ba::buffer(header));
     } catch (bs::system_error& e) {
         status = Invalid;
+        LOG(ERROR) << "get response head from socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
     }
@@ -193,6 +196,7 @@ RawClient::getResponse() {
         n = ba::read(socket, ba::buffer(data, length));
     } catch (bs::system_error& e) {
         status = Invalid;
+        LOG(ERROR) << "get response body from socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
     }

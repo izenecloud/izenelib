@@ -26,6 +26,9 @@ if (sf1r_SHOULD_BUILD)
         distributed/RoundRobinPolicy.cpp
 
         ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+        ${IZENELIB_SOURCE_DIR}/source/util/scheduler.cpp
+        ${IZENELIB_SOURCE_DIR}/source/util/timer.cpp
+        ${IZENELIB_SOURCE_DIR}/source/util/singleton.cpp
     )
 
     include_directories(

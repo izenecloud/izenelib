@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -78,9 +79,12 @@ public:
 
     void getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
-    void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter = true);
 
     void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
+
+    template <typename word_t>
+    void getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<word_t>& docs);
 
     void getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs);
 
@@ -92,7 +96,14 @@ public:
 
     void getValueGreatEqual(const std::string& property_name, const PropertyType& key, BitVector& docs);
 
-    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs);
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs, bool needFilter = true);
+
+    /**
+     * @param bitVector used as temp storage for performance consideration, it might not store the output docids.
+     * @param docs store the output docids
+     */
+    template <typename word_t>
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<word_t>& docs);
 
     void getValueNotIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs);
 
@@ -203,6 +214,12 @@ private:
     boost::shared_ptr<BitVector> pFilter_;
     boost::shared_mutex mutex_;
 
+    /**
+     * if the number of docids is less than this value (256K),
+     * we use std::sort() on std::vector, otherwise, we use BitVector
+     * to avoid the cost of sorting too many docids.
+     */
+    static const std::size_t kDocIdNumSortLimit = 1 << 18;
 };
 
 /// all modifer visitor below    
@@ -311,6 +328,17 @@ class mget2_visitor : public boost::static_visitor<void>
 public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
+    {
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        pindexer->getValue(v, docs);
+    }
+};
+
+class mget_ewah_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T, typename word_t>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, EWAHBoolArray<word_t>& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
@@ -462,9 +490,75 @@ public:
 //     }
 // };
 
+template <typename word_t>
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<word_t>& docs)
+{
+    if (!checkType_(property_name, key))
+        return;
+
+    std::vector<docid_t> docList;
+    izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
+
+    for (std::vector<docid_t>::const_iterator it = docList.begin();
+         it != docList.end(); ++it)
+    {
+        if (!pFilter_ || !pFilter_->test(*it))
+        {
+            docs.set(*it);
+        }
+    }
+}
+
+template <typename word_t>
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<word_t>& docs)
+{
+    for (std::size_t i = 0; i < keys.size(); ++i)
+    {
+        if (!checkType_(property_name, keys[i]))
+            return;
+    }
+
+    std::vector<docid_t> docList;
+    for (std::size_t i = 0; i < keys.size(); ++i)
+    {
+        std::vector<docid_t> tempDocList;
+        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
+        docList.insert(docList.end(), tempDocList.begin(), tempDocList.end());
+    }
+
+    if (docList.size() < kDocIdNumSortLimit)
+    {
+        std::sort(docList.begin(), docList.end());
+
+        docid_t lastDocId = 0;
+        for (std::vector<docid_t>::const_iterator it = docList.begin();
+             it != docList.end(); ++it)
+        {
+            // skip duplicated docid, required by EWAHBoolArray::set()
+            if (*it == lastDocId)
+                continue;
+
+            if (!pFilter_ || !pFilter_->test(*it))
+            {
+                docs.set(*it);
+            }
+
+            lastDocId = *it;
+        }
+    }
+    else
+    {
+        for (std::size_t i = 0; i < docList.size(); ++i)
+        {
+            bitVector.set(docList[i]);
+        }
+        doFilter_(bitVector);
+        bitVector.compressed(docs);
+    }
+}
 
 }
 
 NS_IZENELIB_IR_END
 
-#endif 
+#endif

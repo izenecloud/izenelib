@@ -22,7 +22,7 @@ class AggregatorConfig
 public:
     AggregatorConfig(
         unsigned int timeout = 30,
-        unsigned int sessionPoolThreadNum = 30)
+        unsigned int sessionPoolThreadNum = 10)
     : timeout_(timeout)
     , sessionPoolThreadNum_(sessionPoolThreadNum)
     {
@@ -65,7 +65,7 @@ public:
         return NULL;
     }
 
-    std::string toString()
+    std::string toString() const
     {
         std::stringstream ss;
         for (size_t i = 0; i < workerInfoList_.size(); i++)

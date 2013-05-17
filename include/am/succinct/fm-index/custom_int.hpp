@@ -214,7 +214,7 @@ public:
     template<class IntType>
     int40_t operator <<( const IntType b ) const
     {
-        return int40_t( (int64_t)*this >> b );
+        return int40_t( (int64_t)*this << b );
     }
     int40_t& operator +=(const int40_t& b)
     {

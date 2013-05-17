@@ -1,8 +1,6 @@
 #include <boost/timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/assert.hpp>
-#include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
@@ -135,15 +133,15 @@ void Indexer::setIndexManagerConfig(
     setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
     pIndexWriter_->tryResumeExistingBarrels();
 
-    if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
-    {
-        using namespace izenelib::util;
-        int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
-        char uuidstr[10];
-        memset(uuidstr,0,10);
-        sprintf(uuidstr,"%d",uuid);
-        pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
-    }
+    //if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
+    //{
+    //    using namespace izenelib::util;
+    //    int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
+    //    char uuidstr[10];
+    //    memset(uuidstr,0,10);
+    //    sprintf(uuidstr,"%d",uuid);
+    //    pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
+    //}
 //add binlog
     checkbinlog();
 }
@@ -203,7 +201,7 @@ void Indexer::openDirectory(const std::string& storagePolicy)
     }
 }
 
-void Indexer::setBasePath(std::string basePath)
+void Indexer::setBasePath(const std::string& basePath)
 {
     if (pDirectory_)
         delete pDirectory_;
@@ -316,6 +314,7 @@ void Indexer::flush(bool force)
     {
         try
         {
+            boost::mutex::scoped_lock lock(indexMutex_);
             pIndexWriter_->flush();
         }
         catch (const EmptyBarrelException& e)
@@ -326,6 +325,7 @@ void Indexer::flush(bool force)
     }
     else
     {
+        boost::mutex::scoped_lock lock(indexMutex_);
         pIndexWriter_->flushDocLen();
     }
     pIndexReader_->flush();
@@ -333,6 +333,7 @@ void Indexer::flush(bool force)
 
 void Indexer::optimizeIndex()
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->optimizeIndex();
 }
 
@@ -405,11 +406,11 @@ size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, const std::s
 }
 
 ///To be optimized: Using TermDocFreqs instead of TermPositions
-bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<docid_t>& docIds)
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, const vector<string>& properties, deque<docid_t>& docIds)
 {
     if (properties.size() > 1)
     {
-        ParallelTermPosition parallelTermPosition(colID, pIndexReader_,properties);
+        ParallelTermPosition parallelTermPosition(colID, pIndexReader_, properties);
         if (!parallelTermPosition.isValid())
             return false;
         if (parallelTermPosition.seek(termID))
@@ -467,11 +468,11 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<CommonItem>& commonSet)
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, const vector<string>& properties, deque<CommonItem>& commonSet)
 {
     if (properties.size() > 1)
     {
-        ParallelTermPosition parallelTermPosition(colID, pIndexReader_,properties);
+        ParallelTermPosition parallelTermPosition(colID, pIndexReader_, properties);
         if (!parallelTermPosition.isValid())
             return false;
         if (parallelTermPosition.seek(termID))
@@ -560,104 +561,104 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
     return true;
 }
 
-bool Indexer::seekTermFromBTreeIndex(collectionid_t colID, string property, PropertyType value)
+bool Indexer::seekTermFromBTreeIndex(collectionid_t colID, const string& property, const PropertyType& value)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     return pBTreeIndexer_->seek(property, value);
 }
 
-bool Indexer::getDocsByNumericValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs)
+bool Indexer::getDocsByNumericValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getNoneEmptyList(property, value, docs);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValue(property, value, docs);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docList)
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValue(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
+bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueBetween(property, value1, value2, docs);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueLess(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueLessEqual(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueGreat(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueGreatEqual(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
+bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueIn(property, values, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
+bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueNotIn(property, values, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueNotEqual(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueStart(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueEnd(property, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, BitVector&docList)
+bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValueSubString(property, value, docList);

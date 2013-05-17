@@ -199,4 +199,3 @@ uint64_t DyBitVec::LeafNum() const
 }
 
 NS_IZENELIB_AM_END
-

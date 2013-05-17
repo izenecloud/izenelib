@@ -6,6 +6,7 @@
 #include <zookeeper.jute.h>
 
 #include "string.h" // memset
+#include "unistd.h" // usleep
 #include <algorithm>
 #include <sstream>
 
@@ -196,6 +197,8 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, ZN
 {
     memset( realNodePath_, 0, MAX_PATH_LENGTH );
 
+    if (zk_ == NULL)
+        return false;
     int rc = zoo_create(
                  zk_,
                  path.c_str(),
@@ -249,6 +252,8 @@ std::string ZooKeeper::getLastCreatedNodePath()
 
 bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
 {
+    if (zk_ == NULL)
+        return false;
     int rc = zoo_delete(zk_, path.c_str(), version);
 
     zkError_ = ZooKeeper::ZKErrorType(rc);
@@ -302,6 +307,8 @@ bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
     struct Stat stat;
     memset(&stat, 0, sizeof(Stat));
 
+    if (zk_ == NULL)
+        return false;
     int rc = zoo_exists(zk_, path.c_str(), watch, &stat);
 
     zkError_ = ZooKeeper::ZKErrorType(rc);
@@ -319,6 +326,9 @@ bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWa
     memset( buffer_, 0, MAX_DATA_LENGTH );
     struct Stat stat; // xxx, return to caller
     memset( &stat, 0, sizeof(Stat) );
+
+    if (zk_ == NULL)
+        return false;
 
     int buffer_len = MAX_DATA_LENGTH - 1;
     int rc = zoo_get(
@@ -343,6 +353,8 @@ bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWa
 
 bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, int version)
 {
+    if (zk_ == NULL)
+        return false;
     int rc = zoo_set( zk_,
                   path.c_str(),
                   data.c_str(),
@@ -359,13 +371,15 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
     childrenList.clear();
 
     String_vector children;
     memset( &children, 0, sizeof(children) );
 
+    if (zk_ == NULL)
+        return false;
     int rc = zoo_get_children(
                     zk_,
                     path.c_str(),
@@ -376,6 +390,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
     if (rc == ZOK)
     {
+        childrenList.reserve(children.count);
         for (int i = 0; i < children.count; ++i)
         {
             if (inAbsPath)
@@ -397,7 +412,9 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 
         //make sure the order is always deterministic
         std::sort( childrenList.begin(), childrenList.end() );
+        deallocate_String_vector(&children);
     }
+    return true;
 }
 
 /// Asynchronous API
@@ -469,5 +486,3 @@ void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream
         out << "========================================================="<<std::endl;
     }
 }
-
-

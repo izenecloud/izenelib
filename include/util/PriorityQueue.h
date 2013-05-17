@@ -87,7 +87,7 @@ public:
             heap_[1] = heap_[size_];    // move last to first
 
             heap_[size_] = Type();      // permit GC of objects
-            size_--;
+            --size_;
             downHeap();                 // adjust heap_
             return result;
         }

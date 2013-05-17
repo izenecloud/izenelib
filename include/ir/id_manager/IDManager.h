@@ -18,6 +18,9 @@
  * @date 2009-08-07
  *
  * ==============
+ * Use LuxIO instead of SDB in AutoFillIDManager
+ * @author Hongliang Zhao
+ * @date 2013-02-15
  */
 
 #ifndef _ID_MANAGER_
@@ -31,6 +34,7 @@
 
 #include <types.h>
 #include <util/ustring/UString.h>
+#include <3rdparty/am/luxio/array.h>
 
 /**
  * @brief a class to manage all kinds of operations about ID.
@@ -80,21 +84,19 @@ template<typename TermType,
          typename DocType,
          typename IDType,
          typename LockType = izenelib::util::NullLock,
-         typename WildcardQueryHandler = DiskWildcardQueryHandler<TermType, IDType>,
+         typename WildcardQueryHandler = EmptyWildcardQueryHandler<TermType, IDType>,
          typename TermIDGenerator = HashIDGenerator<TermType, IDType>,
          typename TermIDStorage = HDBIDStorage<TermType, IDType, LockType>,
          typename DocIDGenerator = UniqueIDGenerator<DocType, IDType, LockType>,
          typename DocIDStorage = HDBIDStorage<DocType, IDType, LockType> >
 class _IDManager : public IDManagerBase
 {
-
 public:
     _IDManager(const string& storageName = "idm")
     :
         termIdManager_(storageName + "_tid"),
         docIdManager_(storageName + "_did"),
-        wildcardQueryManager_(storageName + "_regexp"),
-        status_(0)
+        wildcardQueryManager_(storageName + "_regexp")
     {
         version_ = "ID Manager - ver. alpha ";
         version_ += MAJOR_VERSION;
@@ -138,7 +140,8 @@ public:
      * @return true  :		One or more terms exist in the dictionary.
      * @return false :		No term exists in the dictionary.
      */
-    bool getTermIdListByTermStringList( const std::vector<TermType>& termStringList,
+    bool getTermIdListByTermStringList(
+            const std::vector<TermType>& termStringList,
             std::vector<IDType>& termIdList)
     {
         return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
@@ -147,7 +150,7 @@ public:
     /**
      * @brief a member function to add a list of terms to be candidates of wildcard queries.
      */
-    bool addWildcardCandidateList( const std::vector<TermType>& termStringList)
+    bool addWildcardCandidateList(const std::vector<TermType>& termStringList)
     {
         for(size_t i =0; i< termStringList.size(); i++ ) {
             wildcardQueryManager_.insert(termStringList[i]);
@@ -163,8 +166,10 @@ public:
      * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
      * @return false :          Given wildcard pattern is not matched in the dictionary.
      */
-    bool getTermIdListByWildcardPattern(const TermType& wildcardPattern,
-            std::vector<IDType>& termIdList, int maximumResultNumber = 5)
+    bool getTermIdListByWildcardPattern(
+            const TermType& wildcardPattern,
+            std::vector<IDType>& termIdList,
+            int maximumResultNumber = 5)
     {
         return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList, maximumResultNumber);
     }
@@ -177,8 +182,10 @@ public:
      * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
      * @return false :          Given wildcard pattern is not matched in the dictionary.
      */
-    bool getTermListByWildcardPattern(const TermType& wildcardPattern,
-            std::vector<TermType>& termList, int maximumResultNumber = 5)
+    bool getTermListByWildcardPattern(
+            const TermType& wildcardPattern,
+            std::vector<TermType>& termList,
+            int maximumResultNumber = 5)
     {
         return wildcardQueryManager_.findRegExp(wildcardPattern, termList, maximumResultNumber);
     }
@@ -205,7 +212,8 @@ public:
      * @return true  :      At least one term in the given list is matched in the dictionary.
      * @return false :      No term is matched in the dictionary.
      */
-    bool getTermStringListByTermIdList(const std::vector<IDType>& termIdList,
+    bool getTermStringListByTermIdList(
+            const std::vector<IDType>& termIdList,
             std::vector<TermType>& termStringList)
     {
         return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
@@ -294,25 +302,6 @@ public:
         wildcardQueryManager_.close();
     }
 
-    void warmUp()
-    {
-        if (status_++ == 0)
-        {
-            termIdManager_.warmUp();
-            docIdManager_.warmUp();
-        }
-    }
-
-    void coolDown()
-    {
-        if (status_ == 0) return;
-        if (--status_ == 0)
-        {
-            termIdManager_.coolDown();
-            docIdManager_.coolDown();
-        }
-    }
-
     /**
      * @brief retrieve version string of id-manager
      * @return version string of id-manager
@@ -334,8 +323,6 @@ private:
     WildcardQueryManager<TermType, IDType, WildcardQueryHandler, LockType> wildcardQueryManager_;
 
     std::string version_;
-
-    uint64_t status_;
 };
 
 /*****************************************************************************
@@ -376,7 +363,7 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t> I
 /*
 typedef _IDManager<izenelib::util::UString, uint32_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint32_t>,
@@ -384,7 +371,7 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
 
 typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint32_t>,
@@ -402,7 +389,7 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t> I
  */
 typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint64_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint64_t>,
                    HashIDGenerator<izenelib::util::UString, uint64_t>,
                    EmptyIDStorage<izenelib::util::UString, uint64_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint64_t>,
@@ -453,11 +440,9 @@ typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint32_t,
                    EmptyIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerMIA;
 
-#define USE_FUJIMAP
-#ifdef USE_FUJIMAP
 typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<uint128_t, uint32_t>,
@@ -465,27 +450,27 @@ typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
 
 typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    OldUniqueIDGenerator<uint128_t, uint32_t>,
                    EmptyIDStorage<uint128_t, uint32_t> > OldIDManager;
-#else
-typedef _IDManager<izenelib::util::UString, uint128_t, uint32_t,
-                   izenelib::util::ReadWriteLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
-                   HashIDGenerator<izenelib::util::UString, uint32_t>,
-                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
-                   OldUniqueIDGenerator<uint128_t, uint32_t>,
-                   EmptyIDStorage<uint128_t, uint32_t> > IDManager;
-#endif
+
 typedef _IDManager<izenelib::util::UString, izenelib::util::UString, uint64_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<izenelib::util::UString, uint64_t>,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint64_t>,
                    HashIDGenerator<izenelib::util::UString, uint64_t>,
                    EmptyIDStorage<izenelib::util::UString, uint64_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint64_t>,
-                   HDBIDStorage<izenelib::util::UString, uint64_t> > AutoFillIDManager;
+                   HDBIDStorage<izenelib::util::UString, uint64_t> > AutoFillIDManager_old;
+
+typedef _IDManager<std::string, std::string, uint32_t,
+                   izenelib::util::NullLock,
+                   EmptyWildcardQueryHandler<std::string, uint32_t>,
+                   HashIDGenerator<std::string, uint32_t>,
+                   EmptyIDStorage<std::string, uint32_t>,
+                   UniqueIDGenerator<std::string, uint32_t>,
+                   Lux::IO::Array> AutoFillIDManager;
 
 } // end - namespace idmanager
 

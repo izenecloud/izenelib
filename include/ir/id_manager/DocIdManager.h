@@ -107,16 +107,6 @@ public:
         idFactory_.close();
     }
 
-    void warmUp()
-    {
-        idFactory_.warmUp();
-    }
-
-    void coolDown()
-    {
-        idFactory_.coolDown();
-    }
-
     /**
      * @brief a member function to display all the contents of the sequential db.
      *          this function is provided for debugging purpose.
@@ -126,7 +116,6 @@ public:
 private:
 
     DocIDFactory idFactory_;
-
 }; // end - class DocIdManager
 
 

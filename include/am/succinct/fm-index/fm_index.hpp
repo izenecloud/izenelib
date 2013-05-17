@@ -59,8 +59,8 @@ public:
     void getMatchedDocIdList(const MatchRangeListT &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     void getTopKDocIdList(
-            const MatchRangeListT &match_ranges_list,
-            const std::vector<double> &max_match_list,
+            const MatchRangeListT &raw_range_list,
+            const std::vector<double> &score_list,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
@@ -74,20 +74,6 @@ public:
     boost::shared_ptr<WaveletMatrix<uint32_t> >& getDocArray()
     {
         return doc_array_;
-    }
-
-private:
-    template <class T>
-    WaveletTree<T> *getWaveletTree_(size_t charset_size) const
-    {
-        if (charset_size <= 65536)
-        {
-            return new WaveletTreeHuffman<T>(charset_size);
-        }
-        else
-        {
-            return new WaveletMatrix<T>(charset_size);
-        }
     }
 
 private:
@@ -156,7 +142,7 @@ void FMIndex<CharT>::build()
     length_ = temp_text_.size();
     alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
-    std::vector<int32_t> sa(length_);
+    std::vector<int40_t> sa(length_);
     if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
         clear();
@@ -194,15 +180,15 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(temp_text_);
 
-    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
     bwt_tree_->build(&bwt[0], length_);
 
     std::vector<char_type>().swap(bwt);
 
-    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
+    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
     doc_array_->build(da, length_);
 
-    std::vector<int32_t>().swap(sa);
+    std::vector<int40_t>().swap(sa);
 
     --length_;
 }
@@ -388,14 +374,14 @@ void FMIndex<CharT>::load(std::istream &istr)
 
     if (length_ > 0 && alphabet_num_ > 0)
     {
-        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_));
+        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
         bwt_tree_->load(istr);
     }
     doc_delim_.load(istr);
 
     if (docCount() > 0)
     {
-        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount()));
+        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
         doc_array_->load(istr);
     }
 }
@@ -479,8 +465,8 @@ void FMIndex<CharT>::getMatchedDocIdList(
 
 template <class CharT>
 void FMIndex<CharT>::getTopKDocIdList(
-    const MatchRangeListT &match_ranges_list,
-    const std::vector<double> &max_match_list,
+    const MatchRangeListT &raw_range_list,
+    const std::vector<double> &score_list,
     size_t max_docs,
     std::vector<std::pair<double, uint32_t> > &res_list,
     std::vector<size_t> &doclen_list) const
@@ -488,15 +474,18 @@ void FMIndex<CharT>::getTopKDocIdList(
     if (!doc_array_ || docCount() == 0)
         return;
 
-    std::vector<boost::tuple<size_t, size_t, double> > match_ranges(match_ranges_list.size());
-    for (size_t i = 0; i < match_ranges_list.size(); ++i)
+    boost::auto_alloc alloc;
+    range_list_type range_list(alloc);
+    range_list.resize(raw_range_list.size());
+
+    for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        match_ranges[i].get<0>() = match_ranges_list[i].first;
-        match_ranges[i].get<1>() = match_ranges_list[i].second;
-        match_ranges[i].get<2>() = max_match_list[i];
+        range_list[i].get<0>() = raw_range_list[i].first;
+        range_list[i].get<1>() = raw_range_list[i].second;
+        range_list[i].get<2>() = score_list[i];
     }
 
-    doc_array_->topKUnion(match_ranges, max_docs, res_list);
+    doc_array_->topKUnion(range_list, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)

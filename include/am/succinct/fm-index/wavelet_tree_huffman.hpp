@@ -2,9 +2,10 @@
 #define _FM_INDEX_WAVELET_TREE_HUFFMAN_HPP
 
 #include "wavelet_tree.hpp"
-#include "wavelet_tree_node.hpp"
+#include <am/succinct/utils.hpp>
+#include <am/interval_heap.hpp>
 
-#include <queue>
+#include <deque>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -20,8 +21,9 @@ class WaveletTreeHuffman : public WaveletTree<CharT>
 public:
     typedef CharT char_type;
     typedef WaveletTreeHuffman<CharT> self_type;
+    typedef std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> > aux_filter_list_type;
 
-    WaveletTreeHuffman(size_t alphabet_num);
+    WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeHuffman();
 
     void build(const char_type *char_seq, size_t len);
@@ -33,28 +35,30 @@ public:
     size_t select(char_type c, size_t rank) const;
 
     void intersect(
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &results) const;
 
     void topKUnion(
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const range_list_type &patterns,
             size_t topK,
-            std::vector<std::pair<double, char_type> > &results) const;
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const;
 
     void topKUnionWithFilters(
-            const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const range_list_type &filters,
+            const range_list_type &patterns,
             size_t topK,
-            std::vector<std::pair<double, char_type> > &results) const;
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const;
 
     void topKUnionWithAuxFilters(
-            const std::vector<FilterList<self_type> *> &aux_filters,
-            const std::vector<std::pair<size_t, size_t> > &filters,
-            const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+            const aux_filter_list_type &aux_filters,
+            const range_list_type &patterns,
             size_t topK,
-            std::vector<std::pair<double, char_type> > &results) const;
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const;
 
     size_t getOcc(char_type c) const;
     WaveletTreeNode *getRoot() const;
@@ -66,14 +70,14 @@ public:
     void load(std::istream &istr);
 
 private:
-    void makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node);
+    void makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node);
 
     void deleteTree_(WaveletTreeNode *node);
     void buildTreeNodes_(WaveletTreeNode *node);
 
     void recursiveIntersect_(
             const WaveletTreeNode *node,
-            const std::vector<std::pair<size_t, size_t> > &ranges,
+            const std::vector<std::pair<size_t, size_t> > &patterns,
             size_t thres,
             size_t max_count,
             std::vector<char_type> &results) const;
@@ -85,14 +89,14 @@ private:
 
 private:
     std::vector<size_t> occ_;
-    std::vector<size_t> code_map_;
+    std::vector<uint64_t> code_map_;
     WaveletTreeNode *root_;
     std::vector<WaveletTreeNode *> leaves_;
 };
 
 template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(size_t alphabet_num)
-    : WaveletTree<CharT>(alphabet_num)
+WaveletTreeHuffman<CharT>::WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
     , root_()
 {
 }
@@ -116,7 +120,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
 
-    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
     for (size_t i = 0; i < len; ++i)
@@ -125,32 +129,32 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
     }
 
     leaves_.resize(this->alphabet_num_);
-    std::priority_queue<WaveletTreeNode *, std::vector<WaveletTreeNode *>, std::greater<WaveletTreeNode *> > node_queue;
+    interval_heap<WaveletTreeNode *> node_queue(this->alphabet_num_);
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
     {
         if (occ_[i + 1])
         {
-            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1]);
-            node_queue.push((leaves_[i]));
+            leaves_[i] = new WaveletTreeNode(i, occ_[i + 1], this->support_select_, this->dense_);
+            node_queue.insert((leaves_[i]));
         }
     }
 
     while (node_queue.size() > 1)
     {
-        WaveletTreeNode *left = node_queue.top();
-        node_queue.pop();
+        WaveletTreeNode *left = node_queue.get_min();
+        node_queue.pop_min();
 
-        WaveletTreeNode *right = node_queue.top();
-        node_queue.pop();
+        WaveletTreeNode *right = node_queue.get_min();
+        node_queue.pop_min();
 
-        node_queue.push(new WaveletTreeNode(left, right));
+        node_queue.insert(new WaveletTreeNode(left, right, this->support_select_, this->dense_));
     }
 
-    root_ = node_queue.top();
-    node_queue.pop();
+    root_ = node_queue.get_min();
+    node_queue.pop_min();
 
-    code_map_.resize(1 << this->alphabet_bit_num_, (size_t)-1);
+    code_map_.resize(this->alphabet_num_);
     makeCodeMap_(0, 0, root_);
 
     for (size_t i = 0; i < this->alphabet_num_; ++i)
@@ -181,7 +185,8 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         occ_[i] += occ_[i - 1];
     }
 
-    size_t code, level;
+    uint64_t code;
+    size_t level;
     WaveletTreeNode *walk;
 
     for (size_t i = 0; i < len; ++i)
@@ -189,21 +194,17 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
         code = code_map_[char_seq[i]];
         walk = root_;
 
-        for (level = 0;; ++level)
+        for (level = 0; walk; ++level)
         {
             if (code & 1ULL << level)
             {
                 walk->append1();
-
                 walk = walk->right_;
-                if (!walk) break;
             }
             else
             {
                 walk->append0();
-
                 walk = walk->left_;
-                if (!walk) break;
             }
         }
     }
@@ -212,7 +213,7 @@ void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 }
 
 template <class CharT>
-void WaveletTreeHuffman<CharT>::makeCodeMap_(size_t code, size_t level, WaveletTreeNode *node)
+void WaveletTreeHuffman<CharT>::makeCodeMap_(uint64_t code, size_t level, WaveletTreeNode *node)
 {
     if (node->left_)
     {
@@ -243,7 +244,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_) walk = walk->right_;
             else return walk->c1_;
@@ -265,7 +266,7 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 
     while (true)
     {
-        if (walk->bit_vector_.GetBit(pos, pos))
+        if (walk->access(pos, pos))
         {
             if (walk->right_)
             {
@@ -295,38 +296,37 @@ CharT WaveletTreeHuffman<CharT>::access(size_t pos, size_t &rank) const
 template <class CharT>
 size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 {
-    if (!leaves_[c]) return 0;
-
-    size_t code = code_map_[c];
-    if (code == (size_t)-1) return 0;
+    if (c >= leaves_.size() || !leaves_[c]) return 0;
 
     pos = std::min(pos, length());
+
+    uint64_t code = code_map_[c];
     WaveletTreeNode *walk = root_;
 
     for (size_t level = 0; pos > 0; ++level)
     {
-        if (code & 1U << level)
+        if (code & 1ULL << level)
         {
             if (walk->right_)
             {
-                pos = walk->bit_vector_.Rank1(pos);
+                pos = walk->rank1(pos);
                 walk = walk->right_;
             }
             else
             {
-                return walk->bit_vector_.Rank1(pos);
+                return walk->rank1(pos);
             }
         }
         else
         {
             if (walk->left_)
             {
-                pos = walk->bit_vector_.Rank0(pos);
+                pos = walk->rank0(pos);
                 walk = walk->left_;
             }
             else
             {
-                return walk->bit_vector_.Rank0(pos);
+                return walk->rank0(pos);
             }
         }
     }
@@ -346,32 +346,32 @@ size_t WaveletTreeHuffman<CharT>::select(char_type c, size_t rank) const
 
     for (; walk->parent_; walk = walk->parent_)
     {
-        if ((rank = walk->bit_vector_.Select(rank, bit)) == (size_t)-1)
+        if ((rank = walk->select(rank, bit)) == (size_t)-1)
             return -1;
 
         bit = (walk == walk->parent_->right_);
     }
 
-    return walk->bit_vector_.Select(rank, bit);
+    return walk->select(rank, bit);
 }
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::intersect(
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         std::vector<char_type> &results) const
 {
-    if (thres > ranges.size()) return;
-    if (thres > 0) thres = ranges.size() - thres;
+    if (thres > patterns.size()) return;
+    if (thres > 0) thres = patterns.size() - thres;
 
-    recursiveIntersect_(root_, ranges, thres, max_count, results);
+    recursiveIntersect_(root_, patterns, thres, max_count, results);
 }
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::recursiveIntersect_(
         const WaveletTreeNode *node,
-        const std::vector<std::pair<size_t, size_t> > &ranges,
+        const std::vector<std::pair<size_t, size_t> > &patterns,
         size_t thres,
         size_t max_count,
         std::vector<char_type> &results) const
@@ -379,21 +379,19 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
     if (results.size() >= max_count) return;
 
     std::vector<std::pair<size_t, size_t> > zero_ranges, one_ranges;
-    zero_ranges.reserve(ranges.size());
-    one_ranges.reserve(ranges.size());
+    zero_ranges.reserve(patterns.size());
+    one_ranges.reserve(patterns.size());
 
     size_t zero_thres = thres, one_thres = thres;
     bool has_zeros = true, has_ones = true;
 
-    const rsdic::RSDic &bv = node->bit_vector_;
-
     size_t rank_start, rank_end;
 
-    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = ranges.begin();
-            it != ranges.end(); ++it)
+    for (std::vector<std::pair<size_t, size_t> >::const_iterator it = patterns.begin();
+            it != patterns.end(); ++it)
     {
-        rank_start = bv.Rank1(it->first);
-        rank_end = bv.Rank1(it->second);
+        rank_start = node->rank1(it->first);
+        rank_end = node->rank1(it->second);
 
         if (has_zeros)
         {
@@ -465,176 +463,293 @@ void WaveletTreeHuffman<CharT>::recursiveIntersect_(
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnion(
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const range_list_type &patterns,
         size_t topK,
-        std::vector<std::pair<double, char_type> > &results) const
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const
 {
     if (topK == 0) return;
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
-    boost::priority_deque<PatternList *> ranges_queue;
-    ranges_queue.push(new PatternList(0, (char_type)0, root_, ranges));
+    interval_heap<PatternList *> ranges_heap(max_queue_size + 1);
+    ranges_heap.insert(BOOST_NEW(alloc, PatternList)(0, (char_type)0, root_, patterns));
 
-    if (ranges_queue.top()->score_ == 0.0)
+    if (ranges_heap.get_max()->score_ == 0.0)
     {
-        delete ranges_queue.top();
+        //delete ranges_heap.get_max();
         return;
     }
 
     results.reserve(topK);
 
-    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const PatternList *top_ranges;
+    std::vector<PatternList *, boost::stl_allocator<PatternList *> > recyc_queue(alloc);
+    recyc_queue.reserve(max_queue_size + 1);
+    std::deque<PatternList *, boost::stl_allocator<PatternList *> > top_queue(alloc);
+
+    PatternList *top_ranges;
     PatternList *zero_ranges, *one_ranges;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_heap.empty())
+        {
+            top_ranges = ranges_heap.get_max();
+            ranges_heap.pop_max();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new PatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.size());
-        one_ranges = new PatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.size());
+        if (recyc_queue.empty())
+        {
+            zero_ranges = BOOST_NEW(alloc, PatternList)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
+        if (recyc_queue.empty())
+        {
+            one_ranges = BOOST_NEW(alloc, PatternList)(zero_ranges->level_, node->c1_, node->right_, top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
+
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             zero_ranges->addPattern(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
             one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
-        delete top_ranges;
-
         zero_ranges->calcScore();
-        if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+        if (zero_ranges->score_ == 0.0)
         {
-            delete zero_ranges;
+            recyc_queue.push_back(zero_ranges);
         }
-        else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+        else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
         {
-            results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-            delete zero_ranges;
+            if (zero_ranges->node_)
+            {
+                top_queue.push_back(zero_ranges);
+            }
+            else
+            {
+                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                recyc_queue.push_back(zero_ranges);
+            }
         }
         else
         {
-            ranges_queue.push(zero_ranges);
+            ranges_heap.insert(zero_ranges);
         }
 
         one_ranges->calcScore();
-        if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+        if (one_ranges->score_ == 0.0)
         {
-            delete one_ranges;
+            recyc_queue.push_back(one_ranges);
         }
-        else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+        else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
         {
-            results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-            delete one_ranges;
+            if (one_ranges->node_)
+            {
+                top_queue.push_back(one_ranges);
+
+                if (top_queue.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(top_queue.front());
+                    top_queue.pop_front();
+                }
+                else if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_heap.get_min());
+                    ranges_heap.pop_min();
+                }
+            }
+            else
+            {
+                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                recyc_queue.push_back(one_ranges);
+            }
+        }
+        else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+        {
+            recyc_queue.push_back(one_ranges);
         }
         else
         {
-            ranges_queue.push(one_ranges);
+            ranges_heap.insert(one_ranges);
+
+            if (top_queue.size() + ranges_heap.size() > max_queue_size)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.pop_min();
+            }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            PatternList * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
     }
-
-    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    /*
+    interval_heap<PatternList *>::container_type ranges_list = ranges_heap.get_container();
+    for (size_t i = 0; i < ranges_heap.size() / 2; ++i)
     {
-        delete ranges_queue.get(i);
+        delete ranges_list[i].first;
+        delete ranges_list[i].second;
     }
+    if (ranges_heap.size() % 2)
+    {
+        delete ranges_list[ranges_heap.size() / 2].first;
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
+    }*/
 }
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
-        const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const range_list_type &filters,
+        const range_list_type &patterns,
         size_t topK,
-        std::vector<std::pair<double, char_type> > &results) const
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const
 {
     if (topK == 0) return;
 
-    boost::priority_deque<FilteredPatternList *> ranges_queue;
-    ranges_queue.push(new FilteredPatternList(0, (char_type)0, root_, filters, ranges));
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
-    if (ranges_queue.top()->score_ == 0.0)
+    interval_heap<FilteredPatternList *> ranges_heap(max_queue_size + 1);
+    ranges_heap.insert(BOOST_NEW(alloc, FilteredPatternList)(0, (char_type)0, root_, filters, patterns));
+
+    if (ranges_heap.get_max()->score_ == 0.0)
     {
-        delete ranges_queue.top();
+        //delete ranges_heap.get_max();
         return;
     }
 
     results.reserve(topK);
 
-    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const FilteredPatternList *top_ranges;
+    std::vector<FilteredPatternList *, boost::stl_allocator<FilteredPatternList *> > recyc_queue(alloc);
+    recyc_queue.reserve(max_queue_size + 1);
+    std::deque<FilteredPatternList *, boost::stl_allocator<FilteredPatternList *> > top_queue(alloc);
+
+    FilteredPatternList *top_ranges;
     FilteredPatternList *zero_ranges, *one_ranges;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_heap.empty())
+        {
+            top_ranges = ranges_heap.get_max();
+            ranges_heap.pop_max();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new FilteredPatternList(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new FilteredPatternList(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.size(), top_ranges->patterns_.size());
+        if (recyc_queue.empty())
+        {
+            zero_ranges = BOOST_NEW(alloc, FilteredPatternList)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
+        if (recyc_queue.empty())
+        {
+            one_ranges = BOOST_NEW(alloc, FilteredPatternList)(zero_ranges->level_, node->c1_, node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
+
+        for (range_list_type::const_iterator it = top_ranges->filters_.begin();
                 it != top_ranges->filters_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
+            zero_ranges->addFilter(boost::make_tuple(it->get<0>() - rank_start, it->get<1>() - rank_end, it->get<2>()));
+            one_ranges->addFilter(boost::make_tuple(rank_start, rank_end, it->get<2>()));
         }
 
         if (zero_ranges->filters_.empty())
         {
-            delete zero_ranges;
+            recyc_queue.push_back(zero_ranges);
             zero_ranges = NULL;
         }
         if (one_ranges->filters_.empty())
         {
-            delete one_ranges;
+            recyc_queue.push_back(one_ranges);
             one_ranges = NULL;
         }
         if (!zero_ranges && !one_ranges)
         {
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -646,172 +761,246 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
             }
         }
 
-        delete top_ranges;
-
         if (zero_ranges)
         {
             zero_ranges->calcScore();
-            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+            if (zero_ranges->score_ == 0.0)
             {
-                delete zero_ranges;
+                recyc_queue.push_back(zero_ranges);
             }
-            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
             {
-                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(zero_ranges);
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
             }
             else
             {
-                ranges_queue.push(zero_ranges);
+                ranges_heap.insert(zero_ranges);
             }
         }
 
         if (one_ranges)
         {
             one_ranges->calcScore();
-            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            if (one_ranges->score_ == 0.0)
             {
-                delete one_ranges;
+                recyc_queue.push_back(one_ranges);
             }
-            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
             {
-                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(one_ranges);
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front());
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_heap.get_min());
+                        ranges_heap.pop_min();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            {
+                recyc_queue.push_back(one_ranges);
             }
             else
             {
-                ranges_queue.push(one_ranges);
+                ranges_heap.insert(one_ranges);
+
+                if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_heap.get_min());
+                    ranges_heap.pop_min();
+                }
             }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            FilteredPatternList * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
+    }
+    /*
+    interval_heap<FilteredPatternList *>::container_type ranges_list = ranges_heap.get_container();
+    for (size_t i = 0; i < ranges_heap.size() / 2; ++i)
+    {
+        delete ranges_list[i].first;
+        delete ranges_list[i].second;
+    }
+    if (ranges_heap.size() % 2)
+    {
+        delete ranges_list[ranges_heap.size() / 2].first;
     }
 
-    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
     {
-        delete ranges_queue.get(i);
+        delete recyc_queue[i];
     }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
+    }*/
 }
 
 template <class CharT>
 void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
-        const std::vector<FilterList<self_type> *> &aux_filters,
-        const std::vector<std::pair<size_t, size_t> > &filters,
-        const std::vector<boost::tuple<size_t, size_t, double> > &ranges,
+        const aux_filter_list_type &aux_filters,
+        const range_list_type &patterns,
         size_t topK,
-        std::vector<std::pair<double, char_type> > &results) const
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const
 {
     if (topK == 0) return;
 
-    boost::priority_deque<AuxFilteredPatternList<self_type> *> ranges_queue;
-    ranges_queue.push(new AuxFilteredPatternList<self_type>(0, (char_type)0, root_, aux_filters, filters, ranges));
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
-    if (ranges_queue.top()->score_ == 0.0)
+    interval_heap<AuxFilteredPatternList<self_type> *> ranges_heap(max_queue_size + 1);
+    ranges_heap.insert(BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(0, (char_type)0, root_, aux_filters, patterns, alloc));
+
+    if (ranges_heap.get_max()->score_ == 0.0)
     {
-        delete ranges_queue.top();
+        //delete ranges_heap.get_max();
         return;
     }
 
     results.reserve(topK);
 
-    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
-    const AuxFilteredPatternList<self_type> *top_ranges;
+    size_t max_filter_size = 0;
+    for (size_t i = 0; i < aux_filters.size(); ++i)
+    {
+        max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
+    }
+
+    std::vector<AuxFilteredPatternList<self_type> *, boost::stl_allocator<AuxFilteredPatternList<self_type> *> > recyc_queue(alloc);
+    recyc_queue.reserve(max_queue_size + 1);
+    std::deque<AuxFilteredPatternList<self_type> *, boost::stl_allocator<AuxFilteredPatternList<self_type> *> > top_queue(alloc);
+
+    AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
     size_t rank_start, rank_end;
     const WaveletTreeNode *node;
 
-    while (!ranges_queue.empty() && results.size() < topK)
+    while (results.size() < topK)
     {
-        top_ranges = ranges_queue.top();
-        ranges_queue.pop_top();
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back();
+            top_queue.pop_back();
+        }
+        else if (!ranges_heap.empty())
+        {
+            top_ranges = ranges_heap.get_max();
+            ranges_heap.pop_max();
+        }
+        else
+        {
+            break;
+        }
 
         if (!top_ranges->node_)
         {
             results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
-            delete top_ranges;
+            recyc_queue.push_back(top_ranges);
             continue;
         }
 
         node = top_ranges->node_;
 
-        zero_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
-        one_ranges = new AuxFilteredPatternList<self_type>(top_ranges->level_ + 1, node->c1_, node->right_, top_ranges->aux_filters_.size(), top_ranges->filters_.size(), top_ranges->patterns_.size());
+        if (recyc_queue.empty())
+        {
+            zero_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(top_ranges->level_ + 1, node->c0_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, node->c0_, node->left_);
+            recyc_queue.pop_back();
+        }
 
-        for (typename std::vector<FilterList<self_type> *>::const_iterator it = top_ranges->aux_filters_.begin();
+        if (recyc_queue.empty())
+        {
+            one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(zero_ranges->level_, node->c1_, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, node->c1_, node->right_);
+            recyc_queue.pop_back();
+        }
+
+        for (typename std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> >::const_iterator it = top_ranges->aux_filters_.begin();
                 it != top_ranges->aux_filters_.end(); ++it)
         {
             node = (*it)->node_;
 
-            zero_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
-            one_filter = new FilterList<self_type>((*it)->tree_, node, (*it)->filters_.size());
+            if (zero_ranges)
+            {
+                zero_filter = zero_ranges->getAuxFilter((*it)->tree_, node->left_, max_filter_size);
+            }
+            if (one_ranges)
+            {
+                one_filter = one_ranges->getAuxFilter((*it)->tree_, node->right_, max_filter_size);
+            }
 
-            for (std::vector<std::pair<size_t, size_t> >::const_iterator fit = (*it)->filters_.begin();
+            for (range_list_type::const_iterator fit = (*it)->filters_.begin();
                     fit != (*it)->filters_.end(); ++fit)
             {
-                rank_start = node->bit_vector_.Rank1(fit->first);
-                rank_end = node->bit_vector_.Rank1(fit->second);
+                rank_start = node->rank1(fit->get<0>());
+                rank_end = node->rank1(fit->get<1>());
 
-                zero_filter->addFilter(std::make_pair(fit->first - rank_start, fit->second - rank_end));
-                one_filter->addFilter(std::make_pair(rank_start, rank_end));
+                if (zero_ranges)
+                {
+                    zero_filter->addFilter(boost::make_tuple(fit->get<0>() - rank_start, fit->get<1>() - rank_end, fit->get<2>()));
+                }
+                if (one_ranges)
+                {
+                    one_filter->addFilter(boost::make_tuple(rank_start, rank_end, fit->get<2>()));
+                }
             }
 
-            if (zero_filter->filters_.empty())
+            if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
             {
-                delete zero_filter;
+                recyc_queue.push_back(zero_ranges);
+                zero_ranges = NULL;
+                if (!one_ranges) break;
             }
-            else
+            if (one_ranges && !one_ranges->addAuxFilter(one_filter))
             {
-                zero_ranges->addAuxFilter(zero_filter);
+                recyc_queue.push_back(one_ranges);
+                one_ranges = NULL;
+                if (!zero_ranges) break;
             }
-            if (one_filter->filters_.empty())
-            {
-                delete one_filter;
-            }
-            else
-            {
-                one_ranges->addAuxFilter(one_filter);
-            }
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_queue.push_back(top_ranges);
+            continue;
         }
 
         node = top_ranges->node_;
 
-        for (std::vector<std::pair<size_t, size_t> >::const_iterator it = top_ranges->filters_.begin();
-                it != top_ranges->filters_.end(); ++it)
-        {
-            rank_start = node->bit_vector_.Rank1(it->first);
-            rank_end = node->bit_vector_.Rank1(it->second);
-
-            zero_ranges->addFilter(std::make_pair(it->first - rank_start, it->second - rank_end));
-            one_ranges->addFilter(std::make_pair(rank_start, rank_end));
-        }
-
-        if (zero_ranges->filters_.empty() && zero_ranges->aux_filters_.empty())
-        {
-            delete zero_ranges;
-            zero_ranges = NULL;
-        }
-        if (one_ranges->filters_.empty() && one_ranges->aux_filters_.empty())
-        {
-            delete one_ranges;
-            one_ranges = NULL;
-        }
-        if (!zero_ranges && !one_ranges)
-        {
-            delete top_ranges;
-            continue;
-        }
-
-        for (std::vector<boost::tuple<size_t, size_t, double> >::const_iterator it = top_ranges->patterns_.begin();
+        for (range_list_type::const_iterator it = top_ranges->patterns_.begin();
                 it != top_ranges->patterns_.end(); ++it)
         {
-            rank_start = node->bit_vector_.Rank1(it->get<0>());
-            rank_end = node->bit_vector_.Rank1(it->get<1>());
+            rank_start = node->rank1(it->get<0>());
+            rank_end = node->rank1(it->get<1>());
 
             if (zero_ranges)
             {
@@ -823,56 +1012,100 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
             }
         }
 
-        delete top_ranges;
-
         if (zero_ranges)
         {
             zero_ranges->calcScore();
-            if (zero_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && zero_ranges->score_ < ranges_queue.bottom()->score_))
+            if (zero_ranges->score_ == 0.0)
             {
-                delete zero_ranges;
+                recyc_queue.push_back(zero_ranges);
             }
-            else if (!zero_ranges->node_ && (ranges_queue.empty() || zero_ranges->score_ >= ranges_queue.top()->score_))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
             {
-                results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
-                delete zero_ranges;
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(zero_ranges);
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
             }
             else
             {
-                ranges_queue.push(zero_ranges);
+                ranges_heap.insert(zero_ranges);
             }
         }
 
         if (one_ranges)
         {
             one_ranges->calcScore();
-            if (one_ranges->score_ == 0.0 || (ranges_queue.size() >= max_queue_size && one_ranges->score_ < ranges_queue.bottom()->score_))
+            if (one_ranges->score_ == 0.0)
             {
-                delete one_ranges;
+                recyc_queue.push_back(one_ranges);
             }
-            else if (!one_ranges->node_ && (ranges_queue.empty() || one_ranges->score_ >= ranges_queue.top()->score_))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
             {
-                results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
-                delete one_ranges;
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(one_ranges);
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front());
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_heap.get_min());
+                        ranges_heap.pop_min();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            {
+                recyc_queue.push_back(one_ranges);
             }
             else
             {
-                ranges_queue.push(one_ranges);
+                ranges_heap.insert(one_ranges);
+
+                if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_heap.get_min());
+                    ranges_heap.pop_min();
+                }
             }
         }
 
-        if (ranges_queue.size() > max_queue_size)
-        {
-            AuxFilteredPatternList<self_type> * bottom = ranges_queue.bottom();
-            ranges_queue.pop_bottom();
-            delete bottom;
-        }
+        recyc_queue.push_back(top_ranges);
+    }
+    /*
+    typename interval_heap<AuxFilteredPatternList<self_type> *>::container_type ranges_list = ranges_heap.get_container();
+    for (size_t i = 0; i < ranges_heap.size() / 2; ++i)
+    {
+        delete ranges_list[i].first;
+        delete ranges_list[i].second;
+    }
+    if (ranges_heap.size() % 2)
+    {
+        delete ranges_list[ranges_heap.size() / 2].first;
     }
 
-    for (size_t i = 0; i < ranges_queue.size(); ++i)
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
     {
-        delete ranges_queue.get(i);
+        delete recyc_queue[i];
     }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i];
+    }*/
 }
 
 template <class CharT>
@@ -915,7 +1148,7 @@ void WaveletTreeHuffman<CharT>::save(std::ostream &ostr) const
 {
     WaveletTree<CharT>::save(ostr);
 
-    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
+    ostr.write((const char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
     ostr.write((const char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     if (root_)
@@ -950,18 +1183,18 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
 
     if (root_) deleteTree_(root_);
 
-    this->alphabet_bit_num_ = bits(this->alphabet_num_ - 1);
+    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
-    istr.read((char *)&occ_[0], sizeof(occ_[0]) * (this->alphabet_num_ + 1));
-    code_map_.resize(1 << this->alphabet_bit_num_);
+    istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
+    code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     uint32_t flag = 0;
     istr.read((char *)&flag, sizeof(flag));
     if (flag)
     {
-        root_ = new WaveletTreeNode;
+        root_ = new WaveletTreeNode(this->support_select_, this->dense_);
         leaves_.resize(this->alphabet_num_);
         loadTree_(istr, root_);
     }
@@ -977,7 +1210,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 1U)
     {
-        node->left_ = new WaveletTreeNode;
+        node->left_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->left_->parent_ = node;
         loadTree_(istr, node->left_);
     }
@@ -988,7 +1221,7 @@ void WaveletTreeHuffman<CharT>::loadTree_(std::istream &istr, WaveletTreeNode *n
 
     if (flag & 2U)
     {
-        node->right_ = new WaveletTreeNode;
+        node->right_ = new WaveletTreeNode(this->support_select_, this->dense_);
         node->right_->parent_ = node;
         loadTree_(istr, node->right_);
     }

@@ -10,9 +10,6 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
 
 SET(libs
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${TokyoCabinet_LIBRARIES}
   febird
   luxio
   am
@@ -21,6 +18,9 @@ SET(libs
   procmeminfo
   leveldb
   snappy
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
 
 )
 
@@ -59,6 +59,15 @@ SET(t_indexer_util_SRC
 ADD_EXECUTABLE(t_indexer_util ${t_indexer_util_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexer_util ${libs})
+
+SET(t_EWAHTermDocFreqs_SRC
+  t_EWAHTermDocFreqs.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_EWAHTermDocFreqs ${t_EWAHTermDocFreqs_SRC})
+
+TARGET_LINK_LIBRARIES(t_EWAHTermDocFreqs ${libs})
 
 SET(t_indexsort_SRC
   t_indexsort.cpp
@@ -106,11 +115,15 @@ SET(t_btreeindexer_SRC
   rtype/t_BTreeIndexer.cpp
   t_master_suite.cpp
 )
-
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin/rtypeindex)
-
 ADD_EXECUTABLE(t_BTreeIndexer ${t_btreeindexer_SRC})
-
 TARGET_LINK_LIBRARIES(t_BTreeIndexer ${libs})
+
+SET(btreeindexercmd_SRC
+  rtype/BTreeIndexerCmd.cpp
+)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin/rtypeindex)
+ADD_EXECUTABLE(BTreeIndexerCmd ${btreeindexercmd_SRC})
+TARGET_LINK_LIBRARIES(BTreeIndexerCmd ${libs})
 
 ENDIF(Boost_FOUND)

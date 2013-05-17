@@ -139,6 +139,9 @@ list(APPEND ALL_TESTS t_RoundRobinPolicy)
 # ZooKeeperRouter
 set(ZooKeeperRouter_SOURCES
     ${IZENELIB_SOURCE_DIR}/source/util/kv2string.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/scheduler.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/timer.cpp
+    ${IZENELIB_SOURCE_DIR}/source/util/singleton.cpp
     ${SOURCE_DIR}/RawClient.cpp
     ${SOURCE_DIR}/ConnectionPool.cpp
     ${SOURCE_DIR}/distributed/Sf1Node.cpp

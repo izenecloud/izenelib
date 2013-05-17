@@ -83,6 +83,10 @@ FIND_PACKAGE(Glog)
 FIND_PACKAGE(Thrift)
 
 ##################################################
+# Tokudb
+#####
+FIND_PACKAGE(Toku)
+##################################################
 # Other common libraries
 #####
 FIND_LIBRARY(DL_LIBRARIES NAMES dl)

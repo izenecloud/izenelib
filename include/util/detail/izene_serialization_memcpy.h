@@ -160,6 +160,38 @@ public:
     }
 };
 
+template<typename T>
+class izene_serialization_memcpy<std::pair<T, T> >
+{
+    const std::pair<T, T>& dat_;
+public:
+    izene_serialization_memcpy(const std::pair<T, T>& dat)
+        : dat_(dat)
+    {
+    }
+    void write_image(char* &ptr, size_t& size)
+    {
+        ptr = (char*) &dat_;
+        size = sizeof(dat_);
+    }
+};
+
+template<typename T>
+class izene_deserialization_memcpy<std::pair<T, T> >
+{
+    const char* ptr_;
+    const size_t size_;
+public:
+    izene_deserialization_memcpy(const char* ptr, const size_t size)
+        : ptr_(ptr), size_(size)
+    {
+    }
+    void read_image(std::pair<T, T>& dat)
+    {
+        memcpy(&dat, ptr_, size_);
+    }
+};
+
 template<typename T1, typename T2>
 class izene_serialization_memcpy<std::pair<T1, T2> >
 {
@@ -171,6 +203,20 @@ public:
     }
     void write_image(char* &ptr, size_t& size)
     {
+        // if sizeof(T1) != sizeof(T2), we need clear padding data to avoid random padding data. 
+        if (sizeof(T1) != sizeof(T2))
+        {
+            if ((char*)&(dat_.second) > (char*)&dat_ + sizeof(T1))
+            {
+                ::memset((char*)&dat_ + sizeof(T1), 0x00,
+                    (char*)&(dat_.second) - ((char*)&dat_ + sizeof(T1)));
+            }
+            if ((char*)&dat_ + sizeof(dat_) > (char*)&(dat_.second) + sizeof(T2))
+            {
+                ::memset((char*)&(dat_.second) + sizeof(T2), 0x00,
+                    (char*)&dat_ + sizeof(dat_) - ((char*)&(dat_.second) + sizeof(T2)));
+            }
+        }
         ptr = (char*) &dat_;
         size = sizeof(dat_);
     }
@@ -192,6 +238,36 @@ public:
     }
 };
 
+template<typename T1>
+class izene_serialization_memcpy<boost::tuple<T1> >
+{
+    const boost::tuple<T1>& dat_;
+public:
+    izene_serialization_memcpy(const boost::tuple<T1>& dat)
+        : dat_(dat)
+    {
+    }
+    void write_image(char* &ptr, size_t& size)
+    {
+        ptr = (char*) &dat_;
+        size = sizeof(dat_);
+    }
+};
+template<typename T1>
+class izene_deserialization_memcpy<boost::tuple<T1> >
+{
+    const char* ptr_;
+    const size_t size_;
+public:
+    izene_deserialization_memcpy(const char* ptr, const size_t size)
+        : ptr_(ptr), size_(size)
+    {
+    }
+    void read_image(boost::tuple<T1>& dat)
+    {
+        memcpy(&dat, ptr_, size_);
+    }
+};
 
 template<typename T1, typename T2>
 class izene_serialization_memcpy<boost::tuple<T1, T2> >
@@ -204,6 +280,20 @@ public:
     }
     void write_image(char* &ptr, size_t& size)
     {
+        if (sizeof(T1) != sizeof(T2))
+        {
+            if ((char*)&boost::get<1>(dat_) > (char*)&dat_ + sizeof(T1))
+            {
+                ::memset((char*)&dat_ + sizeof(T1), 0x00,
+                    (char*)&boost::get<1>(dat_) - ((char*)&dat_ + sizeof(T1)));
+            }
+            if ((char*)&dat_ + sizeof(dat_) > (char*)&boost::get<1>(dat_) + sizeof(T2))
+            {
+                ::memset((char*)&boost::get<1>(dat_) + sizeof(T2), 0x00,
+                    (char*)&dat_ + sizeof(dat_) - ((char*)&boost::get<1>(dat_) + sizeof(T2)));
+            }
+        }
+
         ptr = (char*) &dat_;
         size = sizeof(dat_);
     }
@@ -237,6 +327,25 @@ public:
     }
     void write_image(char* &ptr, size_t& size)
     {
+        if (sizeof(T1) != sizeof(T2) || sizeof(T1) != sizeof(T3) || sizeof(T2) != sizeof(T3))
+        {
+            if ((char*)&boost::get<1>(dat_) > (char*)&dat_ + sizeof(T1))
+            {
+                ::memset((char*)&dat_ + sizeof(T1), 0x00,
+                    (char*)&boost::get<1>(dat_) - ((char*)&dat_ + sizeof(T1)));
+            }
+            if ((char*)&boost::get<2>(dat_) > (char*)&boost::get<1>(dat_) + sizeof(T2))
+            {
+                ::memset((char*)&boost::get<1>(dat_) + sizeof(T2), 0x00,
+                    (char*)&boost::get<2>(dat_) - ((char*)&boost::get<1>(dat_) + sizeof(T2)));
+            }
+            if ((char*)&dat_ + sizeof(dat_) > (char*)&boost::get<2>(dat_) + sizeof(T3))
+            {
+                ::memset((char*)&boost::get<2>(dat_) + sizeof(T3), 0x00,
+                    (char*)&dat_ + sizeof(dat_) - ((char*)&boost::get<2>(dat_) + sizeof(T3)));
+            }
+        }
+
         ptr = (char*) &dat_;
         size = sizeof(dat_);
     }

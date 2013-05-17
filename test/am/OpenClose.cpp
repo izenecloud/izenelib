@@ -13,10 +13,6 @@ typedef boost::mpl::list<
     tc::Hash<int, std::string>,
     tc::BTree<int, std::string>
     , sdb_hash<int, std::string>
-    , sdb_btree<int, std::string>
-    , sdb_fixedhash<int, std::string>
-    , sdb_fixedbtree<int, std::string>
-    , sdb_storage<int, std::string>   
 > test_types;
 
 BOOST_AUTO_TEST_SUITE(OpenClose_test)

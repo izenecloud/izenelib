@@ -224,8 +224,8 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
 /** the parameter number */
 const int INDEXER_TEST_CONFIG_NUM = sizeof(INDEXER_TEST_CONFIGS) / sizeof(IndexerTestConfig);
 
-/** if the command options of "--run_config_list" or "--run_config_range" are not specified, run configs of range [0, DEFAULT_CONFIG_RANGE] */
-const int DEFAULT_CONFIG_RANGE = 35;
+/** if the command options of "--run_config_list" or "--run_config_range" are not specified, run this config list */
+const int DEFAULT_CONFIG_LIST[] = {18, 22, 24, 26, 28, 30};
 
 /** the command option to specify a list of config numbers, such as "--run_config_list 0 1 2 3" */
 const char* OPTION_CONFIG_LIST = "run_config_list";
@@ -247,6 +247,28 @@ const char* ENV_NAME_LOG_FILE = "BOOST_TEST_LOG_FILE";
 }
 
 static std::ofstream* gOutStream = 0;
+
+template <typename ContainerT>
+void loadConfigList(const ContainerT& configList, vector<IndexerTestConfig>& configVec)
+{
+    cout << OPTION_CONFIG_LIST << ": ";
+
+    BOOST_FOREACH(int i, configList)
+    {
+        cout << i << ", ";
+        if(i >= 0 && i < INDEXER_TEST_CONFIG_NUM)
+            configVec.push_back(INDEXER_TEST_CONFIGS[i]);
+        else
+        {
+            cout << endl;
+            ostringstream oss;
+            oss << "unknown config number " << i;
+            throw std::runtime_error(oss.str());
+        }
+    }
+
+    cout << endl;
+}
 
 /**
  * Load command line option "run_config_list" or "run_config_range" to decide which configs to run.
@@ -273,25 +295,11 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
 
         po::variables_map vm;
         store(po::command_line_parser(framework::master_test_suite().argc, framework::master_test_suite().argv).options(cmdline_options).run(), vm);
-        po::notify(vm);    
+        po::notify(vm);
 
         if(vm.count(OPTION_CONFIG_LIST))
         {
-            cout << OPTION_CONFIG_LIST << ": ";
-            BOOST_FOREACH(int i, runConfigListVec)
-            {
-                cout << i << ", ";
-                if(i >= 0 && i < INDEXER_TEST_CONFIG_NUM)
-                    configVec.push_back(INDEXER_TEST_CONFIGS[i]);
-                else
-                {
-                    cout << endl;
-                    ostringstream oss;
-                    oss << "unknown config number " << i;
-                    throw std::runtime_error(oss.str());
-                }
-            }
-            cout << endl;
+            loadConfigList(runConfigListVec, configVec);
         }
         else if(vm.count(OPTION_CONFIG_RANGE))
         {
@@ -315,9 +323,7 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
         }
         else
         {
-            cout << "run default configs range: [0, " << DEFAULT_CONFIG_RANGE << "]" << endl;
-            configVec.insert(configVec.begin(), INDEXER_TEST_CONFIGS,
-                                                INDEXER_TEST_CONFIGS + DEFAULT_CONFIG_RANGE + 1);
+            loadConfigList(DEFAULT_CONFIG_LIST, configVec);
         }
 
         cout << OPTION_CHECK_PERCENT << ": " << checkPercent << endl;

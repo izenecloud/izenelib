@@ -317,7 +317,7 @@ Status DBImpl::Recover(VersionEdit* edit) {
       if (ParseFileName(filenames[i], &number, &type)
           && type == kLogFile
           && ((number >= min_log) || (number == prev_log))) {
-        logs.push_back(number);
+        logs.push_back(number);		
       }
     }
 

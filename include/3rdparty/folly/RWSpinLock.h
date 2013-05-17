@@ -203,11 +203,6 @@ class RWSpinLock : boost::noncopyable {
     bits_.fetch_add(READER - UPGRADED, boost::memory_order_acq_rel);
   }
 
-  void unlock_shared_and_lock_upgrade() {
-    lock_upgrade();
-    unlock_shared();
-  }
-
   // write unlock and upgrade lock atomically
   void unlock_and_lock_upgrade() {
     // need to do it in two steps here -- as the UPGRADED bit might be OR-ed at
@@ -225,12 +220,16 @@ class RWSpinLock : boost::noncopyable {
   }
 
   // Try to get reader permission on the lock. This can fail if we
-  // find out someone is a writer.
+  // find out someone is a writer or upgrader.
+  // Setting the UPGRADED bit would allow a writer-to-be to indicate
+  // its intention to write and block any new readers while waiting
+  // for existing readers to finish and release their read locks. This
+  // helps avoid starving writers (promoted from upgraders).
   bool try_lock_shared() {
     // fetch_add is considerably (100%) faster than compare_exchange,
     // so here we are optimizing for the common (lock success) case.
     int32_t value = bits_.fetch_add(READER, boost::memory_order_acquire);
-    if (UNLIKELY(value & WRITER)) {
+    if (UNLIKELY(value & (WRITER|UPGRADED))) {
       bits_.fetch_add(-READER, boost::memory_order_release);
       return false;
     }
@@ -324,12 +323,6 @@ class RWSpinLock : boost::noncopyable {
     explicit UpgradedHolder(RWSpinLock& lock) : lock_(&lock) {
       lock_->lock_upgrade();
     }
-
-    //explicit UpgradedHolder(ReadHolder&& reader) {
-    //  lock_ = reader.lock_;
-    //  reader.lock_ = nullptr;
-    //  if (lock_) lock_->unlock_shared_and_lock_upgrade();
-    //}
 
     //explicit UpgradedHolder(WriteHolder&& writer) {
     //  lock_ = writer.lock_;
@@ -564,9 +557,16 @@ class RWTicketSpinLockT : boost::noncopyable {
    * turns.
    */
   void writeLockAggressive() {
+    // sched_yield() is needed here to avoid a pathology if the number
+    // of threads attempting concurrent writes is >= the number of real
+    // cores allocated to this process. This is less likely than the
+    // corresponding situation in lock_shared(), but we still want to
+    // avoid it
+    int count = 0;
     QuarterInt val = __sync_fetch_and_add(&ticket.users, 1);
     while (val != load_acquire(&ticket.write)) {
       asm volatile("pause");
+      if (UNLIKELY(++count > 1000)) sched_yield();
     }
   }
 
@@ -578,6 +578,9 @@ class RWTicketSpinLockT : boost::noncopyable {
     // writers, so the writer has less chance to get the lock when
     // there are a lot of competing readers.  The aggressive spinning
     // can help to avoid starving writers.
+    //
+    // We don't worry about sched_yield() here because the caller
+    // has already explicitly abandoned fairness.
     while (!try_lock()) {}
   }
 
@@ -606,8 +609,13 @@ class RWTicketSpinLockT : boost::noncopyable {
   }
 
   void lock_shared() {
+    // sched_yield() is important here because we can't grab the
+    // shared lock if there is a pending writeLockAggressive, so we
+    // need to let threads that already have a shared lock complete
+    int count = 0;
     while (!LIKELY(try_lock_shared())) {
       asm volatile("pause");
+      if (UNLIKELY((++count & 1023) == 0)) sched_yield();
     }
   }
 

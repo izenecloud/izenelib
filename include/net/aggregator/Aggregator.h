@@ -52,15 +52,21 @@ namespace aggregator{
 class AggregatorBase
 {
 public:
-    AggregatorBase(const std::string& collection) : collection_(collection) {}
+    AggregatorBase(const std::string& service, const std::string& collection)
+        : service_(service), collection_(collection) {}
 
     virtual ~AggregatorBase(){}
 
-    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig) = 0;
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false) = 0;
 
     const std::string& collection() const { return collection_; }
 
+    const std::string& service() const {return service_;}
+
+    virtual bool isNeedDistribute() const = 0;
+
 protected:
+    std::string service_;
     std::string collection_;
 };
 
@@ -81,16 +87,22 @@ public:
      */
     Aggregator(
         MergerProxy* mergerProxy,
-        LocalWorkerProxy* localWorkerProxy = NULL,
-        const std::string& collection = "");
+        LocalWorkerProxy* localWorkerProxy,
+        const std::string& service,
+        const std::string& collection);
 
-    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig);
+    virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false);
 
     const std::vector<workerid_t>& getWorkerIdList() const { return workeridList_; }
 
     size_t getWorkerNum() const { return workeridList_.size(); }
 
     void setDebug(bool debug) { debug_ = debug; }
+
+    bool isLocalWorker(workerid_t wid)
+    {
+        return hasLocalWorker_ && wid == localWorkerId_;
+    }
 
     /**
      * Send request to all workers, their results will be \b aggregated to @p out.
@@ -163,6 +175,39 @@ public:
         Out& out,
         workerid_t workerid);
 
+    /**
+     * Send request to all workers except local self, their results will be \b aggregated to @p out.
+     *
+     * @param identity identity info, pass empty string if not necessary.
+     * @param func remote function name
+     * @param[in,out] out output parameter
+     */
+    template <typename Out>
+    bool distributeRequestWithoutLocal(
+        const std::string& identity,
+        const std::string& func,
+        Out& out);
+
+    template <typename In, typename Out>
+    bool distributeRequestWithoutLocal(
+        const std::string& identity,
+        const std::string& func,
+        const In& in,
+        Out& out);
+
+    template <typename In1, typename In2, typename Out>
+    bool distributeRequestWithoutLocal(
+        const std::string& identity,
+        const std::string& func,
+        const In1& in1,
+        const In2& in2,
+        Out& out);
+
+    bool isNeedDistribute() const
+    {
+        return !(hasLocalWorker_ && workerSessionList_.empty());
+    }
+
 protected:
     session_t getMsgPackSession_(const WorkerSessionPtr& workerSessionPtr);
 
@@ -172,7 +217,7 @@ protected:
 
     template <typename AggregatorParamT>
     bool distributeRequestImpl_(
-        AggregatorParamT& param);
+        AggregatorParamT& param, bool include_self);
 
     template <typename AggregatorParamT>
     bool singleRequestImpl_(
@@ -211,8 +256,9 @@ template <class MergerProxy, class LocalWorkerProxy>
 Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
     MergerProxy* mergerProxy,
     LocalWorkerProxy* localWorkerProxy,
+    const std::string& service,
     const std::string& collection)
-: AggregatorBase(collection)
+: AggregatorBase(service, collection)
 , debug_(false)
 , hasLocalWorker_(false)
 , localWorkerId_(0)
@@ -223,9 +269,62 @@ Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
-void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
+void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update)
 {
     ScopedWriteLock lock(mutex_);
+
+    if (!force_update && timeout_ == aggregatorConfig.getTimeout())
+    {
+        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
+        bool need_reset = false;
+        size_t compared_num = 0;
+        for (size_t i = 0; i < workerSrvList.size(); i ++)
+        {
+            const WorkerServerInfo& workerSrv = workerSrvList[i];
+
+            // only 1 local is allowed
+            if (workerSrv.isLocal_ && localWorkerProxy_)
+            {
+                if (!hasLocalWorker_ || localWorkerId_ != workerSrv.workerid_)
+                {
+                    need_reset = true;
+                    break;
+                }
+                continue;
+            }
+            if (compared_num >= workeridList_.size() || compared_num >= workerSessionList_.size())
+            {
+                need_reset = true;
+                break;
+            }
+            if (workeridList_[compared_num] != workerSrv.workerid_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getWorkerId() != workerSrv.workerid_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getServerInfo().host_ != workerSrv.host_)
+            {
+                need_reset = true;
+                break;
+            }
+            if (workerSessionList_[compared_num]->getServerInfo().port_ != workerSrv.port_)
+            {
+                need_reset = true;
+                break;
+            }
+            ++compared_num;
+        }
+        if (!need_reset)
+        {
+            std::cout << "#[Aggregator] no need reset worker connection : " << aggregatorConfig.toString() << std::endl;
+            return;
+        }
+    }
 
     workeridList_.clear();
     workerSessionList_.clear();
@@ -266,7 +365,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     AggregatorParam<LocalWorkerProxy, Out> param(
         localWorkerProxy_.get(), identity, func, out);
 
-    return distributeRequestImpl_(param);
+    return distributeRequestImpl_(param, true);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -280,7 +379,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     AggregatorParam<LocalWorkerProxy, Out, In> param(
         localWorkerProxy_.get(), identity, func, out, in);
 
-    return distributeRequestImpl_(param);
+    return distributeRequestImpl_(param, true);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -295,7 +394,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     AggregatorParam<LocalWorkerProxy, Out, In1, In2> param(
         localWorkerProxy_.get(), identity, func, out, in1, in2);
 
-    return distributeRequestImpl_(param);
+    return distributeRequestImpl_(param, true);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -356,6 +455,48 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     }
 
     return mergeResults_(func, futureList, workerResults, out);
+}
+
+template <class MergerProxy, class LocalWorkerProxy>
+template <typename Out>
+bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestWithoutLocal(
+    const std::string& identity,
+    const std::string& func,
+    Out& out)
+{
+    AggregatorParam<LocalWorkerProxy, Out> param(
+        localWorkerProxy_.get(), identity, func, out);
+
+    return distributeRequestImpl_(param, false);
+}
+
+template <class MergerProxy, class LocalWorkerProxy>
+template <typename In, typename Out>
+bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestWithoutLocal(
+    const std::string& identity,
+    const std::string& func,
+    const In& in,
+    Out& out)
+{
+    AggregatorParam<LocalWorkerProxy, Out, In> param(
+        localWorkerProxy_.get(), identity, func, out, in);
+
+    return distributeRequestImpl_(param, false);
+}
+
+template <class MergerProxy, class LocalWorkerProxy>
+template <typename In1, typename In2, typename Out>
+bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestWithoutLocal(
+    const std::string& identity,
+    const std::string& func,
+    const In1& in1,
+    const In2& in2,
+    Out& out)
+{
+    AggregatorParam<LocalWorkerProxy, Out, In1, In2> param(
+        localWorkerProxy_.get(), identity, func, out, in1, in2);
+
+    return distributeRequestImpl_(param, false);
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -452,7 +593,7 @@ void Aggregator<MergerProxy, LocalWorkerProxy>::printWorkerError_(workerid_t wor
 template <class MergerProxy, class LocalWorkerProxy>
 template <typename AggregatorParamT>
 bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
-    AggregatorParamT& param)
+    AggregatorParamT& param, bool include_self)
 {
     ScopedReadLock lock(mutex_);
 
@@ -477,7 +618,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
 
     typedef typename AggregatorParamT::out_type Out;
     WorkerResults<Out> workerResults;
-    if (hasLocalWorker_)
+    if (hasLocalWorker_ && include_self)
     {
         if (debug_)
             std::cout << "#[Aggregator] call local worker" << localWorkerId_ << endl;

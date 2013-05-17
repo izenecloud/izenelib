@@ -52,7 +52,7 @@ BTreeIndexerManager::~BTreeIndexerManager()
 
 void BTreeIndexerManager::doFilter_(BitVector& docs)
 {
-    if ( pFilter_&& pFilter_->any() )
+    if (pFilter_)
     {
         docs.logicalNotAnd(*pFilter_);
     }
@@ -139,14 +139,16 @@ void BTreeIndexerManager::getNoneEmptyList(const std::string& property_name, con
 {
     if(!checkType_(property_name, key)) return;
     getValue(property_name, key, docs);
-    doFilter_(docs);
 }
 
-void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, BitVector& docs)
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter)
 {
     if(!checkType_(property_name, key)) return;
     izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docs)), key);
-    doFilter_(docs);
+    if (needFilter)
+    {
+        doFilter_(docs);
+    }
 }
 
 void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
@@ -201,17 +203,22 @@ void BTreeIndexerManager::getValueGreatEqual(const std::string& property_name, c
     doFilter_(docs);
 }
 
-void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs)
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs, bool needFilter)
 {
     for(std::size_t i=0;i<keys.size();i++)
     {
-        if(!checkType_(property_name, keys[i])) return;
+        if(!checkType_(property_name, keys[i]))
+            return;
     }
+
     for(std::size_t i=0;i<keys.size();i++)
     {
-        BitVector bv;
-        getValue(property_name, keys[i], bv);
-        docs |= bv;
+        izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docs)), keys[i]);
+    }
+
+    if (needFilter)
+    {
+        doFilter_(docs);
     }
 }
 
@@ -221,8 +228,9 @@ void BTreeIndexerManager::getValueNotIn(const std::string& property_name, const 
     {
         if(!checkType_(property_name, keys[i])) return;
     }
-    getValueIn(property_name, keys, docs);
+    getValueIn(property_name, keys, docs, false);
     docs.toggle();
+    docs.clear(0); // clear docid 0 after toggle
     doFilter_(docs);
 }
 
@@ -231,6 +239,7 @@ void BTreeIndexerManager::getValueNotEqual(const std::string& property_name, con
     if(!checkType_(property_name, key)) return;
     getValue(property_name, key, docs);
     docs.toggle();
+    docs.clear(0); // clear docid 0 after toggle
     doFilter_(docs);
 }
 

@@ -61,10 +61,6 @@ public:
 
     void close(){}
 
-    void warmUp(){}
-
-    void coolDown(){}
-
     void display(){}
 
 }; // end - template EmptyIDGenerator
@@ -76,7 +72,6 @@ template <typename  NameString,
 class HashIDGenerator
 {
 public:
-
     /**
      * @brief Constructor.
      */
@@ -106,12 +101,7 @@ public:
 
     void close(){}
 
-    void warmUp(){}
-
-    void coolDown(){}
-
     void display(){}
-
 }; // end - template HashIDGenerator
 
 
@@ -126,7 +116,6 @@ class OldUniqueIDGenerator
     typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
 
 public:
-
     /**
      * @brief Constructor.
      *
@@ -179,17 +168,12 @@ public:
         idFinder_.close();
     }
 
-    void warmUp(){}
-
-    void coolDown(){}
-
     void display()
     {
 //      idFinder_.display();
     }
 
 protected:
-
     bool saveBloomFilter_() const
     {
         try
@@ -268,7 +252,6 @@ protected:
     }
 
 protected:
-
     NameID minID_; ///< An minimum ID.
     NameID maxID_; ///< An maximum ID.
     NameID newID_; ///< An ID for new name.
@@ -318,21 +301,21 @@ inline bool OldUniqueIDGenerator<NameString, NameID,
         NameID& nameID,
         bool insert)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     // If name string is found, return the id.
     if (bloomFilter_.Get(nameString))
     {
         if (idFinder_.get(nameString, nameID))
         {
-            mutex_.release_write_lock();
+            mutex_.unlock();
             return true;
         }
     }// end - if
 
     if (!insert)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         return false;
     }
 
@@ -343,13 +326,13 @@ inline bool OldUniqueIDGenerator<NameString, NameID,
     // check correctness of input nameID
     if (newID_> maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     bloomFilter_.Insert(nameString);
     idFinder_.insert(nameString, nameID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
     return false;
 } // end - get()
 
@@ -360,7 +343,7 @@ inline void OldUniqueIDGenerator<NameString, NameID,
         const NameString& nameString,
         NameID& updatedID)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
     // Because there's no name string in idFinder, create new id according to the string.
     updatedID = newID_;
@@ -369,13 +352,13 @@ inline void OldUniqueIDGenerator<NameString, NameID,
     // check correctness of input nameID
     if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     bloomFilter_.Insert(nameString);
     idFinder_.update(nameString, updatedID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
 } // end - update()
 
 template <
@@ -386,10 +369,7 @@ template <
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
-    typedef izenelib::am::leveldb::Table<NameString, NameID> IdFinder;
-
 public:
-
     /**
      * @brief Constructor.
      *
@@ -433,25 +413,11 @@ public:
     {
         saveFujimap_();
         saveNewId_();
-        idFinder_.flush();
     }
 
     void close()
     {
         flush();
-        fujimap_.clear();
-        idFinder_.close();
-    }
-
-    void warmUp()
-    {
-        fujimapStatus_ = true;
-        loadFujimap_();
-    }
-
-    void coolDown()
-    {
-        fujimapStatus_ = false;
         fujimap_.clear();
     }
 
@@ -460,7 +426,6 @@ public:
     }
 
 protected:
-
     bool saveFujimap_()
     {
         return fujimap_.empty() || fujimap_.save(fujimapFile_.c_str()) == 0;
@@ -521,7 +486,6 @@ protected:
     }
 
 protected:
-
     NameID minID_; ///< An minimum ID.
     NameID maxID_; ///< An maximum ID.
     NameID newID_; ///< An ID for new name.
@@ -532,9 +496,6 @@ protected:
     LockType mutex_;
 
     izenelib::am::succinct::fujimap::Fujimap<NameString, uint64_t> fujimap_;
-    IdFinder idFinder_;
-
-    bool fujimapStatus_;
 }; // end - template UniqueIDGenerator
 
 template <typename NameString, typename NameID,
@@ -549,12 +510,10 @@ UniqueIDGenerator<NameString, NameID,
     keyFile_(path + "_keyfile.tmp"),
     fujimapFile_(path + "_fujimap.bin"),
     newIdFile_(path + "_newid.xml"),
-    fujimap_(keyFile_.c_str()),
-    idFinder_(path + "_name_storage"),
-    fujimapStatus_(false)
+    fujimap_(keyFile_.c_str())
 {
-    idFinder_.open();
     restoreNewId_();
+    loadFujimap_();
 } // end - UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
@@ -573,45 +532,34 @@ inline bool UniqueIDGenerator<NameString, NameID,
         NameID& nameID,
         bool insert)
 {
-    mutex_.acquire_write_lock();
-
-    // If name string is found, return the id.
-    if (!insert)
-    {
-        if (fujimapStatus_)
-        {
-            nameID = fujimap_.getInteger(nameString);
-            mutex_.release_write_lock();
-            return (NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID;
-        }
-        else
-        {
-            bool ret = idFinder_.get(nameString, nameID);
-            mutex_.release_write_lock();
-            return ret;
-        }
-    }
+    mutex_.lock();
 
     nameID = fujimap_.getInteger(nameString);
+
+    // If name string is found, return the id.
     if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         return true;
-    }// end - if
+    }
 
-    nameID = newID_;
-    newID_++;
+    if (!insert)
+    {
+        mutex_.unlock();
+        return false;
+    }
+
+    nameID = newID_++;
 
     // check correctness of input nameID
-    if (newID_> maxID_)
+    if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     fujimap_.setInteger(nameString, nameID, true);
-    idFinder_.insert(nameString, nameID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
     return false;
 } // end - get()
 
@@ -622,21 +570,19 @@ inline void UniqueIDGenerator<NameString, NameID,
         const NameString& nameString,
         NameID& updatedID)
 {
-    mutex_.acquire_write_lock();
+    mutex_.lock();
 
-    updatedID = newID_;
-    newID_++;
+    updatedID = newID_++;
 
     // check correctness of input nameID
     if (newID_ > maxID_)
     {
-        mutex_.release_write_lock();
+        mutex_.unlock();
         throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
     }
 
     fujimap_.setInteger(nameString, updatedID, true);
-    idFinder_.update(nameString, updatedID);
-    mutex_.release_write_lock();
+    mutex_.unlock();
 } // end - update()
 
 }

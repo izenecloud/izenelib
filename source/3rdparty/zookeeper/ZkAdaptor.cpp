@@ -18,6 +18,7 @@
 
 #include <ZkAdaptor.hpp>
 #include <string.h>
+#include <unistd.h>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -418,6 +419,7 @@ vector< string > ZooKeeperAdapter::getNodeChildren (const string &path) throw (Z
 
         //make sure the order is always deterministic
         sort( nodeList.begin(), nodeList.end() );
+        deallocate_String_vector(&children);
         return nodeList;
     }
 }
@@ -517,4 +519,3 @@ void ZooKeeperAdapter::setNodeData(const string &path,
     }
     // success
 }
-

@@ -61,6 +61,7 @@ public:
      */
     void removeNode(const std::string& path, bool emit = true);
     
+    void clearNodes();
     /**
      * Signal emitted on topology changes.
      */

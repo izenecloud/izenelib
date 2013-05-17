@@ -13,10 +13,11 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <cstdlib>
 
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/store/FSDirectory.h>
-
+#include <util/ClockTimer.h>
 
 using namespace std;
 using namespace boost;
@@ -129,6 +130,79 @@ void checkBitVector(size_t count, bool isCheckEachBit = true)
     BOOST_CHECK(! bitvector.test(count + 7));
 }
 
+void setBitVector(BitVector& bitVector, std::size_t setBitNum)
+{
+    std::size_t bitNum = bitVector.size();
+    for (std::size_t i = 0; i < setBitNum; ++i)
+    {
+        int k = std::rand() % bitNum;
+        bitVector.set(k);
+    }
+}
+
+void testLogicalNotAnd(std::size_t bitNum)
+{
+    BitVector bitVector1(bitNum);
+    BitVector bitVector2(bitNum);
+
+    const std::size_t setBitNum = bitNum / 2;
+    setBitVector(bitVector1, setBitNum);
+    setBitVector(bitVector2, setBitNum);
+
+    BitVector gold(bitNum);
+    for (std::size_t i = 0; i < bitNum; ++i)
+    {
+        if (bitVector1.test(i) && bitVector2.test(i) == false)
+        {
+            gold.set(i);
+        }
+    }
+
+    bitVector1.logicalNotAnd(bitVector2);
+
+    BOOST_CHECK_EQUAL(bitVector1, gold);
+}
+
+void runLogicalNotAnd(std::size_t bitNum, std::size_t runNum)
+{
+    const std::size_t setBitNum = bitNum / 2;
+
+    BitVector bitVector1(bitNum);
+    BitVector bitVector2(bitNum);
+
+    setBitVector(bitVector1, setBitNum);
+    setBitVector(bitVector2, setBitNum);
+
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        bitVector1.logicalNotAnd(bitVector2);
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "BitVector::logicalNotAnd() of " << runNum << " times "
+                       "on " << bitNum << " bits");
+}
+
+void runToggle(std::size_t bitNum, std::size_t runNum)
+{
+    BitVector bitVector(bitNum);
+    const std::size_t setBitNum = bitNum / 2;
+    setBitVector(bitVector, setBitNum);
+
+    izenelib::util::ClockTimer timer;
+
+    for (std::size_t i = 0; i < runNum; ++i)
+    {
+        bitVector.toggle();
+    }
+
+    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
+                       "BitVector::toggle() of " << runNum << " times "
+                       "on " << bitNum << " bits");
+}
+
 BOOST_AUTO_TEST_SUITE(t_bitvector)
 
 BOOST_AUTO_TEST_CASE(bitvector)
@@ -142,6 +216,32 @@ BOOST_AUTO_TEST_CASE(bitvector)
     checkBitVector(10000000, false); // 10M
     checkBitVector(134217728, false); // 128M
     checkBitVector(1073741825, false); // 1G + 1
+}
+
+BOOST_AUTO_TEST_CASE(logicalNotAnd)
+{
+    const std::size_t maxBitNum = 100;
+
+    for (std::size_t i = 0; i <= maxBitNum; ++i)
+    {
+        testLogicalNotAnd(i);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(benchLogicalNotAnd)
+{
+    const std::size_t bitNum = 1e7;
+    const std::size_t runNum = 1e4;
+
+    runLogicalNotAnd(bitNum, runNum);
+}
+
+BOOST_AUTO_TEST_CASE(benchToggle)
+{
+    const std::size_t bitNum = 1e7;
+    const std::size_t runNum = 1e4;
+
+    runToggle(bitNum, runNum);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
