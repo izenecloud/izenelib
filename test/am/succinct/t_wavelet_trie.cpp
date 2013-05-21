@@ -3,6 +3,7 @@
 #include <util/ustring/UString.h>
 
 
+
 BOOST_AUTO_TEST_SUITE (t_wavelet_trie) // name of the test suite is t_wavelet_trie
 
 //typedef std::string string_type;
@@ -25,6 +26,8 @@ string_type itos(size_t i, size_t N)
     while (static_cast<izenelib::util::UCS2Char>('0') == str[0] && str.length() > 1) str.erase(0,1);
     return str;
 }
+
+
 
 
 //string_type ch = "零一二三四五六七八九";
