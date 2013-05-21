@@ -41,7 +41,10 @@ RSDic::~RSDic()
 
 void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 {
+    pointer_blocks_.reserve(len / kLargeBlockSize + 1);
     rank_blocks_.resize(len / kLargeBlockSize + 1);
+
+    pointer_blocks_.push_back(0);
 
     if (support_select_)
     {
@@ -62,9 +65,8 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
         if (++rb_offset == kBlockPerLargeBlock)
         {
             rb_offset = 0;
-            RankBlock& rb = rank_blocks_[++rb_index];
-            rb.pointer_ = global_offset;
-            rb.large_block_ = one_num_;
+            pointer_blocks_.push_back(global_offset);
+            rank_blocks_[++rb_index].large_block_ = one_num_;
         }
     }
 
@@ -138,6 +140,7 @@ void RSDic::Clear()
     one_num_ = 0;
 
     std::vector<uint64_t>().swap(bits_);
+    std::vector<rsdic_uint>().swap(pointer_blocks_);
     std::vector<RankBlock>().swap(rank_blocks_);
 
     if (support_select_)
@@ -152,8 +155,8 @@ bool RSDic::GetBit(size_t pos) const
     __assert(pos < num_);
 
     size_t lblock = pos / kLargeBlockSize;
+    size_t pointer = pointer_blocks_[lblock];
     const RankBlock& rb = rank_blocks_[lblock];
-    size_t pointer = rb.pointer_;
     size_t sblock = pos % kLargeBlockSize / kBlockSize;
 
     for (size_t i = 0; i < sblock; ++i)
@@ -170,8 +173,8 @@ bool RSDic::GetBit(size_t pos, size_t& rank) const
     __assert(pos < num_);
 
     size_t lblock = pos / kLargeBlockSize;
+    size_t pointer = pointer_blocks_[lblock];
     const RankBlock& rb = rank_blocks_[lblock];
-    size_t pointer = rb.pointer_;
     size_t sblock = pos % kLargeBlockSize / kBlockSize;
     rank = rb.large_block_;
 
@@ -207,8 +210,8 @@ size_t RSDic::Rank1(size_t pos) const
     __assert(pos <= num_);
 
     size_t lblock = pos / kLargeBlockSize;
+    size_t pointer = pointer_blocks_[lblock];
     const RankBlock& rb = rank_blocks_[lblock];
-    size_t pointer = rb.pointer_;
     size_t sblock = pos % kLargeBlockSize / kBlockSize;
     size_t rank = rb.large_block_;
 
@@ -242,8 +245,8 @@ size_t RSDic::Select0(size_t ind) const
     }
     --lblock;
 
+    size_t pointer = pointer_blocks_[lblock];
     const RankBlock& rb = rank_blocks_[lblock];
-    size_t pointer = rb.pointer_;
     ind -= lblock * kLargeBlockSize - rb.large_block_;
 
     size_t rank_sb;
@@ -271,8 +274,8 @@ size_t RSDic::Select1(size_t ind) const
     }
     --lblock;
 
+    size_t pointer = pointer_blocks_[lblock];
     const RankBlock& rb = rank_blocks_[lblock];
-    size_t pointer = rb.pointer_;
     ind -= rb.large_block_;
 
     size_t rank_sb;
@@ -301,6 +304,7 @@ void RSDic::Save(std::ostream& os) const
     os.write((const char*)&one_num_, sizeof(one_num_));
 
     SuccinctUtils::saveVec(os, bits_);
+    SuccinctUtils::saveVec(os, pointer_blocks_);
     SuccinctUtils::saveVec(os, rank_blocks_);
 
     if (support_select_)
@@ -317,6 +321,7 @@ void RSDic::Load(std::istream& is)
     is.read((char*)&one_num_, sizeof(one_num_));
 
     SuccinctUtils::loadVec(is, bits_);
+    SuccinctUtils::loadVec(is, pointer_blocks_);
     SuccinctUtils::loadVec(is, rank_blocks_);
 
     if (support_select_)
@@ -330,6 +335,7 @@ size_t RSDic::GetUsageBytes() const
 {
     return sizeof(RSDic)
         + sizeof(bits_[0]) * bits_.size()
+        + sizeof(pointer_blocks_[0]) * pointer_blocks_.size()
         + sizeof(rank_blocks_[0]) * rank_blocks_.size()
         + sizeof(select_one_inds_[0]) * select_one_inds_.size()
         + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
