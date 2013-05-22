@@ -103,9 +103,9 @@ ConnectionPool::acquire() {
         reserved.push_back(new RawClient(service, host, port, timeout, path));
         ++size;
         LOG(INFO) << "Growed pool size to: " << size << "/" << maxSize << GET_PATH(path) ;
-    } catch (NetworkError& e) {
+    } catch (const NetworkError& e) {
         LOG(ERROR) << e.what();
-        throw e;
+        throw;
     }
     
     DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
