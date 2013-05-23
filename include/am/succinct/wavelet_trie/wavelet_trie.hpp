@@ -18,6 +18,8 @@ namespace succinct
 namespace wavelet_trie
 {
 
+#define selectsize 64
+#define blocksize 64
 #define EPS 0xFFFFFFFFFFFFFFFFLLU
 
 struct wordtype
@@ -35,13 +37,19 @@ struct trie_node
     word_type trie_data;
     wat_array::BitArray bit_array;
     dense::DBitV bv(bool select = true);
+    std::vector<uint64_t>a;
+    std::vector<uint32_t>b;
+    std::vector<uint32_t>c;
+    std::vector<uint32_t>d;    
     uint64_t bit_len;
     uint64_t total;
+    uint64_t index;
+    uint64_t one_num;
     trie_node *left;
     trie_node *right;
     trie_node *parent;
 
-    trie_node() : bit_len(0), total(0), left(NULL), right(NULL), parent(NULL) {}
+    trie_node() : bit_len(0), total(0), index(EPS), one_num(0), left(NULL), right(NULL), parent(NULL) {}
 };
 typedef trie_node *link_type;
 
@@ -251,6 +259,7 @@ public:
                 if (0 == cur->bit_len)
                 {
                     cur->bit_array.Init(cur->total);//set the size of current node's bitvector
+                    cur->a.resize((cur->total + blocksize - 1) / blocksize);                    
                 }
                 if (!tmp_bit)
                 {
@@ -260,6 +269,7 @@ public:
                 else
                 {
                     cur->bit_array.SetBit(1, cur->bit_len++);//set current node's bitvector
+                    cur->a[cur->bit_len / blocksize] |= (1LLU << (blocksize - cur->bit_len % blocksize));                  
                     cur = cur->right;
                 }
                 j += cur->trie_data.len + 1;
@@ -276,11 +286,245 @@ public:
     {
         cur->bit_array.Build();
 //		cur->bv.build(cur->bit_array.bit_blocks_, cur->bit_array.length_);
+
+
+        cur->b.push_back(0);
+        cur->c.push_back(0);
+        cur->d.push_back(0);        
+        size_t j=0,i,k=0,l=1,m=1;
+        for (i=0;i<cur->bit_len;++i){
+            j += get_bit_(cur->a,i);
+
+            if (i % blocksize == blocksize - 1) {
+                cur->b.push_back(j);
+                ++k;    
+            if ((j == l * selectsize) && (k != cur->c[cur->c.size() - 1])) {
+                l++;
+                cur->c.push_back(k);
+            }
+            
+            if ((i-j+1 == m * selectsize) && (k != cur->d[cur->d.size() - 1])) {
+                m++;
+                cur->d.push_back(k);
+            } 
+                       
+            }
+
+            if ((j == l * selectsize) && (k+1 != cur->c[cur->c.size() - 1])) {
+                l++;
+                cur->c.push_back(k+1);
+            }
+            if ((i-j+1 == m * selectsize) && (k+1 != cur->d[cur->d.size() - 1])) {
+                m++;
+                cur->d.push_back(k+1);
+            }            
+        }
+
+        cur->one_num = j;
+        
         if (NULL != cur->left && NULL != cur->left->left)
             init_wavelet(cur->left);
         if (NULL != cur->right && NULL != cur->right->right)
             init_wavelet(cur->right);
     }
+    
+    
+uint8_t selectcount(const uint64_t blk, const uint8_t r) {
+    
+    uint32_t q1, q2, p;
+    uint64_t p1, p2, p3;
+    uint8_t tmp, tmp1, tmp2, q;
+    
+    p1 = blk >> 32;
+    p2 = blk >> 16;
+    p3 = blk >> 48;
+    tmp = __builtin_popcount(p1 & 0x00000000FFFFFFFFLLU);
+    if (tmp < r) {
+        q1 = p2 & 0x000000000000FFFFLLU;
+//        tmp1 = __builtin_popcount(q1);
+        tmp1 = popcount16_[q1];
+        tmp2 = tmp + tmp1;
+        if (tmp2 < r) {p = blk & 0x000000000000FFFFLLU; q = r - tmp2; return 48 + select_[p][q];}
+            else {p = q1; q = r - tmp; return 32 + select_[p][q];}
+    } else {
+        q1 = p3 & 0x000000000000FFFFLLU;
+//        tmp1 = __builtin_popcount(q1);
+        tmp1 = popcount16_[q1];        
+        if (tmp1 < r) {p = p1 & 0x000000000000FFFFLLU; q = r - tmp1; return 16 + select_[p][q];}
+            else {p = q1; q = r; return select_[p][q];}
+        
+    }
+    return select_[p][q];
+
+}
+
+inline uint64_t bit_rank(const link_type cur,const uint32_t pos,const bool bit) {
+    uint32_t n,k,s;
+    if (pos > cur->bit_len) return 0;
+    k = pos / blocksize;
+//    m=pos%bsize;
+/*
+//if(pos/bsize>cur->c.size()||k>cur->b.size())std::cout<<pos/bsize<<' '<<k<<'\n';
+    s+=cur->b[k]+cur->c[pos/bsize];
+//    for(j=pos-m;j<pos;j++) s+=get_bit_(cur->a,j);
+//if((cur->a[k]>>(sbsize-pos%sbsize))&one[m]>255||(cur->a[k]>>(sbsize-pos%sbsize))&one[m]<0)std::cout<<((cur->a[k]>>(sbsize-pos%sbsize))&one[m])<<'\n';
+    s+=poptable[(cur->a[k]>>(sbsize-pos%sbsize))&one[m]];
+*/
+    n = pos % blocksize;
+    s = cur->b[k];
+    if (n) s += __builtin_popcountl(cur->a[k] >> (blocksize - n));
+
+    if (bit) return s;
+    else return pos-s;
+}
+
+uint64_t bit_select(const link_type cur,const uint32_t idx,const bool bit) {
+    if (!idx) return 0;
+    uint32_t k = idx / selectsize, low, high, mid, ans;
+    
+    if(bit){
+        if (idx > cur->one_num) return EPS;
+        low = cur->c[k];
+
+        if (k + 1 < cur->c.size()) high = cur->c[k + 1];
+        else high = cur->b.size();
+
+        while (low < high) {        
+            mid = (high + low) / 2;
+            if (cur->b[mid] < idx) low = mid + 1;
+            else high = mid;
+        }
+        --low;
+        uint32_t tmp = cur->b[low];
+//        ans = low * blocksize + izenelib::am::SuccinctUtils::selectBlock(cur->a[low], idx - tmp);
+        ans = low * blocksize +selectcount(cur->a[low], idx - tmp);
+    } else {
+        if (idx > cur->bit_len - cur->one_num) return EPS;
+        low = cur->d[k];
+
+        if (k + 1 < cur->d.size()) high = cur->d[k + 1];
+        else high = cur->b.size();
+
+        while (low < high) {        
+            mid = (high + low) / 2;
+            if (mid * blocksize - cur->b[mid] < idx) low = mid + 1;
+            else high = mid;
+        }
+        --low;
+        uint32_t tmp = cur->b[low];
+//        ans = low * blocksize + izenelib::am::SuccinctUtils::selectBlock(~cur->a[low], idx - (low * blocksize - tmp));
+        ans = low * blocksize + selectcount(~cur->a[low], idx - (low * blocksize - tmp));   
+    }
+    return ans;
+}
+    
+	uint64_t check(const std::vector<size_t> &s) {
+		link_type cur = root_;
+		uint64_t tmp_bit = 0;
+		uint64_t bit = 0;
+		uint64_t len = -1;
+		size_t p = 0, q = 0;
+        uint64_t word_len = s.size() * alphabet_bit_num_;
+		
+		while (cur->bit_len) {
+			len += cur->trie_data.len + 1;
+            p = len >> 4;
+            q = len & 15;
+			bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - 1 - q)) & 1LLU;			
+			if (!bit) {
+				cur = cur->left;
+			} else {
+				cur = cur->right;
+			}
+
+		};
+		
+		return cur->index;
+    }
+    
+	uint64_t new_rank(const std::vector<size_t> &s, uint64_t &ans) {
+
+		link_type cur = root_;
+        if (ans > length_ || 0 == ans) return EPS;        
+		uint64_t bit = 0;
+		uint64_t len = -1;
+		size_t p = 0, q = 0;
+        uint64_t word_len = s.size() * alphabet_bit_num_;
+
+
+		while (cur->bit_len) {
+			len += cur->trie_data.len + 1;
+	
+//			if (len > word_len) break;
+//			p = len / alphabet_bit_num_;
+//			q = len % alphabet_bit_num_;
+            p = len >> 4;
+            q = len & 15;
+			bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - 1 - q)) & 1LLU;			
+
+       
+//			ans = cur->bv.rank(ans, bit);
+
+			ans = bit_rank(cur, ans, bit);
+			
+			if (0 == ans) return EPS;
+			if (!bit) {
+				cur = cur->left;
+			} else {
+				cur = cur->right;
+			}
+
+		};
+		return cur->index;
+	}    
+	
+	uint64_t new_select(const std::vector<size_t> &s, uint64_t &ans) {
+        if (ans > length_ || 0 == ans) return EPS;
+		link_type cur = root_;
+//        --ans;//dbitv
+		uint64_t tmp_bit = 0;
+		uint64_t bit = 0;
+		uint64_t len = -1;
+		size_t p = 0, q = 0;
+        uint64_t word_len = s.size() * alphabet_bit_num_;
+        size_t index = EPS;
+		
+		while (cur->bit_len) {
+			len += cur->trie_data.len + 1;
+//			if (len > word_len) break;
+            p = len >> 4;
+            q = len & 15;
+			bit = ((alphabet_map_[s[p]] - 1) >> (alphabet_bit_num_ - 1 - q)) & 1LLU;			
+
+			if (!bit) {
+				cur = cur->left;
+			} else {
+				cur = cur->right;
+			}
+
+		};
+		index = cur->index;
+
+        link_type tmp;
+        while (cur != root_) {
+            tmp = cur->parent;
+            if (cur == tmp->left){
+//                ans = tmp->bit_array.Select(0, ans) + 1;
+//                ans = tmp->bv.select(ans, 0);
+                ans = bit_select(tmp, ans, 0) + 1;
+            }else{
+
+//                ans = tmp->bit_array.Select(1, ans) + 1;
+//                ans = tmp->bv.select(ans, 1);
+                ans = bit_select(tmp, ans, 1) + 1;
+            }
+            if (EPS == ans) return 0;
+            cur = tmp;
+        }
+        --ans;//not dbitv
+
+        return index;
+    }    
 
     /*
     	access(pos) return S[pos]
@@ -803,6 +1047,8 @@ private:
     std::vector<word_type> alphabet_;
 
     link_type root_, super_root_;
+    uint8_t select_[65536][16];
+    uint8_t popcount16_[65536];    
 };
 
 }

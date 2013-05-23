@@ -303,6 +303,7 @@ public:
         {
             cursor_type cursor;
             int r =db_->cursor(db_,tid_, &cursor, 0);
+            IASSERT(r==0);			
             DBT k,v;
             memset(&k, 0, sizeof(k));
             memset(&v, 0, sizeof(v));
@@ -327,7 +328,7 @@ public:
             cursor_type cursor;
 
             int r = db_->cursor(db_, tid_, &cursor, 0);
-            assert(r==0);
+            IASSERT(r==0);
             DBT k,v;//TODO
             memset(&k, 0, sizeof(k));
             memset(&v, 0, sizeof(v));
@@ -347,7 +348,7 @@ public:
             memset(&k, 0, sizeof(k));
             memset(&v, 0, sizeof(v));
             r = cursor->c_get(cursor, &k, &v, DB_LAST);
-            assert(r==0);
+            IASSERT(r==0);
             return cursor;
         }
         return cursor_type();

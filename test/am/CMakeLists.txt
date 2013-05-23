@@ -97,16 +97,13 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Glog_LIBRARIES}
     )
 
-#ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
-#TARGET_LINK_LIBRARIES(t_app
-#   ${Boost_LIBRARIES}
-#	${CMAKE_THREAD_LIBS_INIT}
-#   pthread
-#   am
-#   izene_util
-#   bz2
-#   ${Glog_LIBRARIES}
-#    )
+ ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
+  TARGET_LINK_LIBRARIES(t_app
+   ${Boost_LIBRARIES}
+   am
+   izene_util
+   ${Glog_LIBRARIES}
+    )
 
 ENDIF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 

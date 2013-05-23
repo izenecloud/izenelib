@@ -123,6 +123,7 @@ public:
         th_(0)
     {
         bs_ = new BucketT(0, NULL, NULL);
+        end_=bs_;
     }
 
     ~TopKEstimation()

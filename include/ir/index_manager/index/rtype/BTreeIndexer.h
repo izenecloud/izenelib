@@ -21,6 +21,9 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/bind.hpp>
+#if BOOST_VERSION >= 105300
+#include <boost/atomic.hpp>
+#endif
 #include "dynamic_bitset2.hpp"
 #include <functional>
 
@@ -101,16 +104,20 @@ public:
 
     void add(const KeyType& key, docid_t docid)
     {
+    	{
         boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.add(key, docid);
+    	}
         checkCache_();
         count_has_modify_ = true;
     }
 
     void remove(const KeyType& key, docid_t docid)
     {
+        {
         boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
+    	}
         checkCache_();
         count_has_modify_ = true;
     }
@@ -308,13 +315,10 @@ public:
 
     void flush()
     {
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cacheClear_();
         db_.flush();
         count_has_modify_ = true;//force use db_.size() in count as cache will be empty
     }
-
-
 
 
 private:
@@ -403,6 +407,7 @@ private:
 #endif
         cache_num_ = 0;
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         cache_.clear();
     }
 
@@ -462,6 +467,7 @@ private:
 //#ifdef CACHE_TIME_INFO
 //      t3 += timer.elapsed();
 //#endif
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
         if (common_value_.size() > 0)
         {
             db_.update(kvp.first, common_value_);
@@ -551,8 +557,6 @@ private:
         }
         return true;
     }
-
-
 
     static void decompress_(const ValueType& compressed, BitVector& value)
     {
@@ -700,7 +704,11 @@ private:
     ValueType common_value_;
     ///
     boost::optional<std::size_t> count_in_cache_;
+#if BOOST_VERSION >= 105300	
+    boost::atomic_bool count_has_modify_;
+#else
     bool count_has_modify_;
+#endif
     std::size_t cache_num_;
     boost::shared_mutex mutex_;
 };

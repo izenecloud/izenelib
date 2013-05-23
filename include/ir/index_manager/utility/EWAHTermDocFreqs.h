@@ -31,7 +31,6 @@ public:
         , curDoc_(BAD_DOCID)
         , iter_(pBitMap->begin())
         , iterEnd_(pBitMap->end())
-        , hasCallNext_(false)
         , setBitNum_(0)
         , hasInitSetBitNum_(false)
     {
@@ -43,7 +42,6 @@ public:
         , curDoc_(other.curDoc_)
         , iter_(other.iter_)
         , iterEnd_(other.iterEnd_)
-        , hasCallNext_(other.hasCallNext_)
         , setBitNum_(other.setBitNum_)
         , hasInitSetBitNum_(other.hasInitSetBitNum_)
     {
@@ -83,18 +81,10 @@ public:
 
     bool next()
     {
-        if (hasCallNext_)
-        {
-            ++iter_;
-        }
-        else
-        {
-            hasCallNext_ = true;
-        }
-
         if (iter_ != iterEnd_)
         {
             curDoc_ = *iter_;
+            ++iter_;
             return true;
         }
         else
@@ -111,7 +101,6 @@ private:
 
     bitmap_iterator_t iter_;
     const bitmap_iterator_t iterEnd_;
-    bool hasCallNext_; // whether member "next()" has been called
 
     std::size_t setBitNum_;
     bool hasInitSetBitNum_; // whether member "setBitNum_" has been initialized

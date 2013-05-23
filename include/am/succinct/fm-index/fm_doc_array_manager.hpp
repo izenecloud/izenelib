@@ -125,6 +125,7 @@ public:
             bool match_in_filter,
             const FilterRangeListT &raw_range_list,
             const std::vector<double> &score_list,
+            size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
@@ -136,6 +137,7 @@ public:
             bool match_in_filter,
             const FilterRangeListT &raw_range_list,
             const std::vector<double> &score_list,
+            size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
 
@@ -438,6 +440,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
         bool match_in_filter,
         const FilterRangeListT &raw_range_list,
         const std::vector<double> &score_list,
+        size_t thres,
         size_t max_docs,
         std::vector<std::pair<double, uint32_t> > &res_list,
         std::vector<size_t> &doclen_list) const
@@ -459,7 +462,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
         range_list[i].get<2>() = score_list[i];
     }
 
-    doc_array_item.doc_array_ptr->topKUnion(range_list, max_docs, res_list, alloc);
+    doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
 
@@ -482,6 +485,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         bool match_in_filter,
         const FilterRangeListT &raw_range_list,
         const std::vector<double> &score_list,
+        size_t thres,
         size_t max_docs,
         std::vector<std::pair<double, uint32_t> > &res_list) const
 {
@@ -502,7 +506,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     }
     if (prop_id_list.empty())
     {
-        doc_array_item.doc_array_ptr->topKUnion(range_list, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
     }
     else
     {
@@ -531,7 +535,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             aux_filters.push_back(aux_filter);
         }
 
-        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, range_list, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, range_list, thres, max_docs, res_list, alloc);
     }
     for (size_t i = 0; i < res_list.size(); ++i)
     {

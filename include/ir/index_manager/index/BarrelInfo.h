@@ -39,6 +39,7 @@ public:
             : nNumDocs(0)
             , pBarrelWriter(NULL)
             , isUpdate(false)
+            , inMemoryBarrel(false)
             , maxDocId(0)
             , searchable(true)
             , indexLevel_(indexLevel)
@@ -52,6 +53,7 @@ public:
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , isUpdate(false)
+            , inMemoryBarrel(false)
             , maxDocId(0)
             , searchable(true)
             , indexLevel_(indexLevel)
@@ -67,6 +69,7 @@ public:
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
             , isUpdate(pBarrelInfo->isUpdate)
+            , inMemoryBarrel(pBarrelInfo->inMemoryBarrel)
             , maxDocId(pBarrelInfo->maxDocId)
             , searchable(pBarrelInfo->searchable)
             , indexLevel_(pBarrelInfo->indexLevel_)
@@ -201,6 +204,8 @@ public:
 
     bool isSearchable() { return searchable; }
 
+    bool isInMemoryBarrel() { return inMemoryBarrel; }
+
     void registerIndexInput(IndexInput* pIndexInput);
 
     void unRegisterIndexInput(IndexInput* pIndexInput);
@@ -228,6 +233,8 @@ public:
     IndexBarrelWriter* pBarrelWriter;
     ///whether this barrel contains updated documents
     bool isUpdate;
+    ///whether this barrel is in-memory barrel 
+    bool inMemoryBarrel;
     ///max doc of this barrel
     docid_t maxDocId;
 

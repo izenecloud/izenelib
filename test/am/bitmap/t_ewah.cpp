@@ -361,10 +361,10 @@ void runCompressToEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
         bitVector.compressed(ewahBoolArray);
     }
 
-    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
-                       "BitVector::compressed() of " << runNum << " times "
-                       "on " << bitVector.size() << " bits, "
-                       "sizeof(word_t): " << sizeof(word_t));
+    double costTime = timer.elapsed() / runNum * 1000;
+    BOOST_TEST_MESSAGE("it costs " << costTime << " ms in running "
+                       << "BitVector::compressed() on " << bitVector.size()
+                       << " bits, sizeof(word_t): " << sizeof(word_t));
 }
 
 template <typename word_t>
@@ -378,6 +378,7 @@ void runIterateEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
 
     for (std::size_t i = 0; i < runNum; ++i)
     {
+        setBitNum = 0;
         for (typename EWAHBoolArray<word_t>::const_iterator iter =
                  ewahBoolArray.begin(); iter != ewahBoolArray.end(); ++iter)
         {
@@ -386,10 +387,10 @@ void runIterateEWAHBoolArray(const BitVector& bitVector, std::size_t runNum)
         }
     }
 
-    BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
-                       "EWAHBoolArrayBitIterator::next() of " << runNum << " times "
-                       "on " << setBitNum << "/" << bitVector.size() << " bits, "
-                       "sizeof(word_t): " << sizeof(word_t)
+    double costTime = timer.elapsed() / runNum * 1000;
+    BOOST_TEST_MESSAGE("it costs " << costTime << " ms in running EWAHBoolArrayBitIterator::next() on "
+                       << setBitNum << "/" << bitVector.size()
+                       << " bits, sizeof(word_t): " << sizeof(word_t)
                        << ", EWAHBoolArray::sizeInBytes(): " << ewahBoolArray.sizeInBytes());
 }
 

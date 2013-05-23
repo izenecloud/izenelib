@@ -30,6 +30,8 @@ namespace rsdic
 
 uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
+    if (rank_sb == 0 || rank_sb == kBlockSize) return 0;
+
     uint64_t code = 0;
     for (size_t i = 0; i < kBlockSize; ++i)
     {
@@ -44,6 +46,9 @@ uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 
 uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 {
+    if (rank_sb == 0) return 0;
+    if (rank_sb == kBlockSize) return (uint64_t)-1;
+
     uint64_t ret = 0;
     uint64_t zero_case_num;
     for (size_t i = 0; i < kBlockSize; ++i)
@@ -61,8 +66,9 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kBlockSize)
-        return code >> pos & 1LLU;
+    if (rank_sb == 0) return false;
+    if (rank_sb == kBlockSize) return true;
+    if (Len(rank_sb) == kBlockSize) return code >> pos & 1LLU;
 
     uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
@@ -79,6 +85,16 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 {
+    if (rank_sb == 0)
+    {
+        rank = 0;
+        return false;
+    }
+    if (rank_sb == kBlockSize)
+    {
+        rank = pos;
+        return true;
+    }
     if (Len(rank_sb) == kBlockSize)
     {
         rank = SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
@@ -102,8 +118,9 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
 
 size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 {
-    if (Len(rank_sb) == kBlockSize)
-        return SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
+    if (rank_sb == 0) return 0;
+    if (rank_sb == kBlockSize) return pos;
+    if (Len(rank_sb) == kBlockSize) return SuccinctUtils::popcount(code & ((1LLU << pos) - 1));
 
     size_t cur_rank = rank_sb;
     uint64_t zero_case_num;
@@ -122,8 +139,9 @@ size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kBlockSize)
-        return SuccinctUtils::selectBlock(~code, num);
+
+    if (rank_sb == kBlockSize) return num;
+    if (Len(rank_sb) == kBlockSize) return SuccinctUtils::selectBlock(~code, num);
 
     rank_sb = kBlockSize - rank_sb;
     uint64_t zero_case_num;
@@ -148,8 +166,9 @@ size_t EnumCoder::Select0(uint64_t code, size_t rank_sb, size_t num)
 size_t EnumCoder::Select1(uint64_t code, size_t rank_sb, size_t num)
 {
     __assert(num < rank_sb);
-    if (Len(rank_sb) == kBlockSize)
-        return SuccinctUtils::selectBlock(code, num);
+
+    if (rank_sb == kBlockSize) return num;
+    if (Len(rank_sb) == kBlockSize) return SuccinctUtils::selectBlock(code, num);
 
     uint64_t zero_case_num;
     for (size_t offset = 0; offset < kBlockSize; ++offset)

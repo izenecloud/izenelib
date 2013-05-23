@@ -2,7 +2,7 @@
 #include <am/approximate_matching/MatchIndex.h>
 
 #include <util/ustring/UString.h>
-//#include <common/ScdParser.h>
+
 #include <iostream>
 #include <map>
 
@@ -23,8 +23,8 @@ int main()
     string scd_file="SPU.SCD";
     ifstream in;
 
+    /*
     int i=0;
-/*
     if(!scd_file.empty())
     {
         in.open(scd_file.c_str(),ios::in);
@@ -57,7 +57,7 @@ int main()
     doc.close();
     cout<<"save"<<endl;
     Mi.Clear();
-*/
+   */
     ifstream docin;
     docin.open("doc",ios::in);
     docin>>Mi;
@@ -70,7 +70,7 @@ int main()
     out.open("outputd",ios::out);
     in.close();
 
-    
+
     if(!match_file.empty())
     {
         //cout<<"asdasdd"<<endl;
@@ -87,14 +87,12 @@ int main()
                 {
                     out<<toString(can[i])<<endl;
                 }
-                out<<endl;                 
-               /**/
-/*
+                out<<endl;
+                /*
                 vector<UString> cannaive;
                 Mi.NaiveMatch(UString(title,UString::UTF_8),5,cannaive);//Right Test
                 if(can.size()!=cannaive.size())
                 {
-
                     out<<"title:"<<title<<"   "<<can.size()<<"    "<<cannaive.size()<<endl;
                     for(unsigned i=0; i<can.size(); i++)
                     {
@@ -107,7 +105,7 @@ int main()
                     }
 
                 }
-*/
+                */
 
 
             }
@@ -117,26 +115,22 @@ int main()
 
     }
 
-/*
+    /*
     //酷奇 15.4宽屏(16:10)防眩护眼膜 屏幕膜 液晶屏保护膜
     vector<UString> can;
     Mi.Match(UString("酷奇 15.4宽屏(16:10)防眩护眼膜 屏幕膜 液晶屏保护膜",UString::UTF_8),5,can);
 
-                     for(unsigned i=0;i<can.size();i++)
-                     {
-                         cout<<toString(can[i])<<endl;
-                     }
- */
-
+    for(unsigned i=0; i<can.size(); i++)
+    {
+        cout<<toString(can[i])<<endl;
+    }
+    */
 
     time_now = boost::posix_time::microsec_clock::local_time();
     cout<<"MatchEnd"<<boost::posix_time::to_iso_string(time_now)<<endl;
 
 
-Mi.Show();
+    Mi.Show();
 
 }
 
-/*
-
-*/

@@ -531,33 +531,40 @@ ZooKeeperRouter::resolve(const string collection) const {
 
 RawClient&
 ZooKeeperRouter::getConnection(const string& collection) {
-    ReadLockT lock(shared_mutex);
-    
-    const Sf1Node& node = resolve(collection);
-    LOG(INFO) << "Resolved to node: " << node.getPath();
-    
-    // get a connection from the node
-    PoolContainer::const_iterator cit = pools.find(node.getPath());
-    if (cit == pools.end())
+    std::string errinfo;
+    std::string nodepath;
     {
-        LOG(INFO) << "no pools for the connection, add new node : " << node.getPath();
+        ReadLockT lock(shared_mutex);
+
+        const Sf1Node& node = resolve(collection);
+        nodepath = node.getPath();
+        LOG(INFO) << "Resolved to node: " << nodepath;
+
+        // get a connection from the node
+        PoolContainer::const_iterator cit = pools.find(nodepath);
+        if (cit == pools.end())
         {
-            LOG(ERROR) << "get connection failed for : " << node.getPath();
-            throw RoutingError("no ConnectionPool for " + collection);
+            LOG(INFO) << "no pools for the connection, add new node : " << nodepath;
+            {
+                LOG(ERROR) << "get connection failed for : " << nodepath;
+                throw RoutingError("no ConnectionPool for " + collection);
+            }
+        }
+        ConnectionPool* pool = cit->second;
+        CHECK(pool) << "NULL pool";
+        try{
+            return pool->acquire();
+        }catch(NetworkError& e)
+        {
+            errinfo = e.what();
         }
     }
-    ConnectionPool* pool = cit->second;
-    CHECK(pool) << "NULL pool";
-    try{
-        return pool->acquire();
-    }catch(NetworkError& e)
+    LOG(INFO) << "get connection failed for path : " << nodepath;
+    if (!client->isZNodeExists(nodepath, ZooKeeper::WATCH))
     {
-        if (!client->isZNodeExists(node.getPath(), ZooKeeper::WATCH))
-        {
-            removeSf1Node(node.getPath());
-        }
-        throw;
+        removeSf1Node(nodepath);
     }
+    throw NetworkError(errinfo);
 }
 
 
