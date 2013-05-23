@@ -22,10 +22,10 @@ static const size_t CACHELINE_SZ = 256;
 static const size_t LEVEL1_NUM = 256;
 static const size_t LEVEL2_NUM = BSIZE;
 
-static const size_t kLargeBlockSize = 1024;
+static const size_t kLargeBlockSize = 2048;
 static const size_t kSuperBlockSize = 256;
 static const size_t kBlockSize = 64;
-static const size_t kSelectBlockSize = 2048;
+static const size_t kSelectBlockSize = 4096;
 static const size_t kBlockPerLargeBlock = kLargeBlockSize / kBlockSize;
 static const size_t kBlockPerSuperBlock = kSuperBlockSize / kBlockSize;
 
