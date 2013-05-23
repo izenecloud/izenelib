@@ -58,6 +58,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
    snappy
    jemalloc
    gomp
+   pthread
     )
 
   FILE(GLOB_RECURSE
@@ -96,15 +97,16 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Glog_LIBRARIES}
     )
 
- ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
-  TARGET_LINK_LIBRARIES(t_app
-   ${Boost_LIBRARIES}
-   am
-   izene_util
-   bz2
-   ${CMAKE_THREAD_LIBS_INIT}
-   ${Glog_LIBRARIES}
-    )
+#ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
+#TARGET_LINK_LIBRARIES(t_app
+#   ${Boost_LIBRARIES}
+#	${CMAKE_THREAD_LIBS_INIT}
+#   pthread
+#   am
+#   izene_util
+#   bz2
+#   ${Glog_LIBRARIES}
+#    )
 
 ENDIF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 
@@ -120,6 +122,26 @@ TARGET_LINK_LIBRARIES(t_izenesort
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
+  )
+
+ADD_EXECUTABLE(t_line_reader
+  Runner.cpp
+  util/t_line_reader.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_line_reader
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+  )
+
+ADD_EXECUTABLE(t_khashtable
+  Runner.cpp
+  hashtable/t_khashtable.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_khashtable
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
   )
 
 ADD_EXECUTABLE(t_hashtable
