@@ -14,6 +14,7 @@ NS_IZENELIB_SF1R_BEGIN
 
 using std::string;
 
+#define SLOW_THRESHOLD 3
 
 RoundRobinPolicy::RoundRobinPolicy(Sf1Topology &topology, Sf1Topology& backup_nodes)
         : RoutingPolicy(topology), counter(0), backup_topology(backup_nodes) {
@@ -38,12 +39,43 @@ RoundRobinPolicy::resetCounter() {
     counter = 0;
 }
 
+void RoundRobinPolicy::increSlowCounter(const std::string& nodepath)
+{
+    std::pair<std::map<std::string, size_t>::iterator, bool> ret;
+    ret = slow_counter.insert(std::pair<std::string, size_t>(nodepath, 0));
+
+    if (ret.first->second <= SLOW_THRESHOLD)
+        (ret.first->second)++;
+    LOG(INFO) << "node : " << nodepath << " , slow counter up to : " << ret.first->second; 
+}
+
+void RoundRobinPolicy::decreSlowCounter(const std::string& nodepath)
+{
+    std::map<std::string, size_t>::iterator it = slow_counter.find(nodepath);
+    if (it != slow_counter.end())
+    {
+        if (it->second > 0)
+            (it->second)--;
+    }
+}
+
+void RoundRobinPolicy::decreSlowCounterForAll()
+{
+    std::map<std::string, size_t>::iterator it = slow_counter.begin();
+    while(it != slow_counter.end())
+    {
+        if (it->second > 0)
+            (it->second)--;
+        ++it;
+    }
+}
 
 void
 RoundRobinPolicy::updateCollections() {
     DLOG(INFO) << "updating collections map due to topology changes";
     collections.clear();
     backup_collections.clear();
+    slow_counter.clear();
     
     BOOST_FOREACH(const string& collection, topology.getCollectionIndex()) {
         NodeCollectionsRange range = topology.getNodesFor(collection);
@@ -109,7 +141,15 @@ const Sf1Node& RoundRobinPolicy::getNodeFor(const std::string& collection, const
     {
         const std::string& state_str = list[index].second.getServiceState();
         if (state_str.empty() || state_str == "ReadyForRead")
-            break;
+        {
+            std::map<std::string, size_t>::const_iterator cit = slow_counter.find(list[index].second.getPath());
+            if (cit != slow_counter.end() && cit->second >= SLOW_THRESHOLD)
+            {
+                LOG(INFO) << "!!! this node is slow currently, skipping this " << cit->first;
+            }
+            else
+                break;
+        }
         ++trynext;
         LOG(INFO) << "!!!! one of node is busy, try next !!!!!!" << list[index].second.getPath();
         index = ccounter[collection]++ % list.size();

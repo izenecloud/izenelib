@@ -35,6 +35,10 @@ public:
     /// Get a node hosting the given collection using a round-robin policy.
     const Sf1Node& getNodeFor(const std::string& collection);
 
+    void increSlowCounter(const std::string& nodepath);
+    void decreSlowCounter(const std::string& nodepath);
+    void decreSlowCounterForAll();
+
 private:  
     
     /// Reset the index counter.
@@ -54,6 +58,7 @@ private:
     boost::ptr_map<std::string, NodeCollectionsList> collections;
     /// Map of counters used for randomly access nodes hosting a collection.
     std::map<std::string, size_t> ccounter;
+    std::map<std::string, size_t> slow_counter;
     boost::ptr_map<std::string, NodeCollectionsList> backup_collections;
     Sf1Topology& backup_topology;
     

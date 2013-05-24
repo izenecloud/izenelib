@@ -45,6 +45,10 @@ public:
      */
     virtual const Sf1Node& getNodeFor(const std::string& collection) = 0;
     
+    virtual void increSlowCounter(const std::string& nodepath) = 0;
+    virtual void decreSlowCounter(const std::string& nodepath) = 0;
+    virtual void decreSlowCounterForAll() = 0;
+
 protected:
     
     Sf1Topology& topology;
