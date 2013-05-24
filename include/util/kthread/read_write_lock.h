@@ -16,8 +16,8 @@
  * =====================================================================================
  */
 
-#ifndef _IZENELIB_THREAD_MUTEX_H_
-#define _IZENELIB_THREAD_MUTEX_H_
+#ifndef _IZENELIB_THREAD_RWLOCK_H_
+#define _IZENELIB_THREAD_RWLOCK_H_
 
 #include "types.h"
 #include <vector>

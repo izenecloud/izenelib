@@ -23,9 +23,9 @@
 #include <assert.h>
 #include <iostream>
 #include <pthread.h>
-#include "mutex.h"
 #include <sys/time.h>
 
+#include "util/kthread/mutex.h"
 namespace izenelib{
 
 class Condition

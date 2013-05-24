@@ -42,7 +42,7 @@ class LineReader
 		  return false;
 		memset(mem_, 0, bytes_);
 		uint64_t p = ftell(f_);
-		fread(mem_, bytes_, 1, f_);
+		if(fread(mem_, bytes_, 1, f_)!=1)throw std::runtime_error("File read error.");
 		//std::cout<<mem_<<"PPPP\n";
 		char* m = mem_;
 		char* la_n = NULL;

@@ -41,42 +41,42 @@ class KIntegerHashTable
 		{
 			*(KEY_T*)key_ = k;
 			*(VALUE_T*)value_ = v;
-			*(uint32_t*)next_ = ne;
+			*(uint32_t*)(next_) = ne;
 		}
 
 		_NODE_()
 		{
-			*(uint32_t*)next_ = -1;
+			*(uint32_t*)(next_) = -1;
 		}
 
 		KEY_T key()const
 		{
-			return *(KEY_T*)key_;
+			return *(KEY_T*)(key_);
 		}
 
 		VALUE_T value()const
 		{
-			return *(VALUE_T*)value_;
+			return *((VALUE_T*)value_);
 		}
 
 		KEY_T& key()
 		{
-			return *(KEY_T*)key_;
+			return *((KEY_T*)key_);
 		}
 
 		VALUE_T& value()
 		{
-			return *(VALUE_T*)value_;
+			return *((VALUE_T*)value_);
 		}
 
 		uint32_t& next()
 		{
-			return *(uint32_t*)next_;
+			return *((uint32_t*)next_);
 		}
 
 		uint32_t next()const
 		{
-			return *(uint32_t*)next_;
+			return *((uint32_t*)next_);
 		}
 
 		bool operator == (const struct _NODE_& o)const
@@ -271,18 +271,18 @@ class KIntegerHashTable
 		if (!f)
 		  throw std::runtime_error("can't open file.");
 
-		fread(&nodes_num_, sizeof(nodes_num_), 1, f);
-		fread(&entry_size_, sizeof(entry_size_), 1, f);
-		fread(&avai_i_, sizeof(avai_i_), 1, f);
-		fread(&size_, sizeof(size_), 1, f);
+		if(fread(&nodes_num_, sizeof(nodes_num_), 1, f)!=1)throw std::runtime_error("File read error.");
+		if(fread(&entry_size_, sizeof(entry_size_), 1, f)!=1)throw std::runtime_error("File read error.");
+		if(fread(&avai_i_, sizeof(avai_i_), 1, f)!=1)throw std::runtime_error("File read error.");
+		if(fread(&size_, sizeof(size_), 1, f)!=1)throw std::runtime_error("File read error.");
 
 		delete entry_;
 		delete[] nodes_;
 		entry_ = new uint32_t[entry_size_];
 		nodes_ = new node_t[nodes_num_];
 
-		fread(entry_, sizeof(uint32_t)*entry_size_, 1, f);
-		fread(nodes_, sizeof(node_t)*nodes_num_, 1, f);
+		if(fread(entry_, sizeof(uint32_t)*entry_size_, 1, f)!=1)throw std::runtime_error("File read error.");
+		if(fread(nodes_, sizeof(node_t)*nodes_num_, 1, f)!=1)throw std::runtime_error("File read error.");
 
 		fclose(f);
 	}

@@ -26,8 +26,8 @@
 #include <list>
 #include <pthread.h>
 
-#include "mutex.h"
-#include "condition.h"
+#include "util/kthread/mutex.h"
+#include "util/kthread/condition.h"
 
 namespace izenelib{
 
