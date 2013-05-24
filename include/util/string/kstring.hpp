@@ -637,6 +637,19 @@ class KString
 		sprintf(buf, "%f", v);
 		return KString(std::string(buf));
 	}
+
+	bool operator < (const KString& o)const
+	{
+		for ( uint32_t i=0; i<length()&&i<o.length(); ++i)
+		  if (char_at(i) < o[i])
+			return true;
+		  else if (char_at(i) > o[i])
+			return false;
+
+		if (length() < o.length())
+		  return true;
+		return false;
+	}
 };
 }}//end of namespace
 #endif
