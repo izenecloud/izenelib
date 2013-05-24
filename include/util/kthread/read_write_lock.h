@@ -25,42 +25,46 @@
 #include <iostream>
 #include <pthread.h>
 
-namespace izenelib{
-class ReadWriteLock{
-	pthread_rwlock_t *rwlock_;
+namespace izenelib
+{
+class ReadWriteLock
+{
+    pthread_rwlock_t *rwlock_;
 
-	public:
-	ReadWriteLock()
-	{
-		if(pthread_rwlock_init(rwlock_, NULL) != 0)
-		  throw std::runtime_error("Can't initialize read & write lock.");
-	}
+public:
+    ReadWriteLock()
+    {
+        if(pthread_rwlock_init(rwlock_, NULL) != 0)
+            throw std::runtime_error("Can't initialize read & write lock.");
+    }
 
-	class Lock
-	{
-		pthread_rwlock_t *rwlock_;
-		public:
-		Lock(pthread_rwlock_t *rwlock)
-			:rwlock_(rwlock)
-		{IASSERT(rwlock_ != NULL);}
+    class Lock
+    {
+        pthread_rwlock_t *rwlock_;
+    public:
+        Lock(pthread_rwlock_t *rwlock)
+            :rwlock_(rwlock)
+        {
+            IASSERT(rwlock_ != NULL);
+        }
 
-		~Lock()
-		{
-			pthread_rwlock_unlock(rwlock_);
-		}
-	};
+        ~Lock()
+        {
+            pthread_rwlock_unlock(rwlock_);
+        }
+    };
 
-	pthread_rwlock_t* read()
-	{
-		pthread_rwlock_rdlock(rwlock_);
-		return rwlock_;
-	}
+    pthread_rwlock_t* read()
+    {
+        pthread_rwlock_rdlock(rwlock_);
+        return rwlock_;
+    }
 
-	pthread_rwlock_t* write()
-	{
-		pthread_rwlock_wrlock(rwlock_);
-		return rwlock_;
-	}
+    pthread_rwlock_t* write()
+    {
+        pthread_rwlock_wrlock(rwlock_);
+        return rwlock_;
+    }
 };
 
 #define READ_LOCK(obj) izenelib::ReadWriteLock::Lock rrrrrrrrlock(obj.read());
