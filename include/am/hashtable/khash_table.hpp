@@ -33,50 +33,59 @@ class KIntegerHashTable
 {
     typedef struct _NODE_
     {
-        uint8_t key_[sizeof(KEY_T)];
-        uint8_t value_[sizeof(VALUE_T)];
-        uint8_t next_[sizeof(uint32_t)];
+        union{
+            uint8_t key_[sizeof(KEY_T)];
+            KEY_T key_type_value_;
+        };
+        union{
+            uint8_t value_[sizeof(VALUE_T)];
+            VALUE_T value_type_value_;
+        };
+        union{
+            uint8_t next_[sizeof(uint32_t)];
+            uint32_t next_type_value_;
+        };
 
         _NODE_(const KEY_T& k, const VALUE_T& v, uint32_t ne = -1)
         {
-            *(KEY_T*)key_ = k;
-            *(VALUE_T*)value_ = v;
-            *(uint32_t*)(next_) = ne;
+            key_type_value_ = k;
+            value_type_value_ = v;
+            next_type_value_ = ne;
         }
 
         _NODE_()
         {
-            *(uint32_t*)(next_) = -1;
+            next_type_value_ = -1;
         }
 
         KEY_T key()const
         {
-            return *(KEY_T*)(key_);
+            return key_type_value_;
         }
 
         VALUE_T value()const
         {
-            return *((VALUE_T*)value_);
+            return value_type_value_;
         }
 
         KEY_T& key()
         {
-            return *((KEY_T*)key_);
+            return key_type_value_;
         }
 
         VALUE_T& value()
         {
-            return *((VALUE_T*)value_);
+            return value_type_value_;
         }
 
         uint32_t& next()
         {
-            return *((uint32_t*)next_);
+            return next_type_value_;
         }
 
         uint32_t next()const
         {
-            return *((uint32_t*)next_);
+            return next_type_value_;
         }
 
         bool operator == (const struct _NODE_& o)const
