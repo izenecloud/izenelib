@@ -394,14 +394,14 @@ void ZooKeeperRouter::clearSf1Nodes() {
     }
 }
 
-void ZooKeeperRouter::increSlowCounter(const std::string& path)
+void ZooKeeperRouter::decreSlowCounter(const std::string& path)
 {
     WriteLockT rwlock(shared_mutex);
     if (policy)
         policy->decreSlowCounter(path);
 }
 
-void ZooKeeperRouter::decreSlowCounter(const std::string& path)
+void ZooKeeperRouter::increSlowCounter(const std::string& path)
 {
     LOG(INFO) << "increasing slow counter for SF1 node: [" << path << "]";
     WriteLockT rwlock(shared_mutex);

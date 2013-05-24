@@ -46,7 +46,8 @@ void RoundRobinPolicy::increSlowCounter(const std::string& nodepath)
 
     if (ret.first->second <= SLOW_THRESHOLD)
         (ret.first->second)++;
-    LOG(INFO) << "node : " << nodepath << " , slow counter up to : " << ret.first->second; 
+    if (ret.first->second >= SLOW_THRESHOLD)
+        LOG(INFO) << "node : " << nodepath << " , slow counter up to : " << ret.first->second; 
 }
 
 void RoundRobinPolicy::decreSlowCounter(const std::string& nodepath)
