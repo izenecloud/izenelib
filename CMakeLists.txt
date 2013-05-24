@@ -68,7 +68,7 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
     "Flags used by the compiler during release minsize builds."
 
     Debug
-    "-march=native -mtune=native -g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline"
+    "-march=native -mtune=native -g -fno-reorder-blocks -fno-schedule-insns -fno-inline"
     "Flags used by the compiler during debug builds."
 
     DebugFull
