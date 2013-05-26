@@ -36,8 +36,7 @@ public:
     const Sf1Node& getNodeFor(const std::string& collection);
 
     void increSlowCounter(const std::string& nodepath);
-    void decreSlowCounter(const std::string& nodepath);
-    void decreSlowCounterForAll();
+    void updateSlowCounterForAll();
 
 private:  
     

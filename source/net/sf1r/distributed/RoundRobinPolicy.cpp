@@ -7,14 +7,13 @@
 
 #include "net/sf1r/distributed/Sf1Topology.hpp"
 #include "RoundRobinPolicy.hpp"
+#include "share_data_def.h"
 #include <boost/signals2.hpp>
 #include <glog/logging.h>
 
 NS_IZENELIB_SF1R_BEGIN
 
 using std::string;
-
-#define SLOW_THRESHOLD 3
 
 RoundRobinPolicy::RoundRobinPolicy(Sf1Topology &topology, Sf1Topology& backup_nodes)
         : RoutingPolicy(topology), counter(0), backup_topology(backup_nodes) {
@@ -41,33 +40,20 @@ RoundRobinPolicy::resetCounter() {
 
 void RoundRobinPolicy::increSlowCounter(const std::string& nodepath)
 {
-    std::pair<std::map<std::string, size_t>::iterator, bool> ret;
-    ret = slow_counter.insert(std::pair<std::string, size_t>(nodepath, 0));
-
-    if (ret.first->second <= SLOW_THRESHOLD)
-        (ret.first->second)++;
-    if (ret.first->second >= SLOW_THRESHOLD)
-        LOG(INFO) << "node : " << nodepath << " , slow counter up to : " << ret.first->second; 
-}
-
-void RoundRobinPolicy::decreSlowCounter(const std::string& nodepath)
-{
-    std::map<std::string, size_t>::iterator it = slow_counter.find(nodepath);
-    if (it != slow_counter.end())
+    bool ret = SlowCounterMgr::increSlowCounter(nodepath, slow_counter);
+    if (!ret)
     {
-        if (it->second > 0)
-            (it->second)--;
+        LOG(WARNING) << "increase the slow counter failed.";
     }
 }
 
-void RoundRobinPolicy::decreSlowCounterForAll()
+void RoundRobinPolicy::updateSlowCounterForAll()
 {
-    std::map<std::string, size_t>::iterator it = slow_counter.begin();
-    while(it != slow_counter.end())
+    // reload counter from shared data
+    bool ret = SlowCounterMgr::readSharedSlowCounter(slow_counter);
+    if (!ret)
     {
-        if (it->second > 0)
-            (it->second)--;
-        ++it;
+        LOG(WARNING) << "update slow counter from shared memory failed.";
     }
 }
 
@@ -77,6 +63,7 @@ RoundRobinPolicy::updateCollections() {
     collections.clear();
     backup_collections.clear();
     slow_counter.clear();
+    SlowCounterMgr::clearSharedSlowCounter();
     
     BOOST_FOREACH(const string& collection, topology.getCollectionIndex()) {
         NodeCollectionsRange range = topology.getNodesFor(collection);
@@ -146,7 +133,7 @@ const Sf1Node& RoundRobinPolicy::getNodeFor(const std::string& collection, const
             std::map<std::string, size_t>::const_iterator cit = slow_counter.find(list[index].second.getPath());
             if (cit != slow_counter.end() && cit->second >= SLOW_THRESHOLD)
             {
-                LOG(INFO) << "!!! this node is slow currently, skipping this " << cit->first;
+                LOG(INFO) << "!!! this node is slow currently, skipping this " << cit->first << ",ip :" << list[index].second.getHost();
             }
             else
                 break;

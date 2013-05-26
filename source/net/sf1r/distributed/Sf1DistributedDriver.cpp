@@ -115,7 +115,7 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
         time_t start_time = time(NULL);
         sendAndReceive(client, request, response); 
         time_t end_time = time(NULL);
-        if (end_time - start_time > 5)
+        if (end_time - start_time > 8)
         {
             LOG(INFO) << "slow request from server : " << client.getPath() << ", cost time: " << end_time-start_time << ", " << request;
             router->increSlowCounter(client.getPath());

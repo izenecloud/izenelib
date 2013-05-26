@@ -257,7 +257,7 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
     WriteLockT lock(shared_mutex);
     LOG(INFO) << "updating SF1 node in timer callback, total nodes : " << topology->count();
     if (policy)
-        policy->decreSlowCounterForAll();
+        policy->updateSlowCounterForAll();
 
     WaitingMapT::iterator it = waiting_update_path_.begin();
     while(it != waiting_update_path_.end())
@@ -392,13 +392,6 @@ void ZooKeeperRouter::clearSf1Nodes() {
         }
         it = pools.begin();
     }
-}
-
-void ZooKeeperRouter::decreSlowCounter(const std::string& path)
-{
-    WriteLockT rwlock(shared_mutex);
-    if (policy)
-        policy->decreSlowCounter(path);
 }
 
 void ZooKeeperRouter::increSlowCounter(const std::string& path)
