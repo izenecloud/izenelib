@@ -18,7 +18,7 @@ NS_IZENELIB_SF1R_BEGIN
 #define SF1R_PROCESS_MUTEX_NAME "sf1r_named_mutex_for_process"
 #define SF1R_PROCESS_SHARED_MEM_NAME "sf1r_shared_mem_for_process"
 #define MAX_SHARED_SIZE 1024*32
-#define SLOW_THRESHOLD 3
+#define SLOW_THRESHOLD 10
 typedef std::map<std::string, size_t> Sf1rSharedSlowCounterT;
 
 
@@ -93,7 +93,7 @@ public:
             }
             std::pair<Sf1rSharedSlowCounterT::iterator,bool> ret;
             ret = cur_shared_data.insert(std::pair<std::string, size_t>(path, 0));
-            if (ret.first->second <= SLOW_THRESHOLD)
+            if (ret.first->second <= SLOW_THRESHOLD + 1)
                 (ret.first->second)++;
             if (ret.first->second >= SLOW_THRESHOLD)
                 LOG(INFO) << "node : " << path << " , slow counter up to : " << ret.first->second; 

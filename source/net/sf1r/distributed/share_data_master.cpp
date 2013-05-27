@@ -16,7 +16,7 @@ using namespace boost;
 #define SF1R_PROCESS_MUTEX_NAME "sf1r_named_mutex_for_process"
 #define SF1R_PROCESS_SHARED_MEM_NAME "sf1r_shared_mem_for_process"
 #define MAX_SHARED_SIZE 1024*32
-#define SLOW_THRESHOLD 3
+#define SLOW_THRESHOLD 10
 typedef std::map<std::string, size_t> Sf1rSharedSlowCounterT;
 
 static volatile bool s_stop = false;
@@ -125,7 +125,7 @@ void checking_func()
     while(!s_stop)
     {
         struct timespec req, rem;
-        req.tv_sec = 30;
+        req.tv_sec = 20;
         req.tv_nsec = 0;
 
         while(0 != nanosleep(&req, &rem))
