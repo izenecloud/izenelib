@@ -19,6 +19,7 @@ dump.*
 cscope.files
 /cmake
 /testbin/*
+/bin/*
 !/testbin/r_IndexStats.config
 help
 *.save

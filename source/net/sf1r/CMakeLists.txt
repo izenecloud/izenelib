@@ -11,6 +11,7 @@ if (sf1r_SHOULD_BUILD)
         regex
         thread
         serialization
+        system
         date_time
     )
 
@@ -45,6 +46,7 @@ if (sf1r_SHOULD_BUILD)
             LIBRARY DESTINATION lib
             COMPONENT sf1r)
 
+    list(APPEND LIBS pthread rt)
     add_executable(Sf1rSharedDataMaster distributed/share_data_master.cpp)
     target_link_libraries(Sf1rSharedDataMaster ${LIBS} ${Boost_LIBRARIES}
         ${Glog_LIBRARIES})
