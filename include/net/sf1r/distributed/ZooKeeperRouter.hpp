@@ -110,6 +110,9 @@ public:
      */
     //NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
  
+    void increSlowCounter(const std::string& path);
+    void decreSlowCounter(const std::string& path);
+
 private:
     
     /** The watcher need to access private member functions. */
