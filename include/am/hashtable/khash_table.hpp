@@ -278,7 +278,7 @@ public:
     {
         FILE* f = fopen(nm.c_str(), "r");
         if (!f)
-            throw std::runtime_error("can't open file.");
+            throw std::runtime_error(std::string("can't open file:")+nm);
 
         if(fread(&nodes_num_, sizeof(nodes_num_), 1, f)!=1)throw std::runtime_error("File read error.");
         if(fread(&entry_size_, sizeof(entry_size_), 1, f)!=1)throw std::runtime_error("File read error.");
@@ -412,10 +412,20 @@ public:
         table_.insert(h, v);
     }
 
+    void insert(const uint64_t& k, const VALUE_T& v)
+    {
+        table_.insert(k, v);
+    }
+
     VALUE_T* find(const KEY_T& k)
     {
         uint64_t h = hash_(k);
         return table_.find(h);
+    }
+    
+    VALUE_T* find(const uint64_t& k)
+    {
+        return table_.find(k);
     }
 
     bool erase(const KEY_T& k)

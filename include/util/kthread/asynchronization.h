@@ -83,6 +83,20 @@ public:
     }
 
     template<
+             typename FOO,
+             typename PARAM
+             >
+    void new_static_thread(FOO fo, const PARAM& param)
+    {
+        if (pids_.size() == pool_size_)
+            wait_();
+        pthread_t pid;
+        std::pair<FOO,PARAM>* data = new std::pair<FOO,PARAM>(fo,param);
+        pthread_create(&pid, NULL, Asynchronization::StaticFun<FOO, PARAM>, (void*)data);
+        pids_.push_back(pid);
+    }
+
+    template<
     typename CLASS,
              typename FOO,
              typename PARAM
@@ -116,6 +130,18 @@ public:
         std::pair<CLASS*, std::pair<FOO,PARAM*> >* data = new std::pair<CLASS*, std::pair<FOO,PARAM*> >(p, std::pair<FOO,PARAM*>(fo, param));
         pthread_create(&pid, NULL, Asynchronization::Fun_with_delete<CLASS,FOO,PARAM>, (void*)data);
         pids_.push_back(pid);
+    }
+
+    template<
+             typename FOO,
+             typename PARAM
+             >
+    static void *StaticFun(void *data)
+    {
+        std::pair<FOO,PARAM> param = *(std::pair<FOO,PARAM> *)data;
+        (*param.first)(param.second);
+        delete[] (std::pair<FOO,PARAM>*)data;
+        return NULL;
     }
 
     template<
