@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_SUITE(khash_test)
 
 BOOST_AUTO_TEST_CASE(integer_hash_test)
 {
-    const uint32_t scale = 1000000;
+    const uint32_t scale = 1000;
     {
         KIntegerHashTable<uint32_t, uint64_t> t(scale/10, scale/30);
         for ( uint32_t i=0; i<scale; ++i)
@@ -91,7 +91,7 @@ std::string tostring(uint32_t i)
 }
 BOOST_AUTO_TEST_CASE(string_hash_test)
 {
-    const uint32_t scale = 1000000;
+    const uint32_t scale = 1000;
     {
         KStringHashTable<std::string, uint32_t> t(scale/10, scale/30);
         for ( uint32_t i=0; i<scale; ++i)

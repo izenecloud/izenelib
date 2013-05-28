@@ -31,7 +31,7 @@
 using namespace izenelib;
 using namespace izenelib::util;
 
-static const uint32_t SCALE = 1000000;
+static const uint32_t SCALE = 1000;
 BOOST_AUTO_TEST_SUITE(kstring_test)
 
 BOOST_AUTO_TEST_CASE(empty_construct_copy_test)
