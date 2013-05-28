@@ -7,13 +7,13 @@
 
 #include "net/sf1r/distributed/Sf1Topology.hpp"
 #include "RoundRobinPolicy.hpp"
+#include "share_data_def.h"
 #include <boost/signals2.hpp>
 #include <glog/logging.h>
 
 NS_IZENELIB_SF1R_BEGIN
 
 using std::string;
-
 
 RoundRobinPolicy::RoundRobinPolicy(Sf1Topology &topology, Sf1Topology& backup_nodes)
         : RoutingPolicy(topology), counter(0), backup_topology(backup_nodes) {
@@ -38,12 +38,32 @@ RoundRobinPolicy::resetCounter() {
     counter = 0;
 }
 
+void RoundRobinPolicy::increSlowCounter(const std::string& nodepath)
+{
+    bool ret = SlowCounterMgr::increSlowCounter(nodepath, slow_counter);
+    if (!ret)
+    {
+        LOG(WARNING) << "increase the slow counter failed.";
+    }
+}
+
+void RoundRobinPolicy::updateSlowCounterForAll()
+{
+    // reload counter from shared data
+    bool ret = SlowCounterMgr::readSharedSlowCounter(slow_counter);
+    if (!ret)
+    {
+        LOG(WARNING) << "update slow counter from shared memory failed.";
+    }
+}
 
 void
 RoundRobinPolicy::updateCollections() {
     DLOG(INFO) << "updating collections map due to topology changes";
     collections.clear();
     backup_collections.clear();
+    slow_counter.clear();
+    SlowCounterMgr::clearSharedSlowCounter();
     
     BOOST_FOREACH(const string& collection, topology.getCollectionIndex()) {
         NodeCollectionsRange range = topology.getNodesFor(collection);
@@ -109,7 +129,15 @@ const Sf1Node& RoundRobinPolicy::getNodeFor(const std::string& collection, const
     {
         const std::string& state_str = list[index].second.getServiceState();
         if (state_str.empty() || state_str == "ReadyForRead")
-            break;
+        {
+            std::map<std::string, size_t>::const_iterator cit = slow_counter.find(list[index].second.getPath());
+            if (cit != slow_counter.end() && cit->second >= SLOW_THRESHOLD)
+            {
+                LOG(INFO) << "!!! this node is slow currently, skipping this " << cit->first << ",ip :" << list[index].second.getHost();
+            }
+            else
+                break;
+        }
         ++trynext;
         LOG(INFO) << "!!!! one of node is busy, try next !!!!!!" << list[index].second.getPath();
         index = ccounter[collection]++ % list.size();

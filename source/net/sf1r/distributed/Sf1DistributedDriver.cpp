@@ -103,7 +103,7 @@ Sf1DistributedDriver::call(const string& uri, const string& tokens, string& requ
 void 
 Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens, 
         const string& collection, string& request, string& response) {
-    LOG(INFO) << "Send " << getFormatString() << " request: " << request;
+    //LOG(INFO) << "Send " << getFormatString() << " request: " << request;
 
     incrementSequence();
 
@@ -112,7 +112,22 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
     // process request
     Releaser r(*this, client);
     try {
+        time_t start_time = time(NULL);
         sendAndReceive(client, request, response); 
+        time_t end_time = time(NULL);
+        if (end_time - start_time > 8)
+        {
+            LOG(INFO) << "slow request from server : " << client.getPath() << ", cost time: " << end_time-start_time << ", " << request;
+            if (request.find("\"keywords\":\"*\"") != std::string::npos)
+            {
+                LOG(INFO) << "The * search can be slow, skip.";
+            }
+            else
+            {
+                router->increSlowCounter(client.getPath());
+            }
+        }
+
     } catch (ServerError& e) { // do not intercept ServerError
         throw e;
     } catch (std::runtime_error& e) {

@@ -256,6 +256,9 @@ void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 {
     WriteLockT lock(shared_mutex);
     LOG(INFO) << "updating SF1 node in timer callback, total nodes : " << topology->count();
+    if (policy)
+        policy->updateSlowCounterForAll();
+
     WaitingMapT::iterator it = waiting_update_path_.begin();
     while(it != waiting_update_path_.end())
     {
@@ -391,6 +394,14 @@ void ZooKeeperRouter::clearSf1Nodes() {
     }
 }
 
+void ZooKeeperRouter::increSlowCounter(const std::string& path)
+{
+    LOG(INFO) << "increasing slow counter for SF1 node: [" << path << "]";
+    WriteLockT rwlock(shared_mutex);
+    if (policy)
+        policy->increSlowCounter(path);
+}
+
 void
 ZooKeeperRouter::removeSf1Node(const string& path) {
     Sf1Topology* removing_topology = topology.get();
@@ -454,7 +465,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
         path != ROOT_NODE )
     {
         client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
-        LOG(INFO) << "Not Watching children of: " << path;
+        //LOG(INFO) << "Not Watching children of: " << path;
         return;
     }
 
