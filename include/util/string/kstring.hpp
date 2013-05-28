@@ -19,7 +19,7 @@
 #define IZENELIB_STRING_KSTRING__HPP
 
 #include "types.h"
-#include <iconv.h>
+#include "/usr/include/iconv.h"
 #include <cerrno>
 #include <string>
 #include <cstdio>
