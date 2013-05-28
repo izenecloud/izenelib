@@ -393,7 +393,9 @@ class KStringHashTable
 
     uint64_t hash_(const izenelib::util::KString& kstr)const
     {
-        return izenelib::util::HashFunction<std::string>::generateHash64((char*)kstr.get_bytes(), kstr.length()*sizeof(uint16_t));
+        std::string str = kstr.get_bytes("utf-8");
+        return hash_(str);
+        //return izenelib::util::HashFunction<std::string>::generateHash64((char*)kstr.get_bytes(), kstr.length()*sizeof(uint16_t));
     }
 
 public:
