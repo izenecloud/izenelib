@@ -651,7 +651,7 @@ class KString
         return false;
     }
 
-    static bool is_chinese(uint16_t ucs2char)const
+    static bool is_chinese(uint16_t ucs2char)
 	{
 		if (((ucs2char>=0x2E80 && ucs2char<=0x2EF3)
 					|| (ucs2char>=0x2F00 && ucs2char<=0x2FD5)
@@ -682,7 +682,7 @@ class KString
 		return false;
 	}
 
-    static bool is_chn_numeric(uint16_t ucs2char)const
+    static bool is_chn_numeric(uint16_t ucs2char)
     {
         if (ucs2char == 38646//零
             || ucs2char == 19968//一
@@ -700,7 +700,7 @@ class KString
         return false;
     }
 
-	static bool is_numeric(uint16_t ucs2char)const
+	static bool is_numeric(uint16_t ucs2char)
 	{
 		static const uint16_t zero('0'), nine('9');
 		    if ( zero <= ucs2char && ucs2char <= nine )
@@ -708,7 +708,7 @@ class KString
 			    return false;
 	}	
 
-	static bool is_english(uint16_t ucs2char)const
+	static bool is_english(uint16_t ucs2char)
 	{
 		static const uint16_t a('a'), z('z'), A('A'), Z('Z');
 		    if ( ( a <= ucs2char && ucs2char <= z ) || ( A <= ucs2char && ucs2char <= Z ) )
