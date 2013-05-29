@@ -100,8 +100,12 @@ void ZooKeeperRouter::reconnect()
 }
 
 ZooKeeperRouter::~ZooKeeperRouter() {
-    BOOST_FOREACH(PoolContainer::value_type& i, pools) {
-        delete i.second;
+
+    {
+        WriteLockT rwlock(shared_mutex);
+        BOOST_FOREACH(PoolContainer::value_type& i, pools) {
+            delete i.second;
+        }
     }
     
     Scheduler::removeJob("UpdateNodeDataOnTimer");
