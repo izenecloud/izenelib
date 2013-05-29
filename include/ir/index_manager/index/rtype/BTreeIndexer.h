@@ -23,7 +23,9 @@
 #include <boost/bind.hpp>
 #if BOOST_VERSION >= 105300
 #include <boost/atomic.hpp>
+#include <3rdparty/folly/RWSpinLock.h>
 #endif
+#include <util/ReadFavorLock.h>
 #include "dynamic_bitset2.hpp"
 #include <functional>
 
@@ -67,6 +69,8 @@ class BTreeIndexer
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
 public:
+    typedef boost::shared_mutex MutexType;
+    //typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::AMIterator<DbType> iterator;
 
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
@@ -105,7 +109,7 @@ public:
     void add(const KeyType& key, docid_t docid)
     {
     	{
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<MutexType> lock(mutex_);
         cache_.add(key, docid);
     	}
         checkCache_();
@@ -115,7 +119,7 @@ public:
     void remove(const KeyType& key, docid_t docid)
     {
         {
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<MutexType> lock(mutex_);
         cache_.remove(key, docid);
     	}
         checkCache_();
@@ -124,10 +128,10 @@ public:
 
     std::size_t count()
     {
-        boost::upgrade_lock<boost::shared_mutex> lock(mutex_);
+        boost::upgrade_lock<MutexType> lock(mutex_);
         if (count_has_modify_ || !count_in_cache_)
         {
-            boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
+            boost::upgrade_to_unique_lock<MutexType> unique_lock(lock);
             if (count_has_modify_ || !count_in_cache_)
             {
                 std::size_t db_count = getCount_();
@@ -144,7 +148,7 @@ public:
 
     bool seek(const KeyType& key)
     {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         BitVector docs;
         getValue_(key, docs);
         return docs.count() > 0;
@@ -152,19 +156,19 @@ public:
 
     void getNoneEmptyList(const KeyType& key, BitVector& docs)
     {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
     }
 
     void getValue(const KeyType& key, BitVector& docs)
     {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
     }
 
     bool getValue(const KeyType& key, std::vector<docid_t>& docs)
     {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         return getValue_(key, docs);
     }
 
@@ -173,7 +177,7 @@ public:
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if (compare_(lowKey, highKey) > 0) return 0;
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::size_t result = 0;
 
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
@@ -197,7 +201,7 @@ public:
     void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
     {
         if (compare_(key1, key2) > 0) return;
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
 
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
         std::pair<KeyType, ValueType> kvp;
@@ -213,7 +217,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] "<< docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -228,7 +232,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -243,7 +247,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -258,7 +262,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -273,7 +277,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -288,7 +292,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -303,7 +307,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -407,7 +411,7 @@ private:
 #endif
         cache_num_ = 0;
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<MutexType> lock(mutex_);
         cache_.clear();
     }
 
@@ -467,7 +471,7 @@ private:
 //#ifdef CACHE_TIME_INFO
 //      t3 += timer.elapsed();
 //#endif
-        boost::unique_lock<boost::shared_mutex> lock(mutex_);
+        boost::unique_lock<MutexType> lock(mutex_);
         if (common_value_.size() > 0)
         {
             db_.update(kvp.first, common_value_);
@@ -710,7 +714,7 @@ private:
     bool count_has_modify_;
 #endif
     std::size_t cache_num_;
-    boost::shared_mutex mutex_;
+    MutexType mutex_;
 };
 
 }
