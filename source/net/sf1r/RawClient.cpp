@@ -10,6 +10,8 @@
 #include <boost/array.hpp>
 #include <glog/logging.h>
 #include <sys/time.h>
+#include <boost/bind.hpp>
+
 
 NS_IZENELIB_SF1R_BEGIN
 
@@ -18,6 +20,8 @@ namespace bs = boost::system;
 using ba::ip::tcp;
 using std::string;
 
+#define CONNECT_TIMEOUT 5
+#define RW_TIMEOUT 20
 
 namespace {
 
@@ -43,8 +47,12 @@ RawClient::idSequence = 0;
 RawClient::RawClient(ba::io_service& service, 
                      const std::string& host, const std::string& port,
                      const size_t timeout, const string& zkpath) 
-        : socket(service), status(Idle), path(zkpath), id(++idSequence) {
+        : socket(service), deadline_(service), io_service_(service),
+        status(Idle), path(zkpath), id(++idSequence) {
     try {
+        deadline_.expires_at(boost::posix_time::pos_infin);
+        check_deadline();
+
         DLOG(INFO) << "configuring socket ...";
         // TODO: windows?
         struct timeval tv;
@@ -54,11 +62,7 @@ RawClient::RawClient(ba::io_service& service,
         setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof (tv));
         
         DLOG(INFO) << "connecting to [" << host << ":" << port << "] (" << id << ") ...";
-        
-        ba::ip::tcp::resolver resolver(service);
-        ba::ip::tcp::resolver::query query(host, port);
-        
-        ba::connect(socket, resolver.resolve(query)); 
+        connect_with_timeout(host, port);
         
         DLOG(INFO) << "connected (" << id << ")";
     } catch (bs::system_error& e) {
@@ -89,6 +93,64 @@ RawClient::~RawClient() {
     DLOG(INFO) << "Correctly destroyed (" << id << ")";
 }
 
+void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* ret_ec)
+{
+    *ret_ec = error;
+}
+
+void RawClient::connect_with_timeout(const std::string& host, const std::string& port)
+{
+    ba::ip::tcp::resolver resolver(io_service_);
+    ba::ip::tcp::resolver::query query(host, port);
+    tcp::resolver::iterator iter = resolver.resolve(query);
+
+    deadline_.expires_from_now(boost::posix_time::seconds(CONNECT_TIMEOUT));
+    bs::error_code ec = ba::error::would_block;
+
+    ba::async_connect(socket, iter,
+        boost::bind(&async_cb, _1, 0, &ec));
+
+    do io_service_.run_one(); while (ec == ba::error::would_block);
+
+    if (ec || !socket.is_open())
+        throw bs::system_error(ec ? ec : ba::error::operation_aborted);
+}
+
+size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
+{
+    deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT + ba::buffer_size(buf)/1024/1024));
+    bs::error_code ec = ba::error::would_block;
+    ba::async_read(socket, buf, boost::bind(&async_cb, _1, _2, &ec));
+    do io_service_.run_one(); while(ec == ba::error::would_block);
+
+    if (ec)
+        throw bs::system_error(ec);
+    return ba::buffer_size(buf);
+}
+
+size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buffers)
+{
+    deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT));
+    bs::error_code ec = ba::error::would_block;
+    ba::async_write(socket, buffers, boost::bind(&async_cb, _1, _2, &ec));
+    do io_service_.run_one(); while(ec == ba::error::would_block);
+    if (ec)
+        throw bs::system_error(ec);
+    return ba::buffer_size(buffers);
+}
+
+void RawClient::check_deadline()
+{
+    if (deadline_.expires_at() <= deadline_timer::traits_type::now())
+    {
+        boost::system::error_code ignored_ec;
+        socket.close(ignored_ec);
+
+        // There is no longer an active deadline. The expiry is set to infinity.
+        deadline_.expires_at(boost::posix_time::pos_infin);
+    }
+    deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
+}
 
 bool
 RawClient::isConnected() {
@@ -136,7 +198,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
 
     size_t n = 0;
     try {
-        n += ba::write(socket, buffers);
+        n += write_with_timeout(buffers);
     } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << "write request to socket error";
@@ -171,7 +233,7 @@ RawClient::getResponse() {
     size_t n = 0;
 
     try {
-        n += ba::read(socket, ba::buffer(header));
+        n += read_with_timeout(ba::buffer(header));
     } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << "get response head from socket error";
@@ -204,7 +266,7 @@ RawClient::getResponse() {
     }
 
     try {
-        n = ba::read(socket, ba::buffer(data, length));
+        n = read_with_timeout(ba::buffer(data, length));
     } catch (bs::system_error& e) {
         status = Invalid;
         LOG(ERROR) << "get response body from socket error";

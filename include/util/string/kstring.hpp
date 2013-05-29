@@ -19,7 +19,7 @@
 #define IZENELIB_STRING_KSTRING__HPP
 
 #include "types.h"
-#include <iconv.h>
+#include "/usr/include/iconv.h"
 #include <cerrno>
 #include <string>
 #include <cstdio>
@@ -650,6 +650,72 @@ class KString
           return true;
         return false;
     }
+
+    static bool is_chinese(uint16_t ucs2char)
+	{
+		if (((ucs2char>=0x2E80 && ucs2char<=0x2EF3)
+					|| (ucs2char>=0x2F00 && ucs2char<=0x2FD5)
+					|| (ucs2char>=0x3400 && ucs2char<=0x4DB5)
+					|| (ucs2char>=0x4E00 && ucs2char<=0x9FC3)
+					|| (ucs2char>=0xF900 && ucs2char<=0xFAD9))
+          && ucs2char!=12289 
+          && ucs2char!=12298 
+          && ucs2char!=12290 
+          && ucs2char!=12299 
+          && ucs2char!=65292 
+          && ucs2char!=65311 
+          && ucs2char!=65281 
+          && ucs2char!=65306 
+          && ucs2char!=65307 
+          && ucs2char!=8220 
+          && ucs2char!=8221 
+          && ucs2char!=12304 
+          && ucs2char!=12305 
+          && ucs2char!=65509 
+          && ucs2char!=8230 
+          && ucs2char!=65288 
+          && ucs2char!=65289 
+          && ucs2char!=8212
+          && ucs2char!=20022) 
+		  return true;
+
+		return false;
+	}
+
+    static bool is_chn_numeric(uint16_t ucs2char)
+    {
+        if (ucs2char == 38646//零
+            || ucs2char == 19968//一
+            || ucs2char == 20108//二
+            || ucs2char == 19977
+            || ucs2char == 22235
+            || ucs2char == 20116
+            || ucs2char == 20845
+            || ucs2char == 19971
+            || ucs2char == 20843
+            || ucs2char == 20061
+            || ucs2char == 21313//十
+            )
+            return true;
+        return false;
+    }
+
+	static bool is_numeric(uint16_t ucs2char)
+	{
+		static const uint16_t zero('0'), nine('9');
+		    if ( zero <= ucs2char && ucs2char <= nine )
+			          return true;
+			    return false;
+	}	
+
+	static bool is_english(uint16_t ucs2char)
+	{
+		static const uint16_t a('a'), z('z'), A('A'), Z('Z');
+		    if ( ( a <= ucs2char && ucs2char <= z ) || ( A <= ucs2char && ucs2char <= Z ) )
+			          return true;
+			    return false;
+	}
+
 };
 }}//end of namespace
 #endif

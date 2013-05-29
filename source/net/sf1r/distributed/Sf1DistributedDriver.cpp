@@ -115,7 +115,7 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
         time_t start_time = time(NULL);
         sendAndReceive(client, request, response); 
         time_t end_time = time(NULL);
-        if (end_time - start_time > 8)
+        if (end_time - start_time > 7)
         {
             LOG(INFO) << "slow request from server : " << client.getPath() << ", cost time: " << end_time-start_time << ", " << request;
             if (request.find("\"keywords\":\"*\"") != std::string::npos)
@@ -127,12 +127,13 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
                 router->increSlowCounter(client.getPath());
             }
         }
-
-    } catch (ServerError& e) { // do not intercept ServerError
-        throw e;
-    } catch (std::runtime_error& e) {
+    } catch (const NetworkError& e) { // do not intercept ServerError
+        LOG(INFO) << "NetworkError request from server : " << client.getPath() << ", " << request;
+        router->increSlowCounter(client.getPath());
+        throw;
+    } catch (const std::runtime_error& e) {
         LOG(ERROR) << "Exception: " << e.what();
-        throw e;
+        throw;
     }
 }
 
