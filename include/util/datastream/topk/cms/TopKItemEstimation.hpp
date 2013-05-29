@@ -136,6 +136,7 @@ public:
     {
         if(bs_) delete bs_;
         bs_=new BucketT(0, NULL, NULL);
+        end_=bs_;
         gps_.clear();
         size_=th_=0;
         return true;
