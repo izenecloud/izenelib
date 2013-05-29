@@ -152,6 +152,7 @@ private:
     /// Condition variable for connection pool deletion.
     boost::condition_variable_any condition;
     
+    void removeNodeFromPools(const std::string& path, WriteLockT& rwlock);
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;
     
