@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_SUITE(line_reader_test)
 
 BOOST_AUTO_TEST_CASE(line_reader_test)
 {
-    const uint32_t SCALE = 1000000000;
+    const uint32_t SCALE = 100;
     {
         ofstream of("tmp.line_reader");
         for ( uint32_t i=0; i<SCALE; ++i)

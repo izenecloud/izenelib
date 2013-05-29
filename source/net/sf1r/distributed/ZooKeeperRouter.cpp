@@ -465,7 +465,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
         path != ROOT_NODE )
     {
         client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
-        LOG(INFO) << "Not Watching children of: " << path;
+        //LOG(INFO) << "Not Watching children of: " << path;
         return;
     }
 

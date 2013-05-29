@@ -118,7 +118,14 @@ Sf1DistributedDriver::dispatchRequest(const string& uri, const string& tokens,
         if (end_time - start_time > 8)
         {
             LOG(INFO) << "slow request from server : " << client.getPath() << ", cost time: " << end_time-start_time << ", " << request;
-            router->increSlowCounter(client.getPath());
+            if (request.find("\"keywords\":\"*\"") != std::string::npos)
+            {
+                LOG(INFO) << "The * search can be slow, skip.";
+            }
+            else
+            {
+                router->increSlowCounter(client.getPath());
+            }
         }
 
     } catch (ServerError& e) { // do not intercept ServerError
