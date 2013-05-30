@@ -16,6 +16,8 @@
 
 // @author: Xin Liu <xliux@fb.com>
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 105300 
 #include <memory>
 #include <set>
 #include <vector>
@@ -427,5 +429,5 @@ BOOST_AUTO_TEST_CASE(ConcurrentSkipListConcurrentAccess) {
 BOOST_AUTO_TEST_SUITE_END() 
 
 }
-
+#endif
 
