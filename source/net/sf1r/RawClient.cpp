@@ -78,19 +78,29 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() {
+    if (socket.is_open())
+    {
+        // delete while socket is still open, we need wake up timeout event
+        // to make sure timeout handler removed.
+        deadline_.expires_at(deadline_timer::traits_type::now());
+        io_service_.run_one();
+    }
+    // no active async handler, reset io_service to get ready for next run_one.
+    io_service_.reset();
     CHECK_NE(Busy, status);
     try {
         DLOG(INFO) << "closing (" << id << ") ...";
         
-        socket.shutdown(socket.shutdown_both);
+        if (socket.is_open())
+            socket.shutdown(socket.shutdown_both);
         socket.close();
         
-        DLOG(INFO) << "connection closed (" << id << ")";
+        LOG(INFO) << "connection closed (" << id << ")";
     } catch (bs::system_error& e) {
         LOG(WARNING) << e.what();
     }
     
-    DLOG(INFO) << "Correctly destroyed (" << id << ")";
+    LOG(INFO) << "Correctly destroyed (" << id << ")";
 }
 
 void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* ret_ec)
@@ -114,6 +124,7 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
 
     if (ec || !socket.is_open())
         throw bs::system_error(ec ? ec : ba::error::operation_aborted);
+    deadline_.expires_at(boost::posix_time::pos_infin);
 }
 
 size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
@@ -125,6 +136,7 @@ size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
 
     if (ec)
         throw bs::system_error(ec);
+    deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buf);
 }
 
@@ -136,6 +148,7 @@ size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buf
     do io_service_.run_one(); while(ec == ba::error::would_block);
     if (ec)
         throw bs::system_error(ec);
+    deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buffers);
 }
 
@@ -143,13 +156,26 @@ void RawClient::check_deadline()
 {
     if (deadline_.expires_at() <= deadline_timer::traits_type::now())
     {
+        LOG(INFO) << "deadline for : " << path;
         boost::system::error_code ignored_ec;
-        socket.close(ignored_ec);
-
-        // There is no longer an active deadline. The expiry is set to infinity.
-        deadline_.expires_at(boost::posix_time::pos_infin);
+        try
+        {
+            if (socket.is_open() && status != Invalid)
+            {
+                status = Invalid;
+                socket.shutdown(ba::ip::tcp::socket::shutdown_both, ignored_ec);
+                socket.close(ignored_ec);
+            }
+            // There is no longer an active deadline. The expiry is set to infinity.
+            deadline_.expires_at(boost::posix_time::pos_infin);
+        }
+        catch(const bs::system_error& e)
+        {
+            LOG(ERROR) << "check_deadline error : " << e.what();
+        }
     }
-    deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
+    else
+        deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
 }
 
 bool
