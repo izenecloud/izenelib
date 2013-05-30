@@ -167,6 +167,8 @@ public:
             node_t* n = new node_t[element_num];
             memcpy(n, nodes_, nodes_num_*sizeof(node_t));
             delete nodes_;
+            for ( uint32_t i=nodes_num_-1; i<element_num-1; ++i)
+                n[i].next() = i+1;
             nodes_ = n;
             nodes_num_ = element_num;
         }
