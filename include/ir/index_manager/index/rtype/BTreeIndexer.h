@@ -54,27 +54,24 @@ class BTreeIndexer
     typedef std::vector<docid_t> ValueType;
 //  typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
 //  typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
+public:
+    //typedef boost::shared_mutex MutexType;
+    typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
-    typedef InMemoryBTreeCache<KeyType, docid_t> CacheType;
+    typedef InMemoryBTreeCache<KeyType, docid_t, MutexType> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
 
-    typedef BTTermEnum<KeyType, CacheValueType> MemEnumType;
+    typedef BTTermEnum<KeyType, CacheValueType, typename CacheType::AMType> MemEnumType;
     typedef AMTermEnum<DbType> AMEnumType;
-    //typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
-    //typedef TermEnum<KeyType, BitVector> BaseEnumType;
-    //typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
 
-    typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, ValueType> EnumType;
+    typedef TwoWayTermEnum<KeyType, CacheValueType, typename CacheType::AMType, DbType, ValueType> EnumType;
     typedef TermEnum<KeyType, ValueType> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
-public:
-    typedef boost::shared_mutex MutexType;
-    //typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::AMIterator<DbType> iterator;
 
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
-        : path_(path), property_name_(property_name), count_has_modify_(false)
+        : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false)
     {
         cache_.set_max_capacity(cacheSize);
         func_ = &combineValue_;
@@ -109,8 +106,8 @@ public:
     void add(const KeyType& key, docid_t docid)
     {
     	{
-        boost::unique_lock<MutexType> lock(mutex_);
-        cache_.add(key, docid);
+            //boost::unique_lock<MutexType> lock(mutex_);
+            cache_.add(key, docid);
     	}
         checkCache_();
         count_has_modify_ = true;
@@ -119,8 +116,8 @@ public:
     void remove(const KeyType& key, docid_t docid)
     {
         {
-        boost::unique_lock<MutexType> lock(mutex_);
-        cache_.remove(key, docid);
+            //boost::unique_lock<MutexType> lock(mutex_);
+            cache_.remove(key, docid);
     	}
         checkCache_();
         count_has_modify_ = true;
@@ -408,8 +405,8 @@ private:
     {
 #ifdef BT_INFO
         std::cout << "!!!cacheClear_ " << property_name_ << ", key size: " << cache_.key_size() << ", size: " << cache_.capacity() << std::endl;
-#endif
         cache_num_ = 0;
+#endif
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
         boost::unique_lock<MutexType> lock(mutex_);
         cache_.clear();
@@ -480,6 +477,7 @@ private:
         {
             db_.del(kvp.first);
         }
+        cache_.clear_key(kvp.first);
 #ifdef CACHE_TIME_INFO
         t3 += timer.elapsed();
 #endif
@@ -488,8 +486,8 @@ private:
 #ifdef CACHE_DEBUG
         std::cout << "cacheIterator update finish" << std::endl;
 #endif
-        ++cache_num_;
 #ifdef BT_INFO
+        ++cache_num_;
         if (cache_num_ % 10000 == 0)
         {
             std::cout << "cacheIterator number : " << cache_num_ << std::endl;
@@ -510,7 +508,9 @@ private:
 
     bool getCacheValue_(const KeyType& key, CacheValueType& value)
     {
-        return cache_.get(key, value);
+        bool b = cache_.get(key, value);
+        if(value.empty()) b = false;
+        return b;
     }
 
     std::size_t getCount_()
@@ -621,7 +621,7 @@ private:
         {
             //uint32_t docid2 = *it2;
             //bool b2 = it2.test();
-            //std::cerr<<"applying "<<docid2<<","<<b2<<std::endl;
+            //LOG(ERROR)<<"applying cache "<<*it2<<","<<it2.test()<<std::endl;
             if(*it1<*it2)
             {
                 new_value.push_back(*it1);
@@ -678,15 +678,16 @@ private:
 
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
     {
-        for (std::size_t i = 0; i < cacheValue.item.size(); i++)
+        std::size_t count = cacheValue.count;
+        for (std::size_t i = 0; i < count; i++)
         {
-            if (cacheValue.flag.test(i))
+            if (cacheValue.item[i].second)
             {
-                value.set(cacheValue.item[i]);
+                value.set(cacheValue.item[i].first);
             }
             else
             {
-                value.clear(cacheValue.item[i]);
+                value.clear(cacheValue.item[i].first);
             }
         }
     }
@@ -701,6 +702,7 @@ private:
     std::string path_;
     std::string property_name_;
     DbType db_;
+    MutexType mutex_;
     CacheType cache_;
     EnumCombineFunc func_;
     /// used only in cacheIterator_, one thread,  safe.
@@ -714,7 +716,6 @@ private:
     bool count_has_modify_;
 #endif
     std::size_t cache_num_;
-    MutexType mutex_;
 };
 
 }

@@ -76,23 +76,23 @@ public:
             {
                 indexer_.add(key, docid);
                 ref_.add(key, docid);
-                std::cout<<"[W]1,"<<key<<","<<docid<<std::endl;
+                LOG(ERROR)<<"[W]1,"<<key<<","<<docid<<std::endl;
 //                 record_.append(1, key, docid);
             }
             else
             {
                 indexer_.remove(key, docid);
                 ref_.remove(key, docid);
-                std::cout<<"[W]2,"<<key<<","<<docid<<std::endl;
+                LOG(ERROR)<<"[W]2,"<<key<<","<<docid<<std::endl;
 //                 record_.append(2, key, docid);
             }
             uint32_t iff;
             RandomGenerator<uint32_t>::Gen(0, 99, iff);
             if(iff<flush_ratio_)
             {
-                std::cout<<"[W]flushing"<<std::endl;
+                LOG(ERROR)<<"[W]flushing"<<std::endl;
                 indexer_.flush();
-                std::cout<<"[W]flushed"<<std::endl;
+                LOG(ERROR)<<"[W]flushed"<<std::endl;
 //                 std::cout<<"%%%flushed"<<std::endl;
             }
             ++write_count_;
@@ -103,7 +103,7 @@ public:
             
             if(write_count_%100==0)
             {
-                std::cout<<"[W]write count "<<write_count_<<std::endl;
+                LOG(ERROR)<<"[W]write count "<<write_count_<<std::endl;
             }
         }
     }
@@ -294,6 +294,7 @@ public:
         izenelib::util::ClockTimer clocker;
         double all_time = 0.0;
         std::size_t count=0;
+        std::size_t timeout_count=0;
         while(!end_)
         {
             KeyType key = min_;
@@ -304,6 +305,11 @@ public:
             double time = clocker.elapsed();
             all_time+=time;
             count++;
+            if(time>=3.0)
+            {
+                timeout_count++;
+                LOG(ERROR)<<"timeout "<<time<<","<<timeout_count<<"-"<<count<<std::endl;
+            }
             if(count%10==0)
             {
                 LOG(ERROR)<<"search avg "<<all_time/count<<std::endl;
