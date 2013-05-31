@@ -194,9 +194,10 @@ void RawClient::check_deadline()
         {
             if (socket.is_open() && status != Invalid)
             {
-                status = Invalid;
-                socket.shutdown(ba::ip::tcp::socket::shutdown_both, ignored_ec);
-                socket.close(ignored_ec);
+                //status = Invalid;
+                //socket.shutdown(ba::ip::tcp::socket::shutdown_both, ignored_ec);
+                //socket.close(ignored_ec);
+                socket.cancel();
             }
             // There is no longer an active deadline. The expiry is set to infinity.
             deadline_.expires_at(boost::posix_time::pos_infin);
@@ -261,7 +262,8 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     try {
         n += write_with_timeout(buffers);
     } catch (bs::system_error& e) {
-        status = Invalid;
+        if (e.code() != ba::error::operation_aborted)
+            status = Invalid;
         LOG(ERROR) << "write request to socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -296,7 +298,8 @@ RawClient::getResponse() {
     try {
         n += read_with_timeout(ba::buffer(header));
     } catch (bs::system_error& e) {
-        status = Invalid;
+        if (e.code() != ba::error::operation_aborted)
+            status = Invalid;
         LOG(ERROR) << "get response head from socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -329,7 +332,8 @@ RawClient::getResponse() {
     try {
         n = read_with_timeout(ba::buffer(data, length));
     } catch (bs::system_error& e) {
-        status = Invalid;
+        if (e.code() != ba::error::operation_aborted)
+            status = Invalid;
         LOG(ERROR) << "get response body from socket error";
         LOG(ERROR) << e.what();
         if (length > small_response_size)
