@@ -6,6 +6,7 @@ find_package(Boost ${Boost_FIND_VERSION}
     regex
     system
     thread
+    serialization
     unit_test_framework
 )
 
