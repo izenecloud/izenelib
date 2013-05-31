@@ -29,58 +29,58 @@ class TermEnum
 };
 
 
-template <class K, class V>
+//template <class K, class V>
+//class BTTermEnum : public TermEnum<K, V>
+//{
+    
+//public:
+    //typedef K KeyType;
+    //typedef V ValueType;
+    //typedef std::map<KeyType, ValueType> AMType;
+    //typedef typename AMType::iterator iterator;
+    
+    
+    //BTTermEnum(AMType& am)
+    //:it_(am.begin()), it_end_(am.end())
+    //{
+    //}
+    
+    //BTTermEnum(AMType& am, const KeyType& key)
+    //:it_(am.lower_bound(key)), it_end_(am.end())
+    //{
+    //}
+    
+    //bool next(std::pair<KeyType, ValueType>& kvp)
+    //{
+//#ifdef TE_DEBUG
+////         std::cout<<"BTTermEnum next"<<std::endl;
+//#endif
+        //if(it_==it_end_) return false;
+        //else
+        //{
+            //kvp = *it_;
+            //++it_;
+//#ifdef TE_DEBUG
+////             std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
+//#endif
+            //return true;
+        //}
+    //}
+  
+  
+//private:
+    //iterator it_;
+    //iterator it_end_;
+//};
+
+template <class K, class V, class AMType>
 class BTTermEnum : public TermEnum<K, V>
 {
     
 public:
     typedef K KeyType;
     typedef V ValueType;
-    typedef std::map<KeyType, ValueType> AMType;
-    typedef typename AMType::iterator iterator;
-    
-    
-    BTTermEnum(AMType& am)
-    :it_(am.begin()), it_end_(am.end())
-    {
-    }
-    
-    BTTermEnum(AMType& am, const KeyType& key)
-    :it_(am.lower_bound(key)), it_end_(am.end())
-    {
-    }
-    
-    bool next(std::pair<KeyType, ValueType>& kvp)
-    {
-#ifdef TE_DEBUG
-//         std::cout<<"BTTermEnum next"<<std::endl;
-#endif
-        if(it_==it_end_) return false;
-        else
-        {
-            kvp = *it_;
-            ++it_;
-#ifdef TE_DEBUG
-//             std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
-#endif
-            return true;
-        }
-    }
-  
-  
-private:
-    iterator it_;
-    iterator it_end_;
-};
-
-template <class K>
-class BTTermEnum<K, typename InMemoryBTreeCache<K, uint32_t>::ValueType > : public TermEnum<K, typename InMemoryBTreeCache<K, uint32_t>::ValueType >
-{
-    
-public:
-    typedef K KeyType;
-    typedef typename InMemoryBTreeCache<K, uint32_t>::ValueType ValueType;
-    typedef std::map<KeyType, ValueType> AMType;
+    //typedef std::map<KeyType, ValueType> AMType;
     typedef typename AMType::iterator iterator;
     
     
@@ -314,12 +314,12 @@ private:
 // };
 
 
-template <class KeyType, class ValueType1, class AMType2, class ValueType>
+template <class KeyType, class ValueType1, class AMType1, class AMType2, class ValueType>
 class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
 {
-    typedef BTTermEnum<KeyType, ValueType1> EnumType1;
+    typedef BTTermEnum<KeyType, ValueType1, AMType1> EnumType1;
     typedef AMTermEnum<AMType2> EnumType2;
-    typedef typename EnumType1::AMType AMType1;
+    //typedef typename EnumType1::AMType AMType1;
     typedef typename EnumType2::ValueType ValueType2;
     typedef std::pair<KeyType, ValueType1> DataType1;
     typedef std::pair<KeyType, ValueType2> DataType2;

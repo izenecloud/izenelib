@@ -8,7 +8,7 @@ namespace indexmanager{
 template <>
 std::size_t BTreeIndexer<String>::convertAllValue(std::size_t maxDoc, uint32_t* & data)
 {
-    boost::shared_lock<boost::shared_mutex> lock(mutex_);
+    boost::shared_lock<BTreeIndexer<String>::MutexType> lock(mutex_);
     std::size_t result = 0;
 
     String lowKey;
