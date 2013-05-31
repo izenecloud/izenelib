@@ -51,7 +51,6 @@ RawClient::RawClient(ba::io_service& service,
         status(Idle), is_aborted_(false), path(zkpath), id(++idSequence) {
     try {
         deadline_.expires_at(boost::posix_time::pos_infin);
-        check_deadline();
 
         DLOG(INFO) << "configuring socket ...";
         // TODO: windows?
@@ -78,6 +77,7 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() {
+    clear_timeout();
     CHECK_NE(Busy, status);
     try {
         DLOG(INFO) << "closing (" << id << ") ...";
@@ -97,6 +97,12 @@ RawClient::~RawClient() {
 void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* ret_ec)
 {
     *ret_ec = error;
+}
+
+void RawClient::prepare_timeout(int sec)
+{
+    deadline_.expires_from_now(boost::posix_time::seconds(sec));
+    check_deadline();
 }
 
 void RawClient::clear_timeout()
@@ -121,7 +127,8 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
         ba::ip::tcp::resolver::query query(host, port);
         tcp::resolver::iterator iter = resolver.resolve(query);
 
-        deadline_.expires_from_now(boost::posix_time::seconds(CONNECT_TIMEOUT));
+        prepare_timeout(CONNECT_TIMEOUT);
+
         bs::error_code ec = ba::error::would_block;
 
         ba::async_connect(socket, iter,
@@ -133,7 +140,6 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
         {   
             throw bs::system_error(ec ? ec : ba::error::operation_aborted);
         }
-        clear_timeout();
     }
     catch(const bs::system_error& e)
     {
@@ -145,11 +151,11 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
 size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
 {
     deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT + ba::buffer_size(buf)/1024/1024));
+
     bs::error_code ec = ba::error::would_block;
     ba::async_read(socket, buf, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
-    clear_timeout();
     if (ec)
     {
         throw bs::system_error(ec);
@@ -160,11 +166,11 @@ size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
 size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buffers)
 {
     deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT));
+
     bs::error_code ec = ba::error::would_block;
     ba::async_write(socket, buffers, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
-    clear_timeout();
     if (ec)
     {
         throw bs::system_error(ec);

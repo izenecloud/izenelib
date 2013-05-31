@@ -162,6 +162,7 @@ private:
     size_t read_with_timeout(const ba::mutable_buffers_1& buf);
     size_t write_with_timeout(const boost::array<ba::const_buffer,3>& buffers);
     void check_deadline();
+    void prepare_timeout(int sec);
     void clear_timeout();
     /// Socket.
     ba::ip::tcp::socket socket;
