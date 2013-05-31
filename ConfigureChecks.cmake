@@ -53,7 +53,18 @@ ENDIF(USE_DOT)
 
 # This is required to enable the new version
 SET(Boost_ADDITIONAL_VERSIONS 1.47 1.47.0)
-FIND_PACKAGE(Boost 1.47)
+FIND_PACKAGE(Boost 1.47 REQUIRED
+  COMPONENTS
+  system
+  program_options
+  thread
+  regex
+  date_time
+  serialization
+  filesystem
+  unit_test_framework
+  iostreams
+  )
 
 ##################################################
 # Threads
