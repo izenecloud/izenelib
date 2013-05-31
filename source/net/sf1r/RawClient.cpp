@@ -48,7 +48,7 @@ RawClient::RawClient(ba::io_service& service,
                      const std::string& host, const std::string& port,
                      const size_t timeout, const string& zkpath) 
         : socket(service), deadline_(service), io_service_(service),
-        status(Idle), path(zkpath), id(++idSequence) {
+        status(Idle), is_aborted_(false), path(zkpath), id(++idSequence) {
     try {
         deadline_.expires_at(boost::posix_time::pos_infin);
         check_deadline();
@@ -79,7 +79,7 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() {
-    if (socket.is_open())
+    if (!is_aborted_)
     {
         // delete while socket is still open, we need wake up timeout event
         // to make sure timeout handler removed.
@@ -111,21 +111,35 @@ void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* re
 
 void RawClient::connect_with_timeout(const std::string& host, const std::string& port)
 {
-    ba::ip::tcp::resolver resolver(io_service_);
-    ba::ip::tcp::resolver::query query(host, port);
-    tcp::resolver::iterator iter = resolver.resolve(query);
+    try
+    {
+        ba::ip::tcp::resolver resolver(io_service_);
+        ba::ip::tcp::resolver::query query(host, port);
+        tcp::resolver::iterator iter = resolver.resolve(query);
 
-    deadline_.expires_from_now(boost::posix_time::seconds(CONNECT_TIMEOUT));
-    bs::error_code ec = ba::error::would_block;
+        deadline_.expires_from_now(boost::posix_time::seconds(CONNECT_TIMEOUT));
+        bs::error_code ec = ba::error::would_block;
 
-    ba::async_connect(socket, iter,
-        boost::bind(&async_cb, _1, 0, &ec));
+        ba::async_connect(socket, iter,
+            boost::bind(&async_cb, _1, 0, &ec));
 
-    do io_service_.run_one(); while (ec == ba::error::would_block);
+        do io_service_.run_one(); while (ec == ba::error::would_block);
 
-    if (ec || !socket.is_open())
-        throw bs::system_error(ec ? ec : ba::error::operation_aborted);
-    deadline_.expires_at(boost::posix_time::pos_infin);
+        if (ec || !socket.is_open())
+        {   
+            throw bs::system_error(ec ? ec : ba::error::operation_aborted);
+        }
+        deadline_.expires_at(boost::posix_time::pos_infin);
+    }
+    catch(const bs::system_error& e)
+    {
+        if (!is_aborted_)
+        {
+            deadline_.expires_at(deadline_timer::traits_type::now());
+            io_service_.run_one();
+        }
+        throw;
+    }
 }
 
 size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
@@ -136,7 +150,14 @@ size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
     if (ec)
+    {
+        if (!is_aborted_)
+        {
+            deadline_.expires_at(deadline_timer::traits_type::now());
+            io_service_.run_one();
+        }
         throw bs::system_error(ec);
+    }
     deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buf);
 }
@@ -148,7 +169,14 @@ size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buf
     ba::async_write(socket, buffers, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
     if (ec)
+    {
+        if (!is_aborted_)
+        {
+            deadline_.expires_at(deadline_timer::traits_type::now());
+            io_service_.run_one();
+        }
         throw bs::system_error(ec);
+    }
     deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buffers);
 }
@@ -159,6 +187,7 @@ void RawClient::check_deadline()
     {
         LOG(INFO) << "deadline for : " << path;
         boost::system::error_code ignored_ec;
+        is_aborted_ = true;
         try
         {
             if (socket.is_open() && status != Invalid)
@@ -176,7 +205,10 @@ void RawClient::check_deadline()
         }
     }
     else
+    {
+        is_aborted_ = false;
         deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
+    }
 }
 
 bool

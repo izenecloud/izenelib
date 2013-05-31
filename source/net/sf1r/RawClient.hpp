@@ -170,6 +170,7 @@ private:
     /// Current status.
     Status status;
     
+    bool is_aborted_;
     /// ZooKeeper path.
     std::string path;
     
