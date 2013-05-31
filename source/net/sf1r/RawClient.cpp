@@ -67,7 +67,6 @@ RawClient::RawClient(ba::io_service& service,
         DLOG(INFO) << "connected (" << id << ")";
     } catch (bs::system_error& e) {
         status = Invalid;
-        io_service_.reset();
         LOG(ERROR) << "create rawclient error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -79,15 +78,6 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() {
-    if (!is_aborted_)
-    {
-        // delete while socket is still open, we need wake up timeout event
-        // to make sure timeout handler removed.
-        deadline_.expires_at(deadline_timer::traits_type::now());
-        io_service_.run_one();
-    }
-    // no active async handler, reset io_service to get ready for next run_one.
-    io_service_.reset();
     CHECK_NE(Busy, status);
     try {
         DLOG(INFO) << "closing (" << id << ") ...";
@@ -107,6 +97,20 @@ RawClient::~RawClient() {
 void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* ret_ec)
 {
     *ret_ec = error;
+}
+
+void RawClient::clear_timeout()
+{
+    if (!is_aborted_)
+    {
+        // delete while socket is still open, we need wake up timeout event
+        // to make sure timeout handler removed.
+        is_aborted_ = true;
+        deadline_.expires_at(deadline_timer::traits_type::now());
+        io_service_.run_one();
+    }
+    // no active async handler, reset io_service to get ready for next run_one.
+    io_service_.reset();
 }
 
 void RawClient::connect_with_timeout(const std::string& host, const std::string& port)
@@ -129,15 +133,11 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
         {   
             throw bs::system_error(ec ? ec : ba::error::operation_aborted);
         }
-        deadline_.expires_at(boost::posix_time::pos_infin);
+        clear_timeout();
     }
     catch(const bs::system_error& e)
     {
-        if (!is_aborted_)
-        {
-            deadline_.expires_at(deadline_timer::traits_type::now());
-            io_service_.run_one();
-        }
+        clear_timeout();
         throw;
     }
 }
@@ -149,16 +149,11 @@ size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
     ba::async_read(socket, buf, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
+    clear_timeout();
     if (ec)
     {
-        if (!is_aborted_)
-        {
-            deadline_.expires_at(deadline_timer::traits_type::now());
-            io_service_.run_one();
-        }
         throw bs::system_error(ec);
     }
-    deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buf);
 }
 
@@ -168,16 +163,12 @@ size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buf
     bs::error_code ec = ba::error::would_block;
     ba::async_write(socket, buffers, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
+
+    clear_timeout();
     if (ec)
     {
-        if (!is_aborted_)
-        {
-            deadline_.expires_at(deadline_timer::traits_type::now());
-            io_service_.run_one();
-        }
         throw bs::system_error(ec);
     }
-    deadline_.expires_at(boost::posix_time::pos_infin);
     return ba::buffer_size(buffers);
 }
 
@@ -185,6 +176,11 @@ void RawClient::check_deadline()
 {
     if (deadline_.expires_at() <= deadline_timer::traits_type::now())
     {
+        if (is_aborted_)
+        {
+            //Clear timeout by hand here. Not a deadline.
+            return;
+        }
         LOG(INFO) << "deadline for : " << path;
         boost::system::error_code ignored_ec;
         is_aborted_ = true;
