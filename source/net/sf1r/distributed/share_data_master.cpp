@@ -82,8 +82,10 @@ void decreSlowCounterForAll()
         shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
         mapped_region region(shm_obj, read_write);
         named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
+        LOG(INFO) << "write lock begin : ";
         scoped_lock<named_upgradable_mutex> lock(mutex);
 
+        LOG(INFO) << "write lock success.";
         Sf1rSharedSlowCounterT cur_shared_data;
         void *addr = region.get_address();
         size_t data_size = (*(int*)addr);

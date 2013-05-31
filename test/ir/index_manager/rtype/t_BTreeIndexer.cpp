@@ -241,5 +241,13 @@ BOOST_AUTO_TEST_CASE(framework_str)
 }
 
 
+BOOST_AUTO_TEST_CASE(performance_int)
+{
+    DirController dir("./t_bt_performance_int");
+
+    BTreePerformanceRunner<int64_t> runner(dir.path()+"/test", 18312347, 1, 10, 10);
+    runner.start();
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()

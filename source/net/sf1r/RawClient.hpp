@@ -12,14 +12,17 @@
 #include "net/sf1r/config.h"
 #include "types.h"
 #include <boost/asio.hpp> 
+#include <boost/asio/buffer.hpp> 
+#include <boost/asio/deadline_timer.hpp> 
 #include <boost/tuple/tuple.hpp>
+#include <boost/array.hpp>
 #include <string>
 
 
 NS_IZENELIB_SF1R_BEGIN
 
 namespace ba = boost::asio;
-
+using boost::asio::deadline_timer;
 
 /**
  * Alias for response objects.
@@ -155,12 +158,20 @@ public:
     
 private:
     
+    void connect_with_timeout(const std::string& host, const std::string& port);
+    size_t read_with_timeout(const ba::mutable_buffers_1& buf);
+    size_t write_with_timeout(const boost::array<ba::const_buffer,3>& buffers);
+    void check_deadline();
+    void clear_timeout();
     /// Socket.
     ba::ip::tcp::socket socket;
+    deadline_timer deadline_;
+    ba::io_service& io_service_;
     
     /// Current status.
     Status status;
     
+    bool is_aborted_;
     /// ZooKeeper path.
     std::string path;
     

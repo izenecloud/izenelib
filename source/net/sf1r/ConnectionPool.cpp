@@ -43,6 +43,7 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
         }
     } catch (NetworkError e) {
         LOG(ERROR) << e.what();
+        available.clear();
         throw e;
     }
     
