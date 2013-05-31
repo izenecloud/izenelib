@@ -67,6 +67,7 @@ RawClient::RawClient(ba::io_service& service,
         DLOG(INFO) << "connected (" << id << ")";
     } catch (bs::system_error& e) {
         status = Invalid;
+        io_service_.reset();
         LOG(ERROR) << "create rawclient error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
