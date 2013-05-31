@@ -56,10 +56,9 @@ uint64_t EnumCoder::Decode(uint64_t code, size_t rank_sb)
     rank_sb = rank_sb > 32 ? kBlockSize - rank_sb : rank_sb;
 
     uint64_t val = 0;
-    uint64_t zero_case_num;
     for (size_t i = 0; i < kBlockSize; ++i)
     {
-        zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
+        uint64_t zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
         if (code >= zero_case_num)
         {
             val |= 1LLU << i;
@@ -80,10 +79,9 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
     size_t orig_rank_sb = rank_sb;
     rank_sb = rank_sb > 32 ? kBlockSize - rank_sb : rank_sb;
 
-    uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
+        uint64_t zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -118,10 +116,9 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
     rank_sb = rank_sb > 32 ? kBlockSize - rank_sb : rank_sb;
 
     rank = rank_sb;
-    uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
+        uint64_t zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - i - 1];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -151,10 +148,9 @@ size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
     rank_sb = rank_sb > 32 ? kBlockSize - rank_sb : rank_sb;
 
     size_t cur_rank = rank_sb;
-    uint64_t zero_case_num;
     for (size_t i = 0; i < pos; ++i)
     {
-        zero_case_num = kCombinationTable64_[cur_rank][kBlockSize - i - 1];
+        uint64_t zero_case_num = kCombinationTable64_[cur_rank][kBlockSize - i - 1];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -168,10 +164,9 @@ size_t EnumCoder::Rank(uint64_t code, size_t rank_sb, size_t pos)
 size_t EnumCoder::Select0Enum_(uint64_t code, size_t rank_sb, size_t num)
 {
     rank_sb = kBlockSize - rank_sb;
-    uint64_t zero_case_num;
     for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - offset - 1];
+        uint64_t zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - offset - 1];
         if (code >= zero_case_num)
         {
             code -= zero_case_num;
@@ -190,10 +185,9 @@ size_t EnumCoder::Select0Enum_(uint64_t code, size_t rank_sb, size_t num)
 
 size_t EnumCoder::Select1Enum_(uint64_t code, size_t rank_sb, size_t num)
 {
-    uint64_t zero_case_num;
     for (size_t offset = 0; offset < kBlockSize; ++offset)
     {
-        zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - offset - 1];
+        uint64_t zero_case_num = kCombinationTable64_[rank_sb][kBlockSize - offset - 1];
         if (code >= zero_case_num)
         {
             if (num == 0) return offset;

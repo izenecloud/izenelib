@@ -181,7 +181,7 @@ IndexSimple::IndexSimple( unsigned int ndocids_total, unsigned int ntokens_cache
         reinterpret_cast<CompressedSet*>(compressed_sets_[itoken].get())->compact();
     }
 
-    doc_array_ = new WaveletMatrix<uint32_t>(ndocids_total, false, false);
+    doc_array_ = new WaveletMatrix<uint32_t>(std::make_pair(0, ndocids_total), false, false);
     uint32_t docsum = 0;
     for( unsigned int itoken = 0 ; itoken < ntokens_ ; ++itoken )
         docsum += ndocids_[itoken];

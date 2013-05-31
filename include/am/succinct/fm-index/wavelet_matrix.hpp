@@ -24,10 +24,11 @@ public:
     typedef WaveletMatrix<CharT> self_type;
     typedef std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> > aux_filter_list_type;
 
-    WaveletMatrix(size_t alphabet_num, bool support_select, bool dense);
+    WaveletMatrix(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense);
+    WaveletMatrix(bool support_select, bool dense);
     ~WaveletMatrix();
 
-    void build(const char_type *char_seq, size_t len);
+    void build(char_type *char_seq, size_t len);
 
     char_type access(size_t pos) const;
     char_type access(size_t pos, size_t &rank) const;
@@ -89,8 +90,14 @@ protected:
 };
 
 template <class CharT>
-WaveletMatrix<CharT>::WaveletMatrix(uint64_t alphabet_num, bool support_select, bool dense)
-    : WaveletTree<CharT>(alphabet_num, support_select, dense)
+WaveletMatrix<CharT>::WaveletMatrix(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense)
+    : WaveletTree<CharT>(symbol_range, support_select, dense)
+{
+}
+
+template <class CharT>
+WaveletMatrix<CharT>::WaveletMatrix(bool support_select, bool dense)
+    : WaveletTree<CharT>(support_select, dense)
 {
 }
 
@@ -104,23 +111,28 @@ WaveletMatrix<CharT>::~WaveletMatrix()
 }
 
 template <class CharT>
-void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
+void WaveletMatrix<CharT>::build(char_type *char_seq, size_t len)
 {
-    if (this->alphabet_num_ == 0) return;
+    if (this->symbol_range_.second == 0) return;
 
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
+    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - this->symbol_range_.first - 1);
 
-    zero_counts_.resize(this->alphabet_bit_num_);
+    for (size_t i = 0; i < len; ++i)
+    {
+        char_seq[i] -= this->symbol_range_.first;
+    }
 
-    nodes_.resize(this->alphabet_bit_num_);
+    zero_counts_.resize(this->level_count_);
+
+    nodes_.resize(this->level_count_);
 
     std::vector<size_t> prev_begin_pos(1), node_begin_pos(1);
 
     char_type *temp_seq = new char_type[len];
-    char_type *curr = const_cast<char_type *>(char_seq);
+    char_type *curr = char_seq;
     char_type *next = temp_seq;
 
-    for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
+    for (size_t i = 0; i < this->level_count_; ++i)
     {
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
@@ -175,7 +187,7 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
     }
 
     occ_.add(curr_count);
-    for (++curr_char; curr_char <= 1LLU << this->alphabet_bit_num_; ++curr_char)
+    for (++curr_char; curr_char <= 1LLU << this->level_count_; ++curr_char)
     {
         occ_.add(0);
     }
@@ -211,7 +223,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos) const
         bit_mask <<= 1;
     }
 
-    return c;
+    return c + this->symbol_range_.first;
 }
 
 template <class CharT>
@@ -235,12 +247,15 @@ CharT WaveletMatrix<CharT>::access(size_t pos, size_t &rank) const
 
     rank = pos - occ_.prefixSum(c);
 
-    return c;
+    return c + this->symbol_range_.first;
 }
 
 template <class CharT>
 size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
 {
+    if (c < this->symbol_range_.first) return 0;
+
+    c -= this->symbol_range_.first;
     pos = std::min(pos, length());
 
     char_type bit_mask = 1;
@@ -265,23 +280,26 @@ size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
 template <class CharT>
 size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 {
-    size_t pos = rank + occ_.prefixSum(c);
+    if (c < this->symbol_range_.first) return -1;
+
+    c -= this->symbol_range_.first;
+    rank += occ_.prefixSum(c);
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
-        if (pos >= zero_counts_[i])
+        if (rank >= zero_counts_[i])
         {
-            pos = nodes_[i]->select1(pos - zero_counts_[i]);
+            rank = nodes_[i]->select1(rank - zero_counts_[i]);
         }
         else
         {
-            pos = nodes_[i]->select0(pos);
+            rank = nodes_[i]->select0(rank);
         }
 
-        if (pos == (size_t)-1) return -1;
+        if (rank == (size_t)-1) return -1;
     }
 
-    return pos;
+    return rank;
 }
 
 template <class CharT>
@@ -308,9 +326,9 @@ void WaveletMatrix<CharT>::doIntersect_(
 {
     if (results.size() >= max_count) return;
 
-    if (level == this->alphabet_bit_num_)
+    if (level == this->level_count_)
     {
-        results.push_back(symbol);
+        results.push_back(symbol + this->symbol_range_.first);
         return;
     }
 
@@ -435,7 +453,7 @@ void WaveletMatrix<CharT>::topKUnion(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -523,7 +541,7 @@ void WaveletMatrix<CharT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -559,7 +577,7 @@ void WaveletMatrix<CharT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -656,7 +674,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -770,7 +788,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -806,7 +824,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -910,7 +928,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -1051,7 +1069,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -1087,7 +1105,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -1135,8 +1153,9 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 template <class CharT>
 size_t WaveletMatrix<CharT>::getOcc(char_type c) const
 {
-    if (c <= occ_.size()) return occ_.prefixSum(c);
-    return occ_.getSum();
+    if (c <= this->symbol_range_.first) return 0;
+    else if (c < this->symbol_range_.second) return occ_.prefixSum(c - this->symbol_range_.first);
+    else return occ_.getSum();
 }
 
 template <class CharT>
@@ -1187,12 +1206,12 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
         if (nodes_[i]) delete nodes_[i];
     }
 
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
+    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - this->symbol_range_.first - 1);
 
-    zero_counts_.resize(this->alphabet_bit_num_);
+    zero_counts_.resize(this->level_count_);
     istr.read((char *)&zero_counts_[0], sizeof(zero_counts_[0]) * zero_counts_.size());
 
-    nodes_.resize(this->alphabet_bit_num_);
+    nodes_.resize(this->level_count_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);

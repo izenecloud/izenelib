@@ -24,10 +24,11 @@ public:
     typedef WaveletTreeBinary<CharT> self_type;
     typedef std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> > aux_filter_list_type;
 
-    WaveletTreeBinary(uint64_t alphabet_num, bool support_select, bool dense);
+    WaveletTreeBinary(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense);
+    WaveletTreeBinary(bool support_select, bool dense);
     ~WaveletTreeBinary();
 
-    void build(const char_type *char_seq, size_t len);
+    void build(char_type *char_seq, size_t len);
 
     char_type access(size_t pos) const;
     char_type access(size_t pos, size_t &rank) const;
@@ -89,8 +90,14 @@ private:
 };
 
 template <class CharT>
-WaveletTreeBinary<CharT>::WaveletTreeBinary(uint64_t alphabet_num, bool support_select, bool dense)
-    : WaveletTree<CharT>(alphabet_num, support_select, dense)
+WaveletTreeBinary<CharT>::WaveletTreeBinary(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense)
+    : WaveletTree<CharT>(symbol_range, support_select, dense)
+{
+}
+
+template <class CharT>
+WaveletTreeBinary<CharT>::WaveletTreeBinary(bool support_select, bool dense)
+    : WaveletTree<CharT>(support_select, dense)
 {
 }
 
@@ -104,24 +111,29 @@ WaveletTreeBinary<CharT>::~WaveletTreeBinary()
 }
 
 template <class CharT>
-void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
+void WaveletTreeBinary<CharT>::build(char_type *char_seq, size_t len)
 {
-    if (this->alphabet_num_ == 0) return;
+    if (this->symbol_range_.second == 0) return;
 
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
+    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - this->symbol_range_.first - 1);
 
-    std::vector<std::vector<size_t> > beg_poses(this->alphabet_bit_num_ + 1);
+    for (size_t i = 0; i < len; ++i)
+    {
+        char_seq[i] -= this->symbol_range_.first;
+    }
+
+    std::vector<std::vector<size_t> > beg_poses(this->level_count_ + 1);
     beg_poses[0].resize(1);
     for (size_t i = 1; i < beg_poses.size(); ++i)
     {
-        beg_poses[i].resize(((this->alphabet_num_ - 1) >> (this->alphabet_bit_num_ - i)) + 2);
+        beg_poses[i].resize(((this->symbol_range_.second - this->symbol_range_.first - 1) >> (this->level_count_ - i)) + 2);
     }
     for (size_t i = 0; i < len; ++i)
     {
         const char_type &c = char_seq[i];
         for (size_t j = 1; j < beg_poses.size(); ++j)
         {
-            ++beg_poses[j][(c >> (this->alphabet_bit_num_ - j)) + 1];
+            ++beg_poses[j][(c >> (this->level_count_ - j)) + 1];
         }
     }
     for (size_t i = 1; i < beg_poses.size() - 1; ++i)
@@ -133,15 +145,15 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
         }
     }
 
-    for (size_t i = 1; i <= this->alphabet_num_; ++i)
+    for (size_t i = 1; i <= this->symbol_range_.second - this->symbol_range_.first; ++i)
     {
         occ_.add(beg_poses.back()[i]);
     }
     beg_poses.pop_back();
     occ_.build();
 
-    nodes_.resize(this->alphabet_bit_num_);
-    for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
+    nodes_.resize(this->level_count_);
+    for (size_t i = 0; i < this->level_count_; ++i)
     {
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
@@ -149,11 +161,11 @@ void WaveletTreeBinary<CharT>::build(const char_type *char_seq, size_t len)
     for (size_t i = 0; i < len; ++i)
     {
         const char_type &c = char_seq[i];
-        nodes_[0]->changeBit(c >> (this->alphabet_bit_num_ - 1) & (char_type)1, beg_poses[0][0]++);
+        nodes_[0]->changeBit(c >> (this->level_count_ - 1) & (char_type)1, beg_poses[0][0]++);
         for (size_t j = 1; j < beg_poses.size(); ++j)
         {
-            nodes_[j]->changeBit(c >> (this->alphabet_bit_num_ - j - 1) & (char_type)1,
-                                 beg_poses[j][c >> (this->alphabet_bit_num_ - j)]++);
+            nodes_[j]->changeBit(c >> (this->level_count_ - j - 1) & (char_type)1,
+                                 beg_poses[j][c >> (this->level_count_ - j)]++);
         }
     }
 
@@ -180,7 +192,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
     size_t optR, before;
 
     char_type c = 0;
-    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->level_count_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -202,7 +214,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos) const
         bit_mask >>= 1;
     }
 
-    return c;
+    return c + this->symbol_range_.first;
 }
 
 template <class CharT>
@@ -214,7 +226,7 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
     size_t optR, before;
 
     char_type c = 0;
-    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->level_count_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -238,20 +250,23 @@ CharT WaveletTreeBinary<CharT>::access(size_t pos, size_t &rank) const
 
     rank = pos - start;
 
-    return c;
+    return c + this->symbol_range_.first;
 }
 
 template <class CharT>
 size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
 {
+    if (c < this->symbol_range_.first) return 0;
+
+    c -= this->symbol_range_.first;
+    pos = std::min(pos, length());
+
     size_t start = 0;
     size_t rank = 0;
     size_t before;
 
-    pos = std::min(pos, length());
-
     char_type masked = 0;
-    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
+    char_type bit_mask = (char_type)1 << (this->level_count_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -268,7 +283,7 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
         }
         else
         {
-            pos = pos - node->rank1(pos) + before;
+            pos -= node->rank1(pos) - before;
             rank = pos - start;
         }
 
@@ -283,9 +298,13 @@ size_t WaveletTreeBinary<CharT>::rank(char_type c, size_t pos) const
 template <class CharT>
 size_t WaveletTreeBinary<CharT>::select(char_type c, size_t rank) const
 {
+    if (c < this->symbol_range_.first) return -1;
+
+    c -= this->symbol_range_.first;
+
     size_t start, ones_start;
 
-    char_type mask = ((char_type)1 << this->alphabet_bit_num_) - 2;
+    char_type mask = ((char_type)1 << this->level_count_) - 2;
     char_type bit_mask = 1;
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
@@ -338,9 +357,9 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 {
     if (results.size() >= max_count) return;
 
-    if (level == this->alphabet_bit_num_)
+    if (level == this->level_count_)
     {
-        results.push_back(symbol);
+        results.push_back(symbol + this->symbol_range_.first);
         return;
     }
 
@@ -410,7 +429,7 @@ void WaveletTreeBinary<CharT>::doIntersect_(
 
     if (has_ones)
     {
-        symbol |= (char_type)1 << (this->alphabet_bit_num_ - level - 1);
+        symbol |= (char_type)1 << (this->level_count_ - level - 1);
         start = occ_.prefixSum(symbol);
 
         doIntersect_(one_ranges, one_thres, max_count, level + 1, start, symbol, results);
@@ -470,7 +489,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -491,12 +510,12 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, PatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, PatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -557,7 +576,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -593,7 +612,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -692,7 +711,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -713,12 +732,12 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, FilteredPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, FilteredPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -805,7 +824,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -841,7 +860,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -947,7 +966,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_ + this->symbol_range_.first));
             recyc_queue.push_back(top_ranges);
             continue;
         }
@@ -967,12 +986,12 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->level_count_ - zero_ranges->level_), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -1088,7 +1107,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -1124,7 +1143,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_ + this->symbol_range_.first));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -1172,7 +1191,8 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 template <class CharT>
 size_t WaveletTreeBinary<CharT>::getOcc(char_type c) const
 {
-    if (c <= occ_.size()) return occ_.prefixSum(c);
+    if (c <= this->symbol_range_.first) return 0;
+    else if (c < this->symbol_range_.second) return occ_.prefixSum(c - this->symbol_range_.first);
     return occ_.getSum();
 }
 
@@ -1222,9 +1242,9 @@ void WaveletTreeBinary<CharT>::load(std::istream &istr)
         if (nodes_[i]) delete nodes_[i];
     }
 
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
+    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - this->symbol_range_.first - 1);
 
-    nodes_.resize(this->alphabet_bit_num_);
+    nodes_.resize(this->level_count_);
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);

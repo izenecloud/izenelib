@@ -44,7 +44,7 @@ public:
         {
             doc_delim.load(istr);
             if (doc_delim.size() == 0) return;
-            doc_array_ptr.reset(new DocArrayWaveletT(doc_count, false, true));
+            doc_array_ptr.reset(new DocArrayWaveletT(false, true));
             doc_array_ptr->load(istr);
         }
 
