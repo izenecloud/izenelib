@@ -21,7 +21,8 @@ using ba::ip::tcp;
 using std::string;
 
 #define CONNECT_TIMEOUT 5
-#define RW_TIMEOUT 20
+#define WRITE_TIMEOUT 5
+#define READ_TIMEOUT 30
 
 namespace {
 
@@ -77,7 +78,7 @@ RawClient::RawClient(ba::io_service& service,
 
 
 RawClient::~RawClient() {
-    clear_timeout();
+    //clear_timeout();
     CHECK_NE(Busy, status);
     try {
         DLOG(INFO) << "closing (" << id << ") ...";
@@ -101,21 +102,19 @@ void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* re
 
 void RawClient::prepare_timeout(int sec)
 {
+    is_aborted_ = false;
     deadline_.expires_from_now(boost::posix_time::seconds(sec));
     check_deadline();
 }
 
 void RawClient::clear_timeout()
 {
-    if (!is_aborted_)
-    {
-        // delete while socket is still open, we need wake up timeout event
-        // to make sure timeout handler removed.
-        is_aborted_ = true;
-        deadline_.expires_at(deadline_timer::traits_type::now());
-        io_service_.run_one();
-    }
-    // no active async handler, reset io_service to get ready for next run_one.
+    // delete while socket is still open, we need wake up timeout event
+    // to make sure timeout handler removed.
+    is_aborted_ = true;
+    deadline_.expires_at(deadline_timer::traits_type::now());
+    while (io_service_.poll_one() > 0)
+        ;
     io_service_.reset();
 }
 
@@ -140,6 +139,7 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
         {   
             throw bs::system_error(ec ? ec : ba::error::operation_aborted);
         }
+        clear_timeout();
     }
     catch(const bs::system_error& e)
     {
@@ -150,12 +150,13 @@ void RawClient::connect_with_timeout(const std::string& host, const std::string&
 
 size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
 {
-    deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT + ba::buffer_size(buf)/1024/1024));
+    prepare_timeout(READ_TIMEOUT + ba::buffer_size(buf)/1024/1024);
 
     bs::error_code ec = ba::error::would_block;
     ba::async_read(socket, buf, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
+    clear_timeout();
     if (ec)
     {
         throw bs::system_error(ec);
@@ -165,12 +166,13 @@ size_t RawClient::read_with_timeout(const ba::mutable_buffers_1& buf)
 
 size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buffers)
 {
-    deadline_.expires_from_now(boost::posix_time::seconds(RW_TIMEOUT));
+    prepare_timeout(WRITE_TIMEOUT);
 
     bs::error_code ec = ba::error::would_block;
     ba::async_write(socket, buffers, boost::bind(&async_cb, _1, _2, &ec));
     do io_service_.run_one(); while(ec == ba::error::would_block);
 
+    clear_timeout();
     if (ec)
     {
         throw bs::system_error(ec);
@@ -180,24 +182,23 @@ size_t RawClient::write_with_timeout(const boost::array<ba::const_buffer,3>& buf
 
 void RawClient::check_deadline()
 {
+    if (is_aborted_)
+    {
+        //Clear timeout by hand here. Not a deadline.
+        return;
+    }
     if (deadline_.expires_at() <= deadline_timer::traits_type::now())
     {
-        if (is_aborted_)
-        {
-            //Clear timeout by hand here. Not a deadline.
-            return;
-        }
         LOG(INFO) << "deadline for : " << path;
         boost::system::error_code ignored_ec;
-        is_aborted_ = true;
         try
         {
             if (socket.is_open() && status != Invalid)
             {
-                //status = Invalid;
-                //socket.shutdown(ba::ip::tcp::socket::shutdown_both, ignored_ec);
-                //socket.close(ignored_ec);
-                socket.cancel();
+                status = Invalid;
+                socket.shutdown(ba::ip::tcp::socket::shutdown_both, ignored_ec);
+                socket.close(ignored_ec);
+                //socket.cancel();
             }
             // There is no longer an active deadline. The expiry is set to infinity.
             deadline_.expires_at(boost::posix_time::pos_infin);
@@ -207,11 +208,7 @@ void RawClient::check_deadline()
             LOG(ERROR) << "check_deadline error : " << e.what();
         }
     }
-    else
-    {
-        is_aborted_ = false;
-        deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
-    }
+    deadline_.async_wait(boost::bind(&RawClient::check_deadline, this));
 }
 
 bool
@@ -262,8 +259,7 @@ RawClient::sendRequest(const uint32_t& sequence, const string& data) {
     try {
         n += write_with_timeout(buffers);
     } catch (bs::system_error& e) {
-        if (e.code() != ba::error::operation_aborted)
-            status = Invalid;
+        status = Invalid;
         LOG(ERROR) << "write request to socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -298,8 +294,7 @@ RawClient::getResponse() {
     try {
         n += read_with_timeout(ba::buffer(header));
     } catch (bs::system_error& e) {
-        if (e.code() != ba::error::operation_aborted)
-            status = Invalid;
+        status = Invalid;
         LOG(ERROR) << "get response head from socket error";
         LOG(ERROR) << e.what();
         throw NetworkError(e.what());
@@ -332,8 +327,7 @@ RawClient::getResponse() {
     try {
         n = read_with_timeout(ba::buffer(data, length));
     } catch (bs::system_error& e) {
-        if (e.code() != ba::error::operation_aborted)
-            status = Invalid;
+        status = Invalid;
         LOG(ERROR) << "get response body from socket error";
         LOG(ERROR) << e.what();
         if (length > small_response_size)
