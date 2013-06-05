@@ -259,6 +259,7 @@ private:
     uint64_t keyBlockN_; ///< A number of blocks
     BlockID blockID_;
     EncodeType et_; ///< An encode type of values
+    bool changed_;
 };
 
 template <class KeyType, class ValueType>
@@ -270,6 +271,7 @@ Fujimap<KeyType, ValueType>::Fujimap(const char* fn)
     , tmpC_(0)
     , keyBlockN_(KEYBLOCK)
     , et_(BINARY)
+    , changed_(true)
 {
     blockID_.setKeyBlockN(keyBlockN_);
     kf_.initMaxID(keyBlockN_);
@@ -284,18 +286,21 @@ template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initSeed(const uint64_t seed)
 {
     seed_ = seed;
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initFP(const uint64_t fpLen)
 {
     fpLen_ = fpLen;
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initTmpN(const uint64_t tmpN)
 {
     tmpN_ = tmpN;
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
@@ -304,11 +309,13 @@ void Fujimap<KeyType, ValueType>::initKeyBlockN(const uint64_t keyBlockN)
     keyBlockN_ = keyBlockN;
     blockID_.setKeyBlockN(keyBlockN_);
     kf_.initMaxID(keyBlockN_);
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
 int Fujimap<KeyType, ValueType>::initWorkingFile(const char* fn)
 {
+    changed_ = true;
     if (kf_.initWorkingFile(fn) == -1)
     {
         what_ << "initWorkingFile erorr: " << fn;
@@ -321,6 +328,7 @@ template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::initEncodeType(const EncodeType et)
 {
     et_ = et;
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
@@ -328,11 +336,13 @@ void Fujimap<KeyType, ValueType>::setString(const KeyType& key, const char* vbuf
                         const bool searchable)
 {
     setInteger(key, getCode(std::string(vbuf, vlen)), searchable);
+    changed_ = true;
 }
 
 template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::setInteger(const KeyType& key, const ValueType& value, const bool searchable)
 {
+    changed_ = true;
     if (searchable)
     {
         tmpEdges_[key] = value;
@@ -358,6 +368,7 @@ ValueType Fujimap<KeyType, ValueType>::getCode(const std::string& value)
     }
     else
     {
+        changed_ = true;
         uint32_t code = static_cast<uint32_t>(val2code_.size());
         val2code_[value] = code;
         code2val_.push_back(value);
@@ -384,6 +395,7 @@ int Fujimap<KeyType, ValueType>::build()
 {
     if (tmpC_ == 0) return 0;
 
+    changed_ = true;
     for (typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
             it != tmpEdges_.end(); ++it)
     {
@@ -423,6 +435,7 @@ int Fujimap<KeyType, ValueType>::build_(std::vector<std::pair<KeyType, ValueType
         return 0; // not build
     }
 
+    changed_ = true;
     std::reverse(kvs.begin(), kvs.end());
     std::stable_sort(kvs.begin(), kvs.end(), kvsComp<KeyType>);
     kvs.erase(std::unique(kvs.begin(), kvs.end(), kvsEq<KeyType>), kvs.end());
@@ -617,12 +630,19 @@ int Fujimap<KeyType, ValueType>::load(const char* index)
         return -1;
     }
 
+    changed_ = false;
     return 0;
 }
 
 template <class KeyType, class ValueType>
 int Fujimap<KeyType, ValueType>::save(const char* index)
 {
+    if (!changed_)
+    {
+        std::cout << "Fujimap has no change, ignore saving." << std::endl;
+        return 0;
+    }
+
     ofstream ofs(index);
     if (!ofs)
     {
@@ -681,12 +701,14 @@ int Fujimap<KeyType, ValueType>::save(const char* index)
         return -1;
     }
 
+    changed_ = false;
     return 0;
 }
 
 template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::clear(bool kf_clear)
 {
+    changed_ = true;
     boost::unordered_map<std::string, uint32_t>().swap(val2code_);
     std::vector<std::string>().swap(code2val_);
 
