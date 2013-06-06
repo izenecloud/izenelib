@@ -26,10 +26,8 @@ class FMIndex
 public:
     typedef CharT char_type;
     typedef FMIndex<CharT> self_type;
-
-    typedef uint32_t docid_t;
-    typedef std::pair<size_t, size_t> range_t;
-    typedef std::vector<range_t> range_list_t;
+    typedef std::pair<size_t, size_t> MatchRangeT;
+    typedef std::vector<MatchRangeT> MatchRangeListT;
 
     FMIndex();
     ~FMIndex();
@@ -40,13 +38,12 @@ public:
     void swapOrigText(std::vector<char_type> &orig_text);
 
     void build();
-    void reconstructText(const std::vector<docid_t> &del_docid_list, std::vector<char_type> &orig_text) const;
+    void reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text) const;
 
-    size_t backwardSearch(const char_type *pattern, size_t len, range_t &match_range) const;
-    size_t longestSuffixMatch(const char_type *patter, size_t len, range_list_t &match_ranges) const;
-
+    size_t backwardSearch(const char_type *pattern, size_t len, MatchRangeT &match_range) const;
+    size_t longestSuffixMatch(const char_type *patter, size_t len, MatchRangeListT &match_ranges) const;
     size_t length() const;
-    size_t allocSize() const;
+    //size_t allocSize() const;
 
     size_t bufferLength() const;
     size_t docCount() const;
@@ -57,34 +54,35 @@ public:
     void saveOriginalText(std::ostream &ostr) const;
     void loadOriginalText(std::istream &istr);
 
-    void getDocIdList(const range_t &match_range, size_t max_docs, std::vector<docid_t> &docid_list, std::vector<size_t> &doclen_list) const;
+    void getMatchedDocIdList(const MatchRangeT &match_range, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
-    void getDocIdList(const range_list_t &match_ranges, size_t max_docs, std::vector<docid_t> &docid_list, std::vector<size_t> &doclen_list) const;
+    void getMatchedDocIdList(const MatchRangeListT &match_ranges, size_t max_docs, std::vector<uint32_t> &docid_list, std::vector<size_t> &doclen_list) const;
 
     void getTopKDocIdList(
-            const range_list_t &raw_range_list,
+            const MatchRangeListT &raw_range_list,
             const std::vector<double> &score_list,
             size_t thres,
             size_t max_docs,
-            std::vector<std::pair<double, docid_t> > &res_list,
+            std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
 
-    void getDocLenList(const std::vector<docid_t> &docid_list, std::vector<size_t> &doclen_list) const;
+    void getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const;
 
-    sdarray::SDArray &getDocDelim()
+    sdarray::SDArray& getDocDelim()
     {
         return doc_delim_;
     }
-    boost::shared_ptr<WaveletMatrix<docid_t> > &getDocArray()
+    boost::shared_ptr<WaveletMatrix<uint32_t> >& getDocArray()
     {
         return doc_array_;
     }
 
 private:
     size_t length_;
+    size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
-    boost::shared_ptr<WaveletMatrix<docid_t> > doc_array_;
+    boost::shared_ptr<WaveletMatrix<uint32_t> > doc_array_;
     boost::shared_ptr<WaveletTreeHuffman<char_type> > bwt_tree_;
 
     std::vector<char_type> temp_text_;
@@ -92,7 +90,7 @@ private:
 
 template <class CharT>
 FMIndex<CharT>::FMIndex()
-    : length_()
+    : length_(), alphabet_num_()
 {
 }
 
@@ -105,6 +103,7 @@ template <class CharT>
 void FMIndex<CharT>::clear()
 {
     length_ = 0;
+    alphabet_num_ = 0;
     doc_delim_.clear();
 
     bwt_tree_.reset();
@@ -142,17 +141,14 @@ void FMIndex<CharT>::build()
     }
     temp_text_.push_back('\0');
     length_ = temp_text_.size();
-    std::pair<uint64_t, uint64_t> symbol_range = WaveletTree<char_type>::getSymbolRange(&temp_text_[0], length_);
+    alphabet_num_ = WaveletTree<char_type>::getAlphabetNum(&temp_text_[0], length_);
 
     std::vector<int40_t> sa(length_);
-    if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)symbol_range.second) < 0)
+    if (saisxx(temp_text_.begin(), sa.begin(), (int64_t)length_, (int64_t)alphabet_num_) < 0)
     {
         clear();
         return;
     }
-
-    std::pair<size_t, size_t> doc_id_range;
-    while (temp_text_[doc_id_range.first] == DOC_DELIM) ++doc_id_range.first;
 
     size_t pos = 0;
     while (temp_text_[pos] != DOC_DELIM) ++pos;
@@ -167,10 +163,8 @@ void FMIndex<CharT>::build()
     }
     doc_delim_.build();
 
-    doc_id_range.second = doc_delim_.size();
-
     std::vector<char_type> bwt(length_);
-    docid_t *da = (docid_t *)&sa[0];
+    uint32_t *da = (uint32_t *)&sa[0];
     for (size_t i = 0; i < length_; ++i)
     {
         if (sa[i] == 0)
@@ -187,12 +181,12 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(temp_text_);
 
-    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(symbol_range, false, false));
+    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
     bwt_tree_->build(&bwt[0], length_);
 
     std::vector<char_type>().swap(bwt);
 
-    doc_array_.reset(new WaveletMatrix<docid_t>(doc_id_range, false, true));
+    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
     doc_array_->build(da, length_);
 
     std::vector<int40_t>().swap(sa);
@@ -201,7 +195,7 @@ void FMIndex<CharT>::build()
 }
 
 template <class CharT>
-void FMIndex<CharT>::reconstructText(const std::vector<docid_t> &del_docid_list, std::vector<char_type> &orig_text) const
+void FMIndex<CharT>::reconstructText(const std::vector<uint32_t> &del_docid_list, std::vector<char_type> &orig_text) const
 {
     if (del_docid_list.empty() || del_docid_list[0] > doc_delim_.size()) return;
 
@@ -237,7 +231,7 @@ void FMIndex<CharT>::reconstructText(const std::vector<docid_t> &del_docid_list,
 }
 
 template <class CharT>
-size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, range_t &match_range) const
+size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, MatchRangeT &match_range) const
 {
     if (len == 0 || !bwt_tree_) return 0;
 
@@ -270,7 +264,7 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, rang
 }
 
 template <class CharT>
-size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, range_list_t &match_ranges) const
+size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, MatchRangeListT &match_ranges) const
 {
     if (len == 0 || !bwt_tree_) return 0;
 
@@ -337,13 +331,13 @@ size_t FMIndex<CharT>::length() const
     return length_;
 }
 
-template <class CharT>
-size_t FMIndex<CharT>::allocSize() const
-{
-    return sizeof(FMIndex)
-        + doc_delim_.allocSize() - sizeof(sdarray::SDArray)
-        + bwt_tree_->allocSize() + doc_array_->allocSize();
-}
+//template <class CharT>
+//size_t FMIndex<CharT>::allocSize() const
+//{
+//    return sizeof(FMIndex)
+//        + doc_delim_.allocSize() - sizeof(sdarray::SDArray)
+//        + bwt_tree_->allocSize() + doc_array_->allocSize();
+//}
 
 template <class CharT>
 size_t FMIndex<CharT>::bufferLength() const
@@ -354,11 +348,12 @@ size_t FMIndex<CharT>::bufferLength() const
 template <class CharT>
 void FMIndex<CharT>::save(std::ostream &ostr) const
 {
-    ostr.write((const char *)&length_, sizeof(length_));
+    ostr.write((const char *)&length_,       sizeof(length_));
+    ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
 
     if (bwt_tree_)
     {
-        assert(length_ > 0);
+        assert(length_ > 0 && alphabet_num_ > 0);
         bwt_tree_->save(ostr);
     }
 
@@ -375,19 +370,19 @@ void FMIndex<CharT>::save(std::ostream &ostr) const
 template <class CharT>
 void FMIndex<CharT>::load(std::istream &istr)
 {
-    istr.read((char *)&length_, sizeof(length_));
+    istr.read((char *)&length_,       sizeof(length_));
+    istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
 
-    if (length_ > 0)
+    if (length_ > 0 && alphabet_num_ > 0)
     {
-        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(false, false));
+        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
         bwt_tree_->load(istr);
     }
-
     doc_delim_.load(istr);
 
     if (docCount() > 0)
     {
-        doc_array_.reset(new WaveletMatrix<docid_t>(false, true));
+        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
         doc_array_->load(istr);
     }
 }
@@ -410,10 +405,10 @@ void FMIndex<CharT>::loadOriginalText(std::istream &istr)
 }
 
 template <class CharT>
-void FMIndex<CharT>::getDocIdList(
-    const range_t &match_range,
+void FMIndex<CharT>::getMatchedDocIdList(
+    const MatchRangeT &match_range,
     size_t max_docs,
-    std::vector<docid_t> &docid_list,
+    std::vector<uint32_t> &docid_list,
     std::vector<size_t> &doclen_list) const
 {
     if (!doc_array_ || docCount() == 0)
@@ -437,10 +432,9 @@ void FMIndex<CharT>::getDocIdList(
 }
 
 template <class CharT>
-void FMIndex<CharT>::getDocIdList(
-    const range_list_t &match_ranges,
-    size_t max_docs,
-    std::vector<docid_t> &docid_list,
+void FMIndex<CharT>::getMatchedDocIdList(
+    const MatchRangeListT &match_ranges,
+    size_t max_docs, std::vector<uint32_t> &docid_list,
     std::vector<size_t> &doclen_list) const
 {
     if (!doc_array_ || docCount() == 0)
@@ -472,11 +466,11 @@ void FMIndex<CharT>::getDocIdList(
 
 template <class CharT>
 void FMIndex<CharT>::getTopKDocIdList(
-    const range_list_t &raw_range_list,
+    const MatchRangeListT &raw_range_list,
     const std::vector<double> &score_list,
     size_t thres,
     size_t max_docs,
-    std::vector<std::pair<double, docid_t> > &res_list,
+    std::vector<std::pair<double, uint32_t> > &res_list,
     std::vector<size_t> &doclen_list) const
 {
     if (!doc_array_ || docCount() == 0)
@@ -508,7 +502,7 @@ void FMIndex<CharT>::getTopKDocIdList(
 }
 
 template <class CharT>
-void FMIndex<CharT>::getDocLenList(const std::vector<docid_t>& docid_list, std::vector<size_t>& doclen_list) const
+void FMIndex<CharT>::getDocLenList(const std::vector<uint32_t>& docid_list, std::vector<size_t>& doclen_list) const
 {
     doclen_list.resize(docid_list.size());
     for (size_t i = 0; i < docid_list.size(); ++i)

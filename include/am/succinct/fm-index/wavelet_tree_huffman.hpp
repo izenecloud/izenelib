@@ -23,11 +23,10 @@ public:
     typedef WaveletTreeHuffman<CharT> self_type;
     typedef std::vector<FilterList<self_type> *, boost::stl_allocator<FilterList<self_type> *> > aux_filter_list_type;
 
-    WaveletTreeHuffman(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense);
-    WaveletTreeHuffman(bool support_select, bool dense);
+    WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense);
     ~WaveletTreeHuffman();
 
-    void build(char_type *char_seq, size_t len);
+    void build(const char_type *char_seq, size_t len);
 
     char_type access(size_t pos) const;
     char_type access(size_t pos, size_t &rank) const;
@@ -99,15 +98,8 @@ private:
 };
 
 template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(const std::pair<uint64_t, uint64_t> &symbol_range, bool support_select, bool dense)
-    : WaveletTree<CharT>(symbol_range, support_select, dense)
-    , root_()
-{
-}
-
-template <class CharT>
-WaveletTreeHuffman<CharT>::WaveletTreeHuffman(bool support_select, bool dense)
-    : WaveletTree<CharT>(support_select, dense)
+WaveletTreeHuffman<CharT>::WaveletTreeHuffman(uint64_t alphabet_num, bool support_select, bool dense)
+    : WaveletTree<CharT>(alphabet_num, support_select, dense)
     , root_()
 {
 }
@@ -127,22 +119,22 @@ void WaveletTreeHuffman<CharT>::deleteTree_(WaveletTreeNode *node)
 }
 
 template <class CharT>
-void WaveletTreeHuffman<CharT>::build(char_type *char_seq, size_t len)
+void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 {
-    if (this->symbol_range_.second == 0) return;
+    if (this->alphabet_num_ == 0) return;
 
-    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - 1);
+    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
-    occ_.resize((1 << this->level_count_) + 1);
+    occ_.resize((1 << this->alphabet_bit_num_) + 1);
     for (size_t i = 0; i < len; ++i)
     {
         ++occ_[char_seq[i] + 1];
     }
 
-    leaves_.resize(this->symbol_range_.second);
-    interval_heap<WaveletTreeNode *> node_queue(this->symbol_range_.second);
+    leaves_.resize(this->alphabet_num_);
+    interval_heap<WaveletTreeNode *> node_queue(this->alphabet_num_);
 
-    for (size_t i = 0; i < this->symbol_range_.second; ++i)
+    for (size_t i = 0; i < this->alphabet_num_; ++i)
     {
         if (occ_[i + 1])
         {
@@ -165,10 +157,10 @@ void WaveletTreeHuffman<CharT>::build(char_type *char_seq, size_t len)
     root_ = node_queue.get_min();
     node_queue.pop_min();
 
-    code_map_.resize(this->symbol_range_.second);
+    code_map_.resize(this->alphabet_num_);
     makeCodeMap_(0, 0, root_);
 
-    for (size_t i = 0; i < this->symbol_range_.second; ++i)
+    for (size_t i = 0; i < this->alphabet_num_; ++i)
     {
         if (leaves_[i] && leaves_[i]->parent_)
         {
@@ -207,7 +199,7 @@ void WaveletTreeHuffman<CharT>::build(char_type *char_seq, size_t len)
 
         for (level = 0; walk; ++level)
         {
-            if (code & 1LLU << level)
+            if (code & 1ULL << level)
             {
                 walk->append1();
                 walk = walk->right_;
@@ -229,7 +221,7 @@ void WaveletTreeHuffman<CharT>::makeCodeMap_(uint64_t code, size_t level, Wavele
     if (node->left_)
     {
         makeCodeMap_(code, level + 1, node->left_);
-        makeCodeMap_(code | 1LLU << level, level + 1, node->right_);
+        makeCodeMap_(code | 1ULL << level, level + 1, node->right_);
     }
     else
     {
@@ -316,7 +308,7 @@ size_t WaveletTreeHuffman<CharT>::rank(char_type c, size_t pos) const
 
     for (size_t level = 0; pos > 0; ++level)
     {
-        if (code & 1LLU << level)
+        if (code & 1ULL << level)
         {
             if (walk->right_)
             {
@@ -1287,11 +1279,11 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
 
     if (root_) deleteTree_(root_);
 
-    this->level_count_ = SuccinctUtils::log2(this->symbol_range_.second - 1);
+    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
-    occ_.resize((1 << this->level_count_) + 1);
+    occ_.resize((1 << this->alphabet_bit_num_) + 1);
     istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
-    code_map_.resize(this->symbol_range_.second);
+    code_map_.resize(this->alphabet_num_);
     istr.read((char *)&code_map_[0], sizeof(code_map_[0]) * code_map_.size());
 
     uint32_t flag = 0;
@@ -1299,7 +1291,7 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
     if (flag)
     {
         root_ = new WaveletTreeNode(this->support_select_, this->dense_);
-        leaves_.resize(this->symbol_range_.second);
+        leaves_.resize(this->alphabet_num_);
         loadTree_(istr, root_);
     }
 }
