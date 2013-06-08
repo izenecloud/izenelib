@@ -47,6 +47,11 @@ Sf1Watcher::process(ZooKeeperEvent& zkEvent) {
             }
         }
     }
+    else if (zkEvent.type_ == ZOO_SESSION_EVENT && zkEvent.state_ == ZOO_CONNECTED_STATE)
+    {
+        LOG(INFO) << "auto connected";
+        router.reloadTopology();
+    }
 }
 
 

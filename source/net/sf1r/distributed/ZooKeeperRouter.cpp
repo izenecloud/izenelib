@@ -119,6 +119,15 @@ ZooKeeperRouter::~ZooKeeperRouter() {
     LOG(INFO) << "ZooKeeperRouter closed";
 }
 
+void ZooKeeperRouter::reloadTopology()
+{
+    if(client && client->isConnected())
+    {
+        // clear old nodes.
+        clearSf1Nodes();
+        loadTopology();
+    }
+}
 
 void
 ZooKeeperRouter::loadTopology() {
