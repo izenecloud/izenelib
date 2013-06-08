@@ -385,6 +385,7 @@ void ZooKeeperRouter::clearSf1Nodes() {
     }
     for (size_t i = 0; i < tmp_list.size(); ++i)
         removeNodeFromPools(tmp_list[i], rwlock);
+    LOG(INFO) << "clear nodes finished";
 }
 
 void ZooKeeperRouter::increSlowCounter(const std::string& path)
@@ -438,7 +439,7 @@ void ZooKeeperRouter::removeNodeFromPools(const std::string& path, WriteLockT& r
             return;
         pool = it->second;
         if (pool->isBusy()) {
-            DLOG(INFO) << "pool is currently in use, waiting";
+            LOG(INFO) << "pool is currently in use, waiting : " << path;
             condition.wait(rwlock);
         }
         else
