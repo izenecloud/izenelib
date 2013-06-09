@@ -280,12 +280,12 @@ public:
             {
                 LOG(ERROR)<<"write avg "<<all_time/count<<std::endl;
             }
-            //uint32_t iff;
-            //RandomGenerator<uint32_t>::Gen(0, 999, iff);
-            //if(iff<1)
-            //{
-                //indexer_.flush();
-            //}
+            uint32_t iff;
+            RandomGenerator<uint32_t>::Gen(0, 999, iff);
+            if(iff<1)
+            {
+                indexer_.flush();
+            }
         }
     }
     

@@ -56,6 +56,7 @@ class BTreeIndexer
 //  typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
 public:
     //typedef boost::shared_mutex MutexType;
+    typedef boost::mutex WriteOnlyMutex;
     typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
     typedef InMemoryBTreeCache<KeyType, docid_t, MutexType> CacheType;
@@ -106,7 +107,7 @@ public:
     void add(const KeyType& key, docid_t docid)
     {
     	{
-            //boost::unique_lock<MutexType> lock(mutex_);
+            boost::unique_lock<WriteOnlyMutex> lock(mutex2_);
             cache_.add(key, docid);
     	}
         checkCache_();
@@ -116,7 +117,7 @@ public:
     void remove(const KeyType& key, docid_t docid)
     {
         {
-            //boost::unique_lock<MutexType> lock(mutex_);
+            boost::unique_lock<WriteOnlyMutex> lock(mutex2_);
             cache_.remove(key, docid);
     	}
         checkCache_();
@@ -317,8 +318,6 @@ public:
     void flush()
     {
         cacheClear_();
-        db_.flush();
-        count_has_modify_ = true;//force use db_.size() in count as cache will be empty
     }
 
 
@@ -407,9 +406,12 @@ private:
         std::cout << "!!!cacheClear_ " << property_name_ << ", key size: " << cache_.key_size() << ", size: " << cache_.capacity() << std::endl;
         cache_num_ = 0;
 #endif
+        boost::unique_lock<WriteOnlyMutex> lock2(mutex2_);
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
         boost::unique_lock<MutexType> lock(mutex_);
         cache_.clear();
+        db_.flush();
+        count_has_modify_ = true;//force use db_.size() in count as cache will be empty
     }
 
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
@@ -703,6 +705,7 @@ private:
     std::string property_name_;
     DbType db_;
     MutexType mutex_;
+    WriteOnlyMutex mutex2_;
     CacheType cache_;
     EnumCombineFunc func_;
     /// used only in cacheIterator_, one thread,  safe.

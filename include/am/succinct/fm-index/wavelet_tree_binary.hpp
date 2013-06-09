@@ -63,7 +63,22 @@ public:
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
-
+            
+    void topKUnion(
+        const synonym_range_list_type &patterns,
+        size_t thres,
+        size_t topK,
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc ) const;
+                    
+    void topKUnionWithAuxFilters(
+        const aux_filter_list_type &aux_filters,
+        const synonym_range_list_type &patterns,
+        size_t thres,
+        size_t topK,
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const; 
+        
     size_t getOcc(char_type c) const;
     WaveletTreeNode *getRoot() const;
 
@@ -1073,6 +1088,559 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             }
         }
 
+        if (zero_ranges)
+        {
+            zero_ranges->calcScore();
+            if (zero_ranges->score_ == 0.0)
+            {
+                recyc_queue.push_back(zero_ranges);
+            }
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max().first->score_)))
+            {
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(std::make_pair(zero_ranges, start));
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
+            }
+            else
+            {
+                ranges_heap.insert(std::make_pair(zero_ranges, start));
+            }
+        }
+
+        if (one_ranges)
+        {
+            one_ranges->calcScore();
+            if (one_ranges->score_ == 0.0)
+            {
+                recyc_queue.push_back(one_ranges);
+            }
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max().first->score_)))
+            {
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front().first);
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_heap.get_min().first);
+                        ranges_heap.pop_min();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min().first->score_))
+            {
+                recyc_queue.push_back(one_ranges);
+            }
+            else
+            {
+                ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+
+                if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_heap.get_min().first);
+                    ranges_heap.pop_min();
+                }
+            }
+        }
+
+        recyc_queue.push_back(top_ranges);
+    }
+    /*
+    typename interval_heap<std::pair<AuxFilteredPatternList<self_type> *, size_t> >::container_type ranges_list = ranges_heap.get_container();
+    for (size_t i = 0; i < ranges_heap.size() / 2; ++i)
+    {
+        delete ranges_list[i].first.first;
+        delete ranges_list[i].second.first;
+    }
+    if (ranges_heap.size() % 2)
+    {
+        delete ranges_list[ranges_heap.size() / 2].first.first;
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i].first;
+    }*/
+}
+
+//yy
+template <class CharT>
+void WaveletTreeBinary<CharT>::topKUnion(
+        const synonym_range_list_type &patterns,
+        size_t thres,
+        size_t topK,
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const
+{
+    if (topK == 0) return;
+
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
+
+    interval_heap<std::pair<SynonymPatternList *, size_t> > ranges_heap(max_queue_size + 1);
+    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, SynonymPatternList)(0, (char_type)0, nodes_[0], patterns), 0));
+
+    if (ranges_heap.get_max().first->score_ == 0.0)
+    {
+        //delete ranges_heap.get_max().first;
+        return;
+    }
+
+    results.reserve(topK);
+
+    std::vector<SynonymPatternList *, boost::stl_allocator<SynonymPatternList *> > recyc_queue(alloc);
+    recyc_queue.reserve(max_queue_size + 1);
+    std::deque<std::pair<SynonymPatternList *, size_t>, boost::stl_allocator<std::pair<SynonymPatternList *, size_t> > > top_queue(alloc);
+
+    SynonymPatternList *top_ranges;
+    SynonymPatternList *zero_ranges, *one_ranges;
+    size_t start, before, rank_start, rank_end;
+    const WaveletTreeNode *node;
+
+    while (results.size() < topK)
+    {
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back().first;
+            start = top_queue.back().second;
+            top_queue.pop_back();
+        }
+        else if (!ranges_heap.empty())
+        {
+            top_ranges = ranges_heap.get_max().first;
+            start = ranges_heap.get_max().second;
+            ranges_heap.pop_max();
+        }
+        else
+        {
+            break;
+        }
+
+        if (!top_ranges->node_)
+        {
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            recyc_queue.push_back(top_ranges);
+            continue;
+        }
+
+        node = top_ranges->node_;
+        before = node->rank1(start);
+
+        if (recyc_queue.empty())
+        {
+            zero_ranges = BOOST_NEW(alloc, SynonymPatternList)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+            recyc_queue.pop_back();
+        }
+
+        if (recyc_queue.empty())
+        {
+            one_ranges = BOOST_NEW(alloc, SynonymPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            recyc_queue.pop_back();
+        }
+
+        size_t pattern_count = 0;
+        synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
+        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
+        {
+            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
+            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            {
+                rank_start = node->rank1(start + i->get<0>()) - before;
+                rank_end = node->rank1(start + i->get<1>()) - before;
+                
+                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
+                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
+                if (rank_start < rank_end)
+                    tmp_one_range.push_back(boost::make_tuple(rank_start, rank_end, i->get<2>()));
+
+            }
+
+            if (zero_ranges && tmp_zero_range.empty())
+            {
+                recyc_queue.push_back(zero_ranges);
+                zero_ranges = NULL;
+                if (!one_ranges) break;
+            }
+            else if (zero_ranges && !tmp_zero_range.empty())
+            {
+                zero_ranges->patterns_.push_back(tmp_zero_range);
+            }
+
+            if (one_ranges && tmp_one_range.empty())
+            {
+                recyc_queue.push_back(one_ranges);
+                one_ranges = NULL;
+                if (!zero_ranges) break;
+            }            
+            else if (one_ranges && !tmp_one_range.empty())
+            {
+                one_ranges->patterns_.push_back(tmp_one_range);
+            }                
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_queue.push_back(top_ranges);
+            continue;
+        }
+
+        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it, ++pattern_count)
+        {
+            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
+            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            {
+                rank_start = node->rank1(start + i->get<0>()) - before;
+                rank_end = node->rank1(start + i->get<1>()) - before;
+                        
+                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
+                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
+                if (rank_start < rank_end)
+                    tmp_one_range.push_back(boost::make_tuple(rank_start, rank_end, i->get<2>()));
+                
+            }
+            if (zero_ranges && !tmp_zero_range.empty())
+                zero_ranges->patterns_.push_back(tmp_zero_range);
+            if (one_ranges && !tmp_one_range.empty())
+                one_ranges->patterns_.push_back(tmp_one_range);
+        }
+
+        if (zero_ranges)
+        {
+            zero_ranges->calcScore();
+            if (zero_ranges->score_ == 0.0)
+            {
+                recyc_queue.push_back(zero_ranges);
+            }
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max().first->score_)))
+            {
+                if (zero_ranges->node_)
+                {
+                    top_queue.push_back(std::make_pair(zero_ranges, start));
+                }
+                else
+                {
+                    results.push_back(std::make_pair(zero_ranges->score_, zero_ranges->sym_));
+                    recyc_queue.push_back(zero_ranges);
+                }
+            }
+            else
+            {
+                ranges_heap.insert(std::make_pair(zero_ranges, start));
+            }
+        }
+
+        if (one_ranges)
+        {
+            one_ranges->calcScore();
+            if (one_ranges->score_ == 0.0)
+            {
+                recyc_queue.push_back(one_ranges);
+            }
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max().first->score_)))
+            {
+                if (one_ranges->node_)
+                {
+                    top_queue.push_back(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+
+                    if (top_queue.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(top_queue.front().first);
+                        top_queue.pop_front();
+                    }
+                    else if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                    {
+                        recyc_queue.push_back(ranges_heap.get_min().first);
+                        ranges_heap.pop_min();
+                    }
+                }
+                else
+                {
+                    results.push_back(std::make_pair(one_ranges->score_, one_ranges->sym_));
+                    recyc_queue.push_back(one_ranges);
+                }
+            }
+            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min().first->score_))
+            {
+                recyc_queue.push_back(one_ranges);
+            }
+            else
+            {
+                ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+
+                if (top_queue.size() + ranges_heap.size() > max_queue_size)
+                {
+                    recyc_queue.push_back(ranges_heap.get_min().first);
+                    ranges_heap.pop_min();
+                }
+            }
+        }
+
+        recyc_queue.push_back(top_ranges);
+    }
+    /*
+    interval_heap<std::pair<PatternList *, size_t> >::container_type ranges_list = ranges_heap.get_container();
+    for (size_t i = 0; i < ranges_heap.size() / 2; ++i)
+    {
+        delete ranges_list[i].first.first;
+        delete ranges_list[i].second.first;
+    }
+    if (ranges_heap.size() % 2)
+    {
+        delete ranges_list[ranges_heap.size() / 2].first.first;
+    }
+
+    for (size_t i = 0; i < recyc_queue.size(); ++i)
+    {
+        delete recyc_queue[i];
+    }
+
+    for (size_t i = 0; i < top_queue.size(); ++i)
+    {
+        delete top_queue[i].first;
+    }*/
+}
+
+template <class CharT>
+void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
+        const aux_filter_list_type &aux_filters,
+        const synonym_range_list_type &patterns,
+        size_t thres,
+        size_t topK,
+        std::vector<std::pair<double, char_type> > &results,
+        boost::auto_alloc& alloc) const
+{
+    if (topK == 0) return;
+
+    size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
+
+    interval_heap<std::pair<AuxFilteredSynonymPatternList<self_type> *, size_t> > ranges_heap(max_queue_size + 1);
+    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, patterns, alloc), 0));
+
+    if (ranges_heap.get_max().first->score_ == 0.0)
+    {
+        //delete ranges_heap.get_max().first;
+        return;
+    }
+
+    results.reserve(topK);
+
+    size_t max_filter_size = 0;
+    for (size_t i = 0; i < aux_filters.size(); ++i)
+    {
+        max_filter_size = std::max(max_filter_size, aux_filters[i]->filters_.size());
+    }
+
+    std::vector<AuxFilteredSynonymPatternList<self_type> *, boost::stl_allocator<AuxFilteredSynonymPatternList<self_type> *> > recyc_queue(alloc);
+    recyc_queue.reserve(max_queue_size + 1);
+    std::deque<std::pair<AuxFilteredSynonymPatternList<self_type> *, size_t>, boost::stl_allocator<std::pair<AuxFilteredSynonymPatternList<self_type> *, size_t> > > top_queue(alloc);
+
+    AuxFilteredSynonymPatternList<self_type> *top_ranges;
+    AuxFilteredSynonymPatternList<self_type> *zero_ranges, *one_ranges;
+    FilterList<self_type> *zero_filter, *one_filter;
+    size_t start, filter_start, before, rank_start, rank_end;
+    const WaveletTreeNode *node;
+
+    while (results.size() < topK)
+    {
+        if (!top_queue.empty())
+        {
+            top_ranges = top_queue.back().first;
+            start = top_queue.back().second;
+            top_queue.pop_back();
+        }
+        else if (!ranges_heap.empty())
+        {
+            top_ranges = ranges_heap.get_max().first;
+            start = ranges_heap.get_max().second;
+            ranges_heap.pop_max();
+        }
+        else
+        {
+            break;
+        }
+
+        if (!top_ranges->node_)
+        {
+            results.push_back(std::make_pair(top_ranges->score_, top_ranges->sym_));
+            recyc_queue.push_back(top_ranges);
+            continue;
+        }
+
+        node = top_ranges->node_;
+
+        if (recyc_queue.empty())
+        {
+            zero_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            zero_ranges = recyc_queue.back();
+            zero_ranges->reset(top_ranges->level_ + 1, top_ranges->sym_, node->left_);
+            recyc_queue.pop_back();
+        }
+
+        if (recyc_queue.empty())
+        {
+            one_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+        }
+        else
+        {
+            one_ranges = recyc_queue.back();
+            one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
+            recyc_queue.pop_back();
+        }
+
+        for (typename aux_filter_list_type::const_iterator it = top_ranges->aux_filters_.begin();
+                it != top_ranges->aux_filters_.end(); ++it)
+        {
+            node = (*it)->node_;
+            filter_start = (*it)->tree_->occ_.prefixSum(top_ranges->sym_);
+            before = node->rank1(filter_start);
+
+            if (zero_ranges)
+            {
+                zero_filter = zero_ranges->getAuxFilter((*it)->tree_, node->left_, max_filter_size);
+            }
+            if (one_ranges)
+            {
+                one_filter = one_ranges->getAuxFilter((*it)->tree_, node->right_, max_filter_size);
+            }
+
+            for (range_list_type::const_iterator fit = (*it)->filters_.begin();
+                    fit != (*it)->filters_.end(); ++fit)
+            {
+                rank_start = node->rank1(filter_start + fit->get<0>()) - before;
+                rank_end = node->rank1(filter_start + fit->get<1>()) - before;
+
+                if (zero_ranges)
+                {
+                    zero_filter->addFilter(boost::make_tuple(fit->get<0>() - rank_start, fit->get<1>() - rank_end, fit->get<2>()));
+                }
+                if (one_ranges)
+                {
+                    one_filter->addFilter(boost::make_tuple(rank_start, rank_end, fit->get<2>()));
+                }
+            }
+
+            if (zero_ranges && !zero_ranges->addAuxFilter(zero_filter))
+            {
+                recyc_queue.push_back(zero_ranges);
+                zero_ranges = NULL;
+                if (!one_ranges) break;
+            }
+            if (one_ranges && !one_ranges->addAuxFilter(one_filter))
+            {
+                recyc_queue.push_back(one_ranges);
+                one_ranges = NULL;
+                if (!zero_ranges) break;
+            }
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_queue.push_back(top_ranges);
+            continue;
+        }
+
+        node = top_ranges->node_;
+        before = node->rank1(start);
+
+        size_t pattern_count = 0;
+        synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
+        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
+        {
+            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
+            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            {
+                rank_start = node->rank1(start + i->get<0>()) - before;
+                rank_end = node->rank1(start + i->get<1>()) - before;
+                
+                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
+                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
+                if (rank_start < rank_end)
+                    tmp_one_range.push_back(boost::make_tuple(rank_start, rank_end, i->get<2>()));
+
+            }
+
+            if (zero_ranges && tmp_zero_range.empty())
+            {
+                recyc_queue.push_back(zero_ranges);
+                zero_ranges = NULL;
+                if (!one_ranges) break;
+            }
+            else if (zero_ranges && !tmp_zero_range.empty())
+            {
+                zero_ranges->patterns_.push_back(tmp_zero_range);
+            }
+
+            if (one_ranges && tmp_one_range.empty())
+            {
+                recyc_queue.push_back(one_ranges);
+                one_ranges = NULL;
+                if (!zero_ranges) break;
+            }            
+            else if (one_ranges && !tmp_one_range.empty())
+            {
+                one_ranges->patterns_.push_back(tmp_one_range);
+            }                
+        }
+
+        if (!zero_ranges && !one_ranges)
+        {
+            recyc_queue.push_back(top_ranges);
+            continue;
+        }
+
+        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it, ++pattern_count)
+        {
+            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
+            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            {
+                rank_start = node->rank1(start + i->get<0>()) - before;
+                rank_end = node->rank1(start + i->get<1>()) - before;
+                        
+                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
+                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
+                if (rank_start < rank_end)
+                    tmp_one_range.push_back(boost::make_tuple(rank_start, rank_end, i->get<2>()));
+                
+            }
+            if (zero_ranges && !tmp_zero_range.empty())
+                zero_ranges->patterns_.push_back(tmp_zero_range);
+            if (one_ranges && !tmp_one_range.empty())
+                one_ranges->patterns_.push_back(tmp_one_range);
+        }
+        
         if (zero_ranges)
         {
             zero_ranges->calcScore();

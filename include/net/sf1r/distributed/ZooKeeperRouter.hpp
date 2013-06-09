@@ -68,6 +68,7 @@ public:
     }
 
     void reconnect();
+    void reloadTopology();
     /**
      * Get a connection to a node hosting the given collection.
      * @param collection The collection name.
