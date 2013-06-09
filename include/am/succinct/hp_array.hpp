@@ -76,10 +76,8 @@ public:
 
     void clear()
     {
-        if (data_ > 0)
+        if (data_)
         {
-            size_ = 0;
-            capacity_ = 0;
             if (use_hp_)
             {
                 munmap(data_, sizeof(value_type) * capacity_);
@@ -88,6 +86,8 @@ public:
             {
                 free(data_);
             }
+            size_ = 0;
+            capacity_ = 0;
             data_ = 0;
         }
     }
