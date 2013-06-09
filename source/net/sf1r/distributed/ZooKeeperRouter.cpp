@@ -273,6 +273,17 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
 void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 {
+    bool need_rescan = false;
+    {
+        ReadLockT lock(shared_mutex);
+        if (topology->count() == 0) {
+            LOG(INFO) << "Empty topology, re-scan topology...";
+            need_rescan = true;
+        }
+    }
+    if (need_rescan)
+        loadTopology();
+
     WriteLockT lock(shared_mutex);
     LOG(INFO) << "updating SF1 node in timer callback, total nodes : " << topology->count();
     if (policy)
