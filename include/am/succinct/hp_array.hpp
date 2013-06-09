@@ -156,6 +156,7 @@ public:
 
     void swap(HPArray& other)
     {
+        std::swap(use_hp_, other.use_hp_);
         std::swap(size_, other. size_);
         std::swap(capacity_, other.capacity_);
         std::swap(data_, other.data_);
