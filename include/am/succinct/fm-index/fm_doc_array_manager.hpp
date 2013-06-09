@@ -140,7 +140,17 @@ public:
             size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
-
+            
+    void getTopKDocIdListByFilter(
+        const std::vector<size_t> &prop_id_list,
+        const std::vector<FilterRangeListT> &filter_ranges,
+        size_t match_index,
+        bool match_in_filter,
+        const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
+        size_t thres,
+        size_t max_docs,
+        std::vector<std::pair<double, uint32_t> > &res_list) const;
+        
     inline const DocArrayItemT& getFilterArrayItem(size_t prop_id) const
     {
         if (prop_id >= filter_docarray_list_.size())
@@ -510,6 +520,78 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     }
     else
     {
+        typename DocArrayWaveletT::aux_filter_list_type aux_filters(alloc);
+
+        aux_filters.reserve(prop_id_list.size());
+        for (size_t i = 0; i < prop_id_list.size(); ++i)
+        {
+            if (!checkItemIndex(prop_id_list[i], true))
+            {
+                std::cout << "filter index out of bound! " << std::endl;
+                //for (size_t j = 0; j < aux_filters.size(); ++j)
+                //    delete aux_filters[j];
+                return;
+            }
+            const DocArrayWaveletT *wlt = getDocArrayItem(prop_id_list[i], true).doc_array_ptr.get();
+            if (!wlt)
+                continue;
+            FilterList<DocArrayWaveletT> *aux_filter =
+                BOOST_NEW(alloc, FilterList<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
+            for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
+                    it != filter_ranges[i].end(); ++it)
+            {
+                aux_filter->filters_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+            }
+            aux_filters.push_back(aux_filter);
+        }
+
+        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, range_list, thres, max_docs, res_list, alloc);
+    }
+    for (size_t i = 0; i < res_list.size(); ++i)
+    {
+        ++res_list[i].second;
+    }
+}
+
+//yy
+template <class CharT>
+void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
+        const std::vector<size_t> &prop_id_list,
+        const std::vector<FilterRangeListT> &filter_ranges,
+        size_t match_index,
+        bool match_in_filter,
+        const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
+        size_t thres,
+        size_t max_docs,
+        std::vector<std::pair<double, uint32_t> > &res_list) const
+{
+    if (!checkItemIndex(match_index, match_in_filter))
+        return;
+
+    const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
+    if (!doc_array_item.doc_array_ptr)
+        return;
+    boost::auto_alloc alloc;
+    synonym_range_list_type range_list(alloc);
+
+    for (size_t i = 0; i < synonym_range_list.size(); ++i)
+    {   
+        range_list_type tmp_range(alloc);
+        for (size_t j = 0; j < synonym_range_list[i].size(); ++j)
+        {
+            tmp_range.push_back(synonym_range_list[i][j]);
+        }
+        range_list.push_back(tmp_range);
+    }
+
+    if (prop_id_list.empty())
+    {
+
+        doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
+    }
+    else
+    {
+
         typename DocArrayWaveletT::aux_filter_list_type aux_filters(alloc);
 
         aux_filters.reserve(prop_id_list.size());
