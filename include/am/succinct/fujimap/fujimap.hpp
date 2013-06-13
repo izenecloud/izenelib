@@ -630,7 +630,7 @@ int Fujimap<KeyType, ValueType>::load(const char* index)
         return -1;
     }
 
-    changed_ = false;
+    changed_ = true;
     return 0;
 }
 
