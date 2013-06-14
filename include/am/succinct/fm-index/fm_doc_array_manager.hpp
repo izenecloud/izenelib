@@ -142,14 +142,14 @@ public:
             std::vector<std::pair<double, uint32_t> > &res_list) const;
             
     void getTopKDocIdListByFilter(
-        const std::vector<size_t> &prop_id_list,
-        const std::vector<FilterRangeListT> &filter_ranges,
-        size_t match_index,
-        bool match_in_filter,
-        const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
-        size_t thres,
-        size_t max_docs,
-        std::vector<std::pair<double, uint32_t> > &res_list) const;
+            const std::vector<size_t> &prop_id_list,
+            const std::vector<FilterRangeListT> &filter_ranges,
+            size_t match_index,
+            bool match_in_filter,
+            const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
+            size_t thres,
+            size_t max_docs,
+            std::vector<std::pair<double, uint32_t> > &res_list) const;
         
     inline const DocArrayItemT& getFilterArrayItem(size_t prop_id) const
     {
@@ -553,7 +553,6 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     }
 }
 
-//yy
 template <class CharT>
 void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         const std::vector<size_t> &prop_id_list,

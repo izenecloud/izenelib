@@ -65,19 +65,19 @@ public:
             boost::auto_alloc& alloc) const;
             
     void topKUnion(
-        const synonym_range_list_type &patterns,
-        size_t thres,
-        size_t topK,
-        std::vector<std::pair<double, char_type> > &results,
-        boost::auto_alloc& alloc ) const;
+            const synonym_range_list_type &patterns,
+            size_t thres,
+            size_t topK,
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc ) const;
                     
     void topKUnionWithAuxFilters(
-        const aux_filter_list_type &aux_filters,
-        const synonym_range_list_type &patterns,
-        size_t thres,
-        size_t topK,
-        std::vector<std::pair<double, char_type> > &results,
-        boost::auto_alloc& alloc) const; 
+            const aux_filter_list_type &aux_filters,
+            const synonym_range_list_type &patterns,
+            size_t thres,
+            size_t topK,
+            std::vector<std::pair<double, char_type> > &results,
+            boost::auto_alloc& alloc) const; 
         
     size_t getOcc(char_type c) const;
     WaveletTreeNode *getRoot() const;
