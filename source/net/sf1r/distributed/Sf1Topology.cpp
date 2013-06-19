@@ -70,6 +70,8 @@ void
 Sf1Topology::removeNode(const string& path, bool emit) {
     DLOG(INFO) << "removing node: " << path << "...";
     
+    if (nodes.find(path) == nodes.end())
+        return;
     // remove collections
     BOOST_FOREACH(const string& col, nodes.find(path)->getCollections()) {
         if (nodeCollections.count(col) == 1) { // only one node handling that collection
@@ -103,12 +105,16 @@ Sf1Topology::removeNode(const string& path, bool emit) {
 
 const Sf1Node&
 Sf1Topology::getNodeAt(const std::string& path) {
+    if (nodes.find(path) == nodes.end())
+        throw "node for path not exist!";
     return *nodes.find(path);
 }
 
 
 const Sf1Node&
 Sf1Topology::getNodeAt(const size_t& pos) {
+    if (pos >= nodes.get<list>().size())
+        throw "out of range.";
     return nodes.get<list>()[pos];
 }
 

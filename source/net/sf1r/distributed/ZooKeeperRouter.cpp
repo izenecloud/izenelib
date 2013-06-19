@@ -434,7 +434,8 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     
     WriteLockT rwlock(shared_mutex);
     // remove node from topology
-    removing_topology->removeNode(path);
+    if (removing_topology->isPresent(path))
+        removing_topology->removeNode(path);
 
     waiting_update_path_.erase(path);
 
