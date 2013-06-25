@@ -20,7 +20,9 @@ namespace fm_index
 
 typedef boost::tuple<size_t, size_t, double> range_type;
 typedef std::vector<range_type, boost::stl_allocator<range_type> > range_list_type;
-typedef std::vector<range_list_type, boost::stl_allocator<range_list_type> > synonym_range_list_type;
+
+typedef struct st{size_t left, right, setid; double score;} synonym_range_type;
+typedef std::vector<synonym_range_type, boost::stl_allocator<synonym_range_type> > synonym_range_list_type;
 
 namespace detail
 {
@@ -41,15 +43,22 @@ static double getPatternScore(const range_list_type &patterns)
 static double getSynonymPatternScore(const synonym_range_list_type &synonym_patterns)
 {
     double score = 0.0;
+    if (synonym_patterns.empty()) return score;
+    double tmp_score = synonym_patterns[0].score;
 
-    for (synonym_range_list_type::const_iterator it = synonym_patterns.begin();
-            it != synonym_patterns.end(); ++it)
+    for (size_t i = 1; i < synonym_patterns.size(); ++i)
     {
-        double tmp_score = -1.0;
-        for (range_list_type::const_iterator i = (*it).begin(); i != (*it).end(); ++i)
-            if (i->get<2>() > tmp_score) tmp_score = i->get<2>();
-        score += tmp_score;
+        if (synonym_patterns[i].setid != synonym_patterns[i-1].setid)
+        {
+            score += tmp_score;
+            tmp_score = synonym_patterns[i].score;
+        }
+        else if (synonym_patterns[i].score > tmp_score)
+        {
+            tmp_score = synonym_patterns[i].score;
+        }
     }
+    score += tmp_score;
 
     return score;
 }
@@ -458,21 +467,17 @@ public:
         node_ = node;
         patterns_.clear();
     }
-/*
-    bool addPattern(const range_list_type &synonym_pattern)
+    
+    bool addPattern(const synonym_range_type &pattern)
     {
-        range_list_type tmp_pattern;
-        for (size_t i = 0; i < synonym_pattern.size(); ++i)      
-            if (synonym_pattern[i].get<0>() < synonym_pattern[i].get<1>())
-                tmp_pattern.push_back(synonym_pattern[i]);
-        if (!tmp_pattern.empty()) 
+        if (pattern.left < pattern.right)
         {
-            patterns_.push_back(tmp_pattern);
+            patterns_.push_back(pattern);
             return true;
         }
         return false;
     }
-*/
+    
     void calcScore()
     {
         score_ = detail::getSynonymPatternScore(patterns_);
@@ -584,21 +589,17 @@ public:
             return true;
         }
     }
-/*
-    bool addPattern(const range_list_type &synonym_pattern)
+    
+    bool addPattern(const synonym_range_type &pattern)
     {
-        range_list_type tmp_pattern;
-        for (size_t i = 0; i < synonym_pattern.size(); ++i)      
-            if (synonym_pattern[i].get<0>() < synonym_pattern[i].get<1>())
-                tmp_pattern.push_back(synonym_pattern[i]);
-        if (!tmp_pattern.empty()) 
+        if (pattern.left < pattern.right)
         {
-            patterns_.push_back(tmp_pattern);
+            patterns_.push_back(pattern);
             return true;
         }
         return false;
     }
-*/
+    
     FilterList<WaveletTreeType> *getAuxFilter(
             const WaveletTreeType *tree, const WaveletTreeNode *node,
             size_t filter_count)
@@ -694,6 +695,42 @@ template <class W, class T>
 struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> >
 {
     bool operator()(pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> const &p1, pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> const &p2)
+    {
+        return *p1.first < *p2.first;
+    }
+};
+
+template <>
+struct less<izenelib::am::succinct::fm_index::SynonymPatternList *>
+{
+    bool operator()(izenelib::am::succinct::fm_index::SynonymPatternList * const &p1, izenelib::am::succinct::fm_index::SynonymPatternList * const &p2)
+    {
+        return *p1 < *p2;
+    }
+};
+
+template <class T>
+struct less<pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> >
+{
+    bool operator()(pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> const &p1, pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> const &p2)
+    {
+        return *p1.first < *p2.first;
+    }
+};
+
+template <class W>
+struct less<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *>
+{
+    bool operator()(izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> * const &p1, izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> * const &p2)
+    {
+        return *p1 < *p2;
+    }
+};
+
+template <class W, class T>
+struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> >
+{
+    bool operator()(pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p1, pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p2)
     {
         return *p1.first < *p2.first;
     }

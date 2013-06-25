@@ -575,12 +575,15 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
 
     for (size_t i = 0; i < synonym_range_list.size(); ++i)
     {   
-        range_list_type tmp_range(alloc);
         for (size_t j = 0; j < synonym_range_list[i].size(); ++j)
         {
-            tmp_range.push_back(synonym_range_list[i][j]);
+            synonym_range_type tmp_range;
+            tmp_range.left = synonym_range_list[i][j].get<0>();
+            tmp_range.right = synonym_range_list[i][j].get<1>();
+            tmp_range.score = synonym_range_list[i][j].get<2>();            
+            tmp_range.setid = i;
+            range_list.push_back(tmp_range);
         }
-        range_list.push_back(tmp_range);
     }
 
     if (prop_id_list.empty())
