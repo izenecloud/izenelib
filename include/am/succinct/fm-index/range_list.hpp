@@ -20,9 +20,7 @@ namespace fm_index
 
 typedef boost::tuple<size_t, size_t, double> range_type;
 typedef std::vector<range_type, boost::stl_allocator<range_type> > range_list_type;
-
-typedef struct st{size_t left, right, setid; double score;} synonym_range_type;
-typedef std::vector<synonym_range_type, boost::stl_allocator<synonym_range_type> > synonym_range_list_type;
+typedef std::vector<size_t, boost::stl_allocator<size_t> > head_list_type;
 
 namespace detail
 {
@@ -40,25 +38,14 @@ static double getPatternScore(const range_list_type &patterns)
     return score;
 }
 
-static double getSynonymPatternScore(const synonym_range_list_type &synonym_patterns)
+static double getSynonymPatternScore(const range_list_type &patterns, const head_list_type &synonyms)
 {
     double score = 0.0;
-    if (synonym_patterns.empty()) return score;
-    double tmp_score = synonym_patterns[0].score;
 
-    for (size_t i = 1; i < synonym_patterns.size(); ++i)
+    for (size_t i = 0; i < synonyms.size() - 1; ++i)
     {
-        if (synonym_patterns[i].setid != synonym_patterns[i-1].setid)
-        {
-            score += tmp_score;
-            tmp_score = synonym_patterns[i].score;
-        }
-        else if (synonym_patterns[i].score > tmp_score)
-        {
-            tmp_score = synonym_patterns[i].score;
-        }
+        score += patterns[synonyms[i]].get<2>();
     }
-    score += tmp_score;
 
     return score;
 }
@@ -434,27 +421,33 @@ public:
     SynonymPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            const synonym_range_list_type &patterns)
+            const range_list_type &patterns,
+            const head_list_type &synonyms)
         : level_(level)
         , sym_(sym)
         , node_(node)
         , patterns_(patterns)
+        , synonyms_(synonyms)
     {
-        score_ = detail::getSynonymPatternScore(patterns);
+        score_ = detail::getSynonymPatternScore(patterns, synonyms);
     }
 
     SynonymPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
             size_t pattern_count,
+            size_t synonym_count,
             boost::auto_alloc& alloc)
         : level_(level)
         , sym_(sym)
         , score_()
         , node_(node)
         , patterns_(alloc)
+        , synonyms_(alloc)
     {
         patterns_.reserve(pattern_count);
+        synonyms_.reserve(synonym_count);
+        synonyms_.push_back(0);
     }
 
     ~SynonymPatternList() {}
@@ -466,21 +459,32 @@ public:
         score_ = 0.0;
         node_ = node;
         patterns_.clear();
+        synonyms_.resize(1);
     }
-    
-    bool addPattern(const synonym_range_type &pattern)
+
+    bool addPattern(const range_type &pattern)
     {
-        if (pattern.left < pattern.right)
+        if (pattern.get<0>() < pattern.get<1>())
         {
             patterns_.push_back(pattern);
             return true;
         }
         return false;
     }
-    
+
+    bool addSynonym()
+    {
+        if (patterns_.size() > synonyms_.back())
+        {
+            synonyms_.push_back(patterns_.size());
+            return true;
+        }
+        return false;
+    }
+
     void calcScore()
     {
-        score_ = detail::getSynonymPatternScore(patterns_);
+        score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
     }
 
     bool operator<(const SynonymPatternList &rhs) const
@@ -493,7 +497,8 @@ public:
     uint64_t sym_;
     double score_;
     const WaveletTreeNode *node_;
-    synonym_range_list_type patterns_;
+    range_list_type patterns_;
+    head_list_type synonyms_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
@@ -506,7 +511,8 @@ public:
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
             const auxfilter_list_type &aux_filters,
-            const synonym_range_list_type &patterns,
+            const range_list_type &patterns,
+            const head_list_type &synonyms,
             boost::auto_alloc& alloc)
         : level_(level)
         , sym_(sym)
@@ -514,12 +520,13 @@ public:
         , node_(node)
         , aux_filters_(aux_filters)
         , patterns_(patterns)
+        , synonyms_(synonyms)
         , recyc_aux_filters_(alloc)
         , alloc_(alloc)
     {
         if (!aux_filters_.empty())
         {
-            score_ = detail::getSynonymPatternScore(patterns_);
+            score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
 //          for (size_t i = 0; i < aux_filters_.size(); ++i)
 //              score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
             recyc_aux_filters_.reserve(aux_filters_.size());
@@ -529,8 +536,9 @@ public:
     AuxFilteredSynonymPatternList(
             size_t level, uint64_t sym,
             const WaveletTreeNode *node,
-            size_t aux_filter_count, 
+            size_t aux_filter_count,
             size_t pattern_count,
+            size_t synonym_count,
             boost::auto_alloc& alloc)
         : level_(level)
         , sym_(sym)
@@ -538,11 +546,14 @@ public:
         , node_(node)
         , aux_filters_(alloc)
         , patterns_(alloc)
+        , synonyms_(alloc)
         , recyc_aux_filters_(alloc)
         , alloc_(alloc)
     {
         aux_filters_.reserve(aux_filter_count);
         patterns_.reserve(pattern_count);
+        synonyms_.reserve(synonym_count);
+        synonyms_.push_back(0);
 
         recyc_aux_filters_.reserve(aux_filter_count);
     }
@@ -570,6 +581,7 @@ public:
         recyc_aux_filters_.insert(recyc_aux_filters_.end(), aux_filters_.begin(), aux_filters_.end());
         aux_filters_.clear();
         patterns_.clear();
+        synonyms_.resize(1);
     }
 
     bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
@@ -589,17 +601,27 @@ public:
             return true;
         }
     }
-    
-    bool addPattern(const synonym_range_type &pattern)
+
+    bool addPattern(const range_type &pattern)
     {
-        if (pattern.left < pattern.right)
+        if (pattern.get<0>() < pattern.get<1>())
         {
             patterns_.push_back(pattern);
             return true;
         }
         return false;
     }
-    
+
+    bool addSynonym()
+    {
+        if (patterns_.size() > synonyms_.back())
+        {
+            synonyms_.push_back(patterns_.size());
+            return true;
+        }
+        return false;
+    }
+
     FilterList<WaveletTreeType> *getAuxFilter(
             const WaveletTreeType *tree, const WaveletTreeNode *node,
             size_t filter_count)
@@ -616,10 +638,10 @@ public:
             return filter;
         }
     }
-    
+
     void calcScore()
     {
-        score_ = detail::getSynonymPatternScore(patterns_);
+        score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
     }
 
     bool operator<(const AuxFilteredSynonymPatternList &rhs) const
@@ -633,7 +655,8 @@ public:
     double score_;
     const WaveletTreeNode *node_;
     auxfilter_list_type aux_filters_;
-    synonym_range_list_type patterns_;
+    range_list_type patterns_;
+    head_list_type synonyms_;
     auxfilter_list_type recyc_aux_filters_;
     boost::auto_alloc& alloc_;
 } __attribute__((aligned(CACHELINE_SIZE)));

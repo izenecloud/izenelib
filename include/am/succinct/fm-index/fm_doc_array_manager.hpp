@@ -140,7 +140,7 @@ public:
             size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
-            
+
     void getTopKDocIdListByFilter(
             const std::vector<size_t> &prop_id_list,
             const std::vector<FilterRangeListT> &filter_ranges,
@@ -150,7 +150,7 @@ public:
             size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
-        
+
     inline const DocArrayItemT& getFilterArrayItem(size_t prop_id) const
     {
         if (prop_id >= filter_docarray_list_.size())
@@ -463,16 +463,16 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
     if (!doc_array_item.doc_array_ptr)
         return;
     boost::auto_alloc alloc;
-    range_list_type range_list(alloc);
-    range_list.resize(raw_range_list.size());
+    range_list_type patterns(alloc);
+    patterns.resize(raw_range_list.size());
     for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        range_list[i].get<0>() = raw_range_list[i].first;
-        range_list[i].get<1>() = raw_range_list[i].second;
-        range_list[i].get<2>() = score_list[i];
+        patterns[i].get<0>() = raw_range_list[i].first;
+        patterns[i].get<1>() = raw_range_list[i].second;
+        patterns[i].get<2>() = score_list[i];
     }
 
-    doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
+    doc_array_item.doc_array_ptr->topKUnion(patterns, thres, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
 
@@ -481,6 +481,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
         // in filter doc array ,the doclen is not available
         return;
     }
+
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         doclen_list[i] = doc_array_item.doc_delim.getVal(res_list[i].second++) - 1;
@@ -506,17 +507,17 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     if (!doc_array_item.doc_array_ptr)
         return;
     boost::auto_alloc alloc;
-    range_list_type range_list(alloc);
-    range_list.resize(raw_range_list.size());
+    range_list_type patterns(alloc);
+    patterns.resize(raw_range_list.size());
     for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        range_list[i].get<0>() = raw_range_list[i].first;
-        range_list[i].get<1>() = raw_range_list[i].second;
-        range_list[i].get<2>() = score_list[i];
+        patterns[i].get<0>() = raw_range_list[i].first;
+        patterns[i].get<1>() = raw_range_list[i].second;
+        patterns[i].get<2>() = score_list[i];
     }
     if (prop_id_list.empty())
     {
-        doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnion(patterns, thres, max_docs, res_list, alloc);
     }
     else
     {
@@ -545,8 +546,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             aux_filters.push_back(aux_filter);
         }
 
-        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, range_list, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, patterns, thres, max_docs, res_list, alloc);
     }
+
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         ++res_list[i].second;
@@ -570,26 +572,22 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     const DocArrayItemT& doc_array_item = getDocArrayItem(match_index, match_in_filter);
     if (!doc_array_item.doc_array_ptr)
         return;
+
     boost::auto_alloc alloc;
-    synonym_range_list_type range_list(alloc);
+    range_list_type patterns(alloc);
+    head_list_type synonyms(alloc);
+    synonyms.push_back(0);
 
     for (size_t i = 0; i < synonym_range_list.size(); ++i)
-    {   
-        for (size_t j = 0; j < synonym_range_list[i].size(); ++j)
-        {
-            synonym_range_type tmp_range;
-            tmp_range.left = synonym_range_list[i][j].get<0>();
-            tmp_range.right = synonym_range_list[i][j].get<1>();
-            tmp_range.score = synonym_range_list[i][j].get<2>();            
-            tmp_range.setid = i;
-            range_list.push_back(tmp_range);
-        }
+    {
+        patterns.insert(patterns.end(), synonym_range_list[i].begin(), synonym_range_list[i].end());
+        synonyms.push_back(patterns.size());
     }
 
     if (prop_id_list.empty())
     {
 
-        doc_array_item.doc_array_ptr->topKUnion(range_list, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnion(patterns, synonyms, thres, max_docs, res_list, alloc);
     }
     else
     {
@@ -619,8 +617,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             aux_filters.push_back(aux_filter);
         }
 
-        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, range_list, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, patterns, synonyms, thres, max_docs, res_list, alloc);
     }
+
     for (size_t i = 0; i < res_list.size(); ++i)
     {
         ++res_list[i].second;

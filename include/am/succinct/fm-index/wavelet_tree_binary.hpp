@@ -63,22 +63,24 @@ public:
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
-            
+
     void topKUnion(
-            const synonym_range_list_type &patterns,
+            const range_list_type &patterns,
+            const head_list_type &synonyms,
             size_t thres,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc ) const;
-                    
+
     void topKUnionWithAuxFilters(
             const aux_filter_list_type &aux_filters,
-            const synonym_range_list_type &patterns,
+            const range_list_type &patterns,
+            const head_list_type &synonyms,
             size_t thres,
             size_t topK,
             std::vector<std::pair<double, char_type> > &results,
-            boost::auto_alloc& alloc) const; 
-        
+            boost::auto_alloc& alloc) const;
+
     size_t getOcc(char_type c) const;
     WaveletTreeNode *getRoot() const;
 
@@ -515,20 +517,20 @@ void WaveletTreeBinary<CharT>::topKUnion(
             recyc_queue.pop_back();
         }
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -542,18 +544,18 @@ void WaveletTreeBinary<CharT>::topKUnion(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
@@ -763,20 +765,20 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             }
         }
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -790,18 +792,18 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
@@ -1046,20 +1048,20 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -1073,18 +1075,18 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(start + pattern_it->get<0>()) - before;
-            rank_end = node->rank1(start + pattern_it->get<1>()) - before;
+            rank_start = node->rank1(start + patterns[i].get<0>()) - before;
+            rank_end = node->rank1(start + patterns[i].get<1>()) - before;
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
@@ -1184,10 +1186,10 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     }*/
 }
 
-//yy
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnion(
-        const synonym_range_list_type &patterns,
+        const range_list_type &patterns,
+        const head_list_type &synonyms,
         size_t thres,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
@@ -1198,7 +1200,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<SynonymPatternList *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, SynonymPatternList)(0, (char_type)0, nodes_[0], patterns), 0));
+    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, SynonymPatternList)(0, (char_type)0, nodes_[0], patterns, synonyms), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
@@ -1248,7 +1250,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            zero_ranges = BOOST_NEW(alloc, SynonymPatternList)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity(), alloc);
+            zero_ranges = BOOST_NEW(alloc, SynonymPatternList)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
@@ -1259,7 +1261,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, SynonymPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, SynonymPatternList)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
@@ -1267,87 +1269,68 @@ void WaveletTreeBinary<CharT>::topKUnion(
             one_ranges->reset(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_);
             recyc_queue.pop_back();
         }
-        
-        size_t pattern_count = 0;
-        synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        synonym_range_list_type::const_iterator pattern_end = top_ranges->patterns_.end();
-        for (; pattern_it != pattern_end && pattern_it->setid < thres; )
+
+        const range_list_type &patterns = top_ranges->patterns_;
+        const head_list_type &synonyms = top_ranges->synonyms_;
+
+        for (size_t i = 0; i < thres; ++i)
         {
-            size_t tmp_id = pattern_it->setid;
-            size_t zero_flag = 0;
-            size_t one_flag = 0;
-            for(; pattern_it != pattern_end && pattern_it->setid == tmp_id; ++pattern_it)
+            for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                rank_start = node->rank1(start + pattern_it->left) - before;
-                rank_end = node->rank1(start + pattern_it->right) - before;
+                rank_start = node->rank1(start + patterns[j].get<0>()) - before;
+                rank_end = node->rank1(start + patterns[j].get<1>()) - before;
 
-                if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+                if (zero_ranges)
                 {
-                    synonym_range_type tmp_range;
-                    tmp_range.left = pattern_it->left - rank_start;
-                    tmp_range.right = pattern_it->right - rank_end;
-                    tmp_range.score = pattern_it->score;
-                    tmp_range.setid = pattern_it->setid;
-                    zero_ranges->patterns_.push_back(tmp_range);
-                    zero_flag = 1;
+                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
                 }
-
-                if (one_ranges && rank_start < rank_end)
+                if (one_ranges)
                 {
-                    synonym_range_type tmp_range;
-                    tmp_range.left = rank_start;
-                    tmp_range.right = rank_end;
-                    tmp_range.score = pattern_it->score;
-                    tmp_range.setid = pattern_it->setid;
-                    one_ranges->patterns_.push_back(tmp_range);
-                    one_flag = 1;
+                    one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[j].get<2>()));
                 }
             }
-            if (zero_ranges && !zero_flag)
+
+            if (!zero_ranges->addSynonym())
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_flag)
+            if (!one_ranges->addSynonym())
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
                 if (!zero_ranges) break;
             }
         }
+
         if (!zero_ranges && !one_ranges)
         {
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        for (; pattern_it != pattern_end; ++pattern_it)
+        for (size_t i = thres; i < synonyms.size(); ++i)
         {
-            rank_start = node->rank1(start + pattern_it->left) - before;
-            rank_end = node->rank1(start + pattern_it->right) - before;
-
-            if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+            for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                synonym_range_type tmp_range;
-                tmp_range.left = pattern_it->left - rank_start;
-                tmp_range.right = pattern_it->right - rank_end;
-                tmp_range.score = pattern_it->score;
-                tmp_range.setid = pattern_it->setid;
-                zero_ranges->patterns_.push_back(tmp_range);
+                rank_start = node->rank1(start + patterns[j].get<0>()) - before;
+                rank_end = node->rank1(start + patterns[j].get<1>()) - before;
+
+                if (zero_ranges)
+                {
+                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                }
+                if (one_ranges)
+                {
+                    one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[j].get<2>()));
+                }
             }
 
-            if (one_ranges && rank_start < rank_end)
-            {
-                synonym_range_type tmp_range;
-                tmp_range.left = rank_start;
-                tmp_range.right = rank_end;
-                tmp_range.score = pattern_it->score;
-                tmp_range.setid = pattern_it->setid;
-                one_ranges->patterns_.push_back(tmp_range);
-            }
-        } 
-        
+            if (zero_ranges) zero_ranges->addSynonym();
+            if (one_ranges) one_ranges->addSynonym();
+        }
+
         if (zero_ranges)
         {
             zero_ranges->calcScore();
@@ -1444,11 +1427,11 @@ void WaveletTreeBinary<CharT>::topKUnion(
     }*/
 }
 
-//yy
 template <class CharT>
 void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         const aux_filter_list_type &aux_filters,
-        const synonym_range_list_type &patterns,
+        const range_list_type &patterns,
+        const head_list_type &synonyms,
         size_t thres,
         size_t topK,
         std::vector<std::pair<double, char_type> > &results,
@@ -1459,7 +1442,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
     size_t max_queue_size = std::max(topK, DEFAULT_TOP_K);
 
     interval_heap<std::pair<AuxFilteredSynonymPatternList<self_type> *, size_t> > ranges_heap(max_queue_size + 1);
-    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, patterns, alloc), 0));
+    ranges_heap.insert(std::make_pair(BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(0, (char_type)0, nodes_[0], aux_filters, patterns, synonyms, alloc), 0));
 
     if (ranges_heap.get_max().first->score_ == 0.0)
     {
@@ -1515,7 +1498,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            zero_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            zero_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(top_ranges->level_ + 1, top_ranges->sym_, node->left_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
@@ -1526,7 +1509,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(zero_ranges->level_, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - zero_ranges->level_), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
@@ -1590,86 +1573,67 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
         node = top_ranges->node_;
         before = node->rank1(start);
 
-        size_t pattern_count = 0;
-        synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        synonym_range_list_type::const_iterator pattern_end = top_ranges->patterns_.end();
-        for (; pattern_it != pattern_end && pattern_it->setid < thres; )
+        const range_list_type &patterns = top_ranges->patterns_;
+        const head_list_type &synonyms = top_ranges->synonyms_;
+
+        for (size_t i = 0; i < thres; ++i)
         {
-            size_t tmp_id = pattern_it->setid;
-            size_t zero_flag = 0;
-            size_t one_flag = 0;
-            for(; pattern_it != pattern_end && pattern_it->setid == tmp_id; ++pattern_it)
+            for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                rank_start = node->rank1(start + pattern_it->left) - before;
-                rank_end = node->rank1(start + pattern_it->right) - before;
+                rank_start = node->rank1(start + patterns[j].get<0>()) - before;
+                rank_end = node->rank1(start + patterns[j].get<1>()) - before;
 
-                if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+                if (zero_ranges)
                 {
-                    synonym_range_type tmp_range;
-                    tmp_range.left = pattern_it->left - rank_start;
-                    tmp_range.right = pattern_it->right - rank_end;
-                    tmp_range.score = pattern_it->score;
-                    tmp_range.setid = pattern_it->setid;
-                    zero_ranges->patterns_.push_back(tmp_range);
-                    zero_flag = 1;
+                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
                 }
-
-                if (one_ranges && rank_start < rank_end)
+                if (one_ranges)
                 {
-                    synonym_range_type tmp_range;
-                    tmp_range.left = rank_start;
-                    tmp_range.right = rank_end;
-                    tmp_range.score = pattern_it->score;
-                    tmp_range.setid = pattern_it->setid;
-                    one_ranges->patterns_.push_back(tmp_range);
-                    one_flag = 1;
+                    one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[j].get<2>()));
                 }
             }
-            if (zero_ranges && !zero_flag)
+
+            if (!zero_ranges->addSynonym())
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_flag)
+            if (!one_ranges->addSynonym())
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
                 if (!zero_ranges) break;
             }
         }
+
         if (!zero_ranges && !one_ranges)
         {
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        for (; pattern_it != pattern_end; ++pattern_it)
+        for (size_t i = thres; i < synonyms.size(); ++i)
         {
-            rank_start = node->rank1(start + pattern_it->left) - before;
-            rank_end = node->rank1(start + pattern_it->right) - before;
-
-            if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+            for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                synonym_range_type tmp_range;
-                tmp_range.left = pattern_it->left - rank_start;
-                tmp_range.right = pattern_it->right - rank_end;
-                tmp_range.score = pattern_it->score;
-                tmp_range.setid = pattern_it->setid;
-                zero_ranges->patterns_.push_back(tmp_range);
+                rank_start = node->rank1(start + patterns[j].get<0>()) - before;
+                rank_end = node->rank1(start + patterns[j].get<1>()) - before;
+
+                if (zero_ranges)
+                {
+                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                }
+                if (one_ranges)
+                {
+                    one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[j].get<2>()));
+                }
             }
 
-            if (one_ranges && rank_start < rank_end)
-            {
-                synonym_range_type tmp_range;
-                tmp_range.left = rank_start;
-                tmp_range.right = rank_end;
-                tmp_range.score = pattern_it->score;
-                tmp_range.setid = pattern_it->setid;
-                one_ranges->patterns_.push_back(tmp_range);
-            }
-        }  
-              
+            if (zero_ranges) zero_ranges->addSynonym();
+            if (one_ranges) one_ranges->addSynonym();
+        }
+
         if (zero_ranges)
         {
             zero_ranges->calcScore();

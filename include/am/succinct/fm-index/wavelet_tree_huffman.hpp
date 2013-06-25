@@ -543,20 +543,20 @@ void WaveletTreeHuffman<CharT>::topKUnion(
             recyc_queue.pop_back();
         }
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -570,18 +570,18 @@ void WaveletTreeHuffman<CharT>::topKUnion(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
@@ -788,20 +788,20 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
             }
         }
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -815,18 +815,18 @@ void WaveletTreeHuffman<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
@@ -1066,20 +1066,20 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 
         node = top_ranges->node_;
 
-        size_t pattern_count = 0;
-        range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
-        {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+        const range_list_type &patterns = top_ranges->patterns_;
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>())))
+        for (size_t i = 0; i < thres; ++i)
+        {
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
+
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -1093,18 +1093,18 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it)
+        for (size_t i = thres; i < patterns.size(); ++i)
         {
-            rank_start = node->rank1(pattern_it->get<0>());
-            rank_end = node->rank1(pattern_it->get<1>());
+            rank_start = node->rank1(patterns[i].get<0>());
+            rank_end = node->rank1(patterns[i].get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pattern_it->get<0>() - rank_start, pattern_it->get<1>() - rank_end, pattern_it->get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, pattern_it->get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start, rank_end, patterns[i].get<2>()));
             }
         }
 
