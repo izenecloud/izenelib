@@ -1179,7 +1179,6 @@ void WaveletMatrix<CharT>::topKUnion(
     size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
 
-
     while (results.size() < topK)
     {
         if (!top_queue.empty())
@@ -1234,68 +1233,82 @@ void WaveletMatrix<CharT>::topKUnion(
         
         size_t pattern_count = 0;
         synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
+        synonym_range_list_type::const_iterator pattern_end = top_ranges->patterns_.end();
+        for (; pattern_it != pattern_end && pattern_it->setid < thres; )
         {
-            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
-            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            size_t tmp_id = pattern_it->setid;
+            size_t zero_flag = 0;
+            size_t one_flag = 0;
+            for(; pattern_it != pattern_end && pattern_it->setid == tmp_id; ++pattern_it)
             {
-                rank_start = node->rank1(i->get<0>());
-                rank_end = node->rank1(i->get<1>());
-                        
-                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
-                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
-                if (rank_start < rank_end)
-                    tmp_one_range.push_back(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, i->get<2>()));
+                rank_start = node->rank1(pattern_it->left);
+                rank_end = node->rank1(pattern_it->right);
 
+                if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+                {
+                    synonym_range_type tmp_range;
+                    tmp_range.left = pattern_it->left - rank_start;
+                    tmp_range.right = pattern_it->right - rank_end;
+                    tmp_range.score = pattern_it->score;
+                    tmp_range.setid = pattern_it->setid;
+                    zero_ranges->patterns_.push_back(tmp_range);
+                    zero_flag = 1;
+                }
+
+                if (one_ranges && rank_start < rank_end)
+                {
+                    synonym_range_type tmp_range;
+                    tmp_range.left = rank_start + zero_end;
+                    tmp_range.right = rank_end + zero_end;
+                    tmp_range.score = pattern_it->score;
+                    tmp_range.setid = pattern_it->setid;
+                    one_ranges->patterns_.push_back(tmp_range);
+                    one_flag = 1;
+                }
             }
-
-            if (zero_ranges && tmp_zero_range.empty())
+            if (zero_ranges && !zero_flag)
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            else if (zero_ranges && !tmp_zero_range.empty())
-            {
-                zero_ranges->patterns_.push_back(tmp_zero_range);
-            }
-
-            if (one_ranges && tmp_one_range.empty())
+            if (one_ranges && !one_flag)
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
                 if (!zero_ranges) break;
-            }            
-            else if (one_ranges && !tmp_one_range.empty())
-            {
-                one_ranges->patterns_.push_back(tmp_one_range);
-            }                
+            }
         }
-
         if (!zero_ranges && !one_ranges)
         {
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it, ++pattern_count)
+        for (; pattern_it != pattern_end; ++pattern_it)
         {
-            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
-            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            rank_start = node->rank1(pattern_it->left);
+            rank_end = node->rank1(pattern_it->right);
+
+            if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
             {
-                rank_start = node->rank1(i->get<0>());
-                rank_end = node->rank1(i->get<1>());
-                        
-                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
-                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
-                if (rank_start < rank_end)
-                    tmp_one_range.push_back(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, i->get<2>()));
-                
+                synonym_range_type tmp_range;
+                tmp_range.left = pattern_it->left - rank_start;
+                tmp_range.right = pattern_it->right - rank_end;
+                tmp_range.score = pattern_it->score;
+                tmp_range.setid = pattern_it->setid;
+                zero_ranges->patterns_.push_back(tmp_range);
             }
-            if (zero_ranges && !tmp_zero_range.empty())
-                zero_ranges->patterns_.push_back(tmp_zero_range);
-            if (one_ranges && !tmp_one_range.empty())
-                one_ranges->patterns_.push_back(tmp_one_range);
+
+            if (one_ranges && rank_start < rank_end)
+            {
+                synonym_range_type tmp_range;
+                tmp_range.left = rank_start + zero_end;
+                tmp_range.right = rank_end + zero_end;
+                tmp_range.score = pattern_it->score;
+                tmp_range.setid = pattern_it->setid;
+                one_ranges->patterns_.push_back(tmp_range);
+            }
         }
 
         if (zero_ranges)
@@ -1521,69 +1534,84 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         size_t pattern_count = 0;
         synonym_range_list_type::const_iterator pattern_it = top_ranges->patterns_.begin();
-        for (; pattern_count != thres; ++pattern_it, ++pattern_count)
+        synonym_range_list_type::const_iterator pattern_end = top_ranges->patterns_.end();
+        for (; pattern_it != pattern_end && pattern_it->setid < thres; )
         {
-            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
-            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            size_t tmp_id = pattern_it->setid;
+            size_t zero_flag = 0;
+            size_t one_flag = 0;
+            for(; pattern_it != pattern_end && pattern_it->setid == tmp_id; ++pattern_it)
             {
-                rank_start = node->rank1(i->get<0>());
-                rank_end = node->rank1(i->get<1>());
-                        
-                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
-                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
-                if (rank_start < rank_end)
-                    tmp_one_range.push_back(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, i->get<2>()));
+                rank_start = node->rank1(pattern_it->left);
+                rank_end = node->rank1(pattern_it->right);
 
+                if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
+                {
+                    synonym_range_type tmp_range;
+                    tmp_range.left = pattern_it->left - rank_start;
+                    tmp_range.right = pattern_it->right - rank_end;
+                    tmp_range.score = pattern_it->score;
+                    tmp_range.setid = pattern_it->setid;
+                    zero_ranges->patterns_.push_back(tmp_range);
+                    zero_flag = 1;
+                }
+
+                if (one_ranges && rank_start < rank_end)
+                {
+                    synonym_range_type tmp_range;
+                    tmp_range.left = rank_start + zero_end;
+                    tmp_range.right = rank_end + zero_end;
+                    tmp_range.score = pattern_it->score;
+                    tmp_range.setid = pattern_it->setid;
+                    one_ranges->patterns_.push_back(tmp_range);
+                    one_flag = 1;
+                }
             }
-
-            if (zero_ranges && tmp_zero_range.empty())
+            if (zero_ranges && !zero_flag)
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            else if (zero_ranges && !tmp_zero_range.empty())
-            {
-                zero_ranges->patterns_.push_back(tmp_zero_range);
-            }
-
-            if (one_ranges && tmp_one_range.empty())
+            if (one_ranges && !one_flag)
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
                 if (!zero_ranges) break;
-            }            
-            else if (one_ranges && !tmp_one_range.empty())
-            {
-                one_ranges->patterns_.push_back(tmp_one_range);
-            }                
+            }
         }
-
         if (!zero_ranges && !one_ranges)
         {
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        for (; pattern_it != top_ranges->patterns_.end(); ++pattern_it, ++pattern_count)
+        for (; pattern_it != pattern_end; ++pattern_it)
         {
-            range_list_type tmp_zero_range(alloc), tmp_one_range(alloc);
-            for (range_list_type::const_iterator i = (*pattern_it).begin(); i != (*pattern_it).end(); ++i)
+            rank_start = node->rank1(pattern_it->left);
+            rank_end = node->rank1(pattern_it->right);
+
+            if (zero_ranges && pattern_it->left - rank_start < pattern_it->right - rank_end)
             {
-                rank_start = node->rank1(i->get<0>());
-                rank_end = node->rank1(i->get<1>());
-                        
-                if (i->get<0>() - rank_start < i->get<1>() - rank_end)
-                    tmp_zero_range.push_back(boost::make_tuple(i->get<0>() - rank_start, i->get<1>() - rank_end, i->get<2>()));
-                if (rank_start < rank_end)
-                    tmp_one_range.push_back(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, i->get<2>()));
-                
+                synonym_range_type tmp_range;
+                tmp_range.left = pattern_it->left - rank_start;
+                tmp_range.right = pattern_it->right - rank_end;
+                tmp_range.score = pattern_it->score;
+                tmp_range.setid = pattern_it->setid;
+                zero_ranges->patterns_.push_back(tmp_range);
             }
-            if (zero_ranges && !tmp_zero_range.empty())
-                zero_ranges->patterns_.push_back(tmp_zero_range);
-            if (one_ranges && !tmp_one_range.empty())
-                one_ranges->patterns_.push_back(tmp_one_range);
+
+            if (one_ranges && rank_start < rank_end)
+            {
+                synonym_range_type tmp_range;
+                tmp_range.left = rank_start + zero_end;
+                tmp_range.right = rank_end + zero_end;
+                tmp_range.score = pattern_it->score;
+                tmp_range.setid = pattern_it->setid;
+                one_ranges->patterns_.push_back(tmp_range);
+            }
         }
+
 
 
         if (zero_ranges)
