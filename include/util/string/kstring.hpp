@@ -462,6 +462,16 @@ class KString
         return -1;
     }
 
+    uint32_t find(int o)const
+    {
+        if (length() == 0)
+          return -1;
+        for ( uint32_t i=0; i<length();i++)
+            if (char_at(i) == o)
+                return i;
+        return -1;
+    }
+
     /**
      * @brief Replace all 'a' with 'b'
      *
