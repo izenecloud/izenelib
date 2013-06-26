@@ -759,6 +759,15 @@ struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList
     }
 };
 
+template <>
+struct less<izenelib::am::succinct::fm_index::range_type>
+{
+    bool operator()(izenelib::am::succinct::fm_index::range_type const &p1, izenelib::am::succinct::fm_index::range_type const &p2)
+    {
+        return p1.get<2>() < p2.get<2>();
+    }
+};
+
 }
 
 #endif

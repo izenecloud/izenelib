@@ -1290,13 +1290,13 @@ void WaveletTreeBinary<CharT>::topKUnion(
                 }
             }
 
-            if (!zero_ranges->addSynonym())
+            if (zero_ranges && !zero_ranges->addSynonym())
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (!one_ranges->addSynonym())
+            if (one_ranges && !one_ranges->addSynonym())
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -1310,7 +1310,7 @@ void WaveletTreeBinary<CharT>::topKUnion(
             continue;
         }
 
-        for (size_t i = thres; i < synonyms.size(); ++i)
+        for (size_t i = thres; i < synonyms.size() - 1; ++i)
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
@@ -1593,13 +1593,13 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
                 }
             }
 
-            if (!zero_ranges->addSynonym())
+            if (zero_ranges && !zero_ranges->addSynonym())
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (!one_ranges->addSynonym())
+            if (one_ranges && !one_ranges->addSynonym())
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -1613,7 +1613,7 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             continue;
         }
 
-        for (size_t i = thres; i < synonyms.size(); ++i)
+        for (size_t i = thres; i < synonyms.size() - 1; ++i)
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
