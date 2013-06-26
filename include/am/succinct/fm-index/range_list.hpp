@@ -63,6 +63,11 @@ static double getFilterScore(const range_list_type &filters)
     return score;
 }
 
+static bool range_compare(const range_type &p1, const range_type &p2)
+{
+    return p1.get<2>() > p2.get<2>();
+}
+
 }
 
 class PatternList
@@ -429,6 +434,10 @@ public:
         , patterns_(patterns)
         , synonyms_(synonyms)
     {
+        for (size_t i = 0; i < synonyms_.size() - 1; ++i)
+        {
+            std::sort(patterns_.begin() + synonyms_[i], patterns_.begin() + synonyms_[i + 1], detail::range_compare);
+        }
         score_ = detail::getSynonymPatternScore(patterns, synonyms);
     }
 
@@ -526,6 +535,10 @@ public:
     {
         if (!aux_filters_.empty())
         {
+            for (size_t i = 0; i < synonyms_.size() - 1; ++i)
+            {
+                std::sort(patterns_.begin() + synonyms_[i], patterns_.begin() + synonyms_[i + 1], detail::range_compare);
+            }
             score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
 //          for (size_t i = 0; i < aux_filters_.size(); ++i)
 //              score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
@@ -756,15 +769,6 @@ struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList
     bool operator()(pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p1, pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p2)
     {
         return *p1.first < *p2.first;
-    }
-};
-
-template <>
-struct less<izenelib::am::succinct::fm_index::range_type>
-{
-    bool operator()(izenelib::am::succinct::fm_index::range_type const &p1, izenelib::am::succinct::fm_index::range_type const &p2)
-    {
-        return p1.get<2>() < p2.get<2>();
     }
 };
 

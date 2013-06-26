@@ -578,12 +578,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     head_list_type synonyms(alloc);
     synonyms.push_back(0);
 
-    range_list_type::iterator syn_it = patterns.end();
     for (size_t i = 0; i < synonym_range_list.size(); ++i)
     {
         patterns.insert(patterns.end(), synonym_range_list[i].begin(), synonym_range_list[i].end());
-        std::sort(syn_it, patterns.end());
-        syn_it = patterns.end();
         synonyms.push_back(patterns.size());
     }
 
