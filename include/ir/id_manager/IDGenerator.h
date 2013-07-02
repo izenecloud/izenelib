@@ -534,11 +534,13 @@ inline bool UniqueIDGenerator<NameString, NameID,
 {
     mutex_.lock();
 
-    nameID = fujimap_.getInteger(nameString);
+    static NameID tmpid;
+    tmpid = fujimap_.getInteger(nameString);
 
     // If name string is found, return the id.
-    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != tmpid)
     {
+        nameID = tmpid;
         mutex_.unlock();
         return true;
     }
