@@ -421,7 +421,7 @@ void BarrelsInfo::write(Directory* pDirectory)
         pItem->setValue(str.c_str()); 
         ///add <is_inmemorybarrel></searchable>
         pItem = pBarrelItem->addElement("is_in_memory_barrel");
-        if(pBarrelInfo->getWriter() )
+        if(pBarrelInfo->isInMemoryBarrel() )
         {
             str = "yes";
         }

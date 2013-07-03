@@ -118,6 +118,7 @@ void IndexWriter::flush()
 
     pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
 
+    pCurBarrelInfo_->inMemoryBarrel = false;
     pBarrelsInfo_->write(pIndexer_->getDirectory());
 
     pIndexBarrelWriter_->reset();
@@ -177,7 +178,6 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         if (pIndexBarrelWriter_->cacheFull())
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
-            pCurBarrelInfo_->inMemoryBarrel = false;
             flush();//
             deletebinlog();
             createBarrelInfo();
@@ -322,7 +322,9 @@ void IndexWriter::setIndexMode(bool realtime)
         pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
         pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     }
-
+    
+    if (realtime && pCurBarrelInfo_)
+        pCurBarrelInfo_->inMemoryBarrel = true;
     pIndexBarrelWriter_->setIndexMode(realtime);
 }
 
