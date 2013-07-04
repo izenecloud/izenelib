@@ -11,6 +11,7 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/function.hpp>
 
 #include <queue>
 namespace izenelib {
@@ -31,6 +32,7 @@ public:
      * Wait if queue is empty
      */
     void pop(T& t);
+    void pop(T& t, boost::function<void()> after_cb);
 
     /**
      * @brief appends one element into queue
@@ -105,6 +107,23 @@ void concurrent_queue<T>::pop(T& t)
         }
         t = queue_.front();
         queue_.pop_front();
+    }
+    write_cond_.notify_one();
+}
+
+template<typename T>
+void concurrent_queue<T>::pop(T& t, boost::function<void()> after_cb)
+{
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        while (queue_.empty())
+        {
+            read_cond_.wait(lock);
+        }
+        t = queue_.front();
+        queue_.pop_front();
+        if (after_cb)
+            after_cb();
     }
     write_cond_.notify_one();
 }
