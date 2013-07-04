@@ -57,7 +57,7 @@ void IndexWriter::tryResumeExistingBarrels()
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
-        if (pBarrelInfo->isInMemoryBarrel())
+        if (pBarrelInfo->isRealTime())
         {
             pBinlogInfo = pBarrelInfo;
             continue;
@@ -143,6 +143,7 @@ void IndexWriter::createBarrelInfo()
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+    pCurBarrelInfo_->setRealTime(pIndexer_->isRealTime());
 
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
@@ -177,7 +178,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         if (pIndexBarrelWriter_->cacheFull())
         {
             DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
-            pCurBarrelInfo_->inMemoryBarrel = false;
+            pCurBarrelInfo_->setRealTime(false);
             flush();//
             deletebinlog();
             createBarrelInfo();
@@ -322,9 +323,6 @@ void IndexWriter::setIndexMode(bool realtime)
         pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
         pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     }
-    
-    if (realtime && pCurBarrelInfo_)
-        pCurBarrelInfo_->inMemoryBarrel = true;
     pIndexBarrelWriter_->setIndexMode(realtime);
 }
 

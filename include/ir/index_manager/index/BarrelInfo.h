@@ -204,7 +204,11 @@ public:
 
     bool isSearchable() { return searchable; }
 
-    bool isInMemoryBarrel() { return inMemoryBarrel; }
+    void setRealTime(bool realTime)
+    {
+        inMemoryBarrel = realTime;
+    }
+    bool isRealTime() { return inMemoryBarrel; }
 
     void registerIndexInput(IndexInput* pIndexInput);
 
