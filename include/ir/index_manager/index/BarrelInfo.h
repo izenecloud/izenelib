@@ -120,7 +120,7 @@ public:
 
     void addBaseDocID(collectionid_t colID, docid_t baseDocID)
     {
-        baseDocIDMap.insert(make_pair(colID,baseDocID));
+        baseDocIDMap[colID] = baseDocID;
     }
     /**
      * set base doc id map.
