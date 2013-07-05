@@ -187,7 +187,8 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if (pCurBarrelInfo_->getBaseDocID() == BAD_DOCID)
+    if (pCurBarrelInfo_->getBaseDocID() == BAD_DOCID ||
+        pCurBarrelInfo_->getBaseDocID() > uniqueID.docId )
         pCurBarrelInfo_->addBaseDocID(uniqueID.colId,uniqueID.docId);
 
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
@@ -200,7 +201,8 @@ void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     ///avoid of delete counting error
     BitVector* del_filter = pIndexer_->getIndexReader()->getDocFilter();
-    if(del_filter && del_filter->test(docId)) return;
+    if(del_filter && del_filter->test(docId))
+        return;
     ///Perform deletion
     pIndexer_->getIndexReader()->delDocument(colID, docId);
     pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
