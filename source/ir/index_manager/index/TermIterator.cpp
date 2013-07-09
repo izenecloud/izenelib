@@ -258,15 +258,18 @@ bool MemTermIterator::next()
             pCurTermPosting_ = NULL;
         }
 
-        pCurTermPosting_ = new MemPostingReader(pPostingWriter,*pCurTermInfo_);
         if (pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
+
+        pCurTermPosting_ = new MemPostingReader(pPostingWriter,*pCurTermInfo_);
+
         pCurTermInfo_->set(pCurTermPosting_->docFreq(),
                                         pCurTermPosting_->getCTF(),
                                         pCurTermPosting_->getMaxDocFreq(),
                                         pCurTermPosting_->lastDocID(),
                                         pCurTermPosting_->getSkipLevel(),
                                         -1,-1,0,-1,0);
+
         return true;
     }
     else return false;
