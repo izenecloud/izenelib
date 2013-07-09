@@ -526,7 +526,7 @@ class KString
     KString substr(uint32_t s, uint32_t len = -1)const
     {
         IASSERT(s < length());
-        if (length() == 0)return KString();
+        if (length() == 0 || len == 0)return KString();
         if (len == (uint32_t)-1) len = length() - s;
         IASSERT(len + s <= length());
         return KString(unicodes_()+s, unicodes_()+s+len);
