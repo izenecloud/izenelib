@@ -21,7 +21,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 ///PropertyType is the data supported to set up BTree index
-typedef boost::variant<int32_t, float, int64_t, double, String> PropertyType;
+typedef boost::variant<int32_t, float, int64_t, double, IndexPropString> PropertyType;
 
 class IndexerPropertyConfig
 {

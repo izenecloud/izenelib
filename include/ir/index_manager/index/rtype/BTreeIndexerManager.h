@@ -227,11 +227,11 @@ class madd_visitor : public boost::static_visitor<void>
 {
 public:
     
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, docid_t docid)
     {
         if(v.length()>0)
         {
-            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
             pindexer->add(v, docid);
         }
     }
@@ -250,11 +250,11 @@ class mremove_visitor : public boost::static_visitor<void>
 {
 public:
     
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, docid_t docid)
     {
         if(v.length()>0)
         {
-            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
             pindexer->remove(v, docid);
         }
     }
@@ -404,9 +404,9 @@ class mstart_equal_visitor : public boost::static_visitor<void>
 {
 public:
     
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, BitVector& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueStart(v, docs);
     }
     
@@ -420,9 +420,9 @@ public:
 class mend_equal_visitor : public boost::static_visitor<void>
 {
 public:
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, BitVector& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueEnd(v, docs);
     }
     
@@ -436,9 +436,9 @@ public:
 class msub_string_visitor : public boost::static_visitor<void>
 {
 public:
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, BitVector& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueSubString(v, docs);
     }
     

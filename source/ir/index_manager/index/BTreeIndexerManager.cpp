@@ -6,14 +6,14 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 template <>
-std::size_t BTreeIndexer<String>::convertAllValue(std::size_t maxDoc, uint32_t* & data)
+std::size_t BTreeIndexer<IndexPropString>::convertAllValue(std::size_t maxDoc, uint32_t* & data)
 {
-    boost::shared_lock<BTreeIndexer<String>::MutexType> lock(mutex_);
+    boost::shared_lock<BTreeIndexer<IndexPropString>::MutexType> lock(mutex_);
     std::size_t result = 0;
 
-    String lowKey;
+    IndexPropString lowKey;
     std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
-    std::pair<String, ValueType> kvp;
+    std::pair<IndexPropString, ValueType> kvp;
     docid_t docid = 0;
     while(term_enum->next(kvp))
     {

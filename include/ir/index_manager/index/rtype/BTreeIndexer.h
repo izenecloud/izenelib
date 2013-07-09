@@ -270,7 +270,7 @@ public:
     }
 
 
-    void getValueStart(const izenelib::util::UString& key, BitVector& docs)
+    void getValueStart(const KeyType& key, BitVector& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -280,12 +280,12 @@ public:
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
-            if (!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
+            if (!Compare<KeyType>::start_with(kvp.first, key)) break;
             decompress_(kvp.second, docs);
         }
     }
 
-    void getValueEnd(const izenelib::util::UString& key, BitVector& docs)
+    void getValueEnd(const KeyType& key, BitVector& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -295,12 +295,12 @@ public:
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
-            if (!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
+            if (!Compare<KeyType>::end_with(kvp.first, key)) continue;
             decompress_(kvp.second, docs);
         }
     }
 
-    void getValueSubString(const izenelib::util::UString& key, BitVector& docs)
+    void getValueSubString(const KeyType& key, BitVector& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -310,7 +310,7 @@ public:
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
-            if (!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
+            if (!Compare<KeyType>::contains(kvp.first, key)) continue;
             decompress_(kvp.second, docs);
         }
     }

@@ -159,29 +159,29 @@ public:
     }
 
 
-    void getValueStart(const izenelib::util::UString& key, BitVector& docs)
+    void getValueStart(const KeyType& key, BitVector& docs)
     {
         for(const_iterator it = data_.lower_bound(key); it!=data_.end();++it)
         {
-            if(!Compare<izenelib::util::UString>::start_with(it->first, key)) break;
+            if(!Compare<KeyType>::start_with(it->first, key)) break;
             valueToBitVector_(it->second, docs);
         }
     }
 
-    void getValueEnd(const izenelib::util::UString& key, BitVector& docs)
+    void getValueEnd(const KeyType& key, BitVector& docs)
     {
         for(const_iterator it = data_.begin(); it!=data_.end();++it)
         {
-            if(!Compare<izenelib::util::UString>::end_with(it->first, key)) continue;
+            if(!Compare<KeyType>::end_with(it->first, key)) continue;
             valueToBitVector_(it->second, docs);
         }
     }
 
-    void getValueSubString(const izenelib::util::UString& key, BitVector& docs)
+    void getValueSubString(const KeyType& key, BitVector& docs)
     {
         for(const_iterator it = data_.begin(); it!=data_.end();++it)
         {
-            if(!Compare<izenelib::util::UString>::contains(it->first, key)) continue;
+            if(!Compare<KeyType>::contains(it->first, key)) continue;
             valueToBitVector_(it->second, docs);
         }
     }
