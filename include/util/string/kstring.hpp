@@ -22,6 +22,7 @@
 #include "/usr/include/iconv.h"
 #include <cerrno>
 #include <string>
+#include <string.h>
 #include <cstdio>
 #include <iostream>
 
