@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(t_libcassandra t_libcassandra.cc)
 TARGET_LINK_LIBRARIES(t_libcassandra 
     cassandra
+    febird
     izene_util
     ${Thrift_LIBS} 
     ${Boost_LIBRARIES}

@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES(
 SET(libs
    aggregator
    msgpack
+   febird
    izene_util
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}

@@ -44,10 +44,10 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
    ${Boost_THREAD_LIBRARY}
    ${Boost_IOSTREAMS_LIBRARY}
    am
+   febird
    izene_util
    bz2
    ${Glog_LIBRARIES}
-   febird
    procmeminfo
    luxio
    izene_log
@@ -101,6 +101,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
   TARGET_LINK_LIBRARIES(t_app
    ${Boost_LIBRARIES}
    am
+   febird
    izene_util
    ${Glog_LIBRARIES}
     )
@@ -119,6 +120,7 @@ TARGET_LINK_LIBRARIES(t_izenesort
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
+   febird
   )
 
 ADD_EXECUTABLE(t_line_reader

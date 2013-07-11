@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES(
 SET(libs
    memcachedclient
    izene_util
+   febird
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
 )

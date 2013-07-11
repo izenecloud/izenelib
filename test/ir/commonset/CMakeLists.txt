@@ -12,6 +12,7 @@ SET(libs
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
   izene_util
+  febird
   am
 )
 

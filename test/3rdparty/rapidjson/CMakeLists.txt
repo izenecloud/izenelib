@@ -13,6 +13,7 @@ INCLUDE_DIRECTORIES(
 
 SET(libs
    izene_util
+   febird
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
 )

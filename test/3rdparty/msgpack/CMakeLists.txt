@@ -22,6 +22,7 @@ INCLUDE_DIRECTORIES(
     
 SET(libs
    msgpack
+   febird
    ${CMAKE_THREAD_LIBS_INIT}
    izene_util
    ${Boost_LIBRARIES}

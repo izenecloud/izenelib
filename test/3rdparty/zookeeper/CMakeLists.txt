@@ -17,6 +17,7 @@ SET(libs
    zookeeper
    ${Boost_LIBRARIES}
    izene_util
+   febird
    ${Glog_LIBRARIES}
 )
 
