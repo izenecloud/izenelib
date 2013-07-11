@@ -74,7 +74,7 @@ public:
     }
     void read_image(izenelib::util::UString& dat)
     {
-        dat.assign(std::string(ptr_, size_));
+        dat.assign(std::string(ptr_, size_), izenelib::util::UString::UTF_8);
     }
 };
 

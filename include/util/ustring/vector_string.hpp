@@ -826,11 +826,11 @@ public:
     /**
      *Content is initialized as a string represented std::string.
      **/
-    inline vector_string (const std::string& str)
-        :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false),systemEncodingType_(UNKNOWN) // Log : 2009.07.23
-    {
-        assign(str);
-    }
+    //inline vector_string (const std::string& str)
+    //    :length_(0), p_(NULL), str_(NULL), max_size_(0), is_attached_(false),systemEncodingType_(UNKNOWN) // Log : 2009.07.23
+    //{
+    //    assign(str);
+    //}
 
 
     /**
@@ -1693,34 +1693,34 @@ public:
     /**
      *Set a string formated by std string.
      **/
-    SelfT& assign (const std::string& str)
-    {
-        if (str.length()==0)
-        {
-            clear();
-            return *this;
-        }
+    //SelfT& assign (const std::string& str)
+    //{
+    //    if (str.length()==0)
+    //    {
+    //        clear();
+    //        return *this;
+    //    }
 
-        derefer();
+    //    derefer();
 
-//    CharT* s = (CharT*)str.c_str();
+//  //  CharT* s = (CharT*)str.c_str();
 
-        length_ = str.length()/sizeof(CharT);
-        p_ = (char*)HLmemory::hlmalloc(get_total_size(length_));
-        str_ = (CharT*)(p_+sizeof (ReferT));
+    //    length_ = str.length()/sizeof(CharT);
+    //    p_ = (char*)HLmemory::hlmalloc(get_total_size(length_));
+    //    str_ = (CharT*)(p_+sizeof (ReferT));
 
-        // for(size_t i=0; i<length_; i++)
-//       str_[i] = s[i];
+    //    // for(size_t i=0; i<length_; i++)
+//  //     str_[i] = s[i];
 
-        memcpy(str_, str.c_str(), length_*sizeof(CharT));
+    //    memcpy(str_, str.c_str(), length_*sizeof(CharT));
 
-        is_attached_ = false;
-        max_size_ = length_+1;
-        str_[length_] = '\0';
-        clear_reference();
+    //    is_attached_ = false;
+    //    max_size_ = length_+1;
+    //    str_[length_] = '\0';
+    //    clear_reference();
 
-        return *this;
-    }
+    //    return *this;
+    //}
 
     /**
      *If InputIterator is an integral type, behaves as the previous member
