@@ -152,6 +152,22 @@ BOOST_AUTO_TEST_CASE(feature_test)
     kss = KString("＋－＊／＝？");
     kss.to_dbc();
     BOOST_CHECK(kss.equals("+-*/=?"));
+
+    kss = KString(" sdfg  sdffgfghs  sdf   ");
+    kss.trim_into_1();
+    BOOST_CHECK(kss.equals(" sdfg sdffgfghs sdf "));
+
+    kss = KString("   sdfg   sdffgfghs  sdf ");
+    kss.trim_into_1();
+    BOOST_CHECK(kss.equals(" sdfg sdffgfghs sdf "));
+
+    kss = KString(" sdfg ");
+    kss.trim_into_1();
+    BOOST_CHECK(kss.equals(" sdfg "));
+
+    kss = KString("sdfg ss");
+    kss.trim_into_1();
+    BOOST_CHECK(kss.equals("sdfg ss"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
