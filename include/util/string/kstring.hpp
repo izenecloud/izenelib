@@ -625,6 +625,53 @@ class KString
         char_num_() -= t;
     }
 
+    void trim_head_tail(uint16_t space = ' ')
+    {
+        if (length() == 0 || (length()==1&&char_at(0)!=space))
+            return;
+
+        uint32_t p = 0;
+        while(p<length() && char_at(p) == space)
+            p++;
+        if (p >= length())
+        {
+            copy_on_write_(), char_num_() = 0;
+            return;
+        }
+        if (p == 0)return;
+        copy_on_write_();
+        for (uint32_t i=0;i+p<length();++i)
+            unicodes_()[i] = char_at(i+p);
+        uint32_t t = length()-p;
+        for (int32_t i=t-1; i>=0 && char_at(i)==space; --i,--t);
+        char_num_() = t;
+    }
+
+    void trim_into_1(uint16_t space = ' ')
+    {
+        uint32_t f = 0, t = 0, s = 0;
+        bool chng = false;
+        while (f < length())
+        {
+            if (char_at(f) == space)
+            {
+                if (f - s == 1){f++,s++;continue;}
+                s = f;
+            }
+
+            if (t != f && !chng)
+            {
+                copy_on_write_();
+                chng = true;
+            }
+
+            if (t != f)
+                unicodes_()[t] = char_at(f);
+            t++, f++;
+        }
+        if (chng) char_num_() = t;
+    }
+
     static KString value_of(uint32_t v)
     {
         char buf[125];
