@@ -678,6 +678,7 @@ namespace irdb
                     
                     indexer_->flush();
                     indexer_->optimizeIndex();
+                    indexer_->waitForMergeFinish();
                     DBHandlerFlush<DATA_VECTOR_TYPE, DB_VECTOR_TYPE, boost::mpl::size<DATA_VECTOR_TYPE>::value-1>::act(*this);
 
                     if(serInfo_)
