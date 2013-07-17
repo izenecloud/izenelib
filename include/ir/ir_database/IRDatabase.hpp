@@ -1117,6 +1117,7 @@ namespace irdb
                     
                     indexer_->flush();
                     indexer_->optimizeIndex();
+                    indexer_->waitForMergeFinish();
 
                     if(serInfo_)
                         serInfo_->flush();

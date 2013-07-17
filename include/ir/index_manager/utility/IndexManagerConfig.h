@@ -48,6 +48,7 @@ private:
     public:
         explicit _indexstrategy() :
                 memory_(0),
+                indexLevel_(WORDLEVEL),
                 indexDocLength_(false),
                 skipInterval_(8),
                 maxSkipLevel_(3),
