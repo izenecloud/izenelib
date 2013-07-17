@@ -24,6 +24,7 @@
 #include <string>
 #include <string.h>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 
 namespace izenelib {namespace util{
