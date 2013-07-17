@@ -638,12 +638,17 @@ class KString
             copy_on_write_(), char_num_() = 0;
             return;
         }
-        if (p == 0)return;
-        copy_on_write_();
-        for (uint32_t i=0;i+p<length();++i)
-            unicodes_()[i] = char_at(i+p);
+        if (p != 0)
+        {
+            copy_on_write_();
+            for (uint32_t i=0;i+p<length();++i)
+                unicodes_()[i] = char_at(i+p);
+        }
         uint32_t t = length()-p;
         for (int32_t i=t-1; i>=0 && char_at(i)==space; --i,--t);
+
+        if ( p == 0 && length()!= t)
+            copy_on_write_();
         char_num_() = t;
     }
 

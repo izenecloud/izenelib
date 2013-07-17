@@ -177,6 +177,10 @@ BOOST_AUTO_TEST_CASE(feature_test)
     kss.trim_head_tail();
     BOOST_CHECK(kss.equals("sdfgss"));
 
+    kss = KString("sdfh   ");
+    kss.trim_head_tail();
+    BOOST_CHECK(kss.equals("sdfh"));
+
     kss = KString("   ");
     kss.trim_head_tail();
     BOOST_CHECK(kss.length() == 0);
