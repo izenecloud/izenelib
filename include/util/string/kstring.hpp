@@ -655,7 +655,7 @@ class KString
 
     void trim_into_1(uint16_t space = ' ')
     {
-        uint32_t f = 0, t = 0, s = 0;
+        uint32_t f = 0, t = 0, s = -2;
         bool chng = false;
         while (f < length())
         {
