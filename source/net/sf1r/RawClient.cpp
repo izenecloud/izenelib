@@ -189,7 +189,7 @@ void RawClient::check_deadline()
     }
     if (deadline_.expires_at() <= deadline_timer::traits_type::now())
     {
-        LOG(INFO) << "deadline for : " << path;
+        LOG(INFO) << "deadline for " ;
         boost::system::error_code ignored_ec;
         try
         {

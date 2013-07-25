@@ -44,7 +44,8 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
     } catch (NetworkError e) {
         LOG(ERROR) << e.what();
         available.clear();
-        throw e;
+        size = 0;
+        //throw e;
     }
     
 #ifdef ENABLE_SF1_TEST  
