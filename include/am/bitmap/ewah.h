@@ -22,7 +22,6 @@
 
 #include <types.h>
 #include <util/izene_serialization.h>
-#include <common/sf1_msgpack_serialization_types.h>
 #include <3rdparty/msgpack/msgpack.hpp>
 
 NS_IZENELIB_AM_BEGIN
