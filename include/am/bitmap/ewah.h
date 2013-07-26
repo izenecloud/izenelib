@@ -22,6 +22,8 @@
 
 #include <types.h>
 #include <util/izene_serialization.h>
+#include <common/sf1_msgpack_serialization_types.h>
+#include <3rdparty/msgpack/msgpack.hpp>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -382,11 +384,14 @@ private:
     // private because does not increment the size in bits
     //inline void addEmptyWordStaticCalls(bool v);
 
-    DATA_IO_LOAD_SAVE(EWAHBoolArray, &buffer &sizeinbits &lastRLW);
 
     std::vector<uword> buffer;
     std::size_t sizeinbits;
     std::size_t lastRLW;
+
+public:
+    DATA_IO_LOAD_SAVE(EWAHBoolArray, &buffer &sizeinbits &lastRLW);
+    MSGPACK_DEFINE(buffer, sizeinbits, lastRLW);
 };
 
 /**
