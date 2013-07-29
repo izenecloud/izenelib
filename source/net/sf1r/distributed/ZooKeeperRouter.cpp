@@ -364,6 +364,8 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     {
         cur_wait_info = 0;
         LOG(INFO) << "update node data is empty, remove it." << path;
+        // remove its pool
+        removeNodeFromPools(path, rwlock);
         // remove node from topology
         updating_topology->removeNode(path);
 
@@ -373,8 +375,6 @@ ZooKeeperRouter::updateNodeData(const string& path) {
             return;
         }
 #endif
-        // remove its pool
-        removeNodeFromPools(path, rwlock);
     }
     else
     {
@@ -393,8 +393,6 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 void ZooKeeperRouter::clearSf1Nodes() {
     WriteLockT rwlock(shared_mutex);
     LOG(INFO) << "clearing SF1 node";
-    topology->clearNodes();
-    backup_topology->clearNodes();
     waiting_update_path_.clear();
     std::vector<std::string> tmp_list;
     PoolContainer::iterator it = pools.begin();
@@ -405,6 +403,9 @@ void ZooKeeperRouter::clearSf1Nodes() {
     }
     for (size_t i = 0; i < tmp_list.size(); ++i)
         removeNodeFromPools(tmp_list[i], rwlock);
+
+    topology->clearNodes();
+    backup_topology->clearNodes();
     LOG(INFO) << "clear nodes finished";
 }
 
@@ -433,6 +434,8 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     LOG(INFO) << "removing SF1 node: [" << path << "]";
     
     WriteLockT rwlock(shared_mutex);
+
+    removeNodeFromPools(path, rwlock);
     // remove node from topology
     if (removing_topology->isPresent(path))
         removing_topology->removeNode(path);
@@ -446,7 +449,6 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     }
 #endif
 
-    removeNodeFromPools(path, rwlock);
 }
 
 void ZooKeeperRouter::removeNodeFromPools(const std::string& path, WriteLockT& rwlock)
