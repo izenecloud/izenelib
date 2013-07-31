@@ -79,7 +79,7 @@ class LineReader
         ~LineReader()
         {
             if(f_)fclose(f_);
-            if (mem_)delete mem_;
+            if (mem_)delete [] mem_;
         }
 
         char* line(char* prev_line = NULL)
