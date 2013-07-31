@@ -141,6 +141,11 @@ Connection::createFile() {
         {
             outputpath = bfs::path(destination);
         }
+        else if (destination[0] == '/')
+        {
+            // the destination is a absolutive path.
+            outputpath = bfs::path(destination)/bfs::path(request.getFileName()).filename();
+        }
         else
         {
             outputpath = basedir/bfs::path(destination)/bfs::path(request.getFileName()).filename();
