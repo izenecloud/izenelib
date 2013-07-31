@@ -46,7 +46,7 @@ class LineReader
         //std::cout<<mem_<<"PPPP\n";
         char* m = mem_;
         char* la_n = NULL;
-        while(*m != 0 && m - mem_ < bytes_)
+        while(m - mem_ < bytes_ && *m != 0)
         {
             if (*m == '\n')
               *m = 0, la_n = m;
