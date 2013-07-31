@@ -104,6 +104,14 @@ public:
         return hasLocalWorker_ && wid == localWorkerId_;
     }
 
+    bool hasLocalWorker()
+    {
+        return hasLocalWorker_;
+    }
+    workerid_t getLocalWorker()
+    {
+        return localWorkerId_;
+    }
     /**
      * Send request to all workers, their results will be \b aggregated to @p out.
      *
