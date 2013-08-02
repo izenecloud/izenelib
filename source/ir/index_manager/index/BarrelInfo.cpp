@@ -639,9 +639,10 @@ void BarrelsInfo::printBarrelsInfo(Directory* pDirectory)
         std::string fileName = directory + pBarrelInfo->barrelName;
         if (boost::filesystem::exists(fileName + ".dfp"))
         {
-            LOG(INFO)<<"Barrel name: "<<pBarrelInfo->barrelName
-                    <<" Document count: "<<pBarrelInfo->nNumDocs
-                    <<" Max document number: "<<pBarrelInfo->nNumDocs
+            LOG(INFO)<<"Barrel name: "<<pBarrelInfo->barrelName << std::endl
+                    <<" Document count: "<<pBarrelInfo->nNumDocs << std::endl
+                    <<" Max document number: "<<pBarrelInfo->nNumDocs << std::endl
+                    << " Base doc : " << pBarrelInfo->getBaseDocID() << std::endl
                     <<" dfp size: "<<boost::filesystem::file_size(fileName + ".dfp")
                     <<" voc size: "<<boost::filesystem::file_size(fileName + ".voc")
                     <<" fdi size: "<<boost::filesystem::file_size(fileName + ".fdi")
