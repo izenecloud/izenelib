@@ -71,6 +71,11 @@ void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool
         size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
         assert(!fieldIndexerMap_.empty());
         size_t indexedProperties = fieldIndexerMap_.size();
+        if (indexedProperties == 0)
+        {
+            memCacheSize = 10*1024*1024;
+            return;
+        }
         memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ?
             10*1024*1024 : (memCacheSize/indexedProperties) ;
         map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
