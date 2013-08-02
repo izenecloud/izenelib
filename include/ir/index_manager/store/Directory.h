@@ -53,6 +53,8 @@ public:
     virtual void close() = 0;
 
     virtual izenelib::util::ReadWriteLock* getLock() = 0;
+
+    virtual std::string directory() {return "";}
 };
 
 

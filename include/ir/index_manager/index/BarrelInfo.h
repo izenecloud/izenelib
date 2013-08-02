@@ -375,6 +375,8 @@ public:
      */
     bool deleteDocument(collectionid_t colId, docid_t docId);
 
+    void printBarrelsInfo(Directory* pDirectory);
+
 private:
     string version;
 

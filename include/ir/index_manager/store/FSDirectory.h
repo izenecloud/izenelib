@@ -61,6 +61,11 @@ public:
     void setMMapFlag(bool flag) { mmap_ = flag;}
 
     bool isMMapEnable() { return mmap_;}
+
+    std::string directory()
+    {
+        return directoryName_;
+    }
 private:
     void create();
 private:
