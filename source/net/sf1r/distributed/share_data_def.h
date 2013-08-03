@@ -30,17 +30,23 @@ public:
         using namespace boost::interprocess;
         try
         {
-            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
-            mapped_region region(shm_obj, read_write);
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
             sharable_lock<named_upgradable_mutex> rlock(mutex);
+
+            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
+            mapped_region region(shm_obj, read_write);
 
             ret.clear();
             void *addr = region.get_address();
             size_t data_size = (*(int*)addr);
             if (data_size == 0)
                 return true;
-            izenelib::util::izene_deserialization<Sf1rSharedSlowCounterT> izdeserial((char*)addr + sizeof(int), data_size);
+            if (data_size >= MAX_SHARED_SIZE - sizeof(int))
+            {
+                LOG(ERROR) << "the data_size is larger than shared memory size :" << data_size;
+                return false;
+            }
+            izenelib::util::izene_deserialization<Sf1rSharedSlowCounterT> izdeserial((const char*)addr + sizeof(int), data_size);
             izdeserial.read_image(ret);
         }
         catch(const std::exception& e)
@@ -57,10 +63,10 @@ public:
         try
         {
             LOG(INFO) << "clearing shared memory.";
-            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
-            mapped_region region(shm_obj, read_write);
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
             scoped_lock<named_upgradable_mutex> lock(mutex);
+            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
+            mapped_region region(shm_obj, read_write);
 
             void *addr = region.get_address();
             (*(int*)addr) = 0;
@@ -78,17 +84,23 @@ public:
         using namespace boost::interprocess;
         try
         {
-            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
-            mapped_region region(shm_obj, read_write);
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
             scoped_lock<named_upgradable_mutex> lock(mutex);
+
+            shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
+            mapped_region region(shm_obj, read_write);
 
             Sf1rSharedSlowCounterT cur_shared_data;
             void *addr = region.get_address();
             size_t data_size = (*(int*)addr);
+            if (data_size >= MAX_SHARED_SIZE - sizeof(int))
+            {
+                LOG(ERROR) << "the data_size is larger than shared memory size :" << data_size;
+                return false;
+            }
             if (data_size > 0)
             {
-                izenelib::util::izene_deserialization<Sf1rSharedSlowCounterT> izdeserial((char*)addr + sizeof(int), data_size);
+                izenelib::util::izene_deserialization<Sf1rSharedSlowCounterT> izdeserial((const char*)addr + sizeof(int), data_size);
                 izdeserial.read_image(cur_shared_data);
             }
             std::pair<Sf1rSharedSlowCounterT::iterator,bool> ret;
@@ -100,9 +112,9 @@ public:
             char* buf;
             izenelib::util::izene_serialization<Sf1rSharedSlowCounterT> izs(cur_shared_data);
             izs.write_image(buf, data_size);
-            if (data_size > MAX_SHARED_SIZE)
+            if (data_size >= MAX_SHARED_SIZE - sizeof(int))
             {
-                LOG(WARNING) << "shared data is too large to write." << std::endl;
+                LOG(WARNING) << "shared data is too large to write." << data_size;
                 return false;
             }
             (*(int*)addr) = (int)data_size;
