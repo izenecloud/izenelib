@@ -278,7 +278,13 @@ void IndexWriter::optimizeIndex()
     flush();
     if(pIndexer_->isRealTime())
         deletebinlog();
+    LOG(INFO)<<"Prepare optimize";
+    pBarrelsInfo_->printBarrelsInfo(pIndexer_->pDirectory_);
     pIndexMergeManager_->optimizeIndex();
+    while (pBarrelsInfo_->getBarrelCount() > 1)
+        sleep(0);
+    LOG(INFO)<<"Finish optimize";
+    pBarrelsInfo_->printBarrelsInfo(pIndexer_->pDirectory_);
 }
 
 //void IndexWriter::lazyOptimizeIndex(int calltype)

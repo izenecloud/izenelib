@@ -625,3 +625,30 @@ bool BarrelsInfo::deleteDocument(collectionid_t colId, docid_t docId)
     DVLOG(2) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
     return false;
 }
+
+void BarrelsInfo::printBarrelsInfo(Directory* pDirectory)
+{
+    boost::mutex::scoped_lock lock(mutex_);
+
+    vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
+    LOG(INFO)<<"Print barrels info begin";
+    while (iter != barrelInfos.end())
+    {
+        BarrelInfo* pBarrelInfo = *iter;
+        std::string directory = pDirectory->directory();
+        std::string fileName = directory + pBarrelInfo->barrelName;
+        if (boost::filesystem::exists(fileName + ".dfp"))
+        {
+            LOG(INFO)<<"Barrel name: "<<pBarrelInfo->barrelName << std::endl
+                    <<" Document count: "<<pBarrelInfo->nNumDocs << std::endl
+                    <<" Max document number: "<<pBarrelInfo->nNumDocs << std::endl
+                    << " Base doc : " << pBarrelInfo->getBaseDocID() << std::endl
+                    <<" dfp size: "<<boost::filesystem::file_size(fileName + ".dfp")
+                    <<" voc size: "<<boost::filesystem::file_size(fileName + ".voc")
+                    <<" fdi size: "<<boost::filesystem::file_size(fileName + ".fdi")
+                    <<" pop size: "<<boost::filesystem::file_size(fileName + ".pop");
+        }
+        iter ++;
+    }
+    LOG(INFO)<<"Print barrels info end";
+}
