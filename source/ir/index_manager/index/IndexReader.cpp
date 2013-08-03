@@ -83,6 +83,8 @@ size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    if (!pDocLengthReader_)
+        return 0;
     return pDocLengthReader_->docLength(docId, fid);
 }
 
@@ -91,6 +93,8 @@ double IndexReader::getAveragePropertyLength(fieldid_t fid)
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+    if (!pDocLengthReader_)
+        return 0;
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
