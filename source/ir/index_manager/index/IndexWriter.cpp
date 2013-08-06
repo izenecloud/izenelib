@@ -206,7 +206,8 @@ void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
         return;
     ///Perform deletion
     pIndexer_->getIndexReader()->delDocument(colID, docId);
-    pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
+    if (pIndexer_->pBTreeIndexer_)
+        pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
     if (!pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
