@@ -77,12 +77,14 @@ void decreSlowCounterForAll()
 {
     // decrease the slow counter period.
     using namespace boost::interprocess;
+    bool is_locked = false;
     try
     {
         named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
         LOG(INFO) << "write lock begin : ";
         scoped_lock<named_upgradable_mutex> lock(mutex);
 
+        is_locked = true;
         LOG(INFO) << "write lock success.";
         shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
         mapped_region region(shm_obj, read_write);
@@ -127,6 +129,24 @@ void decreSlowCounterForAll()
     catch(const std::exception& e)
     {
         LOG(ERROR) << "write shared memory failed : " << e.what() << std::endl;
+        try
+        {
+            if (!is_locked)
+            {
+                LOG(ERROR) << "the lock may corrupt!";
+                named_upgradable_mutex::remove(SF1R_PROCESS_MUTEX_NAME);
+                named_upgradable_mutex mutex(create_only, SF1R_PROCESS_MUTEX_NAME);
+            }
+            else
+            {
+                LOG(ERROR) << "the shared memory may corrupt!";
+                shared_memory_object::remove(SF1R_PROCESS_SHARED_MEM_NAME);
+                shared_memory_object shm_obj(create_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
+                shm_obj.truncate(MAX_SHARED_SIZE);
+            }
+        }catch(const std::exception& e2){
+            LOG(ERROR) << "try fix shared memory failed: " << e2.what();
+        }
         return;
     }
 }
