@@ -177,7 +177,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
             pIndexer_->setDirty();
         if (pIndexBarrelWriter_->cacheFull())
         {
-            DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
+            LOG(INFO) << "IndexWriter::indexDocument() => realtime cache full...";
             pCurBarrelInfo_->setRealTime(false);
             flush();//
             deletebinlog();
