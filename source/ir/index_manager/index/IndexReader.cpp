@@ -216,7 +216,7 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
         pDocFilter_->set(docId);
     }
 
-    DVLOG(4) << "<= IndexReader::delDocument()";
+    LOG(WARNING) << "<= IndexReader::delDocument() failed : " << docId;
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
