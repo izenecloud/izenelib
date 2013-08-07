@@ -65,7 +65,7 @@ void BTPolicy::endMerge()
 
 void BTPolicy::triggerMerge(BTLayer* pLevel)
 {
-    DVLOG(2) << "=> BTPolicy::triggerMerge(), pLevel: " << pLevel->nLevel_;
+    LOG(INFO) << "=> BTPolicy::triggerMerge(), pLevel: " << pLevel->nLevel_;
 
     BTLayer* pLevel1 = pLevel;
     std::map<int,BTLayer*>::iterator iter2;
@@ -121,7 +121,7 @@ void BTPolicy::triggerMerge(BTLayer* pLevel)
         pLevel1->increaseMergeTimes();
     }
 
-    DVLOG(2) << "<= BTPolicy::triggerMerge()";
+    LOG(INFO) << "<= BTPolicy::triggerMerge()";
 }
 
 int BTPolicy::getLevel(int64_t nLevelSize)
