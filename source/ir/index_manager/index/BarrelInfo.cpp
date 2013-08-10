@@ -622,7 +622,7 @@ bool BarrelsInfo::deleteDocument(collectionid_t colId, docid_t docId)
         }
     }
 
-    DVLOG(2) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
+    LOG(INFO) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
     return false;
 }
 
