@@ -149,7 +149,7 @@ public:
     ~KIntegerHashTable()
     {
         delete[] nodes_;
-        delete entry_;
+        delete[] entry_;
     }
 
     void reserve(uint32_t ent_size, uint32_t element_num)
@@ -158,7 +158,7 @@ public:
         {
             uint32_t* e = new uint32_t[ent_size];
             memcpy(e, entry_, entry_size_*sizeof(uint32_t));
-            delete entry_;
+            delete[] entry_;
             entry_ = e;
             entry_size_ = ent_size;
         }
@@ -166,7 +166,7 @@ public:
         {
             node_t* n = new node_t[element_num];
             memcpy(n, nodes_, nodes_num_*sizeof(node_t));
-            delete nodes_;
+            delete[] nodes_;
             for ( uint32_t i=nodes_num_-1; i<element_num-1; ++i)
                 n[i].next() = i+1;
             nodes_ = n;
@@ -287,7 +287,7 @@ public:
         if(fread(&avai_i_, sizeof(avai_i_), 1, f)!=1)throw std::runtime_error("File read error.");
         if(fread(&size_, sizeof(size_), 1, f)!=1)throw std::runtime_error("File read error.");
 
-        delete entry_;
+        delete[] entry_;
         delete[] nodes_;
         entry_ = new uint32_t[entry_size_];
         nodes_ = new node_t[nodes_num_];
