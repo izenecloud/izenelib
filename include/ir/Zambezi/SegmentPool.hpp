@@ -150,7 +150,7 @@ private:
     uint32_t bitsPerElement_;
 
     // Segment pool
-    std::vector<std::vector<uint32_t> > pool_;
+    std::vector<uint32_t*> pool_;
 };
 
 }

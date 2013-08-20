@@ -27,6 +27,10 @@ SegmentPool::SegmentPool(
 
 SegmentPool::~SegmentPool()
 {
+    for (size_t i = 0; i <= segment_; ++i)
+    {
+        free(pool_[i]);
+    }
 }
 
 void SegmentPool::save(std::ostream& ostr) const
@@ -41,9 +45,9 @@ void SegmentPool::save(std::ostream& ostr) const
 
     for (size_t i = 0; i < segment_; ++i)
     {
-        ostr.write((const char*)&pool_[i][0], sizeof(pool_[i][0]) * MAX_POOL_SIZE);
+        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
     }
-    ostr.write((const char*)&pool_[segment_][0], sizeof(pool_[segment_][0]) * offset_);
+    ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
 void SegmentPool::load(std::istream& istr)
@@ -59,11 +63,11 @@ void SegmentPool::load(std::istream& istr)
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
-        pool_[i].resize(MAX_POOL_SIZE);
-        istr.read((char *)&pool_[i][0], sizeof(pool_[i][0]) * MAX_POOL_SIZE);
+        pool_[i] = getAlignedMemory(MAX_POOL_SIZE);
+        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
     }
-    pool_[segment_].resize(MAX_POOL_SIZE);
-    istr.read((char*)&pool_[segment_][0], sizeof(pool_[segment_][0]) * offset_);
+    pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+    istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
 bool SegmentPool::isTermFrequencyPresent() const
@@ -113,9 +117,9 @@ size_t SegmentPool::compressAndAddNonPositional(
         offset_ = 0;
     }
 
-    if (pool_[segment_].empty())
+    if (!pool_[segment_])
     {
-        pool_[segment_].resize(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -182,9 +186,9 @@ size_t SegmentPool::compressAndAddTfOnly(
         offset_ = 0;
     }
 
-    if (pool_[segment_].empty())
+    if (!pool_[segment_])
     {
-        pool_[segment_].resize(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -274,9 +278,9 @@ size_t SegmentPool::compressAndAddPositional(
         offset_ = 0;
     }
 
-    if (pool_[segment_].empty())
+    if (!pool_[segment_])
     {
-        pool_[segment_].resize(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
     }
 
     pool_[segment_][offset_] = reqspace;

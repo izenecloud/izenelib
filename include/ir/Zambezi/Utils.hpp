@@ -4,6 +4,7 @@
 #include "Consts.hpp"
 
 #include <cmath>
+#include <cstdlib>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -46,6 +47,14 @@ inline float default_bm25tf(uint32_t tf, uint32_t docLen, float avgDocLen)
 inline float default_bm25(uint32_t tf, uint32_t df, uint32_t numDocs, uint32_t docLen, float avgDocLen)
 {
     return default_bm25tf(tf, docLen, avgDocLen) * idf(numDocs, df);
+}
+
+inline uint32_t* getAlignedMemory(size_t size)
+{
+    uint32_t* block;
+    if (posix_memalign((void**)&block, 0x200000LU, size))
+        block = (uint32_t*)malloc(size);
+    return block;
 }
 
 }
