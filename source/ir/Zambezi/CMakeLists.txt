@@ -5,12 +5,11 @@ MACRO_CHECK_SHOULD_BUILD(
 
 IF(zambezi_SHOULD_BUILD)
 
-  FILE(GLOB
+  FILE(GLOB_RECURSE
     zambezi_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "*.cpp"
-    "*/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(

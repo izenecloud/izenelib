@@ -134,14 +134,6 @@ public:
      */
     bool containsDocid(uint32_t docid, size_t& pointer) const;
 
-    /**
-     * Reads postings for a term from an index stored on hard-disk,
-     * and stores it into "pool."
-     *
-     * @param pointer Head Pointer.
-     */
-    size_t readPostingsForTerm(std::istream& istr, size_t pointer);
-
 private:
     friend class InvertedIndex;
 

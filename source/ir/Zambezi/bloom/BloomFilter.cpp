@@ -33,10 +33,9 @@ bool BloomFilter::contains(const uint32_t* filter, uint32_t filterSize, uint32_t
         seed = hash(value, seed);
         uint32_t h = seed % filterSize;
         if (!(filter[h / BLOOM_FILTER_UNIT_SIZE] & 1U << (h % BLOOM_FILTER_UNIT_SIZE)))
-        {
             return false;
-        }
     }
+
     return true;
 }
 

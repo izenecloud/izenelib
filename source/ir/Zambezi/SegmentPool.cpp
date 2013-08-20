@@ -97,36 +97,15 @@ size_t SegmentPool::compressAndAddNonPositional(
         uint32_t* docid_list,
         uint32_t len, size_t tailPointer)
 {
-    uint32_t lastSegment = UNDEFINED_SEGMENT;
-    uint32_t lastOffset = 0;
-    if (tailPointer != UNDEFINED_POINTER)
-     {
-        lastSegment = DECODE_SEGMENT(tailPointer);
-        lastOffset = DECODE_OFFSET(tailPointer);
-    }
-
-    uint32_t* filter = 0;
-    uint32_t filterSize = 0;
-    if (bloomEnabled_)
-    {
-        filterSize = BloomFilter::computeLength(len, bitsPerElement_);
-        filter = (uint32_t*) calloc(filterSize, sizeof(uint32_t));
-        for (uint32_t i = 0; i < len; ++i)
-        {
-            BloomFilter::insert(filter, filterSize, nbHash_, docid_list[i]);
-        }
-    }
-
-    uint32_t maxDocId = reverse_ ? docid_list[0] : docid_list[len - 1];
-
     if (reverse_)
     {
         std::reverse(docid_list, docid_list + len - 1);
     }
 
-    uint32_t* block = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-    uint32_t csize = OPT4(docid_list, len, block, 1);
+    std::vector<uint32_t> block(BLOCK_SIZE * 2);
+    uint32_t csize = OPT4(docid_list, len, &block[0], true);
 
+    uint32_t filterSize = bloomEnabled_ ? BloomFilter::computeLength(len, bitsPerElement_) : 0;
     uint32_t reqspace = csize + filterSize + 8;
     if (reqspace > MAX_POOL_SIZE - offset_)
     {
@@ -142,23 +121,27 @@ size_t SegmentPool::compressAndAddNonPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = maxDocId;
+    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
     pool_[segment_][offset_ + 4] = csize + 7;
     pool_[segment_][offset_ + 5] = len;
+
     pool_[segment_][offset_ + 6] = csize;
+    memcpy(&pool_[segment_][offset_ + 7], &block[0], csize * sizeof(uint32_t));
 
-    memcpy(&pool_[segment_][offset_ + 7],
-            block, csize * sizeof(uint32_t));
-
-    if (filter)
+    if (bloomEnabled_)
     {
         pool_[segment_][offset_ + csize + 7] = filterSize;
-        memcpy(&pool_[segment_][offset_ + csize + 8],
-                filter, filterSize * sizeof(uint32_t));
+        uint32_t* filter = &pool_[segment_][offset_ + csize + 8];
+        for (uint32_t i = 0; i < len; ++i)
+        {
+            BloomFilter::insert(filter, filterSize, nbHash_, docid_list[i]);
+        }
     }
 
-    if (lastSegment != UNDEFINED_SEGMENT)
+    if (tailPointer != UNDEFINED_POINTER)
     {
+        uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
+        uint32_t lastOffset = DECODE_OFFSET(tailPointer);
         if (reverse_)
         {
             pool_[segment_][offset_ + 1] = lastSegment;
@@ -171,52 +154,27 @@ size_t SegmentPool::compressAndAddNonPositional(
         }
     }
 
-    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    free(block);
-    if (filter) free(filter);
-
-    return newPointer;
+    return ENCODE_POINTER(segment_, offset_);
 }
 
 size_t SegmentPool::compressAndAddTfOnly(
         uint32_t* docid_list, uint32_t* tf_list,
         uint32_t len, size_t tailPointer)
 {
-    uint32_t lastSegment = UNDEFINED_SEGMENT;
-    uint32_t lastOffset = 0;
-    if (tailPointer != UNDEFINED_POINTER)
-    {
-        lastSegment = DECODE_SEGMENT(tailPointer);
-        lastOffset = DECODE_OFFSET(tailPointer);
-    }
-
-    uint32_t* filter = 0;
-    uint32_t filterSize = 0;
-    if (bloomEnabled_)
-    {
-        filterSize = BloomFilter::computeLength(len, bitsPerElement_);
-        filter = (uint32_t*) calloc(filterSize, sizeof(uint32_t));
-        for (uint32_t i = 0; i < len; ++i)
-        {
-            BloomFilter::insert(filter, filterSize, nbHash_, docid_list[i]);
-        }
-    }
-
-    uint32_t maxDocId = reverse_ ? docid_list[0] : docid_list[len - 1];
-
     if (reverse_)
     {
         std::reverse(docid_list, docid_list + len - 1);
         std::reverse(tf_list, tf_list + len - 1);
     }
 
-    uint32_t* block = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-    uint32_t* tfblock = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-    uint32_t csize = OPT4(docid_list, len, block, 1);
-    uint32_t tfcsize = OPT4(tf_list, len, tfblock, 0);
+    std::vector<uint32_t> block(BLOCK_SIZE * 2);
+    std::vector<uint32_t> tfblock(BLOCK_SIZE * 2);
+    uint32_t csize = OPT4(docid_list, len, &block[0], true);
+    uint32_t tfcsize = OPT4(tf_list, len, &tfblock[0], false);
 
+    uint32_t filterSize = bloomEnabled_ ? BloomFilter::computeLength(len, bitsPerElement_) : 0;
     uint32_t reqspace = csize + tfcsize + filterSize + 9;
     if (reqspace > MAX_POOL_SIZE - offset_)
     {
@@ -232,27 +190,20 @@ size_t SegmentPool::compressAndAddTfOnly(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = maxDocId;
+    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
     pool_[segment_][offset_ + 4] = csize + tfcsize + 8;
     pool_[segment_][offset_ + 5] = len;
+
     pool_[segment_][offset_ + 6] = csize;
+    memcpy(&pool_[segment_][offset_ + 7], &block[0], csize * sizeof(uint32_t));
 
-    memcpy(&pool_[segment_][offset_ + 7],
-            block, csize * sizeof(uint32_t));
+    pool_[segment_][offset_ + csize + 7] = tfcsize;
+    memcpy(&pool_[segment_][offset_ + csize + 8], &tfblock[0], tfcsize * sizeof(uint32_t));
 
-    pool_[segment_][offset_ + 7 + csize] = tfcsize;
-    memcpy(&pool_[segment_][offset_ + 8 + csize],
-            tfblock, tfcsize * sizeof(uint32_t));
-
-    if (filter)
+    if (tailPointer != UNDEFINED_POINTER)
     {
-        pool_[segment_][offset_ + csize + tfcsize + 8] = filterSize;
-        memcpy(&pool_[segment_][offset_ + 9 + csize + tfcsize],
-                filter, filterSize * sizeof(uint32_t));
-    }
-
-    if (lastSegment != UNDEFINED_SEGMENT)
-    {
+        uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
+        uint32_t lastOffset = DECODE_OFFSET(tailPointer);
         if (reverse_)
         {
             pool_[segment_][offset_ + 1] = lastSegment;
@@ -265,67 +216,37 @@ size_t SegmentPool::compressAndAddTfOnly(
         }
     }
 
-    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    free(block);
-    free(tfblock);
-    if (filter) free(filter);
-
-    return newPointer;
+    return ENCODE_POINTER(segment_, offset_);
 }
 
 size_t SegmentPool::compressAndAddPositional(
         uint32_t* docid_list, uint32_t* tf_list, uint32_t* position_list,
         uint32_t len, uint32_t plen, size_t tailPointer)
 {
-    uint32_t lastSegment = UNDEFINED_SEGMENT;
-    uint32_t lastOffset = 0;
-    if (tailPointer != UNDEFINED_POINTER)
-    {
-        lastSegment = DECODE_SEGMENT(tailPointer);
-        lastOffset = DECODE_OFFSET(tailPointer);
-    }
-
-    uint32_t* filter = 0;
-    uint32_t filterSize = 0;
-    if (bloomEnabled_)
-    {
-        filterSize = BloomFilter::computeLength(len, bitsPerElement_);
-        filter = (uint32_t*) calloc(filterSize, sizeof(uint32_t));
-        for (uint32_t i = 0; i < len; ++i)
-        {
-            BloomFilter::insert(filter, filterSize, nbHash_, docid_list[i]);
-        }
-    }
-
-    uint32_t maxDocId = reverse_ ? docid_list[0] : docid_list[len - 1];
-
     if (reverse_)
     {
-        if (position_list)
-        {
-            uint32_t* rpositions = (uint32_t*) calloc(plen, sizeof(uint32_t*));
-            uint32_t curPos = plen;
-            for (uint32_t i = 0; i < len; ++i)
-            {
-                curPos -= tf_list[i];
-                memcpy(&rpositions[curPos], position_list, tf_list[i] * sizeof(uint32_t));
-                position_list += tf_list[i];
-            }
-            position_list = rpositions;
-        }
-
         std::reverse(docid_list, docid_list + len - 1);
         std::reverse(tf_list, tf_list + len - 1);
+
+        std::vector<uint32_t> rpositions(plen);
+        uint32_t curPos = plen, newPos = 0;
+        for (uint32_t i = 0; i < len; ++i)
+        {
+            curPos -= tf_list[i];
+            memcpy(&rpositions[newPos], &position_list[curPos], tf_list[i] * sizeof(uint32_t));
+            newPos += tf_list[i];
+        }
+        memcpy(position_list, &rpositions[0], plen * sizeof(uint32_t));
     }
 
     uint32_t pblocksize = 3 * (plen / BLOCK_SIZE + 1) * BLOCK_SIZE;
-    uint32_t* block = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-    uint32_t* tfblock = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-    uint32_t* pblock = (uint32_t*) calloc(pblocksize, sizeof(uint32_t));
-    uint32_t csize = OPT4(docid_list, len, block, true);
-    uint32_t tfcsize = OPT4(tf_list, len, tfblock, false);
+    std::vector<uint32_t> block(BLOCK_SIZE * 2);
+    std::vector<uint32_t> tfblock(BLOCK_SIZE * 2);
+    std::vector<uint32_t> pblock(pblocksize);
+    uint32_t csize = OPT4(docid_list, len, &block[0], true);
+    uint32_t tfcsize = OPT4(tf_list, len, &tfblock[0], false);
 
     uint32_t pcsize = 0;
     uint32_t nb = plen / BLOCK_SIZE;
@@ -345,6 +266,7 @@ size_t SegmentPool::compressAndAddPositional(
         pcsize += tempPcsize + 1;
     }
 
+    uint32_t filterSize = bloomEnabled_ ? BloomFilter::computeLength(len, bitsPerElement_) : 0;
     uint32_t reqspace = csize + tfcsize + pcsize + filterSize + 11;
     if (reqspace > MAX_POOL_SIZE - offset_)
     {
@@ -360,31 +282,34 @@ size_t SegmentPool::compressAndAddPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = maxDocId;
+    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
     pool_[segment_][offset_ + 4] = csize + tfcsize + pcsize + 10;
     pool_[segment_][offset_ + 5] = len;
+
     pool_[segment_][offset_ + 6] = csize;
+    memcpy(&pool_[segment_][offset_ + 7], &block[0], csize * sizeof(uint32_t));
 
-    memcpy(&pool_[segment_][offset_ + 7],
-            block, csize * sizeof(uint32_t));
+    pool_[segment_][offset_ + csize + 7] = tfcsize;
+    memcpy(&pool_[segment_][offset_ + csize + 8], &tfblock[0], tfcsize * sizeof(uint32_t));
 
-    pool_[segment_][offset_ + 7 + csize] = tfcsize;
-    memcpy(&pool_[segment_][offset_ + 8 + csize], tfblock, tfcsize * sizeof(uint32_t));
+    pool_[segment_][offset_ + csize + tfcsize + 8] = plen;
+    pool_[segment_][offset_ + csize + tfcsize + 9] = nb + (res ? 1 : 0);
+    memcpy(&pool_[segment_][offset_ + csize + tfcsize + 10], &pblock[0], pcsize * sizeof(uint32_t));
 
-    pool_[segment_][offset_ + 8 + csize + tfcsize] = plen;
-    pool_[segment_][offset_ + 9 + csize + tfcsize] = nb + (res ? 1 : 0);
-    memcpy(&pool_[segment_][offset_ + 10 + csize + tfcsize],
-            pblock, pcsize * sizeof(uint32_t));
-
-    if (filter)
+    if (bloomEnabled_)
     {
         pool_[segment_][offset_ + csize + tfcsize + pcsize + 10] = filterSize;
-        memcpy(&pool_[segment_][offset_ + 11 + csize + tfcsize + pcsize],
-                filter, filterSize * sizeof(uint32_t));
+        uint32_t* filter = &pool_[segment_][offset_ + csize + tfcsize + pcsize + 11];
+        for (uint32_t i = 0; i < len; ++i)
+        {
+            BloomFilter::insert(filter, filterSize, nbHash_, docid_list[i]);
+        }
     }
 
-    if (lastSegment != UNDEFINED_SEGMENT)
+    if (tailPointer != UNDEFINED_POINTER)
     {
+        uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
+        uint32_t lastOffset = DECODE_OFFSET(tailPointer);
         if (reverse_)
         {
             pool_[segment_][offset_ + 1] = lastSegment;
@@ -397,19 +322,9 @@ size_t SegmentPool::compressAndAddPositional(
         }
     }
 
-    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    if (reverse_)
-    {
-        free(position_list);
-    }
-    free(block);
-    free(tfblock);
-    free(pblock);
-    free(filter);
-
-    return newPointer;
+    return ENCODE_POINTER(segment_, offset_);
 }
 
 size_t SegmentPool::nextPointer(size_t pointer) const
@@ -565,54 +480,6 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
             &pool_[pSegment][pOffset + bloomOffset + 1],
             pool_[pSegment][pOffset + bloomOffset],
             nbHash_, docid);
-}
-
-size_t SegmentPool::readPostingsForTerm(std::istream& istr, size_t pointer)
-{
-    uint32_t sSegment = UNDEFINED_SEGMENT, ppSegment = UNDEFINED_SEGMENT;
-    uint32_t sOffset = 0, ppOffset = 0;
-    uint32_t pSegment = DECODE_SEGMENT(pointer);
-    uint32_t pOffset = DECODE_OFFSET(pointer);
-
-    while (pSegment != UNDEFINED_SEGMENT)
-    {
-        size_t pos = (pSegment * MAX_POOL_SIZE + pOffset) * 4 + 24;
-
-        istr.seekg(pos, istr.beg);
-        uint32_t reqspace = 0;
-        istr.read((char*)&reqspace, sizeof(uint32_t));
-
-        if (reqspace > MAX_POOL_SIZE - offset_)
-        {
-            ++segment_;
-            offset_ = 0;
-        }
-
-        pool_[segment_][offset_] = reqspace;
-        istr.read((char*)&pool_[segment_][offset_ + 1], sizeof(uint32_t) * (reqspace - 1));
-
-        pSegment = pool_[segment_][offset_ + 1];
-        pOffset = pool_[segment_][offset_ + 2];
-
-        if (ppSegment != UNDEFINED_SEGMENT)
-        {
-            pool_[ppSegment][ppOffset + 1] = segment_;
-            pool_[ppSegment][ppOffset + 2] = offset_;
-        }
-
-        if (sSegment == UNDEFINED_SEGMENT)
-        {
-            sSegment = segment_;
-            sOffset = offset_;
-        }
-
-        ppSegment = segment_;
-        ppOffset = offset_;
-
-        offset_ += reqspace;
-    }
-
-    return ENCODE_POINTER(sSegment, sOffset);
 }
 
 }

@@ -15,7 +15,7 @@ Dictionary::~Dictionary()
 {
 }
 
-uint32_t Dictionary::getId(const std::string& word) const
+uint32_t Dictionary::getTermId(const std::string& word) const
 {
     boost::unordered_map<std::string, uint32_t>::const_iterator it = dict_.find(word);
     if (it == dict_.end())
@@ -26,10 +26,7 @@ uint32_t Dictionary::getId(const std::string& word) const
 
 uint32_t Dictionary::insertTerm(const std::string& word)
 {
-    uint32_t& id = dict_[word];
-    if (id == 0)
-        id = dict_.size() - 1;
-    return id;
+    return dict_.insert(std::make_pair(word, dict_.size())).first->second;
 }
 
 void Dictionary::save(std::ostream& ostr) const

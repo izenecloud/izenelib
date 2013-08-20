@@ -34,9 +34,9 @@ class InvertedIndex
 {
 public:
     InvertedIndex(
-            IndexType type,
-            bool reverse, bool bloomEnabled,
-            uint32_t nbHash, uint32_t bitsPerElement);
+            IndexType type = NON_POSITIONAL,
+            bool reverse = true, bool bloomEnabled = true,
+            uint32_t nbHash = 3, uint32_t bitsPerElement = 8);
 
     ~InvertedIndex();
 

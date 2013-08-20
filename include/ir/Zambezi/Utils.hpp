@@ -18,19 +18,19 @@ namespace Zambezi
 #define GREATER_THAN_EQUAL(X,Y,R) (R == 0 ? (X >= Y) : (X <= Y))
 
 // Functions to encode/decode segment and offset values
-#define DECODE_SEGMENT(P) ((uint32_t)(P >> 32))
-#define DECODE_OFFSET(P) ((uint32_t)(P & 0xFFFFFFFF))
-#define ENCODE_POINTER(S, O) ((size_t)S << 32 | O)
+#define DECODE_SEGMENT(P) (uint32_t((P) >> 32))
+#define DECODE_OFFSET(P) (uint32_t((P) & 0xFFFFFFFF))
+#define ENCODE_POINTER(S, O) (size_t(S) << 32 | (O))
 
 // Jenkin's integer hash function
-static uint32_t hash(uint32_t val, uint32_t seed)
+inline uint32_t hash(uint32_t val, uint32_t seed)
 {
-    val = (val + seed) + (val << 12);
-    val = (val ^ 0xc761c23c) ^ (val >> 19);
-    val = (val + 0x165667b1) + (val << 5);
+    val = val + seed + (val << 12);
+    val = val ^ 0xc761c23c ^ (val >> 19);
+    val = val + 0x165667b1 + (val << 5);
     val = (val + 0xd3a2646c) ^ (val << 9);
-    val = (val + 0xfd7046c5) + (val << 3);
-    return (val ^ 0xb55a4f09) ^ (val >> 16);
+    val = val + 0xfd7046c5 + (val << 3);
+    return val ^ 0xb55a4f09 ^ (val >> 16);
 }
 
 inline float idf(uint32_t numDocs, uint32_t df)

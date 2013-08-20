@@ -19,7 +19,7 @@ public:
     ~Dictionary();
 
     /* Search hash table for given string */
-    uint32_t getId(const std::string& word) const;
+    uint32_t getTermId(const std::string& word) const;
     /* Search hash table for given string, insert if not found */
     uint32_t insertTerm(const std::string& word);
 
