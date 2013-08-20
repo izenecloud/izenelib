@@ -23,7 +23,7 @@ public:
         const WorkerRouter& router,
         const std::string& host,
         uint16_t port,
-        unsigned int threadNum = 4);
+        unsigned int threadNum = 30);
 
     ~WorkerServer();
 
