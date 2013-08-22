@@ -486,6 +486,354 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
             nbHash_, docid);
 }
 
+void SegmentPool::bwandAnd(
+        std::vector<size_t>& headPointers,
+        uint32_t hits,
+        std::vector<uint32_t>& docid_list) const
+{
+    docid_list.reserve(hits);
+
+    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
+    while (headPointers[0] != UNDEFINED_POINTER)
+    {
+        uint32_t count = decompressDocidBlock(&docid_block[0], headPointers[0]);
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            uint32_t pivot = docid_block[i];
+            bool found = true;
+            for (uint32_t j = 1; j < headPointers.size(); ++j)
+            {
+                if (headPointers[j] == UNDEFINED_POINTER)
+                    return;
+
+                if (!containsDocid(pivot, headPointers[j]))
+                {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                docid_list.push_back(pivot);
+                if (docid_list.size() >= hits)
+                    return;
+            }
+        }
+
+        headPointers[0] = nextPointer(headPointers[0]);
+    }
+}
+
+void SegmentPool::bwandOr(
+        std::vector<size_t>& headPointers,
+        const std::vector<float>& UB,
+        uint32_t hits,
+        std::vector<uint32_t>& docid_list,
+        std::vector<float>& score_list) const
+{
+    docid_list.reserve(hits);
+    score_list.reserve(hits);
+
+    std::vector<std::pair<float, uint32_t> > result_list;
+    result_list.reserve(hits);
+    std::greater<std::pair<float, uint32_t> > comparator;
+
+    float threshold = .0f;
+    float sumOfUB = .0f;
+    for (uint32_t i = 0; i < UB.size(); ++i)
+    {
+        sumOfUB += UB[i];
+    }
+
+    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
+    while (headPointers[0] != UNDEFINED_POINTER)
+    {
+        uint32_t count = decompressDocidBlock(&docid_block[0], headPointers[0]);
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            uint32_t pivot = docid_block[i];
+            float score = UB[0];
+            for (uint32_t j = 1; j < headPointers.size(); ++j)
+            {
+                if (containsDocid(pivot, headPointers[j]))
+                {
+                    score += UB[j];
+                }
+            }
+
+            if (result_list.size() < hits)
+            {
+                result_list.push_back(std::make_pair(score, pivot));
+                std::push_heap(result_list.begin(), result_list.end(), comparator);
+                if (result_list.size() == hits && (threshold = result_list[0].first) == sumOfUB)
+                    break;
+            }
+            else if (score > threshold)
+            {
+                std::pop_heap(result_list.begin(), result_list.end(), comparator);
+                result_list.back() = std::make_pair(score, pivot);
+                std::push_heap(result_list.begin(), result_list.end(), comparator);
+                if ((threshold = result_list[0].first) == sumOfUB)
+                    break;
+            }
+        }
+
+        if (result_list.size() == hits && threshold == sumOfUB)
+            break;
+
+        headPointers[0] = nextPointer(headPointers[0]);
+    }
+
+    for (uint32_t i = 0; i < result_list.size(); ++i)
+    {
+        score_list.push_back(result_list[i].first);
+        docid_list.push_back(result_list[i].second);
+    }
+}
+
+void SegmentPool::wand(
+        std::vector<size_t>& headPointers,
+        const std::vector<uint32_t>& df,
+        const std::vector<float>& UB,
+        const std::vector<uint32_t>& docLen,
+        uint32_t totalDocs,
+        float avgDocLen,
+        uint32_t hits,
+        bool hasTf,
+        std::vector<uint32_t>& docid_list,
+        std::vector<float>& score_list) const
+{
+    uint32_t len = headPointers.size();
+    std::vector<std::vector<uint32_t> > blockDocid(len);
+    std::vector<std::vector<uint32_t> > blockTf(len);
+    std::vector<uint32_t> counts(len);
+    std::vector<uint32_t> posting(len);
+    std::vector<uint32_t> mapping(len);
+    float threshold = .0f;
+
+    for (uint32_t i = 0; i < len; ++i)
+    {
+        blockDocid[i].resize(BLOCK_SIZE * 2);
+        counts[i] = decompressDocidBlock(&blockDocid[i][0], headPointers[i]);
+        if (hasTf)
+        {
+            blockTf[i].resize(BLOCK_SIZE * 2);
+            decompressTfBlock(&blockTf[i][0], headPointers[i]);
+        }
+        mapping[i] = i;
+        if (UB[i] <= threshold)
+        {
+            threshold = UB[i] - 1;
+        }
+    }
+
+    for (uint32_t i = 0; i < len - 1; ++i)
+    {
+        uint32_t least = i;
+        for (uint32_t j = i + 1; j < len; ++j)
+        {
+            if (GREATER_THAN(blockDocid[mapping[least]][0],
+                             blockDocid[mapping[j]][0],
+                             reverse_))
+            {
+                least = j;
+            }
+        }
+        std::swap(mapping[i], mapping[least]);
+    }
+
+    std::vector<std::pair<float, uint32_t> > result_list;
+    result_list.reserve(hits);
+    std::greater<std::pair<float, uint32_t> > comparator;
+
+    while (1)
+    {
+        float sum = 0;
+        uint32_t pTerm = -1;
+        uint32_t pTermIdx = -1;
+        for (uint32_t i = 0; i < len; ++i)
+        {
+            sum += UB[mapping[i]];
+            if (sum > threshold)
+            {
+                pTerm = mapping[i];
+                pTermIdx = i;
+                if (blockDocid[mapping[i]][posting[mapping[i]]] !=
+                        blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
+                {
+                    break;
+                }
+            }
+        }
+
+        if (sum == 0 || pTerm == (uint32_t)-1)
+        {
+            break;
+        }
+
+        uint32_t pivot = blockDocid[pTerm][posting[pTerm]];
+
+        if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot)
+        {
+            if (pivot != 0)
+            {
+                float score = 0;
+                if (hasTf)
+                {
+                    for (uint32_t i = 0; i <= pTermIdx; ++i)
+                    {
+                        score += default_bm25(blockTf[mapping[i]][posting[mapping[i]]],
+                                df[mapping[i]], totalDocs, docLen[pivot], avgDocLen);
+                    }
+                }
+                else
+                {
+                    score = sum;
+                }
+
+                if (score > threshold)
+                {
+                    if (result_list.size() < hits)
+                    {
+                        result_list.push_back(std::make_pair(score, pivot));
+                        std::push_heap(result_list.begin(), result_list.end(), comparator);
+                        if (result_list.size() == hits)
+                        {
+                            if (!hasTf && len == 1) break;
+                            threshold = result_list[0].first;
+                        }
+                    }
+                    else if (score > result_list[0].first)
+                    {
+                        std::pop_heap(result_list.begin(), result_list.end(), comparator);
+                        result_list.back() = std::make_pair(score, pivot);
+                        std::push_heap(result_list.begin(), result_list.end(), comparator);
+                        threshold = result_list[0].first;
+                        if (!hasTf && len == 1) break;
+                    }
+                }
+            }
+
+            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
+            {
+                uint32_t aterm = mapping[atermIdx];
+
+                if (posting[aterm] >= counts[aterm] - 1 &&
+                        nextPointer(headPointers[aterm]) == UNDEFINED_POINTER)
+                {
+                    uint32_t k = 0;
+                    for (uint32_t i = 0; i < len; ++i)
+                    {
+                        if (i != atermIdx)
+                        {
+                            mapping[k++] = mapping[i];
+                        }
+                    }
+                    --len;
+                    --atermIdx;
+                    continue;
+                }
+
+                while (LESS_THAN_EQUAL(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+                {
+                    ++posting[aterm];
+                    if (posting[aterm] > counts[aterm] - 1)
+                    {
+                        headPointers[aterm] = nextPointer(headPointers[aterm]);
+                        if (headPointers[aterm] == UNDEFINED_POINTER)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            counts[aterm] = decompressDocidBlock(&blockDocid[aterm][0], headPointers[aterm]);
+                            if (hasTf)
+                            {
+                                decompressTfBlock(&blockTf[aterm][0], headPointers[aterm]);
+                            }
+                            posting[aterm] = 0;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            uint32_t aterm = mapping[0];
+            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
+            {
+                if (df[mapping[atermIdx]] <= df[aterm] &&
+                        LESS_THAN(blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]], pivot, reverse_))
+                {
+                    uint32_t atermTemp = mapping[atermIdx];
+
+                    if (posting[atermTemp] >= counts[atermTemp] - 1 &&
+                            nextPointer(headPointers[atermTemp]) == UNDEFINED_POINTER)
+                    {
+                        uint32_t k = 0;
+                        for (uint32_t i = 0; i < len; ++i)
+                        {
+                            if (i != atermIdx)
+                            {
+                                mapping[k++] = mapping[i];
+                            }
+                        }
+                        --len;
+                        --atermIdx;
+                        continue;
+                    }
+                    aterm = atermTemp;
+                }
+            }
+
+            while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+            {
+                if (++posting[aterm] > counts[aterm] - 1)
+                {
+                    headPointers[aterm] = nextPointer(headPointers[aterm]);
+                    if (headPointers[aterm] == UNDEFINED_POINTER)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        counts[aterm] = decompressDocidBlock(&blockDocid[aterm][0], headPointers[aterm]);
+                        if (hasTf)
+                        {
+                            decompressTfBlock(&blockTf[aterm][0], headPointers[aterm]);
+                        }
+                        posting[aterm] = 0;
+                    }
+                }
+            }
+        }
+
+        for (uint32_t i = 0; i < len - 1; ++i)
+        {
+            uint32_t least = i;
+            for (uint32_t j = i + 1; j < len; ++j)
+            {
+                if (GREATER_THAN(blockDocid[mapping[least]][posting[mapping[least]]],
+                                 blockDocid[mapping[j]][posting[mapping[j]]],
+                                 reverse_))
+                {
+                    least = j;
+                }
+            }
+            std::swap(mapping[i], mapping[least]);
+        }
+    }
+
+    for (uint32_t i = 0; i < result_list.size(); ++i)
+    {
+        score_list.push_back(result_list[i].first);
+        docid_list.push_back(result_list[i].second);
+    }
+}
+
 }
 
 NS_IZENELIB_IR_END

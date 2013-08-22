@@ -12,9 +12,12 @@ namespace Zambezi
 static const uint32_t BLOCK_SIZE = 128;
 
 // Pool size
-static const size_t MAX_POOL_SIZE = 0x3FFFFFFF;
+static const size_t MAX_POOL_SIZE = 1UL << 32;
 // Number of pools in segment pool
-static const uint32_t NUMBER_OF_POOLS = 4;
+static const uint32_t NUMBER_OF_POOLS = 16;
+
+// Document Frequency cutoff
+static const uint32_t DF_CUTOFF = 9;
 // Buffer expansion rate for buffer maps
 static const uint32_t EXPANSION_RATE = 2;
 static const uint32_t MAX_BLOCK_SIZE = 4096;
@@ -27,9 +30,6 @@ static const uint32_t INVALID_ID = -1;
 
 static const uint32_t BLOOM_FILTER_UNIT_SIZE = sizeof(uint32_t) * 8;
 static const uint32_t DEFAULT_HASH_SEED = 0x7ed55d16;
-
-// Document Frequency cutoff
-static const uint32_t DF_CUTOFF = 9;
 
 // Default vocabulary size
 static const uint32_t DEFAULT_VOCAB_SIZE = 33554432;
@@ -49,11 +49,13 @@ enum IndexType
 
 enum Algorithm
 {
-  SVS = 0, // Conjunctive query evaluation using SvS
-  WAND = 1, // Disjunctive query evaluation using WAND
-  MBWAND = 2, // Disjunctive query evaluation using WAND_IDF
-  BWAND_OR = 3, // Disjunctive BWAND
-  BWAND_AND = 4, // Conjunctive BWAND
+    SVS = 0, // Conjunctive query evaluation using SvS
+    WAND = 1, // Disjunctive query evaluation using WAND
+    MBWAND = 2, // Disjunctive query evaluation using WAND_IDF
+    BWAND_OR = 3, // Disjunctive BWAND
+    BWAND_AND = 4, // Conjunctive BWAND
+    AND = 5,
+    OR = 6
 };
 
 }

@@ -134,6 +134,30 @@ public:
      */
     bool containsDocid(uint32_t docid, size_t& pointer) const;
 
+    void bwandAnd(
+            std::vector<size_t>& headPointers,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list) const;
+
+    void bwandOr(
+            std::vector<size_t>& headPointers,
+            const std::vector<float>& UB,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list,
+            std::vector<float>& score_list) const;
+
+    void wand(
+            std::vector<size_t>& headPointers,
+            const std::vector<uint32_t>& df,
+            const std::vector<float>& UB,
+            const std::vector<uint32_t>& docLen,
+            uint32_t totalDocs,
+            float avgDocLen,
+            uint32_t hits,
+            bool hasTf,
+            std::vector<uint32_t>& docid_list,
+            std::vector<float>& score_list) const;
+
 private:
     friend class InvertedIndex;
 
