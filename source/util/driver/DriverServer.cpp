@@ -23,21 +23,22 @@ DriverServer::DriverServer(
 : parent_type(bindPort, connectionFactory),
   threadPoolSize_(threadPoolSize)
 {
-    if (threadPoolSize_ == 0)
+    if (threadPoolSize_ < 2)
     {
-        // at least one thread
-        threadPoolSize_ = 1;
+        threadPoolSize_ = 2;
     }
+    DriverThreadPool::init(threadPoolSize_);
 }
 
 void DriverServer::run()
 {
     boost::thread_group threads;
-    for (std::size_t i = 0; i < threadPoolSize_; ++i)
+    for (std::size_t i = 0; i < threadPoolSize_/2; ++i)
     {
         threads.create_thread(boost::bind(&DriverServer::worker, this));
     }
     threads.join_all();
+    DriverThreadPool::stop();
 }
 
 void DriverServer::worker()

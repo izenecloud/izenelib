@@ -121,15 +121,12 @@ class DriverThreadPool
 {
 public:
     typedef boost::shared_ptr<boost::threadpool::pool> threadpool_ptr;
-    static void init(size_t slow_size, size_t normal_size);
-    static void schedule_task(const boost::threadpool::pool::task_type& task,
-        const std::string& col, bool may_slow = false);
+    static void init(size_t poolsize);
+    static void stop();
+    static void schedule_task(const boost::threadpool::pool::task_type& task);
 
 private:
-    static threadpool_ptr slow_pool_;
-    static std::vector<threadpool_ptr>  normal_pools_;
-    static size_t slow_size_;
-    static size_t normal_size_;
+    static threadpool_ptr driver_pool_;
 };
 
 class DriverConnectionFactory

@@ -46,7 +46,6 @@ public:
     bool hasValidPostingsList(uint32_t termid) const;
 
     void insertDoc(uint32_t docid, const std::vector<std::string>& term_list);
-//  void addFilter(const std::string& filter_name, const std::vector<uint32_t>& docid_list);
     void flush();
 
     void retrieval(
