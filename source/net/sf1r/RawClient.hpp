@@ -68,9 +68,10 @@ public:
      * @param id An ID for this instance (optional).
      * @throw NetworkError if cannot connect.
      */
-    RawClient(ba::io_service& service, 
-              const std::string& host, const std::string& port,
-              const size_t timeout, const std::string& id = "");
+    RawClient(ba::io_service& service, const std::string& id = "");
+
+    void do_connect(const std::string& host, const std::string& port,
+              const size_t timeout);
     
     /// Destructor.
     ~RawClient();
