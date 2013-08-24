@@ -31,8 +31,13 @@ public:
         try
         {
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
-            sharable_lock<named_upgradable_mutex> rlock(mutex);
+            sharable_lock<named_upgradable_mutex> rlock(mutex, try_to_lock);
 
+            if (!rlock.owns())
+            {
+                LOG(INFO) << "try lock failed.";
+                return false;
+            }
             shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
             mapped_region region(shm_obj, read_write);
 
@@ -64,7 +69,13 @@ public:
         {
             LOG(INFO) << "clearing shared memory.";
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
-            scoped_lock<named_upgradable_mutex> lock(mutex);
+            scoped_lock<named_upgradable_mutex> lock(mutex, try_to_lock);
+
+            if (!lock.owns())
+            {
+                LOG(INFO) << "try lock failed.";
+                return;
+            }
             shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
             mapped_region region(shm_obj, read_write);
 
@@ -85,8 +96,13 @@ public:
         try
         {
             named_upgradable_mutex mutex(open_only, SF1R_PROCESS_MUTEX_NAME);
-            scoped_lock<named_upgradable_mutex> lock(mutex);
+            scoped_lock<named_upgradable_mutex> lock(mutex, try_to_lock);
 
+            if (!lock.owns())
+            {
+                LOG(INFO) << "try lock failed.";
+                return false;
+            }
             shared_memory_object shm_obj(open_only, SF1R_PROCESS_SHARED_MEM_NAME, read_write);
             mapped_region region(shm_obj, read_write);
 
