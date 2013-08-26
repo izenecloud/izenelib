@@ -86,7 +86,20 @@ void WorkerServer::join()
 
 void handler_wrapper(WorkerHandlerBase* handler, msgpack::rpc::request& req)
 {
-    handler->invoke(req);
+    try
+    {
+        handler->invoke(req);
+    }
+    catch (const msgpack::type_error& e)
+    {
+        std::cerr << "[WorkerServer] " << e.what() << std::endl;
+        req.error(msgpack::rpc::ARGUMENT_ERROR);
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "[WorkerServer] " << e.what() << std::endl;
+        req.error(std::string(e.what()));
+    }
 }
 
 void WorkerServer::dispatch(msgpack::rpc::request req)
