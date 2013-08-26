@@ -107,8 +107,6 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
     }
 
     pointers_.setDocLen(docid, term_list.size());
-    pointers_.totalDocLen_ += term_list.size();
-    ++pointers_.totalDocs_;
 
     for (std::set<uint32_t>::const_iterator it = uniqueTerms.begin();
             it != uniqueTerms.end(); ++it)

@@ -71,6 +71,8 @@ public:
     inline void setDocLen(uint32_t docid, uint32_t docLen)
     {
         docLen_.set(docid, docLen);
+        totalDocLen_ += docLen;
+        ++totalDocs_;
     }
 
     inline uint32_t getMaxTf(uint32_t term) const
@@ -109,6 +111,7 @@ private:
 
 private:
     friend class InvertedIndex;
+    friend class NewInvertedIndex;
 
     uint32_t totalDocs_;
     size_t totalDocLen_;

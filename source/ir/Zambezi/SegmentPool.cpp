@@ -103,7 +103,7 @@ size_t SegmentPool::compressAndAddNonPositional(
 {
     if (reverse_)
     {
-        std::reverse(docid_list, docid_list + len - 1);
+        std::reverse(docid_list, docid_list + len);
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
@@ -169,8 +169,8 @@ size_t SegmentPool::compressAndAddTfOnly(
 {
     if (reverse_)
     {
-        std::reverse(docid_list, docid_list + len - 1);
-        std::reverse(tf_list, tf_list + len - 1);
+        std::reverse(docid_list, docid_list + len);
+        std::reverse(tf_list, tf_list + len);
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
@@ -231,8 +231,8 @@ size_t SegmentPool::compressAndAddPositional(
 {
     if (reverse_)
     {
-        std::reverse(docid_list, docid_list + len - 1);
-        std::reverse(tf_list, tf_list + len - 1);
+        std::reverse(docid_list, docid_list + len);
+        std::reverse(tf_list, tf_list + len);
 
         std::vector<uint32_t> rpositions(plen);
         uint32_t curPos = plen, newPos = 0;

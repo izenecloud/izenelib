@@ -16,9 +16,9 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-void pack(uint32_t *v, uint32_t b, uint32_t n, uint32_t *w);
+static void pack(uint32_t *v, uint32_t b, uint32_t n, uint32_t *w);
 
-int detailed_p4_encode(uint32_t **w, uint32_t *p, uint32_t num , uint32_t *chunk_size, uint32_t *exception_n)
+static int detailed_p4_encode(uint32_t **w, uint32_t *p, uint32_t num , uint32_t *chunk_size, uint32_t *exception_n)
 {
     uint32_t b = cnum[num];
     int p_low;
@@ -98,7 +98,7 @@ int detailed_p4_encode(uint32_t **w, uint32_t *p, uint32_t num , uint32_t *chunk
 }
 
 
-void pack(uint32_t *v, uint32_t b, uint32_t n, uint32_t *w)
+static void pack(uint32_t *v, uint32_t b, uint32_t n, uint32_t *w)
 {
     for (uint32_t bp = 0, i = 0; i < n; ++i, bp += b)
     {
@@ -116,7 +116,7 @@ void pack(uint32_t *v, uint32_t b, uint32_t n, uint32_t *w)
 }
 
 /*modified p4decode */
-const uint32_t *detailed_p4_decode(uint32_t *_p, const uint32_t *_w, uint32_t *all_array, bool delta, bool reverse)
+static const uint32_t *detailed_p4_decode(uint32_t *_p, const uint32_t *_w, uint32_t *all_array, bool delta, bool reverse)
 {
 
     int flag = _w[0];
