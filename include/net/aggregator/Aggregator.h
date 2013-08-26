@@ -104,6 +104,10 @@ public:
         return hasLocalWorker_ && wid == localWorkerId_;
     }
 
+    bool isReadOnly()
+    {
+        return is_readonly_;
+    }
     bool hasLocalWorker()
     {
         return hasLocalWorker_;
@@ -219,7 +223,7 @@ public:
 protected:
     session_t getMsgPackSession_(const WorkerSessionPtr& workerSessionPtr);
 
-    WorkerSessionPtr getWorkerSessionById_(const workerid_t workerid) const;
+    WorkerSessionPtr getWorkerSessionById_(const workerid_t workerid, size_t ro_index) const;
 
     void printWorkerError_(workerid_t workerid, const char* error) const;
 
@@ -242,12 +246,15 @@ protected:
 protected:
     bool debug_;
 
+    bool is_readonly_;
     bool hasLocalWorker_;
     workerid_t localWorkerId_; // available when hasLocalWorker is true
 
     boost::scoped_ptr<MergerProxy> mergerProxy_;
     boost::scoped_ptr<LocalWorkerProxy> localWorkerProxy_;
 
+    size_t ro_index_;
+    std::map<workerid_t, std::vector<WorkerSessionPtr> > ro_workers_;
     std::vector<workerid_t> workeridList_;
     std::vector<WorkerSessionPtr> workerSessionList_;
 
@@ -268,6 +275,7 @@ Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
     const std::string& collection)
 : AggregatorBase(service, collection)
 , debug_(false)
+, is_readonly_(false)
 , hasLocalWorker_(false)
 , localWorkerId_(0)
 , mergerProxy_(mergerProxy)
@@ -281,7 +289,8 @@ void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const Aggreg
 {
     ScopedWriteLock lock(mutex_);
 
-    if (!force_update && timeout_ == aggregatorConfig.getTimeout())
+    is_readonly_ = aggregatorConfig.isReadOnly();
+    if (!is_readonly_ && !force_update && timeout_ == aggregatorConfig.getTimeout())
     {
         const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
         bool need_reset = false;
@@ -336,12 +345,30 @@ void Aggregator<MergerProxy, LocalWorkerProxy>::setAggregatorConfig(const Aggreg
 
     workeridList_.clear();
     workerSessionList_.clear();
+    ro_workers_.clear();
     hasLocalWorker_ = false;
     localWorkerId_ = 0;
     timeout_ = aggregatorConfig.getTimeout();
     sessionPool_.reset(new session_pool_t);
     sessionPool_->start(aggregatorConfig.getSessionPoolThreadNum());
 
+    if (is_readonly_)
+    {
+        // read only worker list is used for the master node without local worker.
+        // So that the master can balance the load over all remote workers.
+        // If the node work as local worker, it should not set read only worker list.
+        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getReadOnlyWorkerList();
+        for (size_t i = 0; i < workerSrvList.size(); i ++)
+        {
+            const WorkerServerInfo& workerSrv = workerSrvList[i];
+            // create worker session (client)
+            WorkerSessionPtr workerSession(
+                new WorkerSession(workerSrv.host_, workerSrv.port_, workerSrv.workerid_));
+            ro_workers_[workerSrv.workerid_].push_back(workerSession);
+        }
+        ro_index_ = 0;
+        return;
+    }
     const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
     for (size_t i = 0; i < workerSrvList.size(); i ++)
     {
@@ -422,6 +449,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
     Out* pLocalOut = NULL;
     worker_future_list_t futureList;
 
+    ++ro_index_;
     for (std::size_t i = 0; i < requestGroup.workeridList_.size(); ++i)
     {
         workerid_t workerid = requestGroup.workeridList_[i];
@@ -438,7 +466,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequest(
             continue;
         }
 
-        WorkerSessionPtr workerSession = getWorkerSessionById_(workerid);
+        WorkerSessionPtr workerSession = getWorkerSessionById_(workerid, ro_index_);
         if (!workerSession)
         {
             std::cout << "#[Aggregator] Error: not found worker" << workerid << std::endl;
@@ -570,8 +598,22 @@ session_t Aggregator<MergerProxy, LocalWorkerProxy>::getMsgPackSession_(const Wo
 }
 
 template <class MergerProxy, class LocalWorkerProxy>
-WorkerSessionPtr Aggregator<MergerProxy, LocalWorkerProxy>::getWorkerSessionById_(const workerid_t workerid) const
+WorkerSessionPtr Aggregator<MergerProxy, LocalWorkerProxy>::getWorkerSessionById_(const workerid_t workerid, size_t ro_index) const
 {
+    if (is_readonly_)
+    {
+        for (std::map<workerid_t, std::vector<WorkerSessionPtr> >::const_iterator cit = ro_workers_.begin();
+            cit != ro_workers_.end(); ++cit)
+        {
+            if (cit->first == workerid)
+            {
+                if (!cit->second.empty())
+                    return cit->second[ro_index % cit->second.size()];
+                break;
+            }
+        }
+        return WorkerSessionPtr();
+    }
     for (size_t i = 0; i < workerSessionList_.size(); i++)
     {
         if (workerid == workerSessionList_[i]->getWorkerId())
@@ -586,7 +628,7 @@ void Aggregator<MergerProxy, LocalWorkerProxy>::printWorkerError_(workerid_t wor
 {
     std::cerr << "#[Aggregator] Got error (" << error << ") from worker" << workerid;
 
-    WorkerSessionPtr workerSession = getWorkerSessionById_(workerid);
+    WorkerSessionPtr workerSession = getWorkerSessionById_(workerid, ro_index_);
     if (workerSession)
     {
         const ServerInfo& workerSrv = workerSession->getServerInfo();
@@ -611,17 +653,36 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
                   << "[" << param.identity_ << "]" << std::endl;
     }
 
-    if (workerSessionList_.empty())
-        std::cout << "#[Aggregator] no remote worker(s)." << std::endl;
-
     worker_future_list_t futureList;
-    for (worker_const_iterator_t workerIt = workerSessionList_.begin();
-        workerIt != workerSessionList_.end(); ++workerIt)
+    if (is_readonly_)
     {
-        workerid_t workerid = (*workerIt)->getWorkerId();
-        session_t session = getMsgPackSession_(*workerIt);
-        future_t future = param.getFuture(session);
-        futureList.push_back(worker_future_pair_t(workerid, future));
+        ++ro_index_;
+        for (std::map<workerid_t, std::vector<WorkerSessionPtr> >::const_iterator cit = ro_workers_.begin();
+            cit != ro_workers_.end(); ++cit)
+        {
+            if (cit->second.empty())
+            {
+                std::cout << __FUNCTION__ << ":" << __LINE__ << ", one of worker id missing : " << cit->first;
+                continue;
+            }
+            session_t session = getMsgPackSession_(cit->second[ro_index_ % cit->second.size()]);
+            future_t future = param.getFuture(session);
+            futureList.push_back(worker_future_pair_t(cit->first, future));
+        }
+    }
+    else
+    {
+        if (workerSessionList_.empty())
+            std::cout << "#[Aggregator] no remote worker(s)." << std::endl;
+
+        for (worker_const_iterator_t workerIt = workerSessionList_.begin();
+            workerIt != workerSessionList_.end(); ++workerIt)
+        {
+            workerid_t workerid = (*workerIt)->getWorkerId();
+            session_t session = getMsgPackSession_(*workerIt);
+            future_t future = param.getFuture(session);
+            futureList.push_back(worker_future_pair_t(workerid, future));
+        }
     }
 
     typedef typename AggregatorParamT::out_type Out;
@@ -664,7 +725,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::singleRequestImpl_(
         return false;
     }
 
-    WorkerSessionPtr workerSession = getWorkerSessionById_(workerid);
+    WorkerSessionPtr workerSession = getWorkerSessionById_(workerid, ++ro_index_);
     if (!workerSession)
     {
         std::cout << "#[Aggregator] Error: not found worker" << workerid << std::endl;
