@@ -1,5 +1,4 @@
 #include <ir/Zambezi/InvertedIndex.hpp>
-#include <ir/Zambezi/intersection/Algorithms.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
 NS_IZENELIB_IR_BEGIN
@@ -417,7 +416,7 @@ void InvertedIndex::retrieval(
         {
             UB[i] = idf(pointers_.totalDocs_, qdf[i]);
         }
-        Intersection::bwandOr(pool_, qHeadPointers, UB, hits, docid_list, score_list);
+        pool_.bwandOr(qHeadPointers, UB, hits, docid_list, score_list);
     }
     else if (algorithm == BWAND_AND)
     {
@@ -425,41 +424,46 @@ void InvertedIndex::retrieval(
         {
             hits = minimumDf;
         }
-        Intersection::bwandAnd(pool_, qHeadPointers, hits, docid_list);
+        pool_.bwandAnd(qHeadPointers, hits, docid_list);
     }
-//  else if (algorithm == WAND || algorithm == MBWAND)
-//  {
-//      std::vector<float> UB(qlen);
-//      for (i = 0; i < qlen; ++i)
-//      {
-//          if (algorithm == WAND)
-//          {
-//              UB[i] = default_bm25(
-//                      pointers_.getMaxTf(queries[sortedDfIndex[i]]),
-//                      qdf[i],
-//                      pointers_.totalDocs_,
-//                      pointers_.getMaxTfDocLen(queries[sortedDfIndex[i]]),
-//                      pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
-//          }
-//          else
-//          {
-//              UB[i] = idf(pointers_.totalDocs_, qdf[i]);
-//          }
-//      }
-//      Intersection::wand(
-//              pool_, qHeadPointers, qdf, UB, qlen,
-//              pointers_.docLen_,
-//              pointers_.totalDocs_,
-//              pointers_.totalDocLen_ / (float)pointers_.totalDocs_,
-//              hits, algorithm == MBWAND, docid_list, score_list);
-//  }
+    else if (algorithm == WAND || algorithm == MBWAND)
+    {
+        std::vector<float> UB(qlen);
+        for (uint32_t i = 0; i < qlen; ++i)
+        {
+            if (algorithm == WAND)
+            {
+                UB[i] = default_bm25(
+                        pointers_.getMaxTf(queries[sortedDfIndex[i]]),
+                        qdf[i],
+                        pointers_.totalDocs_,
+                        pointers_.getMaxTfDocLen(queries[sortedDfIndex[i]]),
+                        pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
+            }
+            else
+            {
+                UB[i] = idf(pointers_.totalDocs_, qdf[i]);
+            }
+        }
+        pool_.wand(
+                qHeadPointers,
+                qdf,
+                UB,
+                pointers_.docLen_.counter_,
+                pointers_.totalDocs_,
+                pointers_.totalDocLen_ / (float)pointers_.totalDocs_,
+                hits,
+                algorithm == WAND,
+                docid_list,
+                score_list);
+    }
 //  else if (algorithm == SVS)
 //  {
 //      if (!hitsSpecified)
 //      {
 //          hits = minimumDf;
 //      }
-//      Intersection::intersectSvS(pool_, qHeadPointers, qlen, minimumDf, hits, docid_list);
+//      pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
 //  }
 }
 

@@ -31,10 +31,10 @@ BOOST_AUTO_TEST_CASE(constructor) {
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
     PoolFactory factory(service, conf);
-    BOOST_CHECK_THROW(factory.newConnectionPool("somewhere"), NetworkError);
+    BOOST_CHECK_THROW(factory.newConnectionPool("somewhere")->acquire(), NetworkError);
     
     Sf1Node node("/test/path","collection#foo$dataport#18121$baport#18181$masterport#18131$host#somewhere");
-    BOOST_CHECK_THROW(factory.newConnectionPool(node), NetworkError);
+    BOOST_CHECK_THROW(factory.newConnectionPool(node)->acquire(), NetworkError);
 }
 
 

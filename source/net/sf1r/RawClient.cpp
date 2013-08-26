@@ -46,36 +46,17 @@ RawClient::idSequence = 0;
 
 
 RawClient::RawClient(ba::io_service& service, 
-                     const std::string& host, const std::string& port,
-                     const size_t timeout, const string& zkpath) 
+                     const string& zkpath) 
         : socket(service), deadline_(service), io_service_(service),
         status(Idle), is_aborted_(false), path(zkpath), id(++idSequence) {
     try {
         deadline_.expires_at(boost::posix_time::pos_infin);
-
-        DLOG(INFO) << "configuring socket ...";
-        // TODO: windows?
-        struct timeval tv;
-        tv.tv_sec = timeout;
-        tv.tv_usec = 0;
-        setsockopt(socket.native(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof (tv));
-        setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof (tv));
-        
-        DLOG(INFO) << "connecting to [" << host << ":" << port << "] (" << id << ") ...";
-        connect_with_timeout(host, port);
-        
-        DLOG(INFO) << "connected (" << id << ")";
     } catch (bs::system_error& e) {
-        status = Invalid;
-        LOG(ERROR) << "create rawclient error";
-        LOG(ERROR) << e.what();
-        throw NetworkError(e.what());
     }
 
     CHECK_EQ(Idle, status) << "not Idle (" << id << ")";
     DLOG(INFO) << "Correctly instantiated (" << id << ")";
 }
-
 
 RawClient::~RawClient() {
     //clear_timeout();
@@ -93,6 +74,30 @@ RawClient::~RawClient() {
     }
     
     LOG(INFO) << "Correctly destroyed (" << id << ")";
+}
+
+void RawClient::do_connect(const std::string& host, const std::string& port,
+    const size_t timeout)
+{
+    try {
+        DLOG(INFO) << "configuring socket ...";
+        // TODO: windows?
+        struct timeval tv;
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
+        setsockopt(socket.native(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof (tv));
+        setsockopt(socket.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof (tv));
+
+        DLOG(INFO) << "connecting to [" << host << ":" << port << "] (" << id << ") ...";
+        connect_with_timeout(host, port);
+
+        DLOG(INFO) << "connected (" << id << ")";
+    } catch (bs::system_error& e) {
+        status = Invalid;
+        LOG(ERROR) << "create rawclient error";
+        LOG(ERROR) << e.what();
+        throw NetworkError(e.what());
+    }
 }
 
 void async_cb(const bs::error_code& error, std::size_t bytes, bs::error_code* ret_ec)

@@ -34,7 +34,7 @@ class LineReader
 {
     FILE* f_;
     char* mem_;
-    uint32_t bytes_;
+    uint64_t bytes_;
 
     bool next_block_()
     {
@@ -46,7 +46,7 @@ class LineReader
         //std::cout<<mem_<<"PPPP\n";
         char* m = mem_;
         char* la_n = NULL;
-        while(m - mem_ < bytes_ && *m != 0)
+        while((uint64_t)(m - mem_) < bytes_ && *m != 0)
         {
             if (*m == '\n')
               *m = 0, la_n = m;
@@ -56,7 +56,7 @@ class LineReader
         if (m == mem_ && ::feof(f_))
           return false;
 
-        if (m-mem_<bytes_ || ::feof(f_))
+        if ((uint64_t)(m-mem_)<bytes_ || ::feof(f_))
           return true;
 
         IASSERT(la_n != NULL);
@@ -66,7 +66,7 @@ class LineReader
         return true;
     }
     public:
-        LineReader(const std::string& nm, uint32_t buf_size = 1000000)
+        LineReader(const std::string& nm, uint64_t buf_size = 1000000)
         {
             f_ = fopen(nm.c_str(), "r");
             if (!f_)

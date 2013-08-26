@@ -36,8 +36,8 @@ void test_delete_pool(ConnectionPool* pool)
 }
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", timeout, 3), NetworkError);
-    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", timeout, 3), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", timeout, 3).acquire(), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", timeout, 3).acquire(), NetworkError);
     try
     {
     std::cout << "creating in thread : " << pthread_self() << std::endl;
