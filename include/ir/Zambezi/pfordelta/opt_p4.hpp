@@ -9,9 +9,9 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-uint32_t findBestB(uint32_t* docid)
+static uint32_t findBestB(uint32_t* docid)
 {
-    uint32_t bits[16] = {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 65535, 1048575};
+    static const uint32_t bits[16] = {0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 65535, 1048575};
     uint32_t offset[17] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     for (uint32_t i = 0; i < BLOCK_SIZE; ++i)
@@ -49,7 +49,7 @@ uint32_t findBestB(uint32_t* docid)
     return bestB;
 }
 
-uint32_t OPT4(uint32_t *doc_id, uint32_t list_size, uint32_t *aux, bool delta)
+static uint32_t OPT4(uint32_t *doc_id, uint32_t list_size, uint32_t *aux, bool delta)
 {
     uint32_t size = 0;
     uint32_t ex_n = 0;
