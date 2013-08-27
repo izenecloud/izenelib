@@ -106,6 +106,8 @@ size_t SegmentPool::compressAndAddNonPositional(
         std::reverse(docid_list, docid_list + len);
     }
 
+    uint32_t maxDocId = docid_list[len - 1];
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     uint32_t csize = OPT4(docid_list, len, &block[0], true);
 
@@ -125,7 +127,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
+    pool_[segment_][offset_ + 3] = maxDocId;
     pool_[segment_][offset_ + 4] = csize + 7;
     pool_[segment_][offset_ + 5] = len;
 
@@ -173,6 +175,8 @@ size_t SegmentPool::compressAndAddTfOnly(
         std::reverse(tf_list, tf_list + len);
     }
 
+    uint32_t maxDocId = docid_list[len - 1];
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> tfblock(BLOCK_SIZE * 2);
     uint32_t csize = OPT4(docid_list, len, &block[0], true);
@@ -194,7 +198,7 @@ size_t SegmentPool::compressAndAddTfOnly(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
+    pool_[segment_][offset_ + 3] = maxDocId;
     pool_[segment_][offset_ + 4] = csize + tfcsize + 8;
     pool_[segment_][offset_ + 5] = len;
 
@@ -245,6 +249,8 @@ size_t SegmentPool::compressAndAddPositional(
         memcpy(position_list, &rpositions[0], plen * sizeof(uint32_t));
     }
 
+    uint32_t maxDocId = docid_list[len - 1];
+
     uint32_t pblocksize = 3 * (plen / BLOCK_SIZE + 1) * BLOCK_SIZE;
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> tfblock(BLOCK_SIZE * 2);
@@ -286,7 +292,7 @@ size_t SegmentPool::compressAndAddPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
+    pool_[segment_][offset_ + 3] = maxDocId;
     pool_[segment_][offset_ + 4] = csize + tfcsize + pcsize + 10;
     pool_[segment_][offset_ + 5] = len;
 

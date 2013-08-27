@@ -80,6 +80,8 @@ size_t NewSegmentPool::compressAndAppend(
         std::reverse(score_list, score_list + len);
     }
 
+    uint32_t maxDocId = docid_list[len - 1];
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> sblock(BLOCK_SIZE * 2);
     uint32_t csize = OPT4(docid_list, len, &block[0], true);
@@ -101,7 +103,7 @@ size_t NewSegmentPool::compressAndAppend(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
     pool_[segment_][offset_ + 2] = 0;
-    pool_[segment_][offset_ + 3] = reverse_ ? docid_list[0] : docid_list[len - 1];
+    pool_[segment_][offset_ + 3] = maxDocId;
     pool_[segment_][offset_ + 4] = csize + scsize + 8;
     pool_[segment_][offset_ + 5] = len;
 
