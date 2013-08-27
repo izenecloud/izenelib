@@ -54,23 +54,20 @@ static uint32_t OPT4(uint32_t *doc_id, uint32_t list_size, uint32_t *aux, bool d
     uint32_t size = 0;
     uint32_t ex_n = 0;
 
-    if (delta)
+    if (delta && list_size > 1)
     {
-        if (list_size > 1)
+        if (doc_id[0] < doc_id[1])
         {
-            if (doc_id[0] < doc_id[1])
+            for (int i = list_size - 1; i > 0; --i)
             {
-                for (int i = list_size - 1; i > 0; --i)
-                {
-                    doc_id[i] -= doc_id[i - 1];
-                }
+                doc_id[i] -= doc_id[i - 1];
             }
-            else
+        }
+        else
+        {
+            for (uint32_t i = 0; i < list_size - 1; ++i)
             {
-                for (uint32_t i = 0; i < list_size - 1; ++i)
-                {
-                    doc_id[i] -= doc_id[i + 1];
-                }
+                doc_id[i] -= doc_id[i + 1];
             }
         }
     }

@@ -33,9 +33,7 @@ namespace Zambezi
 class NewInvertedIndex
 {
 public:
-    NewInvertedIndex(
-            bool reverse = true, bool bloomEnabled = true,
-            uint32_t nbHash = 3, uint32_t bitsPerElement = 8);
+    NewInvertedIndex(bool reverse = true);
 
     ~NewInvertedIndex();
 
@@ -62,6 +60,8 @@ private:
     NewSegmentPool pool_;
     Dictionary dictionary_;
     Pointers pointers_;
+
+    SIMDFastPFor codec_;
 };
 
 }

@@ -61,6 +61,8 @@ private:
     SegmentPool pool_;
     Dictionary dictionary_;
     Pointers pointers_;
+
+    SIMDFastPFor codec_;
 };
 
 }

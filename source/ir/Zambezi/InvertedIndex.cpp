@@ -186,6 +186,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                 {
                     case NON_POSITIONAL:
                         pointer = pool_.compressAndAddNonPositional(
+                                codec_,
                                 &docBuffer[j * BLOCK_SIZE],
                                 BLOCK_SIZE,
                                 pointer);
@@ -193,6 +194,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
 
                     case TF_ONLY:
                         pointer = pool_.compressAndAddTfOnly(
+                                codec_,
                                 &docBuffer[j * BLOCK_SIZE],
                                 &tfBuffer[j * BLOCK_SIZE],
                                 BLOCK_SIZE,
@@ -201,6 +203,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
 
                     case POSITIONAL:
                         pointer = pool_.compressAndAddPositional(
+                                codec_,
                                 &docBuffer[j * BLOCK_SIZE],
                                 &tfBuffer[j * BLOCK_SIZE],
                                 &posBuffer[ps + 1],
@@ -270,6 +273,7 @@ void InvertedIndex::flush()
             {
             case NON_POSITIONAL:
                 pointer = pool_.compressAndAddNonPositional(
+                        codec_,
                         &docBuffer[i * BLOCK_SIZE],
                         BLOCK_SIZE,
                         pointer);
@@ -277,6 +281,7 @@ void InvertedIndex::flush()
 
             case TF_ONLY:
                 pointer = pool_.compressAndAddTfOnly(
+                        codec_,
                         &docBuffer[i * BLOCK_SIZE],
                         &tfBuffer[i * BLOCK_SIZE],
                         BLOCK_SIZE,
@@ -285,6 +290,7 @@ void InvertedIndex::flush()
 
             case POSITIONAL:
                 pointer = pool_.compressAndAddPositional(
+                        codec_,
                         &docBuffer[i * BLOCK_SIZE],
                         &tfBuffer[i * BLOCK_SIZE],
                         &posBuffer[ps + 1],
@@ -310,6 +316,7 @@ void InvertedIndex::flush()
             {
             case NON_POSITIONAL:
                 pointer = pool_.compressAndAddNonPositional(
+                        codec_,
                         &docBuffer[nb * BLOCK_SIZE],
                         res,
                         pointer);
@@ -317,6 +324,7 @@ void InvertedIndex::flush()
 
             case TF_ONLY:
                 pointer = pool_.compressAndAddTfOnly(
+                        codec_,
                         &docBuffer[nb * BLOCK_SIZE],
                         &tfBuffer[nb * BLOCK_SIZE],
                         res,
@@ -325,6 +333,7 @@ void InvertedIndex::flush()
 
             case POSITIONAL:
                 pointer = pool_.compressAndAddPositional(
+                        codec_,
                         &docBuffer[nb * BLOCK_SIZE],
                         &tfBuffer[nb * BLOCK_SIZE],
                         &posBuffer[ps + 1],

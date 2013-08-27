@@ -10,11 +10,9 @@ namespace detail
 {
 }
 
-NewInvertedIndex::NewInvertedIndex(
-        bool reverse, bool bloomEnabled,
-        uint32_t nbHash, uint32_t bitsPerElement)
+NewInvertedIndex::NewInvertedIndex(bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
-    , pool_(NUMBER_OF_POOLS, reverse, bloomEnabled, nbHash, bitsPerElement)
+    , pool_(NUMBER_OF_POOLS, reverse)
     , pointers_(DEFAULT_VOCAB_SIZE)
 {
 }
@@ -107,6 +105,7 @@ void NewInvertedIndex::insertDoc(
             for (uint32_t j = 0; j < nb; ++j)
             {
                 pointer = pool_.compressAndAppend(
+                        codec_,
                         &docBuffer[j * BLOCK_SIZE],
                         &scoreBuffer[j * BLOCK_SIZE],
                         BLOCK_SIZE,
@@ -148,6 +147,7 @@ void NewInvertedIndex::flush()
         for (uint32_t i = 0; i < nb; ++i)
         {
             pointer = pool_.compressAndAppend(
+                    codec_,
                     &docBuffer[i * BLOCK_SIZE],
                     &scoreBuffer[nb * BLOCK_SIZE],
                     BLOCK_SIZE,
@@ -162,6 +162,7 @@ void NewInvertedIndex::flush()
         if (res > 0)
         {
             pointer = pool_.compressAndAppend(
+                    codec_,
                     &docBuffer[nb * BLOCK_SIZE],
                     &scoreBuffer[nb * BLOCK_SIZE],
                     res,

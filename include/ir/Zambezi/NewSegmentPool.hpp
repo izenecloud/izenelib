@@ -2,6 +2,7 @@
 #define IZENELIB_IR_ZAMBEZI_NEW_SEGMENT_POOL_HPP
 
 #include <types.h>
+#include <util/compression/int/fastpfor/simdfastpfor.h>
 
 #include <iostream>
 #include <vector>
@@ -19,15 +20,8 @@ public:
      *
      * @param numberOfPools Number of pools, where each pool is an array of integers
      * @param reverse Whether to store postings in reverse order (e.g., to index tweets)
-     * @param bloomEnabled Whether or not to use Bloom filter chains (to be used with BWAND)
-     * @param nbHash If Bloom filter chains are enabled,
-     *        this indicates the number of hash functions
-     * @param bitsPerElement If Bloom filter chains are enabled,
-     *        this indicates number of bits per element
      */
-    NewSegmentPool(
-            uint32_t numberOfPools, bool reverse, bool bloomEnabled,
-            bool nbHash, bool bitsPerElement);
+    NewSegmentPool(uint32_t numberOfPools, bool reverse);
 
     ~NewSegmentPool();
 
@@ -47,6 +41,7 @@ public:
      */
 
     size_t compressAndAppend(
+            SIMDFastPFor& codec,
             uint32_t* docid_list, uint32_t* tf_list,
             uint32_t len, size_t tailPointer);
 
@@ -64,18 +59,13 @@ public:
      *
      * Note that outBlock must be at least 128 integers long.
      */
-    uint32_t decompressDocidBlock(uint32_t* outBlock, size_t pointer) const;
+    uint32_t decompressDocidBlock(
+            SIMDFastPFor& codec,
+            uint32_t* outBlock, size_t pointer) const;
 
-    uint32_t decompressScoreBlock(uint32_t* outBlock, size_t pointer) const;
-
-    /**
-     * If Bloom filter chains are present, perform a membership test
-     *
-     * @param docid Test document id
-     * @param pointer Pointer to segment
-     * @return Whether or not input docid exists in the Bloom filter chain
-     */
-    bool containsDocid(uint32_t docid, size_t& pointer) const;
+    uint32_t decompressScoreBlock(
+            SIMDFastPFor& codec,
+            uint32_t* outBlock, size_t pointer) const;
 
 private:
     friend class NewInvertedIndex;
@@ -86,11 +76,6 @@ private:
 
     // Whether or not postings are stored backwards
     bool reverse_;
-
-    // if Bloom filters enabled
-    bool bloomEnabled_;
-    uint32_t nbHash_;
-    uint32_t bitsPerElement_;
 
     // Segment pool
     std::vector<uint32_t*> pool_;
