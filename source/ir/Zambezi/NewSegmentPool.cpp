@@ -59,7 +59,7 @@ void NewSegmentPool::load(std::istream& istr)
 }
 
 size_t NewSegmentPool::compressAndAppend(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* docid_list, uint32_t* score_list,
         uint32_t len, size_t tailPointer)
 {
@@ -147,7 +147,7 @@ size_t NewSegmentPool::nextPointer(size_t pointer) const
 }
 
 uint32_t NewSegmentPool::decompressDocidBlock(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -178,7 +178,7 @@ uint32_t NewSegmentPool::decompressDocidBlock(
 }
 
 uint32_t NewSegmentPool::decompressScoreBlock(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);

@@ -62,7 +62,7 @@ private:
     Dictionary dictionary_;
     Pointers pointers_;
 
-    SIMDFastPFor codec_;
+    FastPFor codec_;
 };
 
 }
