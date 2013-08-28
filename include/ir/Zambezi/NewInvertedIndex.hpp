@@ -12,13 +12,13 @@
  * @author Nima Asadi
  */
 
-#ifndef IZENELIB_IR_ZAMBEZI_INVERTED_INDEX_HPP
-#define IZENELIB_IR_ZAMBEZI_INVERTED_INDEX_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_NEW_INVERTED_INDEX_HPP
+#define IZENELIB_IR_ZAMBEZI_NEW_INVERTED_INDEX_HPP
 
-#include "SegmentPool.hpp"
+#include "NewSegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
-#include "buffer/BufferMaps.hpp"
+#include "buffer/NewBufferMaps.hpp"
 #include "Consts.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -30,35 +30,34 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class InvertedIndex
+class NewInvertedIndex
 {
 public:
-    InvertedIndex(
-            IndexType type = NON_POSITIONAL,
-            bool reverse = true, bool bloomEnabled = true,
-            uint32_t nbHash = 3, uint32_t bitsPerElement = 8);
+    NewInvertedIndex(bool reverse = true);
 
-    ~InvertedIndex();
+    ~NewInvertedIndex();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
 
     bool hasValidPostingsList(uint32_t termid) const;
 
-    void insertDoc(uint32_t docid, const std::vector<std::string>& term_list);
+    void insertDoc(
+            uint32_t docid,
+            const std::vector<uint32_t>& attr_score_list,
+            const std::vector<std::vector<std::string> >& attr_term_list);
+
     void flush();
 
     void retrieval(
-            Algorithm algorithm,
             const std::vector<std::string>& term_list,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
 private:
-    IndexType type_;
-    BufferMaps buffer_;
-    SegmentPool pool_;
+    NewBufferMaps buffer_;
+    NewSegmentPool pool_;
     Dictionary dictionary_;
     Pointers pointers_;
 
