@@ -32,6 +32,7 @@ DriverServer::DriverServer(
 
 void DriverServer::run()
 {
+    normal_stop_ = false;
     boost::thread_group threads;
     for (std::size_t i = 0; i < threadPoolSize_/2; ++i)
     {
@@ -39,6 +40,13 @@ void DriverServer::run()
     }
     threads.join_all();
     DriverThreadPool::stop();
+}
+
+void DriverServer::stop()
+{
+    normal_stop_ = true;
+    LOG(INFO) << "stop driver server by request.";
+    parent_type::stop();
 }
 
 void DriverServer::worker()
@@ -49,12 +57,19 @@ void DriverServer::worker()
         {
             parent_type::run();
             // normal exit
-            break;
+            if (normal_stop_)
+                break;
+            else
+            {
+                LOG(ERROR) << "driver stopped by accident.";
+                parent_type::reset();
+            }
         }
         catch (std::exception& e)
         {
-            DLOG(ERROR) << "[DriverServer] "
-                        << e.what() << std::endl;
+            parent_type::reset();
+            LOG(ERROR) << "[DriverServer] "
+                << e.what() << std::endl;
         }
     }
 }

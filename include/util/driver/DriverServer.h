@@ -27,11 +27,13 @@ public:
     );
 
     void run();
+    void stop();
 
 private:
     void worker();
 
     std::size_t threadPoolSize_;
+    bool normal_stop_;
 };
 
 }
