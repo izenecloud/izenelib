@@ -114,7 +114,7 @@ ZooKeeperRouter::~ZooKeeperRouter() {
         }
     }
 
-    Scheduler::removeJob("UpdateNodeDataOnTimer");
+    Scheduler::removeJob("UpdateNodeDataOnTimer", true);
 
     LOG(INFO) << "ZooKeeperRouter closed";
 }
