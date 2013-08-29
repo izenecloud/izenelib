@@ -36,6 +36,11 @@ public:
 
     void load(std::istream& istr);
 
+    inline bool isReverse() const
+    {
+        return reverse_;
+    }
+
     /**
      * Whether or not the index contains term frequency (tf) information
      */
@@ -100,6 +105,8 @@ public:
      * then this function returns UNDEFINED_POINTER.
      */
     size_t nextPointer(size_t pointer) const;
+
+    size_t nextPointer(size_t pointer, uint32_t pivot) const;
 
     /**
      * Decompresses the docid block from the segment pointed to by "pointer,"
@@ -171,8 +178,6 @@ public:
             std::vector<float>& score_list) const;
 
 private:
-    friend class InvertedIndex;
-
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

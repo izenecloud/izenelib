@@ -211,7 +211,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                         break;
                 }
 
-                if (pool_.reverse_ || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
+                if (pool_.isReverse() || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
                 {
                     pointers_.setHeadPointer(id, pointer);
                 }
@@ -298,7 +298,7 @@ void InvertedIndex::flush()
                 break;
             }
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }
@@ -340,7 +340,7 @@ void InvertedIndex::flush()
                 break;
             }
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }

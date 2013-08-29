@@ -29,6 +29,11 @@ public:
 
     void load(std::istream& istr);
 
+    inline bool isReverse() const
+    {
+        return reverse_;
+    }
+
     /**
      * Compress and write a segment into a non-positional segment pool with term frequencies,
      * and link it to the previous segment (if present)
@@ -68,8 +73,6 @@ public:
             uint32_t* outBlock, size_t pointer) const;
 
 private:
-    friend class NewInvertedIndex;
-
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

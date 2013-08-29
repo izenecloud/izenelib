@@ -111,7 +111,7 @@ void NewInvertedIndex::insertDoc(
                         BLOCK_SIZE,
                         pointer);
 
-                if (pool_.reverse_ || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
+                if (pool_.isReverse() || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
                 {
                     pointers_.setHeadPointer(id, pointer);
                 }
@@ -153,7 +153,7 @@ void NewInvertedIndex::flush()
                     BLOCK_SIZE,
                     pointer);
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }
@@ -168,7 +168,7 @@ void NewInvertedIndex::flush()
                     res,
                     pointer);
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }

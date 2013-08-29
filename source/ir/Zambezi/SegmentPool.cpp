@@ -410,6 +410,32 @@ size_t SegmentPool::nextPointer(size_t pointer) const
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
 
+size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
+{
+    if (pointer == UNDEFINED_POINTER)
+    {
+        return UNDEFINED_POINTER;
+    }
+
+    uint32_t pSegment = DECODE_SEGMENT(pointer);
+    uint32_t pOffset = DECODE_OFFSET(pointer);
+
+    do
+    {
+        uint32_t* tmp = &pool_[pSegment][pOffset + 1];
+        pSegment = tmp[0];
+        if (pSegment == UNDEFINED_SEGMENT)
+        {
+            return UNDEFINED_POINTER;
+        }
+        pOffset = tmp[1];
+
+    }
+    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_));
+
+    return ENCODE_POINTER(pSegment, pOffset);
+}
+
 uint32_t SegmentPool::decompressDocidBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
@@ -749,7 +775,7 @@ void SegmentPool::wand(
             {
                 pTerm = mapping[i];
                 pTermIdx = i;
-                if (blockDocid[mapping[i]][posting[mapping[i]]] !=
+                if (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] !=
                         blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
                 {
                     break;
@@ -799,8 +825,8 @@ void SegmentPool::wand(
                         std::pop_heap(result_list.begin(), result_list.end(), comparator);
                         result_list.back() = std::make_pair(score, pivot);
                         std::push_heap(result_list.begin(), result_list.end(), comparator);
-                        threshold = result_list[0].first;
                         if (!hasTf && len == 1) break;
+                        threshold = result_list[0].first;
                     }
                 }
             }
@@ -808,43 +834,30 @@ void SegmentPool::wand(
             for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
             {
                 uint32_t aterm = mapping[atermIdx];
+                size_t tempHead = headPointers[aterm];
 
-                if (posting[aterm] >= counts[aterm] - 1 &&
-                        nextPointer(headPointers[aterm]) == UNDEFINED_POINTER)
+                headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
+                if (headPointers[aterm] != UNDEFINED_POINTER)
                 {
-                    uint32_t k = 0;
-                    for (uint32_t i = 0; i < len; ++i)
+                    if (headPointers[aterm] != tempHead)
                     {
-                        if (i != atermIdx)
+                        counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
+                        if (hasTf)
                         {
-                            mapping[k++] = mapping[i];
+                            decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
                         }
+                        posting[aterm] = 0;
                     }
+                    while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+                    {
+                        ++posting[aterm];
+                    }
+                }
+                else
+                {
+                    mapping.erase(mapping.begin() + atermIdx);
                     --len;
                     --atermIdx;
-                    continue;
-                }
-
-                while (LESS_THAN_EQUAL(blockDocid[aterm][posting[aterm]], pivot, reverse_))
-                {
-                    ++posting[aterm];
-                    if (posting[aterm] > counts[aterm] - 1)
-                    {
-                        headPointers[aterm] = nextPointer(headPointers[aterm]);
-                        if (headPointers[aterm] == UNDEFINED_POINTER)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                            if (hasTf)
-                            {
-                                decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
-                            }
-                            posting[aterm] = 0;
-                        }
-                    }
                 }
             }
         }
@@ -858,43 +871,36 @@ void SegmentPool::wand(
                 {
                     uint32_t atermTemp = mapping[atermIdx];
 
-                    if (posting[atermTemp] >= counts[atermTemp] - 1 &&
+                    if (posting[atermTemp] == counts[atermTemp] - 1 &&
                             nextPointer(headPointers[atermTemp]) == UNDEFINED_POINTER)
                     {
-                        uint32_t k = 0;
-                        for (uint32_t i = 0; i < len; ++i)
-                        {
-                            if (i != atermIdx)
-                            {
-                                mapping[k++] = mapping[i];
-                            }
-                        }
+                        mapping.erase(mapping.begin() + atermIdx);
                         --len;
                         --atermIdx;
-                        continue;
-                    }
-                    aterm = atermTemp;
-                }
-            }
-
-            while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
-            {
-                if (++posting[aterm] > counts[aterm] - 1)
-                {
-                    headPointers[aterm] = nextPointer(headPointers[aterm]);
-                    if (headPointers[aterm] == UNDEFINED_POINTER)
-                    {
-                        break;
                     }
                     else
                     {
-                        counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                        if (hasTf)
-                        {
-                            decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
-                        }
-                        posting[aterm] = 0;
+                        aterm = atermTemp;
                     }
+                }
+            }
+
+            size_t tempHead = headPointers[aterm];
+            headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
+            if (headPointers[aterm] != UNDEFINED_POINTER)
+            {
+                if (headPointers[aterm] != tempHead)
+                {
+                    counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
+                    if (hasTf)
+                    {
+                        decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
+                    }
+                    posting[aterm] = 0;
+                }
+                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+                {
+                    ++posting[aterm];
                 }
             }
         }
@@ -915,6 +921,7 @@ void SegmentPool::wand(
         }
     }
 
+    std::sort_heap(result_list.begin(), result_list.end(), comparator);
     for (uint32_t i = 0; i < result_list.size(); ++i)
     {
         score_list.push_back(result_list[i].first);
