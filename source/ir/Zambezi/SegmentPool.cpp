@@ -97,7 +97,7 @@ bool SegmentPool::isPositional() const
 }
 
 size_t SegmentPool::compressAndAddNonPositional(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* docid_list,
         uint32_t len, size_t tailPointer)
 {
@@ -179,7 +179,7 @@ size_t SegmentPool::compressAndAddNonPositional(
 }
 
 size_t SegmentPool::compressAndAddTfOnly(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* docid_list, uint32_t* tf_list,
         uint32_t len, size_t tailPointer)
 {
@@ -268,7 +268,7 @@ size_t SegmentPool::compressAndAddTfOnly(
 }
 
 size_t SegmentPool::compressAndAddPositional(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* docid_list, uint32_t* tf_list, uint32_t* position_list,
         uint32_t len, uint32_t plen, size_t tailPointer)
 {
@@ -411,7 +411,7 @@ size_t SegmentPool::nextPointer(size_t pointer) const
 }
 
 uint32_t SegmentPool::decompressDocidBlock(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -442,7 +442,7 @@ uint32_t SegmentPool::decompressDocidBlock(
 }
 
 uint32_t SegmentPool::decompressTfBlock(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -468,7 +468,7 @@ uint32_t SegmentPool::numberOfPositionBlocks(size_t pointer) const
 }
 
 uint32_t SegmentPool::decompressPositionBlock(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -490,7 +490,7 @@ uint32_t SegmentPool::decompressPositionBlock(
 }
 
 void SegmentPool::decompressPositions(
-        SIMDFastPFor& codec,
+        FastPFor& codec,
         uint32_t* tf_list, uint32_t index, size_t pointer, uint32_t* out) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -578,7 +578,7 @@ void SegmentPool::bwandAnd(
 {
     docid_list.reserve(hits);
 
-    SIMDFastPFor codec;
+    FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
     while (headPointers[0] != UNDEFINED_POINTER)
     {
@@ -633,7 +633,7 @@ void SegmentPool::bwandOr(
         sumOfUB += UB[i];
     }
 
-    SIMDFastPFor codec;
+    FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
     while (headPointers[0] != UNDEFINED_POINTER)
     {
@@ -701,7 +701,7 @@ void SegmentPool::wand(
     std::vector<uint32_t> mapping(len);
     float threshold = .0f;
 
-    SIMDFastPFor codec;
+    FastPFor codec;
     for (uint32_t i = 0; i < len; ++i)
     {
         blockDocid[i].resize(BLOCK_SIZE * 2);
