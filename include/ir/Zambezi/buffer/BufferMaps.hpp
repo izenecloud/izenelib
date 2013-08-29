@@ -43,12 +43,38 @@ public:
      */
     bool containsKey(uint32_t k) const;
 
-    std::vector<uint32_t>& getDocidList(uint32_t k);
-    const std::vector<uint32_t>& getDocidList(uint32_t k) const;
-    std::vector<uint32_t>& getTfList(uint32_t k);
-    const std::vector<uint32_t>& getTfList(uint32_t k) const;
-    std::vector<uint32_t>& getPositionList(uint32_t k);
-    const std::vector<uint32_t>& getPositionList(uint32_t k) const;
+    inline std::vector<uint32_t>& getDocidList(uint32_t k)
+    {
+        expand(k + 1);
+        return docid_[k];
+    }
+
+    inline const std::vector<uint32_t>& getDocidList(uint32_t k) const
+    {
+        return docid_[k];
+    }
+
+    inline std::vector<uint32_t>& getTfList(uint32_t k)
+    {
+        expand(k + 1);
+        return tf_[k];
+    }
+
+    inline const std::vector<uint32_t>& getTfList(uint32_t k) const
+    {
+        return tf_[k];
+    }
+
+    inline std::vector<uint32_t>& getPositionList(uint32_t k)
+    {
+        expand(k + 1);
+        return position_[k];
+    }
+
+    inline const std::vector<uint32_t>& getPositionList(uint32_t k) const
+    {
+        return position_[k];
+    }
 
     /**
      * An iterator that goes through the vocabulary terms,

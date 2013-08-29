@@ -85,12 +85,6 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                 tfBuffer.reserve(DF_CUTOFF + 1);
             }
 
-            if (posBuffer.capacity() == posBuffer.size())
-            {
-                uint32_t len = posBuffer.capacity();
-                posBuffer.reserve(len * 2);
-            }
-
             if (added)
             {
                 posBuffer.push_back(i + 1);

@@ -2,7 +2,7 @@
 #define IZENELIB_IR_ZAMBEZI_SEGMENT_POOL_HPP
 
 #include <types.h>
-#include <util/compression/int/fastpfor/fastpfor.h>
+#include <util/compression/int/fastpfor/simdfastpfor.h>
 
 #include <iostream>
 #include <vector>
@@ -56,7 +56,7 @@ public:
      * @return Pointer to the new segment
      */
     size_t compressAndAddNonPositional(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* docid_list,
             uint32_t len, size_t tailPointer);
 
@@ -72,7 +72,7 @@ public:
      */
 
     size_t compressAndAddTfOnly(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* docid_list, uint32_t* tf_list,
             uint32_t len, size_t tailPointer);
 
@@ -89,7 +89,7 @@ public:
      * @return Pointer to the new segment
      */
     size_t compressAndAddPositional(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* docid_list, uint32_t* tf_list, uint32_t* position_list,
             uint32_t len, uint32_t plen, size_t tailPointer);
 
@@ -108,11 +108,11 @@ public:
      * Note that outBlock must be at least 128 integers long.
      */
     uint32_t decompressDocidBlock(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressTfBlock(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     /**
@@ -130,11 +130,11 @@ public:
      * where BLOCK_SIZE is 128.
      */
     uint32_t decompressPositionBlock(
-//          FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void decompressPositions(
-//          FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* tf_list, uint32_t index, size_t pointer, uint32_t* out) const;
 
     /**

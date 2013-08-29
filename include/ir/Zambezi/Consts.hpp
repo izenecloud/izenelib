@@ -54,8 +54,6 @@ enum Algorithm
     MBWAND = 2, // Disjunctive query evaluation using WAND_IDF
     BWAND_OR = 3, // Disjunctive BWAND
     BWAND_AND = 4, // Conjunctive BWAND
-    AND = 5,
-    OR = 6
 };
 
 }

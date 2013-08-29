@@ -2,7 +2,7 @@
 #define IZENELIB_IR_ZAMBEZI_NEW_SEGMENT_POOL_HPP
 
 #include <types.h>
-#include <util/compression/int/fastpfor/fastpfor.h>
+#include <util/compression/int/fastpfor/simdfastpfor.h>
 
 #include <iostream>
 #include <vector>
@@ -41,7 +41,7 @@ public:
      */
 
     size_t compressAndAppend(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* docid_list, uint32_t* tf_list,
             uint32_t len, size_t tailPointer);
 
@@ -60,11 +60,11 @@ public:
      * Note that outBlock must be at least 128 integers long.
      */
     uint32_t decompressDocidBlock(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressScoreBlock(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
 private:

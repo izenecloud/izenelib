@@ -97,7 +97,7 @@ bool SegmentPool::isPositional() const
 }
 
 size_t SegmentPool::compressAndAddNonPositional(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t* docid_list,
         uint32_t len, size_t tailPointer)
 {
@@ -179,7 +179,7 @@ size_t SegmentPool::compressAndAddNonPositional(
 }
 
 size_t SegmentPool::compressAndAddTfOnly(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t* docid_list, uint32_t* tf_list,
         uint32_t len, size_t tailPointer)
 {
@@ -268,7 +268,7 @@ size_t SegmentPool::compressAndAddTfOnly(
 }
 
 size_t SegmentPool::compressAndAddPositional(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t* docid_list, uint32_t* tf_list, uint32_t* position_list,
         uint32_t len, uint32_t plen, size_t tailPointer)
 {
@@ -411,7 +411,7 @@ size_t SegmentPool::nextPointer(size_t pointer) const
 }
 
 uint32_t SegmentPool::decompressDocidBlock(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -419,7 +419,7 @@ uint32_t SegmentPool::decompressDocidBlock(
 
     const uint32_t* block = &pool_[pSegment][pOffset + 7];
     size_t csize = pool_[pSegment][pOffset + 6];
-    size_t nvalue = BLOCK_SIZE * 2;
+    size_t nvalue = BLOCK_SIZE;
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_[pSegment][pOffset + 5];
@@ -442,7 +442,7 @@ uint32_t SegmentPool::decompressDocidBlock(
 }
 
 uint32_t SegmentPool::decompressTfBlock(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -451,7 +451,7 @@ uint32_t SegmentPool::decompressTfBlock(
     uint32_t csize = pool_[pSegment][pOffset + 6];
     const uint32_t* block = &pool_[pSegment][pOffset + csize + 8];
     size_t tfcsize = pool_[pSegment][pOffset + csize + 7];
-    size_t nvalue = BLOCK_SIZE * 2;
+    size_t nvalue = BLOCK_SIZE;
     codec.decodeArray(block, tfcsize, outBlock, nvalue);
 
     return pool_[pSegment][pOffset + 5];
@@ -463,37 +463,39 @@ uint32_t SegmentPool::numberOfPositionBlocks(size_t pointer) const
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
     uint32_t csize = pool_[pSegment][pOffset + 6];
-    uint32_t tfcsize = pool_[pSegment][pOffset + 7 + csize];
+    uint32_t tfcsize = pool_[pSegment][pOffset + csize + 7];
     return pool_[pSegment][pOffset + csize + tfcsize + 9];
 }
 
-uint32_t SegmentPool::decompressPositionBlock(uint32_t* outBlock, size_t pointer) const
+uint32_t SegmentPool::decompressPositionBlock(
+        SIMDFastPFor& codec,
+        uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    uint32_t aux[BLOCK_SIZE * 4];
     uint32_t csize = pool_[pSegment][pOffset + 6];
-    uint32_t tfcsize = pool_[pSegment][pOffset + 7 + csize];
+    uint32_t tfcsize = pool_[pSegment][pOffset + csize + 7];
     uint32_t nb = pool_[pSegment][pOffset + csize + tfcsize + 9];
 
     uint32_t index = pOffset + csize + tfcsize + 10;
     for (uint32_t i = 0; i < nb; ++i)
     {
         uint32_t sb = pool_[pSegment][index];
-//      detailed_p4_decode(&outBlock[i * BLOCK_SIZE], &pool_[pSegment][index + 1], aux, false, reverse_);
-        memset(aux, 0, BLOCK_SIZE * 4 * sizeof(uint32_t));
+        size_t nvalue = BLOCK_SIZE;
+        codec.decodeArray(&pool_[pSegment][index + 1], sb, &outBlock[i * BLOCK_SIZE], nvalue);
         index += sb + 1;
     }
     return pool_[pSegment][pOffset + csize + tfcsize + 8];
 }
 
-void SegmentPool::decompressPositions(uint32_t* tf_list, uint32_t index, size_t pointer, uint32_t* out) const
+void SegmentPool::decompressPositions(
+        SIMDFastPFor& codec,
+        uint32_t* tf_list, uint32_t index, size_t pointer, uint32_t* out) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    uint32_t aux[BLOCK_SIZE*4];
     uint32_t csize = pool_[pSegment][pOffset + 6];
     uint32_t tfcsize = pool_[pSegment][pOffset + 7 + csize];
     uint32_t nb = 0;
@@ -518,12 +520,12 @@ void SegmentPool::decompressPositions(uint32_t* tf_list, uint32_t index, size_t 
         {
             tocopy = BLOCK_SIZE - rindex;
         }
-        const uint32_t* block = &pool_[pSegment][pos + 1];
-        uint32_t* temp = (uint32_t*) calloc(BLOCK_SIZE * 2, sizeof(uint32_t));
-//      detailed_p4_decode(temp, block, aux, false, reverse_);
+        uint32_t sb = pool_[pSegment][pos];
+        std::vector<uint32_t> temp(BLOCK_SIZE * 2);
+        size_t nvalue = BLOCK_SIZE;
+        codec.decodeArray(&pool_[pSegment][pos + 1], sb, &temp[0], nvalue);
         memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(uint32_t));
-        pos += pool_[pSegment][pos] + 1;
-        free(temp);
+        pos += sb + 1;
 
         cindex += tocopy;
         left -= tocopy;
@@ -576,7 +578,7 @@ void SegmentPool::bwandAnd(
 {
     docid_list.reserve(hits);
 
-    FastPFor codec;
+    SIMDFastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
     while (headPointers[0] != UNDEFINED_POINTER)
     {
@@ -631,7 +633,7 @@ void SegmentPool::bwandOr(
         sumOfUB += UB[i];
     }
 
-    FastPFor codec;
+    SIMDFastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
     while (headPointers[0] != UNDEFINED_POINTER)
     {
@@ -699,7 +701,7 @@ void SegmentPool::wand(
     std::vector<uint32_t> mapping(len);
     float threshold = .0f;
 
-    FastPFor codec;
+    SIMDFastPFor codec;
     for (uint32_t i = 0; i < len; ++i)
     {
         blockDocid[i].resize(BLOCK_SIZE * 2);
