@@ -834,10 +834,50 @@ void SegmentPool::wand(
             for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
             {
                 uint32_t aterm = mapping[atermIdx];
+
+                if (posting[aterm] == counts[aterm] - 1)
+                {
+                    if ((headPointers[aterm] = nextPointer(headPointers[aterm])) == UNDEFINED_POINTER)
+                    {
+                        mapping.erase(mapping.begin() + atermIdx);
+                        --len;
+                        --atermIdx;
+                        continue;
+                    }
+                    else
+                    {
+                        counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
+                        if (hasTf)
+                        {
+                            decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
+                        }
+                        posting[aterm] = 0;
+                    }
+                }
+
+                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+                {
+                    ++posting[aterm];
+                }
+            }
+        }
+        else
+        {
+            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
+            {
+                if (blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]] == pivot)
+                    break;
+
+                uint32_t aterm = mapping[atermIdx];
                 size_t tempHead = headPointers[aterm];
 
-                headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
-                if (headPointers[aterm] != UNDEFINED_POINTER)
+                if ((headPointers[aterm] = nextPointer(headPointers[aterm], pivot)) == UNDEFINED_POINTER)
+                {
+                    mapping.erase(mapping.begin() + atermIdx);
+                    --len;
+                    --atermIdx;
+                }
+                else
                 {
                     if (headPointers[aterm] != tempHead)
                     {
@@ -848,59 +888,11 @@ void SegmentPool::wand(
                         }
                         posting[aterm] = 0;
                     }
+
                     while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
                     {
                         ++posting[aterm];
                     }
-                }
-                else
-                {
-                    mapping.erase(mapping.begin() + atermIdx);
-                    --len;
-                    --atermIdx;
-                }
-            }
-        }
-        else
-        {
-            uint32_t aterm = mapping[0];
-            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
-            {
-                if (df[mapping[atermIdx]] <= df[aterm] &&
-                        LESS_THAN(blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]], pivot, reverse_))
-                {
-                    uint32_t atermTemp = mapping[atermIdx];
-
-                    if (posting[atermTemp] == counts[atermTemp] - 1 &&
-                            nextPointer(headPointers[atermTemp]) == UNDEFINED_POINTER)
-                    {
-                        mapping.erase(mapping.begin() + atermIdx);
-                        --len;
-                        --atermIdx;
-                    }
-                    else
-                    {
-                        aterm = atermTemp;
-                    }
-                }
-            }
-
-            size_t tempHead = headPointers[aterm];
-            headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
-            if (headPointers[aterm] != UNDEFINED_POINTER)
-            {
-                if (headPointers[aterm] != tempHead)
-                {
-                    counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                    if (hasTf)
-                    {
-                        decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
-                    }
-                    posting[aterm] = 0;
-                }
-                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
-                {
-                    ++posting[aterm];
                 }
             }
         }
