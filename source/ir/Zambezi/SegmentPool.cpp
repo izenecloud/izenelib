@@ -444,6 +444,7 @@ uint32_t SegmentPool::decompressDocidBlock(
     const uint32_t* block = &pool_[pSegment][pOffset + 7];
     size_t csize = pool_[pSegment][pOffset + 6];
     size_t nvalue = BLOCK_SIZE;
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_[pSegment][pOffset + 5];
@@ -476,6 +477,7 @@ uint32_t SegmentPool::decompressTfBlock(
     const uint32_t* block = &pool_[pSegment][pOffset + csize + 8];
     size_t tfcsize = pool_[pSegment][pOffset + csize + 7];
     size_t nvalue = BLOCK_SIZE;
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
     codec.decodeArray(block, tfcsize, outBlock, nvalue);
 
     return pool_[pSegment][pOffset + 5];
