@@ -945,11 +945,16 @@ void SegmentPool::wand(
                     break;
 
                 uint32_t aterm = mapping[atermIdx];
+                size_t tmpHead = headPointers[aterm];
                 if (!gallopSearch(codec, blockDocid[aterm], counts[aterm], posting[aterm], headPointers[aterm], pivot))
                 {
                     mapping.erase(mapping.begin() + atermIdx);
                     --len;
                     --atermIdx;
+                }
+                else if (hasTf && tmpHead != headPointers[aterm])
+                {
+                    decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
                 }
             }
         }
