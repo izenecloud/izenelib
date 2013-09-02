@@ -52,6 +52,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
+        //std::cout <<"id:" << id << std::endl;
         bool added = uniqueTerms.insert(id).second;
 
         pointers_.cf_.increment(id);
@@ -173,6 +174,9 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
         {
             uint32_t nb = docBuffer.size() / BLOCK_SIZE;
             size_t pointer = buffer_.tailPointer_[id];
+
+            std::cout << "tail .... pointer: " << pointer <<std::endl;
+
             uint32_t ps = 0;
             for (uint32_t j = 0; j < nb; ++j)
             {
@@ -213,6 +217,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
 
                 if (pool_.isReverse() || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
                 {
+                    std::cout <<"pointer:" << pointer << std::endl;
                     pointers_.setHeadPointer(id, pointer);
                 }
             }
@@ -300,7 +305,9 @@ void InvertedIndex::flush()
 
             if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
+                std::cout << "pointer_:" << pointer << std::endl;
                 pointers_.setHeadPointer(term, pointer);
+
             }
         }
 
@@ -359,6 +366,8 @@ void InvertedIndex::retrieval(
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i]);
+        std::cout << "termid: " << termid <<std::endl;
+
         if (termid != INVALID_ID && pointers_.getHeadPointer(termid) != UNDEFINED_POINTER)
         {
             queries.push_back(termid);
@@ -366,6 +375,9 @@ void InvertedIndex::retrieval(
     }
 
     uint32_t qlen = queries.size();
+    if (0 == qlen)
+        return;
+
     std::vector<uint32_t> qdf(qlen);
     std::vector<uint32_t> sortedDfIndex(qlen);
     std::vector<size_t> qHeadPointers(qlen);
@@ -404,9 +416,13 @@ void InvertedIndex::retrieval(
         }
     }
 
+    /// DOCID
     for (uint32_t i = 0; i < qlen; ++i)
     {
         qHeadPointers[i] = pointers_.getHeadPointer(queries[sortedDfIndex[i]]);
+        std::cout << "..queries[sortedDfIndex[i]]:" << queries[sortedDfIndex[i]] << std::endl;
+        std::cout << "HeadPointers:" << qHeadPointers[i] <<std::endl;
+
         qdf[i] = pointers_.getDf(queries[sortedDfIndex[i]]);
     }
 

@@ -101,6 +101,7 @@ size_t SegmentPool::compressAndAddNonPositional(
         uint32_t* docid_list,
         uint32_t len, size_t tailPointer)
 {
+    std::cout << std::endl << "compress len:" << len << std::endl;
     uint32_t maxDocId = reverse_ ? docid_list[0] : docid_list[len - 1];
 
     uint32_t filterSize = 0;
@@ -128,8 +129,10 @@ size_t SegmentPool::compressAndAddNonPositional(
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     size_t csize = BLOCK_SIZE * 2;
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
+    std::cout << "csize:" << csize << std::endl;
 
     uint32_t reqspace = csize + filterSize + 8;
+    std::cout << "reqspace:" <<reqspace << std::endl;
     if (reqspace > MAX_POOL_SIZE - offset_)
     {
         ++segment_;
@@ -147,6 +150,8 @@ size_t SegmentPool::compressAndAddNonPositional(
     pool_[segment_][offset_ + 3] = maxDocId;
     pool_[segment_][offset_ + 4] = csize + 7;
     pool_[segment_][offset_ + 5] = len;
+
+    std::cout << "offset_:" << offset_ << std::endl;
 
     pool_[segment_][offset_ + 6] = csize;
     memcpy(&pool_[segment_][offset_ + 7], &block[0], csize * sizeof(uint32_t));
@@ -173,7 +178,8 @@ size_t SegmentPool::compressAndAddNonPositional(
         }
     }
 
-    offset_ += reqspace;
+    //offset_ += reqspace;
+    std::cout << "offset_:" << offset_ << std::endl;
 
     return ENCODE_POINTER(segment_, offset_);
 }
@@ -401,14 +407,49 @@ size_t SegmentPool::nextPointer(size_t pointer) const
 
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
+    std::cout << "pSegment:" << pSegment << std::endl;
+    std::cout << "pOffset" << pOffset << std::endl;
+
+    if (pool_[pSegment][pOffset] == UNDEFINED_SEGMENT)
+    {
+        return UNDEFINED_POINTER;
+    }
+
+    for (int i = 0; i < 7; ++i)
+    {
+        std::cout << pool_[pSegment][pOffset + i] << std::endl;
+    }
+    //return UNDEFINED_POINTER;
+
+    return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
+}
+
+/*
+size_t SegmentPool::nextPointerReverse(size_t pointer) const
+{
+    if (pointer == UNDEFINED_POINTER)
+    {
+        return UNDEFINED_POINTER;
+    }
+
+    uint32_t pSegment = DECODE_SEGMENT(pointer);
+    uint32_t pOffset = DECODE_OFFSET(pointer);
+    std::cout << "pSegment:" << pSegment << std::endl;
+    std::cout << "pOffset" << pOffset << std::endl;
 
     if (pool_[pSegment][pOffset + 1] == UNDEFINED_SEGMENT)
     {
         return UNDEFINED_POINTER;
     }
 
+    for (int i = 0; i < 7; ++i)
+    {
+        std::cout << pool_[pSegment][pOffset + i] << std::endl;
+    }
+
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
+}*/
 
 size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 {
@@ -436,6 +477,7 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     return ENCODE_POINTER(pSegment, pOffset);
 }
 
+
 uint32_t SegmentPool::decompressDocidBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
@@ -449,6 +491,12 @@ uint32_t SegmentPool::decompressDocidBlock(
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_[pSegment][pOffset + 5];
+
+    if (len == 0)
+    {
+        std::cout <<"decompress - len:" << len << std::endl;
+        return 0;
+    }
     if (reverse_)
     {
         for (uint32_t i = len - 1; i > 0; --i)
@@ -602,17 +650,22 @@ void SegmentPool::bwandAnd(
         uint32_t hits,
         std::vector<uint32_t>& docid_list) const
 {
+    std::cout << "-------------------------" << std::endl;
     docid_list.reserve(hits);
 
     FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
+
     while (headPointers[0] != UNDEFINED_POINTER)
     {
+        std::cout << "headPointers[0]" << headPointers[0]<< std::endl;
         uint32_t count = decompressDocidBlock(codec, &docid_block[0], headPointers[0]);
+        std::cout << "decompress count:" << count << std::endl;
 
         for (uint32_t i = 0; i < count; ++i)
         {
             uint32_t pivot = docid_block[i];
+            //std::cout << "doc:" << pivot << std::endl;
             bool found = true;
             for (uint32_t j = 1; j < headPointers.size(); ++j)
             {
@@ -621,6 +674,7 @@ void SegmentPool::bwandAnd(
 
                 if (!containsDocid(pivot, headPointers[j]))
                 {
+                    std::cout << "found false:" << pivot << std::endl;
                     found = false;
                     break;
                 }
@@ -633,8 +687,9 @@ void SegmentPool::bwandAnd(
                     return;
             }
         }
-
+        std::cout << "before headPointers[0]" << headPointers[0] << std::endl;
         headPointers[0] = nextPointer(headPointers[0]);
+        std::cout << "next headPointers[0]" << headPointers[0] << std::endl;
     }
 }
 
