@@ -707,7 +707,7 @@ void SegmentPool::bwandOr(
     }
 }
 
-bool SegmentPool::gallopSearch(
+bool SegmentPool::gallopSearch_(
         FastPFor& codec,
         std::vector<uint32_t>& blockDocid, uint32_t& count,
         uint32_t& index, size_t& pointer, uint32_t pivot) const
@@ -841,7 +841,7 @@ void SegmentPool::wand(
     result_list.reserve(hits);
     std::greater<std::pair<float, uint32_t> > comparator;
 
-    while (1)
+    while (true)
     {
         float sum = 0;
         uint32_t pTerm = -1;
@@ -948,7 +948,7 @@ void SegmentPool::wand(
 
                 uint32_t aterm = mapping[atermIdx];
                 size_t tmpHead = headPointers[aterm];
-                if (!gallopSearch(codec, blockDocid[aterm], counts[aterm], posting[aterm], headPointers[aterm], pivot))
+                if (!gallopSearch_(codec, blockDocid[aterm], counts[aterm], posting[aterm], headPointers[aterm], pivot))
                 {
                     mapping.erase(mapping.begin() + atermIdx);
                     --len;
@@ -982,6 +982,133 @@ void SegmentPool::wand(
     {
         score_list.push_back(result_list[i].first);
         docid_list.push_back(result_list[i].second);
+    }
+}
+
+void SegmentPool::intersectPostingsLists_(
+        FastPFor& codec,
+        size_t pointer0, size_t pointer1,
+        uint32_t minDf,
+        std::vector<uint32_t>& docid_list) const
+{
+    std::vector<uint32_t> data0(BLOCK_SIZE * 2);
+    std::vector<uint32_t> data1(BLOCK_SIZE * 2);
+
+    uint32_t c0 = decompressDocidBlock(codec, &data0[0], pointer0);
+    uint32_t c1 = decompressDocidBlock(codec, &data1[0], pointer1);
+    uint32_t i0 = 0, i1 = 0;
+
+    while (true)
+    {
+        if (data1[i1] == data0[i0])
+        {
+            docid_list.push_back(data0[i0]);
+            if (++i0 == c0)
+            {
+                if ((pointer0 = nextPointer(pointer0)) == UNDEFINED_POINTER)
+                    break;
+
+                c0 = decompressDocidBlock(codec, &data0[0], pointer0);
+                i0 = 0;
+            }
+            if (++i1 == c1)
+            {
+                if ((pointer1 = nextPointer(pointer1)) == UNDEFINED_POINTER)
+                    break;
+
+                c1 = decompressDocidBlock(codec, &data1[0], pointer1);
+                i1 = 0;
+            }
+        }
+
+        if (LESS_THAN(data0[i0], data1[i1], reverse_))
+        {
+            if (!gallopSearch_(codec, data0, c0, ++i0, pointer0, data1[i1]))
+                break;
+        }
+        else if (LESS_THAN(data1[i1], data0[i0], reverse_))
+        {
+            if (!gallopSearch_(codec, data1, c1, ++i1, pointer1, data0[i0]))
+                break;
+        }
+    }
+}
+
+void SegmentPool::intersectSetPostingsList_(
+        FastPFor& codec,
+        size_t pointer,
+        std::vector<uint32_t>& docid_list) const
+{
+    std::vector<uint32_t> data(BLOCK_SIZE);
+    uint32_t c = decompressDocidBlock(codec, &data[0], pointer);
+    uint32_t iSet = 0, iCurrent = 0, i = 0;
+
+    while (iCurrent < docid_list.size())
+    {
+        if (data[i] == docid_list[iCurrent])
+        {
+            docid_list[iSet++] = docid_list[iCurrent++];
+            if (iCurrent == docid_list.size())
+                break;
+
+            if (++i == c)
+            {
+                if ((pointer = nextPointer(pointer)) == UNDEFINED_POINTER)
+                    break;
+
+                c = decompressDocidBlock(codec, &data[0], pointer);
+                i = 0;
+            }
+        }
+
+        if (LESS_THAN(data[i], docid_list[iCurrent], reverse_))
+        {
+            if (!gallopSearch_(codec, data, c, ++i, pointer, docid_list[iCurrent]))
+                break;
+        }
+        else
+        {
+            while (iCurrent < docid_list.size() && LESS_THAN(docid_list[iCurrent], data[i], reverse_))
+            {
+                ++iCurrent;
+            }
+        }
+    }
+
+    docid_list.resize(iSet);
+}
+
+void SegmentPool::intersectSvS(
+        std::vector<size_t>& headPointers,
+        uint32_t minDf,
+        uint32_t hits,
+        std::vector<uint32_t>& docid_list) const
+{
+    FastPFor codec;
+    if (headPointers.size() < 2)
+    {
+        std::vector<uint32_t> block(BLOCK_SIZE * 2);
+        uint32_t length = std::min(minDf, hits);
+        docid_list.resize(length);
+        uint32_t iSet = 0;
+        size_t t = headPointers[0];
+        while (t != UNDEFINED_POINTER && iSet < length)
+        {
+            uint32_t c = decompressDocidBlock(codec, &block[0], t);
+            uint32_t r = iSet + c <= length ? c : length - iSet;
+            memcpy(&docid_list[iSet], &block[0], r * sizeof(uint32_t));
+            iSet += r;
+            t = nextPointer(t);
+        }
+        return;
+    }
+
+    docid_list.reserve(minDf);
+    intersectPostingsLists_(codec, headPointers[0], headPointers[1], minDf, docid_list);
+    for (uint32_t i = 2; i < headPointers.size(); ++i)
+    {
+        if (docid_list.empty()) break;
+        intersectSetPostingsList_(codec, headPointers[i], docid_list);
     }
 }
 

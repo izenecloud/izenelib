@@ -458,14 +458,10 @@ void InvertedIndex::retrieval(
                 docid_list,
                 score_list);
     }
-//  else if (algorithm == SVS)
-//  {
-//      if (!hitsSpecified)
-//      {
-//          hits = minimumDf;
-//      }
-//      pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
-//  }
+    else if (algorithm == SVS)
+    {
+        pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
+    }
 }
 
 }
