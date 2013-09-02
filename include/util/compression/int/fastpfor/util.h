@@ -159,7 +159,7 @@ static bool  needPaddingTo64bytes(const T * inbyte)
 static __attribute__ ((const))
 uint32_t gccbits(const uint32_t v)
 {
-    return v == 0 ? 0 : 32 - __builtin_clz(v);
+    return 32 - __builtin_clz(v);
 }
 
 static __attribute__ ((const))
@@ -215,38 +215,6 @@ uint32_t asmbits(const uint32_t v)
     uint32_t answer;
     __asm__("bsr %1, %0;" :"=r"(answer) :"r"(v));
     return answer + 1;
-}
-
-static __attribute__ ((const))
-uint32_t bits(uint32_t v)
-{
-    uint32_t r(0);
-    if (v >= (1U << 15))
-    {
-        v >>= 16;
-        r += 16;
-    }
-    if (v >= (1U << 7))
-    {
-        v >>= 8;
-        r += 8;
-    }
-    if (v >= (1U << 3))
-    {
-        v >>= 4;
-        r += 4;
-    }
-    if (v >= (1U << 1))
-    {
-        v >>= 2;
-        r += 2;
-    }
-    if (v >= (1U << 0))
-    {
-        v >>= 1;
-        r += 1;
-    }
-    return r;
 }
 
 template<class iterator>
