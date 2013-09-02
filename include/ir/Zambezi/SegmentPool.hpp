@@ -178,6 +178,12 @@ public:
             std::vector<float>& score_list) const;
 
 private:
+    bool gallopSearch(
+            FastPFor& codec,
+            std::vector<uint32_t>& data, uint32_t& count,
+            uint32_t& index, size_t& pointer, uint32_t pivot) const;
+
+private:
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

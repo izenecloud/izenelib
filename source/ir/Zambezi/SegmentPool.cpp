@@ -463,14 +463,12 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 
     do
     {
-        uint32_t* tmp = &pool_[pSegment][pOffset + 1];
-        pSegment = tmp[0];
+        pSegment = pool_[pSegment][pOffset + 1];
         if (pSegment == UNDEFINED_SEGMENT)
         {
             return UNDEFINED_POINTER;
         }
-        pOffset = tmp[1];
-
+        pOffset = pool_[pSegment][pOffset + 2];
     }
     while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_));
 
@@ -488,6 +486,7 @@ uint32_t SegmentPool::decompressDocidBlock(
     const uint32_t* block = &pool_[pSegment][pOffset + 7];
     size_t csize = pool_[pSegment][pOffset + 6];
     size_t nvalue = BLOCK_SIZE;
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_[pSegment][pOffset + 5];
@@ -526,6 +525,7 @@ uint32_t SegmentPool::decompressTfBlock(
     const uint32_t* block = &pool_[pSegment][pOffset + csize + 8];
     size_t tfcsize = pool_[pSegment][pOffset + csize + 7];
     size_t nvalue = BLOCK_SIZE;
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
     codec.decodeArray(block, tfcsize, outBlock, nvalue);
 
     return pool_[pSegment][pOffset + 5];
@@ -762,6 +762,84 @@ void SegmentPool::bwandOr(
     }
 }
 
+bool SegmentPool::gallopSearch(
+        FastPFor& codec,
+        std::vector<uint32_t>& blockDocid, uint32_t& count,
+        uint32_t& index, size_t& pointer, uint32_t pivot) const
+{
+    if (LESS_THAN(blockDocid[count - 1], pivot, reverse_))
+    {
+        if ((pointer = nextPointer(pointer, pivot)) == UNDEFINED_POINTER)
+            return false;
+
+        count = decompressDocidBlock(codec, &blockDocid[0], pointer);
+        index = 0;
+    }
+
+    if (GREATER_THAN_EQUAL(blockDocid[index], pivot, reverse_))
+    {
+        return true;
+    }
+    if (blockDocid[count - 1] == pivot)
+    {
+        index = count - 1;
+        return true;
+    }
+
+    uint32_t beginIndex = index;
+    uint32_t hop = 1;
+    uint32_t tempIndex = beginIndex + 1;
+    while (tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
+    {
+        beginIndex = tempIndex;
+        tempIndex += hop;
+        hop *= 2;
+    }
+    if (blockDocid[beginIndex] == pivot)
+    {
+        index = beginIndex;
+        return true;
+    }
+
+    uint32_t endIndex = count - 1;
+    hop = 1;
+    tempIndex = endIndex - 1;
+    while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, reverse_))
+    {
+        endIndex = tempIndex;
+        tempIndex -= hop;
+        hop *= 2;
+    }
+    if (blockDocid[endIndex] == pivot)
+    {
+        index = endIndex;
+        return true;
+    }
+
+    // Binary search between begin and end indexes
+    while (beginIndex < endIndex)
+    {
+        uint32_t mid = beginIndex + (endIndex - beginIndex) / 2;
+
+        if (LESS_THAN(pivot, blockDocid[mid], reverse_))
+        {
+            endIndex = mid;
+        }
+        else if (GREATER_THAN(pivot, blockDocid[mid], reverse_))
+        {
+            beginIndex = mid + 1;
+        }
+        else
+        {
+            index = mid;
+            return true;
+        }
+    }
+
+    index = endIndex;
+    return true;
+}
+
 void SegmentPool::wand(
         std::vector<size_t>& headPointers,
         const std::vector<uint32_t>& df,
@@ -889,12 +967,17 @@ void SegmentPool::wand(
             for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
             {
                 uint32_t aterm = mapping[atermIdx];
-                size_t tempHead = headPointers[aterm];
 
-                headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
-                if (headPointers[aterm] != UNDEFINED_POINTER)
+                if (posting[aterm] == counts[aterm] - 1)
                 {
-                    if (headPointers[aterm] != tempHead)
+                    if ((headPointers[aterm] = nextPointer(headPointers[aterm])) == UNDEFINED_POINTER)
+                    {
+                        mapping.erase(mapping.begin() + atermIdx);
+                        --len;
+                        --atermIdx;
+                        continue;
+                    }
+                    else
                     {
                         counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
                         if (hasTf)
@@ -903,59 +986,32 @@ void SegmentPool::wand(
                         }
                         posting[aterm] = 0;
                     }
-                    while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
-                    {
-                        ++posting[aterm];
-                    }
                 }
-                else
+
+                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
                 {
-                    mapping.erase(mapping.begin() + atermIdx);
-                    --len;
-                    --atermIdx;
+                    ++posting[aterm];
                 }
             }
         }
         else
         {
-            uint32_t aterm = mapping[0];
             for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
             {
-                if (df[mapping[atermIdx]] <= df[aterm] &&
-                        LESS_THAN(blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]], pivot, reverse_))
-                {
-                    uint32_t atermTemp = mapping[atermIdx];
+                if (blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]] == pivot)
+                    break;
 
-                    if (posting[atermTemp] == counts[atermTemp] - 1 &&
-                            nextPointer(headPointers[atermTemp]) == UNDEFINED_POINTER)
-                    {
-                        mapping.erase(mapping.begin() + atermIdx);
-                        --len;
-                        --atermIdx;
-                    }
-                    else
-                    {
-                        aterm = atermTemp;
-                    }
-                }
-            }
-
-            size_t tempHead = headPointers[aterm];
-            headPointers[aterm] = nextPointer(headPointers[aterm], pivot);
-            if (headPointers[aterm] != UNDEFINED_POINTER)
-            {
-                if (headPointers[aterm] != tempHead)
+                uint32_t aterm = mapping[atermIdx];
+                size_t tmpHead = headPointers[aterm];
+                if (!gallopSearch(codec, blockDocid[aterm], counts[aterm], posting[aterm], headPointers[aterm], pivot))
                 {
-                    counts[aterm] = decompressDocidBlock(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                    if (hasTf)
-                    {
-                        decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
-                    }
-                    posting[aterm] = 0;
+                    mapping.erase(mapping.begin() + atermIdx);
+                    --len;
+                    --atermIdx;
                 }
-                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
+                else if (hasTf && tmpHead != headPointers[aterm])
                 {
-                    ++posting[aterm];
+                    decompressTfBlock(codec, &blockTf[aterm][0], headPointers[aterm]);
                 }
             }
         }
