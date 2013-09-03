@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <glog/logging.h>
 #include <iostream>
 #include <stdlib.h>
 #include <ir/Zambezi/InvertedIndex.hpp>
@@ -129,28 +130,25 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            charString.push_back("你");
-            charString.push_back("机");
-            charString.push_back("点");
-            charString.push_back("动");
-            int termNumber = 100000;
-            //int docNumber = 1000000;
+            int termNumber = 80000;
+
+            std::string freq_word = "123abc";
+            //build word;
             srand( (unsigned int)time(0) );
-            std::vector<std::string> wordlist;
             for (int i = 0; i < termNumber; ++i)
             {
-                int wordlen = rand()%5 + 4;
+                int wordlen = rand()%5 + 2;
                 std::string newword;
                 for (int i = 0; i < wordlen; ++i)
                 {
                     int randchar = rand()%charString.size();
                     newword += charString[randchar];
                 }
-                wordlist.push_back(newword);
-                std::cout << "newword: " << newword << std::endl;
+                wordlist_.push_back(newword);
+                std::cout <<"term:" << newword << endl;
             }
 
-            //DocIDTermMapT docTermMap;
+            //build term;
             std::vector<uint32_t> DocIdList;
             for (int i = 1; i <= docNumber; ++i)
             {
@@ -159,12 +157,13 @@ namespace Zambezi
             for (std::vector<uint32_t>::iterator i = DocIdList.begin(); i != DocIdList.end(); ++i)
             {
                 std::vector<std::string> termList;
-                int wordNumber = rand()%5 + 5;
+                int wordNumber = rand()%4 + 5;
                 for (int j = 0; j < wordNumber; ++j)
                 {
-                    int randwrod = rand()%wordlist.size();
-                    termList.push_back(wordlist[randwrod]);
+                    int randwrod = rand()%wordlist_.size();
+                    termList.push_back(wordlist_[randwrod]);
                 }
+                termList.push_back(freq_word);
                 DocIdTermMap[*i] = termList;
             }
             int x;
@@ -195,9 +194,16 @@ namespace Zambezi
 
         void buildIndex(const DocIDTermMapT& docTermMap)
         {
+            int count = 0;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
+            {
                 index_->insertDoc(i->first, i->second);
-            
+                if (count%1000000 == 0)
+                {
+                    LOG(INFO) << "insert document:" << count;
+                }
+                count++;
+            }
             index_->flush();
         }
 
@@ -213,9 +219,15 @@ namespace Zambezi
                 score_list);
         }
 
+        std::vector<std::string>& getWordList()
+        {
+            return wordlist_;
+        }
+
     private:
         InvertedIndex* index_;
         std::string indePath_;
+        std::vector<std::string> wordlist_;
     };
 }
 
