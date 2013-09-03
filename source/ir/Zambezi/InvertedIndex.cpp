@@ -158,8 +158,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
         }
 
         docBuffer.push_back(docid);
-        
-        pointers_.df_.increment(id);//
+        pointers_.df_.increment(id);
 
         if (type_ == POSITIONAL)
         {
@@ -173,15 +172,9 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
         if (docBuffer.size() == docBuffer.capacity())
         {
             uint32_t nb = docBuffer.size() / BLOCK_SIZE;
-            size_t pointer;
+            size_t pointer = buffer_.tailPointer_[id];
 
-            if (pool_.isReverse() )
-                pointer = pointers_.getHeadPointer(id); 
-            else
-                pointer = buffer_.tailPointer_[id];
-            //std::cout << "tail ... pointer: " << pointer <<std::endl;
-            uint32_t ps = 0;
-            for (uint32_t j = 0; j < nb; ++j)
+            for (uint32_t j = 0, ps = 0; j < nb; ++j)
             {
                 switch (type_)
                 {
@@ -190,7 +183,7 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                                 codec_,
                                 &docBuffer[j * BLOCK_SIZE],
                                 BLOCK_SIZE,
-                                pointer); // last pointer;
+                                pointer);
                         break;
 
                     case TF_ONLY:
@@ -220,16 +213,12 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
 
                 if (pool_.isReverse() || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
                 {
-                    //std::cout <<"set head pointer:" << pointer << std::endl;
                     pointers_.setHeadPointer(id, pointer);
                 }
-                if (!pool_.isReverse() || buffer_.tailPointer_[id] == UNDEFINED_POINTER)
-                {
-                    //std::cout <<"set tail pointer:" << pointer << std::endl;
-                    buffer_.tailPointer_[id] = pointer;
-                }
             }
-            
+
+            buffer_.tailPointer_[id] = pointer;
+
             docBuffer.clear();
             if (type_ != NON_POSITIONAL)
             {
@@ -267,12 +256,7 @@ void InvertedIndex::flush()
         std::vector<uint32_t>& posBuffer = buffer_.position_[term];
 
         uint32_t pos = docBuffer.size();
-
-        size_t pointer;
-        if (pool_.isReverse() )
-            pointer = pointers_.getHeadPointer(term); 
-        else
-            pointer = buffer_.tailPointer_[term];
+        size_t pointer = buffer_.tailPointer_[term];
 
         uint32_t nb = pos / BLOCK_SIZE;
         uint32_t res = pos % BLOCK_SIZE;
@@ -317,13 +301,7 @@ void InvertedIndex::flush()
 
             if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
-                ///std::cout <<"set head pointer:" << pointer << std::endl;
                 pointers_.setHeadPointer(term, pointer);
-            }
-            if (!pool_.isReverse() || buffer_.tailPointer_[term] == UNDEFINED_POINTER)
-            {
-                ///std::cout <<"set tail pointer:" << pointer << std::endl;
-                buffer_.tailPointer_[term] = pointer;
             }
         }
 
@@ -365,15 +343,11 @@ void InvertedIndex::flush()
 
             if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
-                //std::cout <<"set head pointer:" << pointer << std::endl;
                 pointers_.setHeadPointer(term, pointer);
             }
-            if (!pool_.isReverse() || buffer_.tailPointer_[term] == UNDEFINED_POINTER)
-            {
-                //std::cout <<"set tail pointer:" << pointer << std::endl;
-                buffer_.tailPointer_[term] = pointer;
-            }
         }
+
+        buffer_.tailPointer_[term] = pointer;
     }
 }
 

@@ -2,7 +2,6 @@
 #define IZENELIB_IR_ZAMBEZI_CONSTS_HPP
 
 #include <types.h>
-#include <iostream>
 
 NS_IZENELIB_IR_BEGIN
 
