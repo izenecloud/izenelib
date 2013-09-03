@@ -177,11 +177,28 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
+    void intersectSvS(
+            std::vector<size_t>& headPointers,
+            uint32_t minDf,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list) const;
+
 private:
-    bool gallopSearch(
+    bool gallopSearch_(
             FastPFor& codec,
             std::vector<uint32_t>& data, uint32_t& count,
             uint32_t& index, size_t& pointer, uint32_t pivot) const;
+
+    void intersectPostingsLists_(
+            FastPFor& codec,
+            size_t pointer0, size_t pointer1,
+            uint32_t minDf,
+            std::vector<uint32_t>& docid_list) const;
+
+    void intersectSetPostingsList_(
+            FastPFor& codec,
+            size_t pointer,
+            std::vector<uint32_t>& docid_list) const;
 
 private:
     uint32_t numberOfPools_;
