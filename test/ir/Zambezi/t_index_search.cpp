@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
 
 BOOST_AUTO_TEST_CASE(do_search_BWAND_OR_forward)
 {
-    uint32_t DocNum = 3000000;
+    uint32_t DocNum = 10000000;
     InvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
     indexTestFixture.initBIGIndexer(DocNum, reverse);

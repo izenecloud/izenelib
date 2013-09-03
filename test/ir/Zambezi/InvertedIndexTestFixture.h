@@ -23,6 +23,7 @@ namespace Zambezi
     typedef std::vector<std::string> DocIdListT;
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
+    const unsigned int DefullNum = 1000000;
     class InvertedIndexTestFixture
     {
     public:
@@ -80,13 +81,9 @@ namespace Zambezi
             }
         }
 
-        void prepareBigDocument(DocIDTermMapT& DocIdTermMap, uint32_t docNumber)
+        void prepareWordList()
         {
-            //10w key word; 5-10;
-            //10M document;
-            //each document; 10-15words;
-
-            std::vector<std::string> charString; /// number:37
+            std::vector<std::string> charString;
             charString.push_back("a");
             charString.push_back("b");
             charString.push_back("c");
@@ -131,8 +128,6 @@ namespace Zambezi
             charString.push_back("运");
             charString.push_back("动");
             int termNumber = 80000;
-
-            std::string freq_word = "123abc";
             //build word;
             srand( (unsigned int)time(0) );
             for (int i = 0; i < termNumber; ++i)
@@ -147,10 +142,14 @@ namespace Zambezi
                 wordlist_.push_back(newword);
                 std::cout <<"term:" << newword << endl;
             }
-
+        }
+        void prepareBigDocument(DocIDTermMapT& DocIdTermMap, uint32_t docNumber, uint32_t lastDocid)
+        {
             //build term;
+            std::string freq_word = "123abc";
             std::vector<uint32_t> DocIdList;
-            for (int i = 1; i <= docNumber; ++i)
+            std::cout << "document lastDocid:" << lastDocid << std::endl;
+            for (unsigned int i = 1 + lastDocid; i <= docNumber + lastDocid; ++i)
             {
                 DocIdList.push_back(i);
             }
@@ -166,19 +165,27 @@ namespace Zambezi
                 termList.push_back(freq_word);
                 DocIdTermMap[*i] = termList;
             }
-            int x;
-            cin>>x;
         }
 
         void initBIGIndexer(uint32_t docNumber, bool reverse)
         {
             DocIDTermMapT docTermMap;
-
-            prepareBigDocument(docTermMap, docNumber);
-
+            prepareWordList();
             initIndex(reverse);
-
+            uint32_t number = docNumber%DefullNum;
+            int times = docNumber/DefullNum;
+            int lastDocid = 0;
+            while (times >= 1)
+            {
+                prepareBigDocument(docTermMap, DefullNum, lastDocid);
+                buildIndex(docTermMap);
+                docTermMap.clear();
+                times--;
+                lastDocid += DefullNum;
+            }
+            prepareBigDocument(docTermMap, number, lastDocid);
             buildIndex(docTermMap);
+            docTermMap.clear();
         }
 
         void initIndexer(uint32_t docNumber, bool reverse)
@@ -198,9 +205,9 @@ namespace Zambezi
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
             {
                 index_->insertDoc(i->first, i->second);
-                if (count%1000000 == 0)
+                if (count%100000 == 0)
                 {
-                    LOG(INFO) << "insert document:" << count;
+                    std::cout << "insert document:" << count << std::endl;
                 }
                 count++;
             }
