@@ -241,7 +241,7 @@ bool NewSegmentPool::gallopSearch_(
     int beginIndex = index;
     int hop = 1;
     int tempIndex = beginIndex + 1;
-    while (tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
+    while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
     {
         beginIndex = tempIndex;
         tempIndex += hop;
