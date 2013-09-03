@@ -102,6 +102,7 @@ void NewInvertedIndex::insertDoc(
         {
             uint32_t nb = docBuffer.size() / BLOCK_SIZE;
             size_t pointer = buffer_.tailPointer_[id];
+
             for (uint32_t j = 0; j < nb; ++j)
             {
                 pointer = pool_.compressAndAppend(
@@ -116,6 +117,7 @@ void NewInvertedIndex::insertDoc(
                     pointers_.setHeadPointer(id, pointer);
                 }
             }
+
             buffer_.tailPointer_[id] = pointer;
 
             docBuffer.clear();
@@ -173,6 +175,8 @@ void NewInvertedIndex::flush()
                 pointers_.setHeadPointer(term, pointer);
             }
         }
+
+        buffer_.tailPointer_[term] = pointer;
     }
 }
 
