@@ -391,8 +391,6 @@ void InvertedIndex::retrieval(
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i]);
-        std::cout << "termid: " << termid <<std::endl;
-
         if (termid != INVALID_ID && pointers_.getHeadPointer(termid) != UNDEFINED_POINTER)
         {
             queries.push_back(termid);

@@ -4,11 +4,12 @@ NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
 BOOST_AUTO_TEST_SUITE(t_index_search)
-
+/*
 BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
 {
     uint32_t DocNum = 300000;
     InvertedIndexTestFixture indexTestFixture;
+    indexTestFixture.prepareBigDocument();
     bool reverse = true;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -157,46 +158,34 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
            break;
         }
     }
-}
-/*
-BOOST_AUTO_TEST_CASE(do_search_BWAND_OR)
-{
-    InvertedIndexTestFixture indexTestFixture;
-    indexTestFixture.initIndexer(index);
-    std::cout << "term number:" << index->DictionarySize() << std::endl;
+}*/
 
+BOOST_AUTO_TEST_CASE(do_search_BWAND_OR_forward)
+{
+    uint32_t DocNum = 30000000;
+    InvertedIndexTestFixture indexTestFixture;
+    bool reverse = false;
+    indexTestFixture.initBIGIndexer(DocNum, reverse);
+
+    int x ;
+    std::cin>>x;
     std::vector<std::string> term_list;
     std::vector<uint32_t> docid_list;
     term_list.push_back("abc");
-    indexTestFixture.search(term_list, docid_list, BWAND_OR);
-    BOOST_CHECK_EQUAL(docid_list.size(), 15);
-
-    term_list.clear();
-    docid_list.clear();
-    term_list.push_back("abd");
-    indexTestFixture.search(term_list, docid_list, BWAND_OR);
-    BOOST_CHECK_EQUAL(docid_list.size(), 14);
+    term_list.push_back("abe");
+    indexTestFixture.search(term_list, docid_list, SVS);
+    uint32_t count = 20;
+    BOOST_CHECK_EQUAL(docid_list.size(), 260000);
 
     term_list.clear();
     docid_list.clear();
     term_list.push_back("abh");
-    indexTestFixture.search(term_list, docid_list, BWAND_OR);
-    BOOST_CHECK_EQUAL(docid_list.size(), 10);
+    term_list.push_back("abq");
+    indexTestFixture.search(term_list, docid_list, SVS);
+    count = 20;
+    BOOST_CHECK_EQUAL(docid_list.size(), 20000);
 
-
-    term_list.clear();
-    docid_list.clear();
-    term_list.push_back("abi");
-    indexTestFixture.search(term_list, docid_list, BWAND_OR);
-    BOOST_CHECK_EQUAL(docid_list.size(), 9);
-
-
-    term_list.clear();
-    docid_list.clear();
-    term_list.push_back("abp");
-    indexTestFixture.search(term_list, docid_list, BWAND_AND);
-    BOOST_CHECK_EQUAL(docid_list.size(), 0);
-}*/
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

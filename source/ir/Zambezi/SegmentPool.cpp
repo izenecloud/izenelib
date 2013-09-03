@@ -627,7 +627,6 @@ void SegmentPool::bwandAnd(
 
                 if (!containsDocid(pivot, headPointers[j]))
                 {
-                    std::cout << "found false:" << pivot << std::endl;
                     found = false;
                     break;
                 }
@@ -737,9 +736,9 @@ bool SegmentPool::gallopSearch_(
         return true;
     }
 
-    uint32_t beginIndex = index;
-    uint32_t hop = 1;
-    uint32_t tempIndex = beginIndex + 1;
+    int beginIndex = index;
+    int hop = 1;
+    int tempIndex = beginIndex + 1;
     while (tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
     {
         beginIndex = tempIndex;
@@ -752,14 +751,17 @@ bool SegmentPool::gallopSearch_(
         return true;
     }
 
-    uint32_t endIndex = count - 1;
+    int endIndex = count - 1;
     hop = 1;
-    tempIndex = endIndex - 1;
-    while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, reverse_))
+    if (endIndex > 0)
     {
-        endIndex = tempIndex;
-        tempIndex -= hop;
-        hop *= 2;
+        tempIndex = endIndex - 1;
+        while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, reverse_))
+        {
+            endIndex = tempIndex;
+            tempIndex -= hop;
+            hop *= 2;
+        }
     }
     if (blockDocid[endIndex] == pivot)
     {
