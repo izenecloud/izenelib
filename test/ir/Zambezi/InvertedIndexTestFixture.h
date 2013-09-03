@@ -25,8 +25,13 @@ namespace Zambezi
     {
     public:
         InvertedIndexTestFixture()
+            :index_(NULL)
         {
-            index_ = new InvertedIndex();
+        }
+
+        void initIndex(bool isReverse)
+        {
+            index_ = new InvertedIndex(NON_POSITIONAL, isReverse);
         }
 
         ~InvertedIndexTestFixture()
@@ -37,7 +42,7 @@ namespace Zambezi
         void prepareDocument(DocIDTermMapT& DocIdTermMap, uint32_t docNumber)
         {
             std::vector<uint32_t> DocIdList;
-            for (int i = 1; i <= docNumber; ++i)
+            for (unsigned int i = 1; i <= docNumber; ++i)
             {
                 DocIdList.push_back(i);
             }
@@ -45,7 +50,7 @@ namespace Zambezi
             std::vector<std::string> termList;
             std::vector<std::string> term_tmp;
             term_tmp.push_back("abc");
-            /*term_tmp.push_back("abd");
+            term_tmp.push_back("abd");
             term_tmp.push_back("abe");
             term_tmp.push_back("abf");
             term_tmp.push_back("abg");
@@ -58,13 +63,12 @@ namespace Zambezi
             term_tmp.push_back("abn");
             term_tmp.push_back("abo");
             term_tmp.push_back("abp");
-            term_tmp.push_back("abq");*/
-            int x = 0;
+            term_tmp.push_back("abq");
+            unsigned int x = 0;
             for (std::vector<uint32_t>::iterator i = DocIdList.begin(); i != DocIdList.end(); ++i)
             {
                 termList.push_back(term_tmp[x]);
                 DocIdTermMap[*i] = termList;
-                //std::cout << *i << " - "<< termList[0]<< std::endl;
                 x++;
                 if (x == term_tmp.size() )
                 {
@@ -74,11 +78,13 @@ namespace Zambezi
             }
         }
 
-        void initIndexer(uint32_t docNumber)
+        void initIndexer(uint32_t docNumber, bool reverse)
         {
             DocIDTermMapT docTermMap;
 
             prepareDocument(docTermMap, docNumber);
+
+            initIndex(reverse);
 
             buildIndex(docTermMap);
         }
@@ -87,13 +93,14 @@ namespace Zambezi
         {
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
                 index_->insertDoc(i->first, i->second);
-            //index_->flush();
+            
+            index_->flush();
         }
 
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list, Algorithm algorithm)
         {
             std::vector<float> score_list;
-            uint32_t hits = 10000;
+            uint32_t hits = 10000000;
             index_->retrieval(
                 algorithm,
                 term_list,
