@@ -577,13 +577,15 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
 
     while (LESS_THAN(pool_[pSegment][pOffset + 3], docid, reverse_))
     {
-        pSegment = pool_[pSegment][pOffset + 1];
-        pOffset = pool_[pSegment][pOffset + 2];
+        uint32_t oldSegment = pSegment;
+        uint32_t oldOffset = pOffset;
+        pSegment = pool_[oldSegment][oldOffset + 1];
         if (pSegment == UNDEFINED_SEGMENT)
         {
             pointer = UNDEFINED_POINTER;
             return false;
         }
+        pOffset = pool_[oldSegment][oldOffset + 2];
     }
 
     if (pool_[pSegment][pOffset + 3] == docid)
