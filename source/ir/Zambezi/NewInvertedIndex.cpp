@@ -166,6 +166,11 @@ void NewInvertedIndex::flush()
     }
 }
 
+uint32_t NewInvertedIndex::totalDocNum() const
+{
+    return pointers_.getTotalDocs();
+}
+
 void NewInvertedIndex::retrieval(
         const std::vector<std::string>& term_list,
         uint32_t hits,

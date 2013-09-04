@@ -50,6 +50,8 @@ public:
 
     void flush();
 
+    uint32_t totalDocNum() const;
+
     void retrieval(
             const std::vector<std::string>& term_list,
             uint32_t hits,
