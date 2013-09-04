@@ -849,16 +849,13 @@ void SegmentPool::wand(
     while (true)
     {
         float sum = 0;
-        uint32_t pTerm = -1;
         uint32_t pTermIdx = -1;
         for (uint32_t i = 0; i < len; ++i)
         {
-            sum += UB[mapping[i]];
-            if (sum > threshold)
+            if ((sum += UB[mapping[i]]) > threshold)
             {
-                pTerm = mapping[i];
                 pTermIdx = i;
-                if (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] !=
+                if (blockDocid[mapping[i]][posting[mapping[i]]] !=
                         blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
                 {
                     break;
@@ -866,55 +863,53 @@ void SegmentPool::wand(
             }
         }
 
-        if (sum == 0 || pTerm == (uint32_t)-1)
+        if (sum == 0 || pTermIdx == (uint32_t)-1)
         {
             break;
         }
 
+        uint32_t pTerm = mapping[pTermIdx];
         uint32_t pivot = blockDocid[pTerm][posting[pTerm]];
 
         if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot)
         {
-            if (pivot != 0)
+            float score = 0;
+            if (hasTf)
             {
-                float score = 0;
-                if (hasTf)
+                for (uint32_t i = 0; i <= pTermIdx; ++i)
                 {
-                    for (uint32_t i = 0; i <= pTermIdx; ++i)
-                    {
-                        score += default_bm25(blockTf[mapping[i]][posting[mapping[i]]],
-                                df[mapping[i]], totalDocs, docLen[pivot], avgDocLen);
-                    }
+                    score += default_bm25(blockTf[mapping[i]][posting[mapping[i]]],
+                            df[mapping[i]], totalDocs, docLen[pivot], avgDocLen);
                 }
-                else
-                {
-                    score = sum;
-                }
+            }
+            else
+            {
+                score = sum;
+            }
 
-                if (score > threshold)
+            if (score > threshold)
+            {
+                if (result_list.size() < hits)
                 {
-                    if (result_list.size() < hits)
+                    result_list.push_back(std::make_pair(score, pivot));
+                    std::push_heap(result_list.begin(), result_list.end(), comparator);
+                    if (result_list.size() == hits)
                     {
-                        result_list.push_back(std::make_pair(score, pivot));
-                        std::push_heap(result_list.begin(), result_list.end(), comparator);
-                        if (result_list.size() == hits)
-                        {
-                            if (!hasTf && len == 1) break;
-                            threshold = result_list[0].first;
-                        }
-                    }
-                    else if (score > result_list[0].first)
-                    {
-                        std::pop_heap(result_list.begin(), result_list.end(), comparator);
-                        result_list.back() = std::make_pair(score, pivot);
-                        std::push_heap(result_list.begin(), result_list.end(), comparator);
                         if (!hasTf && len == 1) break;
                         threshold = result_list[0].first;
                     }
                 }
+                else if (score > result_list[0].first)
+                {
+                    std::pop_heap(result_list.begin(), result_list.end(), comparator);
+                    result_list.back() = std::make_pair(score, pivot);
+                    std::push_heap(result_list.begin(), result_list.end(), comparator);
+                    if (!hasTf && len == 1) break;
+                    threshold = result_list[0].first;
+                }
             }
 
-            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
+            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
             {
                 uint32_t aterm = mapping[atermIdx];
 
@@ -941,7 +936,7 @@ void SegmentPool::wand(
         }
         else
         {
-            for (uint32_t atermIdx = 0; atermIdx < std::min(pTermIdx + 1, len); ++atermIdx)
+            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
             {
                 if (blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]] == pivot)
                     break;
@@ -961,19 +956,20 @@ void SegmentPool::wand(
             }
         }
 
-        for (uint32_t i = 0; i < len - 1; ++i)
+        for (uint32_t i = 0; i <= pTermIdx; ++i)
         {
-            uint32_t least = i;
+            bool unchanged = true;
             for (uint32_t j = i + 1; j < len; ++j)
             {
-                if (GREATER_THAN(blockDocid[mapping[least]][posting[mapping[least]]],
+                if (GREATER_THAN(blockDocid[mapping[j - 1]][posting[mapping[j - 1]]],
                                  blockDocid[mapping[j]][posting[mapping[j]]],
                                  reverse_))
                 {
-                    least = j;
+                    std::swap(mapping[j - 1], mapping[j]);
+                    unchanged = false;
                 }
             }
-            std::swap(mapping[i], mapping[least]);
+            if (unchanged) break;
         }
     }
 
