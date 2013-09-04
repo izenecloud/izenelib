@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -297,7 +298,7 @@ void NewSegmentPool::wand(
         uint32_t threshold,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
-        std::vector<float>& score_list) const
+        std::vector<uint32_t>& score_list) const
 {
     uint32_t len = headPointers.size();
     std::vector<std::vector<uint32_t> > blockDocid(len);

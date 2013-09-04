@@ -1,6 +1,7 @@
 #include <ir/Zambezi/NewInvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -44,33 +45,15 @@ bool NewInvertedIndex::hasValidPostingsList(uint32_t termid) const
 
 void NewInvertedIndex::insertDoc(
         uint32_t docid,
-        const std::vector<uint32_t>& attr_score_list,
-        const std::vector<std::vector<std::string> >& attr_term_list)
+        const std::vector<std::string>& term_list,
+        const std::vector<uint32_t>& score_list)
 {
-    std::map<uint32_t, uint32_t> unique_term_list;
-    uint32_t total_len = 0;
+    pointers_.setDocLen(docid, term_list.size());
 
-    for (uint32_t i = 0; i < attr_term_list.size(); ++i)
+    for (uint32_t i = 0; i < term_list.size(); ++i)
     {
-        total_len += attr_term_list[i].size();
-        std::set<uint32_t> tmp_term_list;
-        for (std::vector<std::string>::const_iterator it = attr_term_list[i].begin();
-                it != attr_term_list[i].end(); ++it)
-        {
-            uint32_t id = dictionary_.insertTerm(*it);
-            if (tmp_term_list.insert(id).second)
-                unique_term_list[id] += attr_score_list[i];
-            pointers_.cf_.increment(id);
-        }
-    }
-
-    pointers_.setDocLen(docid, total_len);
-
-    for (std::map<uint32_t, uint32_t>::const_iterator it = unique_term_list.begin();
-            it != unique_term_list.end(); ++it)
-    {
-        uint32_t id = it->first;
-        uint32_t score = it->second;
+        uint32_t id = dictionary_.insertTerm(term_list[i]);
+        pointers_.cf_.increment(id);
         std::vector<uint32_t>& docBuffer = buffer_.getDocidList(id);
         std::vector<uint32_t>& scoreBuffer = buffer_.getScoreList(id);
 
@@ -83,7 +66,7 @@ void NewInvertedIndex::insertDoc(
                 scoreBuffer.reserve(DF_CUTOFF);
             }
             docBuffer.push_back(docid);
-            scoreBuffer.push_back(score);
+            scoreBuffer.push_back(score_list[i]);
             pointers_.df_.increment(id);
             continue;
         }
@@ -95,7 +78,7 @@ void NewInvertedIndex::insertDoc(
         }
 
         docBuffer.push_back(docid);
-        scoreBuffer.push_back(score);
+        scoreBuffer.push_back(score_list[i]);
         pointers_.df_.increment(id);
 
         if (docBuffer.size() == docBuffer.capacity())
@@ -177,6 +160,9 @@ void NewInvertedIndex::flush()
         }
 
         buffer_.tailPointer_[term] = pointer;
+
+        docBuffer.clear();
+        scoreBuffer.clear();
     }
 }
 
@@ -184,7 +170,7 @@ void NewInvertedIndex::retrieval(
         const std::vector<std::string>& term_list,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
-        std::vector<float>& score_list) const
+        std::vector<uint32_t>& score_list) const
 {
     std::vector<uint32_t> queries;
     for (uint32_t i = 0; i < term_list.size(); ++i)
@@ -231,7 +217,7 @@ void NewInvertedIndex::retrieval(
         qdf[i] = pointers_.getDf(queries[sortedDfIndex[i]]);
     }
 
-//  pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
+    pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list, score_list);
 }
 
 }
