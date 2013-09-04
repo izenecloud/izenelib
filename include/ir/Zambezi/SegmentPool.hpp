@@ -186,8 +186,9 @@ public:
 private:
     bool gallopSearch_(
             FastPFor& codec,
-            std::vector<uint32_t>& data, uint32_t& count,
-            uint32_t& index, size_t& pointer, uint32_t pivot) const;
+            std::vector<uint32_t>& blockDocid,
+            uint32_t& count, uint32_t& index, size_t& pointer,
+            uint32_t pivot) const;
 
     void intersectPostingsLists_(
             FastPFor& codec,

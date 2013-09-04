@@ -173,10 +173,10 @@ size_t SegmentPool::compressAndAddNonPositional(
         }
     }
 
-    uint32_t thisOffset = offset_;
+    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    return ENCODE_POINTER(segment_, thisOffset);
+    return newPointer;
 }
 
 size_t SegmentPool::compressAndAddTfOnly(
@@ -263,9 +263,10 @@ size_t SegmentPool::compressAndAddTfOnly(
         }
     }
 
+    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    return ENCODE_POINTER(segment_, offset_);
+    return newPointer;
 }
 
 size_t SegmentPool::compressAndAddPositional(
@@ -388,25 +389,22 @@ size_t SegmentPool::compressAndAddPositional(
         }
     }
 
+    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    return ENCODE_POINTER(segment_, offset_);
+    return newPointer;
 }
 
 size_t SegmentPool::nextPointer(size_t pointer) const
 {
     if (pointer == UNDEFINED_POINTER)
-    {
         return UNDEFINED_POINTER;
-    }
 
-    uint32_t pSegment = DECODE_SEGMENT(pointer); //next pSegment
-    uint32_t pOffset = DECODE_OFFSET(pointer); //next pOffset
+    uint32_t pSegment = DECODE_SEGMENT(pointer);
+    uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    if (pool_[pSegment][pOffset] == UNDEFINED_SEGMENT)
-    {
+    if (pool_[pSegment][pOffset + 1] == UNDEFINED_SEGMENT)
         return UNDEFINED_POINTER;
-    }
 
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
@@ -414,21 +412,19 @@ size_t SegmentPool::nextPointer(size_t pointer) const
 size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 {
     if (pointer == UNDEFINED_POINTER)
-    {
         return UNDEFINED_POINTER;
-    }
 
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
     do
     {
-        pSegment = pool_[pSegment][pOffset + 1];
-        if (pSegment == UNDEFINED_SEGMENT)
-        {
+        uint32_t oldSegment = pSegment;
+        uint32_t oldOffset = pOffset;
+        if ((pSegment = pool_[oldSegment][oldOffset + 1]) == UNDEFINED_SEGMENT)
             return UNDEFINED_POINTER;
-        }
-        pOffset = pool_[pSegment][pOffset + 2];
+
+        pOffset = pool_[oldSegment][oldOffset + 2];
     }
     while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_));
 
@@ -553,7 +549,7 @@ void SegmentPool::decompressPositions(
             tocopy = BLOCK_SIZE - rindex;
         }
         uint32_t sb = pool_[pSegment][pos];
-        std::vector<uint32_t> temp(BLOCK_SIZE * 2);
+        std::vector<uint32_t> temp(BLOCK_SIZE);
         size_t nvalue = BLOCK_SIZE;
         codec.decodeArray(&pool_[pSegment][pos + 1], sb, &temp[0], nvalue);
         memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(uint32_t));
@@ -714,8 +710,9 @@ void SegmentPool::bwandOr(
 
 bool SegmentPool::gallopSearch_(
         FastPFor& codec,
-        std::vector<uint32_t>& blockDocid, uint32_t& count,
-        uint32_t& index, size_t& pointer, uint32_t pivot) const
+        std::vector<uint32_t>& blockDocid,
+        uint32_t& count, uint32_t& index, size_t& pointer,
+        uint32_t pivot) const
 {
     if (LESS_THAN(blockDocid[count - 1], pivot, reverse_))
     {
@@ -739,7 +736,7 @@ bool SegmentPool::gallopSearch_(
     int beginIndex = index;
     int hop = 1;
     int tempIndex = beginIndex + 1;
-    while (tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
+    while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, reverse_))
     {
         beginIndex = tempIndex;
         tempIndex += hop;
@@ -753,15 +750,12 @@ bool SegmentPool::gallopSearch_(
 
     int endIndex = count - 1;
     hop = 1;
-    if (endIndex > 0)
+    tempIndex = endIndex - 1;
+    while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, reverse_))
     {
-        tempIndex = endIndex - 1;
-        while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, reverse_))
-        {
-            endIndex = tempIndex;
-            tempIndex -= hop;
-            hop *= 2;
-        }
+        endIndex = tempIndex;
+        tempIndex -= hop;
+        hop *= 2;
     }
     if (blockDocid[endIndex] == pivot)
     {
@@ -816,11 +810,11 @@ void SegmentPool::wand(
     FastPFor codec;
     for (uint32_t i = 0; i < len; ++i)
     {
-        blockDocid[i].resize(BLOCK_SIZE * 2);
+        blockDocid[i].resize(BLOCK_SIZE);
         counts[i] = decompressDocidBlock(codec, &blockDocid[i][0], headPointers[i]);
         if (hasTf)
         {
-            blockTf[i].resize(BLOCK_SIZE * 2);
+            blockTf[i].resize(BLOCK_SIZE);
             decompressTfBlock(codec, &blockTf[i][0], headPointers[i]);
         }
         mapping[i] = i;
@@ -940,11 +934,6 @@ void SegmentPool::wand(
                         posting[aterm] = 0;
                     }
                 }
-
-                while (LESS_THAN(blockDocid[aterm][posting[aterm]], pivot, reverse_))
-                {
-                    ++posting[aterm];
-                }
             }
         }
         else
@@ -999,8 +988,8 @@ void SegmentPool::intersectPostingsLists_(
         uint32_t minDf,
         std::vector<uint32_t>& docid_list) const
 {
-    std::vector<uint32_t> data0(BLOCK_SIZE * 2);
-    std::vector<uint32_t> data1(BLOCK_SIZE * 2);
+    std::vector<uint32_t> data0(BLOCK_SIZE);
+    std::vector<uint32_t> data1(BLOCK_SIZE);
 
     uint32_t c0 = decompressDocidBlock(codec, &data0[0], pointer0);
     uint32_t c1 = decompressDocidBlock(codec, &data1[0], pointer1);
@@ -1047,13 +1036,13 @@ void SegmentPool::intersectSetPostingsList_(
         size_t pointer,
         std::vector<uint32_t>& docid_list) const
 {
-    std::vector<uint32_t> data(BLOCK_SIZE);
-    uint32_t c = decompressDocidBlock(codec, &data[0], pointer);
+    std::vector<uint32_t> blockDocid(BLOCK_SIZE);
+    uint32_t c = decompressDocidBlock(codec, &blockDocid[0], pointer);
     uint32_t iSet = 0, iCurrent = 0, i = 0;
 
     while (iCurrent < docid_list.size())
     {
-        if (data[i] == docid_list[iCurrent])
+        if (blockDocid[i] == docid_list[iCurrent])
         {
             docid_list[iSet++] = docid_list[iCurrent++];
             if (iCurrent == docid_list.size())
@@ -1064,22 +1053,23 @@ void SegmentPool::intersectSetPostingsList_(
                 if ((pointer = nextPointer(pointer)) == UNDEFINED_POINTER)
                     break;
 
-                c = decompressDocidBlock(codec, &data[0], pointer);
+                c = decompressDocidBlock(codec, &blockDocid[0], pointer);
                 i = 0;
             }
         }
-
-        if (LESS_THAN(data[i], docid_list[iCurrent], reverse_))
+        else if (LESS_THAN(blockDocid[i], docid_list[iCurrent], reverse_))
         {
-            if (!gallopSearch_(codec, data, c, ++i, pointer, docid_list[iCurrent]))
+            if (!gallopSearch_(codec, blockDocid, c, ++i, pointer, docid_list[iCurrent]))
                 break;
         }
         else
         {
-            while (iCurrent < docid_list.size() && LESS_THAN(docid_list[iCurrent], data[i], reverse_))
+            while (iCurrent < docid_list.size() && LESS_THAN(docid_list[iCurrent], blockDocid[i], reverse_))
             {
                 ++iCurrent;
             }
+            if (iCurrent == docid_list.size())
+                break;
         }
     }
 
@@ -1095,7 +1085,7 @@ void SegmentPool::intersectSvS(
     FastPFor codec;
     if (headPointers.size() < 2)
     {
-        std::vector<uint32_t> block(BLOCK_SIZE * 2);
+        std::vector<uint32_t> block(BLOCK_SIZE);
         uint32_t length = std::min(minDf, hits);
         docid_list.resize(length);
         uint32_t iSet = 0;
