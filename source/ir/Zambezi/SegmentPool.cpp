@@ -144,7 +144,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT; //save next segment
     pool_[segment_][offset_ + 2] = UNDEFINED_OFFSET; //save next offset;
-    pool_[segment_][offset_ + 3] = maxDocId;
+    pool_[segment_][offset_ + 3] = maxDocId; // max when forward, min when reverse
     pool_[segment_][offset_ + 4] = csize + 7;
     pool_[segment_][offset_ + 5] = len;
     pool_[segment_][offset_ + 6] = csize;
@@ -160,7 +160,6 @@ size_t SegmentPool::compressAndAddNonPositional(
     {
         uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
         uint32_t lastOffset = DECODE_OFFSET(tailPointer);
-        ///std::cout << "lastSegment:" << lastSegment << " lastOffset:" << lastOffset << std::endl;
         if (reverse_)
         {
             pool_[segment_][offset_ + 1] = lastSegment;
@@ -577,21 +576,23 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
 
     while (LESS_THAN(pool_[pSegment][pOffset + 3], docid, reverse_))
     {
-        pSegment = pool_[pSegment][pOffset + 1];
-        pOffset = pool_[pSegment][pOffset + 2];
+        int nSegment = pool_[pSegment][pOffset + 1];
+        int nOffset = pool_[pSegment][pOffset + 2];
+        pSegment = nSegment;
+        pOffset = nOffset;
         if (pSegment == UNDEFINED_SEGMENT)
         {
             pointer = UNDEFINED_POINTER;
             return false;
         }
     }
-
     if (pool_[pSegment][pOffset + 3] == docid)
     {
         return true;
     }
 
     uint32_t bloomOffset = pool_[pSegment][pOffset + 4];
+
     pointer = ENCODE_POINTER(pSegment, pOffset);
     return BloomFilter::contains(
             &pool_[pSegment][pOffset + bloomOffset + 1],
@@ -608,7 +609,6 @@ void SegmentPool::bwandAnd(
     FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
 
-    std::cout << UNDEFINED_POINTER << std::endl;
     while (headPointers[0] != UNDEFINED_POINTER)
     {
         uint32_t count = decompressDocidBlock(codec, &docid_block[0], headPointers[0]);
@@ -1101,12 +1101,12 @@ void SegmentPool::intersectSvS(
         return;
     }
 
-    docid_list.reserve(minDf);
+    docid_list.reserve(minDf); // wrong docid_list.reserve(std::min(minDf, hits));
     intersectPostingsLists_(codec, headPointers[0], headPointers[1], minDf, docid_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
         if (docid_list.empty()) break;
-        intersectSetPostingsList_(codec, headPointers[i], docid_list);
+            intersectSetPostingsList_(codec, headPointers[i], docid_list);
     }
 }
 

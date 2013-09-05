@@ -4,12 +4,12 @@ NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
 BOOST_AUTO_TEST_SUITE(t_index_search)
-/*
+
 BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
 {
+    std::cout <<"test case 1: [do_search_BWAND_AND_revserse] ..." << std::endl;
     uint32_t DocNum = 300000;
     InvertedIndexTestFixture indexTestFixture;
-    indexTestFixture.prepareBigDocument();
     bool reverse = true;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
 
 BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
 {
+    std::cout << std::endl <<"test case 2: [do_search_BWAND_AND_forward] ..." << std::endl;
     uint32_t DocNum = 300000;
     InvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
@@ -158,10 +159,11 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
            break;
         }
     }
-}*/
+}
 
-BOOST_AUTO_TEST_CASE(do_search_BWAND_OR_forward)
+BOOST_AUTO_TEST_CASE(do_search_SVS_forward)
 {
+    std::cout << std::endl <<"test case 3: [do_search_SVS_forward] ..." << std::endl;
     uint32_t DocNum = 10000000;
     InvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
@@ -169,20 +171,43 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_OR_forward)
 
     std::vector<std::string> wordlist = indexTestFixture.getWordList();
 
-    int x ;
-    std::cin>>x;
-
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 20; ++i)
     {
         std::vector<std::string> term_list;
         std::vector<uint32_t> docid_list;
         term_list.push_back(wordlist[i]);
-        //term_list.push_back(wordlist[i+1]);
+        term_list.push_back(wordlist[i+1]);
+        term_list.push_back(wordlist[i+2]);
+        term_list.push_back(wordlist[i+3]);
         indexTestFixture.search(term_list, docid_list, SVS);
-        std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " :" <<docid_list.size() << std::endl;
+        std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " / " << wordlist[i+2] 
+        << " / " << wordlist[i+3] << " :" <<docid_list.size() << std::endl;
     }
 }
 
+BOOST_AUTO_TEST_CASE(do_search_SVS_reverse)
+{
+        std::cout << std::endl <<"test case 4: [do_search_SVS_reverse] ..." << std::endl;
+    uint32_t DocNum = 10000000;
+    InvertedIndexTestFixture indexTestFixture;
+    bool reverse = true;
+    indexTestFixture.initBIGIndexer(DocNum, reverse);
+
+    std::vector<std::string> wordlist = indexTestFixture.getWordList();
+
+    for (int i = 0; i < 20; ++i)
+    {
+        std::vector<std::string> term_list;
+        std::vector<uint32_t> docid_list;
+        term_list.push_back(wordlist[i]);
+        term_list.push_back(wordlist[i+1]);
+        term_list.push_back(wordlist[i+2]);
+        term_list.push_back(wordlist[i+3]);
+        indexTestFixture.search(term_list, docid_list, SVS);
+        std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " / " << wordlist[i+2] 
+        << " / " << wordlist[i+3] << " :" <<docid_list.size() << std::endl;
+    }
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 

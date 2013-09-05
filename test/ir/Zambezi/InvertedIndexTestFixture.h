@@ -23,7 +23,7 @@ namespace Zambezi
     typedef std::vector<std::string> DocIdListT;
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
-    const unsigned int DefullNum = 1000000;
+    const unsigned int DefullNum = 5000000;
     class InvertedIndexTestFixture
     {
     public:
@@ -127,7 +127,7 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 80000;
+            int termNumber = 100;
             //build word;
             srand( (unsigned int)time(0) );
             for (int i = 0; i < termNumber; ++i)
@@ -140,7 +140,7 @@ namespace Zambezi
                     newword += charString[randchar];
                 }
                 wordlist_.push_back(newword);
-                std::cout <<"term:" << newword << endl;
+                //std::cout <<"term:" << newword << endl;
             }
         }
         void prepareBigDocument(DocIDTermMapT& DocIdTermMap, uint32_t docNumber, uint32_t lastDocid)
@@ -183,8 +183,11 @@ namespace Zambezi
                 times--;
                 lastDocid += DefullNum;
             }
-            prepareBigDocument(docTermMap, number, lastDocid);
-            buildIndex(docTermMap);
+            if (number != 0)
+            {  
+                prepareBigDocument(docTermMap, number, lastDocid);
+                buildIndex(docTermMap);
+            }
             docTermMap.clear();
         }
 
@@ -201,11 +204,11 @@ namespace Zambezi
 
         void buildIndex(const DocIDTermMapT& docTermMap)
         {
-            int count = 0;
+            int count = 1;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
             {
                 index_->insertDoc(i->first, i->second);
-                if (count%100000 == 0)
+                if (count%1000000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
                 }

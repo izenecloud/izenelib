@@ -261,7 +261,7 @@ void InvertedIndex::flush()
         uint32_t nb = pos / BLOCK_SIZE;
         uint32_t res = pos % BLOCK_SIZE;
         uint32_t ps = 0;
-
+        
         for (uint32_t i = 0; i < nb; ++i)
         {
             switch (type_)
@@ -348,6 +348,7 @@ void InvertedIndex::flush()
         }
 
         buffer_.tailPointer_[term] = pointer;
+        docBuffer.clear();
     }
 }
 
