@@ -1,20 +1,21 @@
 /**
-* @file       InvertedIndexTestFixture.h
+* @file       newInvertedIndexTestFixture.h
 * @author     Hongliang
 * @version    1.0
 * @brief Fixture to test Inverted Index module.
 *
 */
 
-#ifndef INVERTED_INDEX_TEST_FIXTURE_H
-#define INVERTED_INDEX_TEST_FIXTURE_H
+#ifndef NEW_INVERTED_INDEX_TEST_FIXTURE_H
+#define NEW_INVERTED_INDEX_TEST_FIXTURE_H
 
 #include <string>
 #include <vector>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
-#include <ir/Zambezi/InvertedIndex.hpp>
+#include <ir/Zambezi/NewInvertedIndex.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -23,20 +24,20 @@ namespace Zambezi
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
     const unsigned int DefullNum = 5000000;
-    class InvertedIndexTestFixture
+    class newInvertedIndexTestFixture
     {
     public:
-        InvertedIndexTestFixture()
+        newInvertedIndexTestFixture()
             :index_(NULL)
         {
         }
 
         void initIndex(bool isReverse)
         {
-            index_ = new InvertedIndex(NON_POSITIONAL, isReverse);
+            index_ = new NewInvertedIndex(isReverse);
         }
 
-        ~InvertedIndexTestFixture()
+        ~newInvertedIndexTestFixture()
         {
             delete index_;
         }
@@ -139,7 +140,6 @@ namespace Zambezi
                     newword += charString[randchar];
                 }
                 wordlist_.push_back(newword);
-                //std::cout <<"term:" << newword << endl;
             }
         }
         void prepareBigDocument(DocIDTermMapT& DocIdTermMap, uint32_t docNumber, uint32_t lastDocid)
@@ -206,7 +206,9 @@ namespace Zambezi
             int count = 1;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
             {
-                index_->insertDoc(i->first, i->second);
+                std::vector<uint32_t> score_list;
+                score_list.resize(i->second.size(), 1);
+                index_->insertDoc(i->first, i->second, score_list);
                 if (count%1000000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
@@ -216,17 +218,29 @@ namespace Zambezi
             index_->flush();
         }
 
-        void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list, Algorithm algorithm)
+        void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list)
         {
-            std::vector<float> score_list;
+            std::vector<uint32_t> score_list;
             uint32_t hits = 10000000;
             index_->retrieval(
-                algorithm,
                 term_list,
                 hits,
                 docid_list,
                 score_list);
         }
+
+        void saveIndex()
+        {
+            fstream fileIndex;
+            fileIndex.open(indexPath_.c_str(), ios::binary|ios::out);
+            index_->save(fileIndex);
+        }
+        void loadIndex()
+        {
+            fstream fileIndex;
+            fileIndex.open(indexPath_.c_str(), ios::binary|ios::in);
+            index_->load(fileIndex);
+        }      
 
         std::vector<std::string>& getWordList()
         {
@@ -234,12 +248,12 @@ namespace Zambezi
         }
 
     private:
-        InvertedIndex* index_;
-        std::string indePath_;
+        NewInvertedIndex* index_;
+        std::string indexPath_;
         std::vector<std::string> wordlist_;
     };
 }
 
 NS_IZENELIB_IR_END
 
-#endif ///INVERTED_INDEX_TEST_FIXTURE_H
+#endif ///NEW_INVERTED_INDEX_TEST_FIXTURE_H

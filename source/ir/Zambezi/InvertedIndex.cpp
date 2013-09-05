@@ -169,13 +169,10 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
         docBuffer.push_back(docid);
         pointers_.df_.increment(id);
 
-        if (type_ == POSITIONAL)
+        if (type_ == POSITIONAL && docBuffer.size() % BLOCK_SIZE == 0)
         {
-            if (docBuffer.size() % BLOCK_SIZE == 0)
-            {
-                buffer_.posBlockHead_[id] = posBuffer.size();
-                posBuffer.push_back(0);
-            }
+            buffer_.posBlockHead_[id] = posBuffer.size();
+            posBuffer.push_back(0);
         }
 
         if (docBuffer.size() == docBuffer.capacity())
@@ -234,9 +231,9 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                 tfBuffer.clear();
             }
 
-            if (docBuffer.size() < MAX_BLOCK_SIZE)
+            if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
-                uint32_t newLen = docBuffer.size() * EXPANSION_RATE;
+                uint32_t newLen = docBuffer.capacity() * EXPANSION_RATE;
                 docBuffer.reserve(newLen);
 
                 if (type_ != NON_POSITIONAL)
@@ -357,6 +354,10 @@ void InvertedIndex::flush()
         }
 
         buffer_.tailPointer_[term] = pointer;
+
+        docBuffer.clear();
+        tfBuffer.clear();
+        posBuffer.clear();
     }
 }
 

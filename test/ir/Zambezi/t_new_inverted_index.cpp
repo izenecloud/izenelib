@@ -1,15 +1,15 @@
-#include "InvertedIndexTestFixture.h"
+#include "newInvertedIndexTestFixture.h"
 #include <boost/test/unit_test.hpp>
 NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
 BOOST_AUTO_TEST_SUITE(t_index_search)
 
-BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
+BOOST_AUTO_TEST_CASE(do_search_reverse)
 {
-    std::cout <<"test case 1: [do_search_BWAND_AND_revserse] ..." << std::endl;
+    std::cout <<"test case 1: [do_search_reverse] ..." << std::endl;
     uint32_t DocNum = 300000;
-    InvertedIndexTestFixture indexTestFixture;
+    newInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
     term_list.push_back("abc");
     term_list.push_back("abd");
     term_list.push_back("abe");
-    indexTestFixture.search(term_list, docid_list, BWAND_AND);
+    indexTestFixture.search(term_list, docid_list);
     uint32_t count = 20;
     BOOST_CHECK_EQUAL(docid_list.size(), 260000);
 
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
     docid_list.clear();
     term_list.push_back("abd");
     term_list.push_back("abq");
-    indexTestFixture.search(term_list, docid_list, BWAND_AND);
+    indexTestFixture.search(term_list, docid_list);
     count = 20;
     BOOST_CHECK_EQUAL(docid_list.size(), 20000);
     for (std::vector<uint32_t>::iterator it = docid_list.begin(); it != docid_list.end(); ++it)
@@ -83,11 +83,11 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
     }
 }
 
-BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
+BOOST_AUTO_TEST_CASE(do_search_forward)
 {
-    std::cout << std::endl <<"test case 2: [do_search_BWAND_AND_forward] ..." << std::endl;
+    std::cout << std::endl <<"test case 2: [do_search_forward] ..." << std::endl;
     uint32_t DocNum = 300000;
-    InvertedIndexTestFixture indexTestFixture;
+    newInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
     term_list.push_back("abc");
     term_list.push_back("abd");
     term_list.push_back("abe");
-    indexTestFixture.search(term_list, docid_list, BWAND_AND);
+    indexTestFixture.search(term_list, docid_list);
     uint32_t count = 20;
     BOOST_CHECK_EQUAL(docid_list.size(), 260000);
 
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
     docid_list.clear();
     term_list.push_back("abd");
     term_list.push_back("abq");
-    indexTestFixture.search(term_list, docid_list, BWAND_AND);
+    indexTestFixture.search(term_list, docid_list);
     count = 20;
     BOOST_CHECK_EQUAL(docid_list.size(), 20000);
     for (std::vector<uint32_t>::iterator it = docid_list.begin(); it != docid_list.end(); ++it)
@@ -161,11 +161,11 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
     }
 }
 
-BOOST_AUTO_TEST_CASE(do_search_SVS_forward)
+BOOST_AUTO_TEST_CASE(do_search_new_forward)
 {
-    std::cout << std::endl <<"test case 3: [do_search_SVS_forward] ..." << std::endl;
+    std::cout << std::endl <<"test case 3: [do_search_new_forward] ..." << std::endl;
     uint32_t DocNum = 10000000;
-    InvertedIndexTestFixture indexTestFixture;
+    newInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
     indexTestFixture.initBIGIndexer(DocNum, reverse);
 
@@ -179,17 +179,17 @@ BOOST_AUTO_TEST_CASE(do_search_SVS_forward)
         term_list.push_back(wordlist[i+1]);
         term_list.push_back(wordlist[i+2]);
         term_list.push_back(wordlist[i+3]);
-        indexTestFixture.search(term_list, docid_list, SVS);
+        indexTestFixture.search(term_list, docid_list);
         std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " / " << wordlist[i+2] 
         << " / " << wordlist[i+3] << " :" <<docid_list.size() << std::endl;
     }
 }
 
-BOOST_AUTO_TEST_CASE(do_search_SVS_reverse)
+BOOST_AUTO_TEST_CASE(do_search_new_reverse)
 {
-        std::cout << std::endl <<"test case 4: [do_search_SVS_reverse] ..." << std::endl;
+    std::cout << std::endl <<"test case 4: [do_search_new_reverse] ..." << std::endl;
     uint32_t DocNum = 10000000;
-    InvertedIndexTestFixture indexTestFixture;
+    newInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
     indexTestFixture.initBIGIndexer(DocNum, reverse);
 
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(do_search_SVS_reverse)
         term_list.push_back(wordlist[i+1]);
         term_list.push_back(wordlist[i+2]);
         term_list.push_back(wordlist[i+3]);
-        indexTestFixture.search(term_list, docid_list, SVS);
+        indexTestFixture.search(term_list, docid_list);
         std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " / " << wordlist[i+2] 
         << " / " << wordlist[i+3] << " :" <<docid_list.size() << std::endl;
     }

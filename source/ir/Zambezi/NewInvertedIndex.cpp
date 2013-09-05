@@ -53,8 +53,7 @@ void NewInvertedIndex::insertDoc(
         std::vector<uint32_t>& docBuffer = buffer_.getDocidList(id);
         std::vector<uint32_t>& scoreBuffer = buffer_.getScoreList(id);
 
-        uint32_t df = pointers_.getDf(id);
-        if (df < DF_CUTOFF)
+        if (pointers_.getDf(id) < DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {
@@ -102,10 +101,11 @@ void NewInvertedIndex::insertDoc(
             docBuffer.clear();
             scoreBuffer.clear();
 
-            if (scoreBuffer.capacity() < MAX_BLOCK_SIZE)
+            if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
                 uint32_t newLen = docBuffer.capacity() * EXPANSION_RATE;
                 docBuffer.reserve(newLen);
+                scoreBuffer.reserve(newLen);
             }
         }
     }

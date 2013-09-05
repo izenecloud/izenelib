@@ -145,7 +145,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     pool_[segment_][offset_] = reqspace;
     pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT; //save next segment
     pool_[segment_][offset_ + 2] = UNDEFINED_OFFSET; //save next offset;
-    pool_[segment_][offset_ + 3] = maxDocId;
+    pool_[segment_][offset_ + 3] = maxDocId; // max when forward, min when reverse
     pool_[segment_][offset_ + 4] = csize + 7;
     pool_[segment_][offset_ + 5] = len;
     pool_[segment_][offset_ + 6] = csize;
@@ -161,7 +161,6 @@ size_t SegmentPool::compressAndAddNonPositional(
     {
         uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
         uint32_t lastOffset = DECODE_OFFSET(tailPointer);
-        ///std::cout << "lastSegment:" << lastSegment << " lastOffset:" << lastOffset << std::endl;
         if (reverse_)
         {
             pool_[segment_][offset_ + 1] = lastSegment;
@@ -595,6 +594,7 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
     }
 
     uint32_t bloomOffset = pool_[pSegment][pOffset + 4];
+
     pointer = ENCODE_POINTER(pSegment, pOffset);
     return BloomFilter::contains(
             &pool_[pSegment][pOffset + bloomOffset + 1],
