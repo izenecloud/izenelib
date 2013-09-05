@@ -147,12 +147,12 @@ namespace Zambezi
                     newword += charString[randchar];
                 }
                 wordlist.push_back(newword);
-                std::cout << "newword: " << newword << std::endl;
+                //std::cout << "newword: " << newword << std::endl;
             }
 
             //DocIDTermMapT docTermMap;
             std::vector<uint32_t> DocIdList;
-            for (int i = 1; i <= docNumber; ++i)
+            for (unsigned int i = 1; i <= docNumber; ++i)
             {
                 DocIdList.push_back(i);
             }

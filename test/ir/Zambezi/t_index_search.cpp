@@ -4,12 +4,11 @@ NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
 BOOST_AUTO_TEST_SUITE(t_index_search)
-/*
+
 BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_revserse)
 {
     uint32_t DocNum = 300000;
     InvertedIndexTestFixture indexTestFixture;
-    indexTestFixture.prepareBigDocument();
     bool reverse = true;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -158,33 +157,6 @@ BOOST_AUTO_TEST_CASE(do_search_BWAND_AND_forward)
            break;
         }
     }
-}*/
-
-BOOST_AUTO_TEST_CASE(do_search_BWAND_OR_forward)
-{
-    uint32_t DocNum = 30000000;
-    InvertedIndexTestFixture indexTestFixture;
-    bool reverse = false;
-    indexTestFixture.initBIGIndexer(DocNum, reverse);
-
-    int x ;
-    std::cin>>x;
-    std::vector<std::string> term_list;
-    std::vector<uint32_t> docid_list;
-    term_list.push_back("abc");
-    term_list.push_back("abe");
-    indexTestFixture.search(term_list, docid_list, SVS);
-    uint32_t count = 20;
-    BOOST_CHECK_EQUAL(docid_list.size(), 260000);
-
-    term_list.clear();
-    docid_list.clear();
-    term_list.push_back("abh");
-    term_list.push_back("abq");
-    indexTestFixture.search(term_list, docid_list, SVS);
-    count = 20;
-    BOOST_CHECK_EQUAL(docid_list.size(), 20000);
-
 }
 
 
