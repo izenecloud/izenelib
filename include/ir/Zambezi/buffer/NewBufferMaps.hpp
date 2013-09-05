@@ -41,24 +41,24 @@ public:
      */
     bool containsKey(uint32_t k) const;
 
-    std::vector<uint32_t>& getDocidList(uint32_t k)
+    inline std::vector<uint32_t>& getDocidList(uint32_t k)
     {
         expand(k + 1);
         return docid_[k];
     }
 
-    const std::vector<uint32_t>& getDocidList(uint32_t k) const
+    inline const std::vector<uint32_t>& getDocidList(uint32_t k) const
     {
         return docid_[k];
     }
 
-    std::vector<uint32_t>& getScoreList(uint32_t k)
+    inline std::vector<uint32_t>& getScoreList(uint32_t k)
     {
         expand(k + 1);
         return score_[k];
     }
 
-    const std::vector<uint32_t>& getScoreList(uint32_t k) const
+    inline const std::vector<uint32_t>& getScoreList(uint32_t k) const
     {
         return score_[k];
     }

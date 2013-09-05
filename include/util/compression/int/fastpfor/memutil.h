@@ -18,8 +18,6 @@ T * moveToBoundary(T * inbyte)
                                    + (alignment - 1)) & ~(alignment - 1));
 }
 
-
-
 // use this when calling STL object if you want
 // their memory to be aligned on cache lines
 template<class T, size_t alignment>
@@ -83,7 +81,7 @@ public:
          * some kind of data structure like a hash table, which might be slow.
          */
         size_t * buffer = reinterpret_cast<size_t *> (::operator new(
-                              sizeof(uintptr_t) + (num + alignment) * sizeof(T)));
+                              sizeof(uintptr_t) + num * sizeof(T) + alignment));
         size_t * answer = moveToBoundary<size_t, alignment> (buffer + 1);
         *(answer - 1) = reinterpret_cast<uintptr_t> (answer) - reinterpret_cast<uintptr_t> (buffer);
         return reinterpret_cast<pointer> (answer);
