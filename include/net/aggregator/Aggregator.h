@@ -741,7 +741,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::singleRequestImpl_(
     }
     catch (std::exception& e)
     {
-        printWorkerError_(workerid, e.what());
+        printWorkerError_(workerid, std::string(std::string(e.what()) + " in " + param.funcName_).c_str());
         return false;
     }
 
@@ -769,7 +769,7 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::mergeResults_(
         }
         catch (std::exception& e)
         {
-            printWorkerError_(workerid, e.what());
+            printWorkerError_(workerid, std::string(std::string(e.what()) + " in " + func).c_str());
         }
     }
 
