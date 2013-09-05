@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -576,16 +577,17 @@ bool SegmentPool::containsDocid(uint32_t docid, size_t& pointer) const
 
     while (LESS_THAN(pool_[pSegment][pOffset + 3], docid, reverse_))
     {
-        int nSegment = pool_[pSegment][pOffset + 1];
-        int nOffset = pool_[pSegment][pOffset + 2];
-        pSegment = nSegment;
-        pOffset = nOffset;
+        uint32_t oldSegment = pSegment;
+        uint32_t oldOffset = pOffset;
+        pSegment = pool_[oldSegment][oldOffset + 1];
         if (pSegment == UNDEFINED_SEGMENT)
         {
             pointer = UNDEFINED_POINTER;
             return false;
         }
+        pOffset = pool_[oldSegment][oldOffset + 2];
     }
+
     if (pool_[pSegment][pOffset + 3] == docid)
     {
         return true;
@@ -609,6 +611,7 @@ void SegmentPool::bwandAnd(
     FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
 
+    std::cout << UNDEFINED_POINTER << std::endl;
     while (headPointers[0] != UNDEFINED_POINTER)
     {
         uint32_t count = decompressDocidBlock(codec, &docid_block[0], headPointers[0]);

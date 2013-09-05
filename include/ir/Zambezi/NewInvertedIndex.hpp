@@ -25,6 +25,7 @@
 #include <iostream>
 #include <vector>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -44,16 +45,18 @@ public:
 
     void insertDoc(
             uint32_t docid,
-            const std::vector<uint32_t>& attr_score_list,
-            const std::vector<std::vector<std::string> >& attr_term_list);
+            const std::vector<std::string>& term_list,
+            const std::vector<uint32_t>& score_list);
 
     void flush();
+
+    uint32_t totalDocNum() const;
 
     void retrieval(
             const std::vector<std::string>& term_list,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
-            std::vector<float>& score_list) const;
+            std::vector<uint32_t>& score_list) const;
 
 private:
     NewBufferMaps buffer_;

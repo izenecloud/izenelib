@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -79,7 +80,7 @@ public:
             uint32_t threshold,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
-            std::vector<float>& score_list) const;
+            std::vector<uint32_t>& score_list) const;
 
     void intersectSvS(
             std::vector<size_t>& headPointers,
