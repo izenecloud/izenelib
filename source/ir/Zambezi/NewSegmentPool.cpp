@@ -124,9 +124,10 @@ size_t NewSegmentPool::compressAndAppend(
         }
     }
 
+    size_t newPointer = ENCODE_POINTER(segment_, offset_);
     offset_ += reqspace;
 
-    return ENCODE_POINTER(segment_, offset_);
+    return newPointer;
 }
 
 size_t NewSegmentPool::nextPointer(size_t pointer) const
@@ -344,12 +345,11 @@ void NewSegmentPool::wand(
         for (pTermIdx = 0; pTermIdx < len; ++pTermIdx)
         {
             if (blockDocid[mapping[pTermIdx]][posting[mapping[pTermIdx]]] != pivot)
-            {
-                --pTermIdx;
                 break;
-            }
+
             score += blockScore[mapping[pTermIdx]][posting[mapping[pTermIdx]]];
         }
+        --pTermIdx;
 
         if (score > threshold)
         {
@@ -423,7 +423,6 @@ void NewSegmentPool::wand(
 void NewSegmentPool::intersectPostingsLists_(
         FastPFor& codec,
         size_t pointer0, size_t pointer1,
-        uint32_t minDf,
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
@@ -561,12 +560,15 @@ void NewSegmentPool::intersectSvS(
     }
 
     docid_list.reserve(minDf);
-    intersectPostingsLists_(codec, headPointers[0], headPointers[1], minDf, docid_list, score_list);
+    intersectPostingsLists_(codec, headPointers[0], headPointers[1], docid_list, score_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
         if (docid_list.empty()) break;
         intersectSetPostingsList_(codec, headPointers[i], docid_list, score_list);
     }
+
+    if (hits < docid_list.size())
+        docid_list.resize(hits);
 }
 
 }

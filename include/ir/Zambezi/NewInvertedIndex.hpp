@@ -53,6 +53,7 @@ public:
     uint32_t totalDocNum() const;
 
     void retrieval(
+            Algorithm algorithm,
             const std::vector<std::string>& term_list,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,

@@ -7,10 +7,6 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-namespace detail
-{
-}
-
 NewInvertedIndex::NewInvertedIndex(bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
     , pool_(NUMBER_OF_POOLS, reverse)
@@ -134,7 +130,7 @@ void NewInvertedIndex::flush()
             pointer = pool_.compressAndAppend(
                     codec_,
                     &docBuffer[i * BLOCK_SIZE],
-                    &scoreBuffer[nb * BLOCK_SIZE],
+                    &scoreBuffer[i * BLOCK_SIZE],
                     BLOCK_SIZE,
                     pointer);
 
@@ -172,57 +168,49 @@ uint32_t NewInvertedIndex::totalDocNum() const
 }
 
 void NewInvertedIndex::retrieval(
+        Algorithm algorithm,
         const std::vector<std::string>& term_list,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
-    std::vector<uint32_t> queries;
+    std::vector<std::pair<uint32_t, size_t> > queries;
+    uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i]);
-        if (termid != INVALID_ID && pointers_.getHeadPointer(termid) != UNDEFINED_POINTER)
+        if (termid != INVALID_ID)
         {
-            queries.push_back(termid);
-        }
-    }
-
-    uint32_t qlen = queries.size();
-    std::vector<uint32_t> qdf(qlen);
-    std::vector<uint32_t> sortedDfIndex(qlen);
-    std::vector<size_t> qHeadPointers(qlen);
-
-    uint32_t minimumDf = -1;
-    for (uint32_t i = 0; i < qlen; ++i)
-    {
-        qdf[i] = pointers_.getDf(queries[i]);
-        if (qdf[i] < minimumDf)
-        {
-            minimumDf = qdf[i];
-        }
-    }
-
-    for (uint32_t i = 0; i < qlen; ++i)
-    {
-        uint32_t minDf = 0xFFFFFFFF;
-        for (uint32_t j = 0; j < qlen; ++j)
-        {
-            if (qdf[j] < minDf)
+            size_t pointer = pointers_.getHeadPointer(termid);
+            if (pointer != UNDEFINED_POINTER)
             {
-                minDf = qdf[j];
-                sortedDfIndex[i] = j;
+                queries.push_back(std::make_pair(pointers_.getDf(termid), pointer));
+                minimumDf = std::min(queries.back().first, minimumDf);
             }
         }
-        qdf[sortedDfIndex[i]] = 0xFFFFFFFF;
     }
 
-    for (uint32_t i = 0; i < qlen; ++i)
+    if (queries.empty()) return;
+
+    if (algorithm == SVS)
     {
-        qHeadPointers[i] = pointers_.getHeadPointer(queries[sortedDfIndex[i]]);
-        qdf[i] = pointers_.getDf(queries[sortedDfIndex[i]]);
+        std::sort(queries.begin(), queries.end());
     }
 
-    pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list, score_list);
+    std::vector<size_t> qHeadPointers(queries.size());
+    for (uint32_t i = 0; i < queries.size(); ++i)
+    {
+        qHeadPointers[i] = queries[i].second;
+    }
+
+    if (algorithm == SVS)
+    {
+        pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list, score_list);
+    }
+    else if (algorithm == WAND)
+    {
+        pool_.wand(qHeadPointers, 0, hits, docid_list, score_list);
+    }
 }
 
 }

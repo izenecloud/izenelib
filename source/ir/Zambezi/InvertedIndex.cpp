@@ -1,6 +1,8 @@
 #include <ir/Zambezi/InvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <boost/tuple/tuple.hpp>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -9,6 +11,12 @@ namespace Zambezi
 
 namespace detail
 {
+
+inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, const boost::tuple<uint32_t, uint32_t, size_t>& t2)
+{
+    return t1.get<0>() < t2.get<0>();
+}
+
 }
 
 InvertedIndex::InvertedIndex(
@@ -359,72 +367,41 @@ void InvertedIndex::retrieval(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-
-    std::cout << "[BEGIN SEARCH] ......................." << std::endl;
-
-    std::vector<uint32_t> queries;
+    std::vector<boost::tuple<uint32_t, uint32_t, size_t> > queries;
+    uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i]);
-        if (termid != INVALID_ID && pointers_.getHeadPointer(termid) != UNDEFINED_POINTER)
+        if (termid != INVALID_ID)
         {
-            queries.push_back(termid);
+            size_t pointer = pointers_.getHeadPointer(termid);
+            if (pointer != UNDEFINED_POINTER)
+            {
+                queries.push_back(boost::make_tuple(pointers_.getDf(termid), termid, pointer));
+                minimumDf = std::min(queries.back().get<0>(), minimumDf);
+            }
         }
     }
 
-    uint32_t qlen = queries.size();
-    if (0 == qlen)
-        return;
-
-    std::vector<uint32_t> qdf(qlen);
-    std::vector<uint32_t> sortedDfIndex(qlen);
-    std::vector<size_t> qHeadPointers(qlen);
-
-    uint32_t minimumDf = 30000000;
-    for (uint32_t i = 0; i < qlen; ++i)
-    {
-        qdf[i] = pointers_.getDf(queries[i]);
-        if (qdf[i] < minimumDf)
-        {
-            minimumDf = qdf[i];
-        }
-    }
+    if (queries.empty()) return;
 
     if (algorithm == BWAND_OR || algorithm == BWAND_AND || algorithm == SVS) // get the shortest posting
     {
-        for (uint32_t i = 0; i < qlen; ++i)
-        {
-            uint32_t minDf = 0xFFFFFFFF;
-            for (uint32_t j = 0; j < qlen; ++j)
-            {
-                if (qdf[j] < minDf)
-                {
-                    minDf = qdf[j];
-                    sortedDfIndex[i] = j;
-                }
-            }
-            qdf[sortedDfIndex[i]] = 0xFFFFFFFF;
-        }
-    }
-    else
-    {
-        for (uint32_t i = 0; i < qlen; ++i)
-        {
-            sortedDfIndex[i] = i;
-        }
+        std::sort(queries.begin(), queries.end(), detail::termCompare);
     }
 
-    /// sorted DOCID, use df;
-    for (uint32_t i = 0; i < qlen; ++i)
+    std::vector<uint32_t> qdf(queries.size());
+    std::vector<size_t> qHeadPointers(queries.size());
+    for (uint32_t i = 0; i < queries.size(); ++i)
     {
-        qHeadPointers[i] = pointers_.getHeadPointer(queries[sortedDfIndex[i]]);
-        qdf[i] = pointers_.getDf(queries[sortedDfIndex[i]]);
+        qdf[i] = queries[i].get<0>();
+        qHeadPointers[i] = queries[i].get<2>();
     }
 
     if (algorithm == BWAND_OR)
     {
-        std::vector<float> UB(qlen);
-        for (uint32_t i = 0; i < qlen; ++i)
+        std::vector<float> UB(queries.size());
+        for (uint32_t i = 0; i < queries.size(); ++i)
         {
             UB[i] = idf(pointers_.totalDocs_, qdf[i]);
         }
@@ -440,16 +417,16 @@ void InvertedIndex::retrieval(
     }
     else if (algorithm == WAND || algorithm == MBWAND)
     {
-        std::vector<float> UB(qlen);
-        for (uint32_t i = 0; i < qlen; ++i)
+        std::vector<float> UB(queries.size());
+        for (uint32_t i = 0; i < queries.size(); ++i)
         {
             if (algorithm == WAND)
             {
                 UB[i] = default_bm25(
-                        pointers_.getMaxTf(queries[sortedDfIndex[i]]),
+                        pointers_.getMaxTf(queries[i].get<1>()),
                         qdf[i],
                         pointers_.totalDocs_,
-                        pointers_.getMaxTfDocLen(queries[sortedDfIndex[i]]),
+                        pointers_.getMaxTfDocLen(queries[i].get<1>()),
                         pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
             }
             else

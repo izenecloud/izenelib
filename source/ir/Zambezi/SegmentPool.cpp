@@ -855,7 +855,7 @@ void SegmentPool::wand(
             if ((sum += UB[mapping[i]]) > threshold)
             {
                 pTermIdx = i;
-                if (blockDocid[mapping[i]][posting[mapping[i]]] !=
+                if (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] !=
                         blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
                 {
                     break;
@@ -984,7 +984,6 @@ void SegmentPool::wand(
 void SegmentPool::intersectPostingsLists_(
         FastPFor& codec,
         size_t pointer0, size_t pointer1,
-        uint32_t minDf,
         std::vector<uint32_t>& docid_list) const
 {
     std::vector<uint32_t> data0(BLOCK_SIZE);
@@ -1101,12 +1100,15 @@ void SegmentPool::intersectSvS(
     }
 
     docid_list.reserve(minDf);
-    intersectPostingsLists_(codec, headPointers[0], headPointers[1], minDf, docid_list);
+    intersectPostingsLists_(codec, headPointers[0], headPointers[1], docid_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
         if (docid_list.empty()) break;
         intersectSetPostingsList_(codec, headPointers[i], docid_list);
     }
+
+    if (hits < docid_list.size())
+        docid_list.resize(hits);
 }
 
 }

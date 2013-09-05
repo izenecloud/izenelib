@@ -100,7 +100,6 @@ private:
     void intersectPostingsLists_(
             FastPFor& codec,
             size_t pointer0, size_t pointer1,
-            uint32_t minDf,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 

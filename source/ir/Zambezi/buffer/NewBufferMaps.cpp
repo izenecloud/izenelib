@@ -8,6 +8,7 @@ namespace Zambezi
 NewBufferMaps::NewBufferMaps(uint32_t initialSize)
     : capacity_(initialSize)
     , docid_(initialSize)
+    , score_(initialSize)
     , tailPointer_(initialSize, UNDEFINED_POINTER)
 {
 }
