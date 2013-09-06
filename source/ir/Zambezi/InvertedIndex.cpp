@@ -257,10 +257,10 @@ void InvertedIndex::flush()
     uint32_t term = -1;
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != (uint32_t)-1)
     {
-        std::vector<uint32_t>& docBuffer = buffer_.docid_[term];
-        std::vector<uint32_t>& tfBuffer = buffer_.tf_[term];
-        std::vector<uint32_t>& posBuffer = buffer_.position_[term];
-
+        std::vector<uint32_t>& docBuffer = buffer_.getDocidList(term);
+        std::vector<uint32_t>& tfBuffer = buffer_.getTfList(term);
+        std::vector<uint32_t>& posBuffer = buffer_.getPositionList(term);
+        
         uint32_t pos = docBuffer.size();
         size_t pointer = buffer_.tailPointer_[term];
 
@@ -356,8 +356,12 @@ void InvertedIndex::flush()
         buffer_.tailPointer_[term] = pointer;
 
         docBuffer.clear();
-        tfBuffer.clear();
-        posBuffer.clear();
+
+        if (type_ != NON_POSITIONAL)
+            tfBuffer.clear();
+
+        if (type_ == POSITIONAL)
+            posBuffer.clear();
     }
 }
 
