@@ -95,7 +95,7 @@ uint32_t NewBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
             return -1;
         }
     }
-    while (docid_[pos].capacity() < minLength);
+    while (docid_[pos].capacity() <= minLength);
 
     return pos;
 }
