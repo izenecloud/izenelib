@@ -1,6 +1,9 @@
 #include <ir/Zambezi/InvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <boost/tuple/tuple.hpp>
+
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -8,6 +11,12 @@ namespace Zambezi
 
 namespace detail
 {
+
+inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, const boost::tuple<uint32_t, uint32_t, size_t>& t2)
+{
+    return t1.get<0>() < t2.get<0>();
+}
+
 }
 
 InvertedIndex::InvertedIndex(
@@ -85,12 +94,6 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                 tfBuffer.reserve(DF_CUTOFF + 1);
             }
 
-            if (posBuffer.capacity() == posBuffer.size())
-            {
-                uint32_t len = posBuffer.capacity();
-                posBuffer.reserve(len * 2);
-            }
-
             if (added)
             {
                 posBuffer.push_back(i + 1);
@@ -166,21 +169,18 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
         docBuffer.push_back(docid);
         pointers_.df_.increment(id);
 
-        if (type_ == POSITIONAL)
+        if (type_ == POSITIONAL && docBuffer.size() % BLOCK_SIZE == 0)
         {
-            if (docBuffer.size() % BLOCK_SIZE == 0)
-            {
-                buffer_.posBlockHead_[id] = posBuffer.size();
-                posBuffer.push_back(0);
-            }
+            buffer_.posBlockHead_[id] = posBuffer.size();
+            posBuffer.push_back(0);
         }
 
         if (docBuffer.size() == docBuffer.capacity())
         {
             uint32_t nb = docBuffer.size() / BLOCK_SIZE;
             size_t pointer = buffer_.tailPointer_[id];
-            uint32_t ps = 0;
-            for (uint32_t j = 0; j < nb; ++j)
+
+            for (uint32_t j = 0, ps = 0; j < nb; ++j)
             {
                 switch (type_)
                 {
@@ -217,11 +217,12 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                         break;
                 }
 
-                if (pool_.reverse_ || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
+                if (pool_.isReverse() || pointers_.getHeadPointer(id) == UNDEFINED_POINTER)
                 {
                     pointers_.setHeadPointer(id, pointer);
                 }
             }
+
             buffer_.tailPointer_[id] = pointer;
 
             docBuffer.clear();
@@ -230,9 +231,9 @@ void InvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& te
                 tfBuffer.clear();
             }
 
-            if (docBuffer.size() < MAX_BLOCK_SIZE)
+            if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
-                uint32_t newLen = docBuffer.size() * EXPANSION_RATE;
+                uint32_t newLen = docBuffer.capacity() * EXPANSION_RATE;
                 docBuffer.reserve(newLen);
 
                 if (type_ != NON_POSITIONAL)
@@ -256,10 +257,10 @@ void InvertedIndex::flush()
     uint32_t term = -1;
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != (uint32_t)-1)
     {
-        std::vector<uint32_t>& docBuffer = buffer_.docid_[term];
-        std::vector<uint32_t>& tfBuffer = buffer_.tf_[term];
-        std::vector<uint32_t>& posBuffer = buffer_.position_[term];
-
+        std::vector<uint32_t>& docBuffer = buffer_.getDocidList(term);
+        std::vector<uint32_t>& tfBuffer = buffer_.getTfList(term);
+        std::vector<uint32_t>& posBuffer = buffer_.getPositionList(term);
+        
         uint32_t pos = docBuffer.size();
         size_t pointer = buffer_.tailPointer_[term];
 
@@ -304,7 +305,7 @@ void InvertedIndex::flush()
                 break;
             }
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }
@@ -346,11 +347,21 @@ void InvertedIndex::flush()
                 break;
             }
 
-            if (pool_.reverse_ || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
+            if (pool_.isReverse() || pointers_.getHeadPointer(term) == UNDEFINED_POINTER)
             {
                 pointers_.setHeadPointer(term, pointer);
             }
         }
+
+        buffer_.tailPointer_[term] = pointer;
+
+        docBuffer.clear();
+
+        if (type_ != NON_POSITIONAL)
+            tfBuffer.clear();
+
+        if (type_ == POSITIONAL)
+            posBuffer.clear();
     }
 }
 
@@ -361,65 +372,41 @@ void InvertedIndex::retrieval(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-    std::vector<uint32_t> queries;
+    std::vector<boost::tuple<uint32_t, uint32_t, size_t> > queries;
+    uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i]);
-        if (termid != INVALID_ID && pointers_.getHeadPointer(termid) != UNDEFINED_POINTER)
+        if (termid != INVALID_ID)
         {
-            queries.push_back(termid);
-        }
-    }
-
-    uint32_t qlen = queries.size();
-    std::vector<uint32_t> qdf(qlen);
-    std::vector<uint32_t> sortedDfIndex(qlen);
-    std::vector<size_t> qHeadPointers(qlen);
-
-    uint32_t minimumDf = -1;
-    for (uint32_t i = 0; i < qlen; ++i)
-    {
-        qdf[i] = pointers_.getDf(queries[i]);
-        if (qdf[i] < minimumDf)
-        {
-            minimumDf = qdf[i];
-        }
-    }
-
-    if (algorithm == BWAND_OR || algorithm == BWAND_AND || algorithm == SVS)
-    {
-        for (uint32_t i = 0; i < qlen; ++i)
-        {
-            uint32_t minDf = 0xFFFFFFFF;
-            for (uint32_t j = 0; j < qlen; ++j)
+            size_t pointer = pointers_.getHeadPointer(termid);
+            if (pointer != UNDEFINED_POINTER)
             {
-                if (qdf[j] < minDf)
-                {
-                    minDf = qdf[j];
-                    sortedDfIndex[i] = j;
-                }
+                queries.push_back(boost::make_tuple(pointers_.getDf(termid), termid, pointer));
+                minimumDf = std::min(queries.back().get<0>(), minimumDf);
             }
-            qdf[sortedDfIndex[i]] = 0xFFFFFFFF;
-        }
-    }
-    else
-    {
-        for (uint32_t i = 0; i < qlen; ++i)
-        {
-            sortedDfIndex[i] = i;
         }
     }
 
-    for (uint32_t i = 0; i < qlen; ++i)
+    if (queries.empty()) return;
+
+    if (algorithm == BWAND_OR || algorithm == BWAND_AND || algorithm == SVS) // get the shortest posting
     {
-        qHeadPointers[i] = pointers_.getHeadPointer(queries[sortedDfIndex[i]]);
-        qdf[i] = pointers_.getDf(queries[sortedDfIndex[i]]);
+        std::sort(queries.begin(), queries.end(), detail::termCompare);
+    }
+
+    std::vector<uint32_t> qdf(queries.size());
+    std::vector<size_t> qHeadPointers(queries.size());
+    for (uint32_t i = 0; i < queries.size(); ++i)
+    {
+        qdf[i] = queries[i].get<0>();
+        qHeadPointers[i] = queries[i].get<2>();
     }
 
     if (algorithm == BWAND_OR)
     {
-        std::vector<float> UB(qlen);
-        for (uint32_t i = 0; i < qlen; ++i)
+        std::vector<float> UB(queries.size());
+        for (uint32_t i = 0; i < queries.size(); ++i)
         {
             UB[i] = idf(pointers_.totalDocs_, qdf[i]);
         }
@@ -435,16 +422,16 @@ void InvertedIndex::retrieval(
     }
     else if (algorithm == WAND || algorithm == MBWAND)
     {
-        std::vector<float> UB(qlen);
-        for (uint32_t i = 0; i < qlen; ++i)
+        std::vector<float> UB(queries.size());
+        for (uint32_t i = 0; i < queries.size(); ++i)
         {
             if (algorithm == WAND)
             {
                 UB[i] = default_bm25(
-                        pointers_.getMaxTf(queries[sortedDfIndex[i]]),
+                        pointers_.getMaxTf(queries[i].get<1>()),
                         qdf[i],
                         pointers_.totalDocs_,
-                        pointers_.getMaxTfDocLen(queries[sortedDfIndex[i]]),
+                        pointers_.getMaxTfDocLen(queries[i].get<1>()),
                         pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
             }
             else
@@ -464,14 +451,10 @@ void InvertedIndex::retrieval(
                 docid_list,
                 score_list);
     }
-//  else if (algorithm == SVS)
-//  {
-//      if (!hitsSpecified)
-//      {
-//          hits = minimumDf;
-//      }
-//      pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
-//  }
+    else if (algorithm == SVS)
+    {
+        pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list);
+    }
 }
 
 }

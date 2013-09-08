@@ -299,7 +299,7 @@ public:
         *out++ = length;
         uint8_t * outbyte = reinterpret_cast<uint8_t *> (out);
         uint32_t Bs[HowManyMiniBlocks];
-        const uint32_t storageforbitwidth = prescan ? bits(
+        const uint32_t storageforbitwidth = prescan ? gccbits(
                                                 maxbits(in, in + length)) : bits32;
         if (prescan)
             *outbyte++ = storageforbitwidth;

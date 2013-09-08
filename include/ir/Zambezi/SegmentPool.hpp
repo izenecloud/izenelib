@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -35,6 +36,11 @@ public:
     void save(std::ostream& ostr) const;
 
     void load(std::istream& istr);
+
+    inline bool isReverse() const
+    {
+        return reverse_;
+    }
 
     /**
      * Whether or not the index contains term frequency (tf) information
@@ -101,6 +107,8 @@ public:
      */
     size_t nextPointer(size_t pointer) const;
 
+    size_t nextPointer(size_t pointer, uint32_t pivot) const;
+
     /**
      * Decompresses the docid block from the segment pointed to by "pointer,"
      * into the "outBlock" buffer. Block size is 128.
@@ -130,11 +138,11 @@ public:
      * where BLOCK_SIZE is 128.
      */
     uint32_t decompressPositionBlock(
-//          FastPFor& codec,
+            FastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void decompressPositions(
-//          FastPFor& codec,
+            FastPFor& codec,
             uint32_t* tf_list, uint32_t index, size_t pointer, uint32_t* out) const;
 
     /**
@@ -170,9 +178,30 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
-private:
-    friend class InvertedIndex;
+    void intersectSvS(
+            std::vector<size_t>& headPointers,
+            uint32_t minDf,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list) const;
 
+private:
+    bool gallopSearch_(
+            FastPFor& codec,
+            std::vector<uint32_t>& blockDocid,
+            uint32_t& count, uint32_t& index, size_t& pointer,
+            uint32_t pivot) const;
+
+    void intersectPostingsLists_(
+            FastPFor& codec,
+            size_t pointer0, size_t pointer1,
+            std::vector<uint32_t>& docid_list) const;
+
+    void intersectSetPostingsList_(
+            FastPFor& codec,
+            size_t pointer,
+            std::vector<uint32_t>& docid_list) const;
+
+private:
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

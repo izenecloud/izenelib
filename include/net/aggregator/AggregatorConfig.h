@@ -21,7 +21,7 @@ class AggregatorConfig
 {
 public:
     AggregatorConfig(
-        unsigned int timeout = 30,
+        unsigned int timeout = 20,
         unsigned int sessionPoolThreadNum = 10)
     : is_ro_(false), timeout_(timeout)
     , sessionPoolThreadNum_(sessionPoolThreadNum)

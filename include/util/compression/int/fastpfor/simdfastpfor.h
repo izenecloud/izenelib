@@ -64,8 +64,7 @@ public:
     static const uint32_t * unpackmesimd(const uint32_t * in, STLContainer & out,
                                          const uint32_t bit)
     {
-        const uint32_t size = *in;
-        ++in;
+        const uint32_t size = *in++;
         in = padTo128bits(in);
         out.resize((size + 128 - 1) / 128 * 128);
         for (uint32_t j = 0; j != out.size(); j += 128)
@@ -80,8 +79,7 @@ public:
     /*    template<class STLContainer>
         static uint32_t * packmeupsimd(STLContainer & source, uint32_t * out, const uint32_t bit) {
             const uint32_t size = source.size();
-            *out = size;
-            out++;
+            *out++ = size;
             if (source.size() == 0)
                 return out;
             source.resize((source.size() + 128 - 1) / 128 * 128);
@@ -98,10 +96,9 @@ public:
             const uint32_t bit)
     {
         const uint32_t size = source.size();
-        *out = size;
-        out++;
+        *out++ = size;
         out = padTo128bits(out);
-        if (source.size() == 0)
+        if (source.empty())
             return out;
         source.resize((source.size() + 128 - 1) / 128 * 128);
         for (uint32_t j = 0; j != source.size(); j += 128)
@@ -113,28 +110,26 @@ public:
         return out;
     }
 
-
     // sometimes, mem. usage can grow too much, this clears it up
     void resetBuffer()
     {
         for (size_t i = 0; i < datatobepacked.size(); ++i)
         {
-            vector<uint32_t,cacheallocator> ().swap(datatobepacked[i]);
+            std::vector<uint32_t, cacheallocator>().swap(datatobepacked[i]);
         }
     }
 
     const uint32_t PageSize;
     const uint32_t bitsPageSize;
 
-    vector<vector<uint32_t,cacheallocator> > datatobepacked;
-    vector<uint8_t> bytescontainer;
+    std::vector<std::vector<uint32_t, cacheallocator> > datatobepacked;
+    std::vector<uint8_t> bytescontainer;
 
     const uint32_t * decodeArray(const uint32_t *in, const size_t length,
                                  uint32_t *out, size_t &nvalue)
     {
         //const uint32_t * const initin(in);
-        const size_t mynvalue = *in;
-        ++in;
+        const size_t mynvalue = *in++;
         if (mynvalue > nvalue)
             throw NotEnoughStorage(mynvalue);
         nvalue = mynvalue;
@@ -190,7 +185,6 @@ public:
         resetBuffer();// if you don't do this, the buffer has a memory
     }
 
-
     void getBestBFromData(const uint32_t * in, uint8_t& bestb,
                           uint8_t & bestcexcept, uint8_t & maxb)
     {
@@ -199,11 +193,11 @@ public:
             freqs[k] = 0;
         for (uint32_t k = 0; k < BlockSize; ++k)
         {
-            freqs[asmbits(in[k])]++;
+            ++freqs[asmbits(in[k])];
         }
         bestb = 32;
         while (freqs[bestb] == 0)
-            bestb--;
+            --bestb;
         maxb = bestb;
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
@@ -243,8 +237,8 @@ public:
             if (bestcexcept > 0)
             {
                 *bc++ = maxb;
-                vector < uint32_t , cacheallocator> &thisexceptioncontainer
-                = datatobepacked[maxb - bestb];
+                std::vector<uint32_t, cacheallocator> &thisexceptioncontainer
+                    = datatobepacked[maxb - bestb];
                 const uint32_t maxval = 1U << bestb;
                 for (uint32_t k = 0; k < BlockSize; ++k)
                 {
@@ -260,7 +254,7 @@ public:
         }
         headerout[0] = static_cast<uint32_t> (out - headerout);
         const uint32_t bytescontainersize = bc - &bytescontainer[0];
-        *(out++) = bytescontainersize;
+        *out++ = bytescontainersize;
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)
                / sizeof(uint32_t);
@@ -270,7 +264,7 @@ public:
             if (datatobepacked[k].size() != 0)
                 bitmap |= (1U << (k - 1));
         }
-        *(out++) = bitmap;
+        *out++ = bitmap;
         for (uint32_t k = 1; k <= 32; ++k)
         {
             if (datatobepacked[k].size() > 0)
@@ -298,7 +292,7 @@ public:
             }
         }
         length = inexcept - initin;
-        vector<uint32_t,cacheallocator>::const_iterator unpackpointers[32 + 1];
+        std::vector<uint32_t, cacheallocator>::const_iterator unpackpointers[32 + 1];
         for (uint32_t k = 1; k <= 32; ++k)
         {
             unpackpointers[k] = datatobepacked[k].begin();
@@ -314,25 +308,23 @@ public:
             if (cexcept > 0)
             {
                 const uint8_t maxbits = *bytep++;
-                vector<uint32_t,cacheallocator>::const_iterator & exceptionsptr =
+                std::vector<uint32_t, cacheallocator>::const_iterator & exceptionsptr =
                     unpackpointers[maxbits - b];
                 for (uint32_t k = 0; k < cexcept; ++k)
                 {
-                    const uint8_t pos = *(bytep++);
-                    out[pos] |= (*(exceptionsptr++)) << b;
+                    const uint8_t pos = *bytep++;
+                    out[pos] |= *exceptionsptr++ << b;
                 }
             }
         }
         assert(in == headerin + wheremeta);
     }
 
-    string name() const
+    std::string name() const
     {
         return "SIMDFastPFor";
     }
 
 };
-
-
 
 #endif /* SIMDFASTPFOR_H_ */

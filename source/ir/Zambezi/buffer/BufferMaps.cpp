@@ -29,10 +29,75 @@ BufferMaps::~BufferMaps()
 
 void BufferMaps::save(std::ostream& ostr) const
 {
+    ostr.write((const char*)&capacity_, sizeof(capacity_));
+
+    for (size_t i = 0; i < capacity_; ++i)
+    {
+        uint32_t capacity = docid_[i].capacity();
+        ostr.write((const char*)&capacity, sizeof(uint32_t));
+
+        uint32_t size = docid_[i].size();
+        ostr.write((const char*)&size, sizeof(uint32_t));
+
+        ostr.write((const char*)&docid_[i][0], sizeof(uint32_t) * size);
+
+        if (type_ != NON_POSITIONAL)
+        {
+            ostr.write((const char*)&tf_[i][0], sizeof(uint32_t) * size);
+        }
+
+        if (type_ == POSITIONAL)
+        {
+            capacity = position_[i].capacity();
+            ostr.write((const char*)&capacity, sizeof(uint32_t));
+            size = position_[i].size();
+            ostr.write((const char*)&size, sizeof(uint32_t));
+            ostr.write((const char*)&position_[i][0], sizeof(uint32_t) * size);
+        }
+    }
+
+    ostr.write((const char*)&tailPointer_[0], sizeof(uint32_t) * capacity_);
 }
 
 void BufferMaps::load(std::istream& istr)
 {
+    istr.read((char*)&capacity_, sizeof(capacity_));
+
+    for (size_t i = 0; i < capacity_; ++i)
+    {
+        uint32_t capacity = 0;
+        istr.read((char*)&capacity, sizeof(uint32_t));
+        docid_[i].reserve(capacity);
+
+        uint32_t size = 0;
+        istr.read((char*)&size, sizeof(uint32_t));
+        docid_[i].resize(size);
+
+        istr.read((char*)&docid_[i][0], sizeof(uint32_t) * size);
+
+        if (type_ != NON_POSITIONAL)
+        {
+            tf_[i].reserve(capacity);
+            tf_[i].resize(size);
+            istr.read((char*)&tf_[i][0], sizeof(uint32_t) * size);
+        }
+
+        if (type_ == POSITIONAL)
+        {
+            capacity = 0;
+            istr.read((char*)&capacity, sizeof(uint32_t));
+            position_.reserve(capacity);
+
+            size = 0;
+            istr.read((char*)&size, sizeof(uint32_t));
+            position_.resize(size);
+
+            istr.read((char*)&position_[i][0], sizeof(uint32_t) * size);
+        }
+    }
+
+    tailPointer_.resize(capacity_, UNDEFINED_POINTER);
+    istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
 void BufferMaps::expand(uint32_t newSize)
@@ -71,39 +136,6 @@ bool BufferMaps::containsKey(uint32_t k) const
     return !docid_[k].empty();
 }
 
-std::vector<uint32_t>& BufferMaps::getDocidList(uint32_t k)
-{
-    expand(k + 1);
-    return docid_[k];
-}
-
-const std::vector<uint32_t>& BufferMaps::getDocidList(uint32_t k) const
-{
-    return docid_[k];
-}
-
-std::vector<uint32_t>& BufferMaps::getTfList(uint32_t k)
-{
-    expand(k + 1);
-    return tf_[k];
-}
-
-const std::vector<uint32_t>& BufferMaps::getTfList(uint32_t k) const
-{
-    return tf_[k];
-}
-
-std::vector<uint32_t>& BufferMaps::getPositionList(uint32_t k)
-{
-    expand(k + 1);
-    return position_[k];
-}
-
-const std::vector<uint32_t>& BufferMaps::getPositionList(uint32_t k) const
-{
-    return position_[k];
-}
-
 uint32_t BufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do
@@ -113,7 +145,7 @@ uint32_t BufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
             return -1;
         }
     }
-    while (docid_[pos].capacity() < minLength);
+    while (docid_[pos].capacity() <= minLength);
 
     return pos;
 }
