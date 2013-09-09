@@ -1,5 +1,6 @@
 #include "newInvertedIndexTestFixture.h"
 #include <boost/test/unit_test.hpp>
+#include <util/ClockTimer.h>
 NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
@@ -194,7 +195,7 @@ BOOST_AUTO_TEST_CASE(do_search_new_reverse)
     indexTestFixture.initBIGIndexer(DocNum, reverse);
 
     std::vector<std::string> wordlist = indexTestFixture.getWordList();
-
+    izenelib::util::ClockTimer timer;
     for (int i = 0; i < 20; ++i)
     {
         std::vector<std::string> term_list;
@@ -207,6 +208,7 @@ BOOST_AUTO_TEST_CASE(do_search_new_reverse)
         std::cout << "search: " << wordlist[i] << " / " << wordlist[i+1] << " / " << wordlist[i+2] 
         << " / " << wordlist[i+3] << " :" <<docid_list.size() << std::endl;
     }
+    std::cout <<"search 20 queries cost:" << timer.elapsed() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(do_index_save_load_reverse)

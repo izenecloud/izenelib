@@ -131,7 +131,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
 
     uint32_t reqspace = csize + filterSize + 8;
-    if (reqspace > MAX_POOL_SIZE - offset_)
+    if (reqspace > MAX_POOL_SIZE/sizeof(int) - offset_)
     {
         ++segment_;
         offset_ = 0;

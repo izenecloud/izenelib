@@ -85,7 +85,7 @@ size_t NewSegmentPool::compressAndAppend(
     codec.encodeArray(score_list, BLOCK_SIZE, &sblock[0], scsize);
 
     uint32_t reqspace = csize + scsize + 7;
-    if (reqspace > MAX_POOL_SIZE - offset_)
+    if (reqspace > MAX_POOL_SIZE/sizeof(int) - offset_)
     {
         ++segment_;
         offset_ = 0;
