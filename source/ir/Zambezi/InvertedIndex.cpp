@@ -21,9 +21,12 @@ inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, cons
 
 InvertedIndex::InvertedIndex(
         IndexType type,
-        uint32_t maxPoolSize, uint32_t numberOfPools,
-        bool reverse, bool bloomEnabled,
-        uint32_t nbHash, uint32_t bitsPerElement)
+        bool reverse,
+        uint32_t maxPoolSize,
+        uint32_t numberOfPools,
+        bool bloomEnabled,
+        uint32_t nbHash,
+        uint32_t bitsPerElement)
     : type_(type)
     , buffer_(DEFAULT_VOCAB_SIZE, type)
     , pool_(maxPoolSize, numberOfPools, reverse, bloomEnabled, nbHash, bitsPerElement)

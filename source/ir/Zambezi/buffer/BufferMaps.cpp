@@ -57,7 +57,7 @@ void BufferMaps::save(std::ostream& ostr) const
         }
     }
 
-    ostr.write((const char*)&tailPointer_[0], sizeof(uint32_t) * capacity_);
+    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
 void BufferMaps::load(std::istream& istr)
