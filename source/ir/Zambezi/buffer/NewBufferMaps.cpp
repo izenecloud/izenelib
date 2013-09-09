@@ -51,13 +51,13 @@ void NewBufferMaps::load(std::istream& istr)
         istr.read((char*)&size, sizeof(uint32_t));
         docid_[i].resize(size);
         score_[i].resize(size);
-
+        
         istr.read((char*)&docid_[i][0], sizeof(uint32_t) * size);
         istr.read((char*)&score_[i][0], sizeof(uint32_t) * size);
     }
 
     tailPointer_.resize(capacity_, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
+    istr.read((char*)&tailPointer_[0], sizeof(uint32_t) * capacity_);
 }
 
 void NewBufferMaps::expand(uint32_t newSize)

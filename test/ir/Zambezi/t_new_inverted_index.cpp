@@ -209,6 +209,110 @@ BOOST_AUTO_TEST_CASE(do_search_new_reverse)
     }
 }
 
+BOOST_AUTO_TEST_CASE(do_index_save_load_reverse)
+{
+    std::cout << std::endl <<"test case 5: [do_index_save_load_reverse] ..." << std::endl;
+    uint32_t DocNum = 2000000;
+    std::vector<std::string> wordlist;
+    uint32_t wordNumber = 50;
+    std::vector<uint32_t> resultNumber;
+    bool reverse = true;
+    ///save
+    {
+      newInvertedIndexTestFixture indexTestFixture;
+      indexTestFixture.initBIGIndexer(DocNum, reverse);
+      wordlist = indexTestFixture.getWordList();
+
+      for (unsigned int i = 0; i < wordNumber; ++i)
+      {
+          std::vector<std::string> term_list;
+          std::vector<uint32_t> docid_list;
+          term_list.push_back(wordlist[i]);
+          term_list.push_back(wordlist[i+1]);
+          term_list.push_back(wordlist[i+2]);
+          indexTestFixture.search(term_list, docid_list);
+          resultNumber.push_back(docid_list.size());
+      }
+      std::cout << indexTestFixture.getTotalDocCount() << std::endl;
+      std::cout <<"Begin save index ..." ;
+      indexTestFixture.saveIndex();
+      std::cout <<"   Save index finished..." << std::endl;
+    }
+
+    /// load
+    {
+      newInvertedIndexTestFixture indexTestFixture1;
+      indexTestFixture1.initBIGIndexer(0, reverse);
+      std::cout <<"begin load index ..." ;
+      indexTestFixture1.loadIndex();
+      std::cout <<"   Load index finished..." << std::endl;
+      std::cout << indexTestFixture1.getTotalDocCount() << std::endl;
+
+      for (unsigned int i = 0; i < wordNumber; ++i)
+      {
+          std::vector<std::string> term_list;
+          std::vector<uint32_t> docid_list;
+          term_list.push_back(wordlist[i]);
+          term_list.push_back(wordlist[i+1]);
+          term_list.push_back(wordlist[i+2]);
+          indexTestFixture1.search(term_list, docid_list);
+          BOOST_CHECK_EQUAL(docid_list.size(), resultNumber[i]);
+      }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(do_index_save_load_forward)
+{
+    std::cout << std::endl <<"test case 6: [do_index_save_load_forward] ..." << std::endl;
+    uint32_t DocNum = 2000000;
+    std::vector<std::string> wordlist;
+    uint32_t wordNumber = 50;
+    std::vector<uint32_t> resultNumber;
+    bool reverse = false;
+    ///save
+    {
+      newInvertedIndexTestFixture indexTestFixture;
+      indexTestFixture.initBIGIndexer(DocNum, reverse);
+      wordlist = indexTestFixture.getWordList();
+
+      for (unsigned int i = 0; i < wordNumber; ++i)
+      {
+          std::vector<std::string> term_list;
+          std::vector<uint32_t> docid_list;
+          term_list.push_back(wordlist[i]);
+          term_list.push_back(wordlist[i+1]);
+          term_list.push_back(wordlist[i+2]);
+          indexTestFixture.search(term_list, docid_list);
+          resultNumber.push_back(docid_list.size());
+      }
+      std::cout << indexTestFixture.getTotalDocCount() << std::endl;
+      std::cout <<"Begin save index ..." ;
+      indexTestFixture.saveIndex();
+      std::cout <<"   Save index finished..." << std::endl;
+    }
+
+    /// load
+    {
+      newInvertedIndexTestFixture indexTestFixture1;
+      indexTestFixture1.initBIGIndexer(0, reverse);
+      std::cout <<"begin load index ..." ;
+      indexTestFixture1.loadIndex();
+      std::cout <<"   Load index finished..." << std::endl;
+      std::cout << indexTestFixture1.getTotalDocCount() << std::endl;
+
+      for (unsigned int i = 0; i < wordNumber; ++i)
+      {
+          std::vector<std::string> term_list;
+          std::vector<uint32_t> docid_list;
+          term_list.push_back(wordlist[i]);
+          term_list.push_back(wordlist[i+1]);
+          term_list.push_back(wordlist[i+2]);
+          indexTestFixture1.search(term_list, docid_list);
+          BOOST_CHECK_EQUAL(docid_list.size(), resultNumber[i]);
+      }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 NS_IZENELIB_IR_END

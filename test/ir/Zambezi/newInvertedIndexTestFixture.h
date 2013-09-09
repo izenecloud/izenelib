@@ -29,6 +29,7 @@ namespace Zambezi
     public:
         newInvertedIndexTestFixture()
             :index_(NULL)
+            , indexPath_("Inverted.index") 
         {
         }
 
@@ -241,12 +242,21 @@ namespace Zambezi
         {
             fstream fileIndex;
             fileIndex.open(indexPath_.c_str(), ios::binary|ios::in);
-            index_->load(fileIndex);
-        }      
+
+            if (fileIndex.is_open())
+            {
+                index_->load(fileIndex);    
+            }
+        }
 
         std::vector<std::string>& getWordList()
         {
             return wordlist_;
+        }
+
+        uint32_t getTotalDocCount() const
+        {
+            return index_->totalDocNum();
         }
 
     private:
