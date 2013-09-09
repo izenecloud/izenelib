@@ -7,9 +7,11 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-NewInvertedIndex::NewInvertedIndex(bool reverse)
+NewInvertedIndex::NewInvertedIndex(
+        uint32_t maxPoolSize, uint32_t numberOfPools,
+        bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
-    , pool_(NUMBER_OF_POOLS, reverse)
+    , pool_(maxPoolSize, numberOfPools, reverse)
     , pointers_(DEFAULT_VOCAB_SIZE)
 {
 }

@@ -49,11 +49,11 @@ inline float default_bm25(uint32_t tf, uint32_t df, uint32_t numDocs, uint32_t d
     return default_bm25tf(tf, docLen, avgDocLen) * idf(numDocs, df);
 }
 
-inline uint32_t* getAlignedMemory(size_t size)
+inline uint32_t* getAlignedIntArray(size_t size)
 {
     uint32_t* block;
-    if (posix_memalign((void**)&block, 0x200000LU, size))
-        block = (uint32_t*)malloc(size);
+    if (posix_memalign((void**)&block, 0x200000LU, size * sizeof(uint32_t)))
+        block = (uint32_t*)malloc(size * sizeof(uint32_t));
     return block;
 }
 

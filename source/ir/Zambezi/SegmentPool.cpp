@@ -12,9 +12,11 @@ namespace Zambezi
 {
 
 SegmentPool::SegmentPool(
-        uint32_t numberOfPools, bool reverse, bool bloomEnabled,
+        uint32_t maxPoolSize, uint32_t numberOfPools,
+        bool reverse, bool bloomEnabled,
         bool nbHash, bool bitsPerElement)
-    : numberOfPools_(numberOfPools)
+    : maxPoolSize_(maxPoolSize)
+    , numberOfPools_(numberOfPools)
     , segment_(0)
     , offset_(0)
     , reverse_(reverse)
@@ -35,6 +37,7 @@ SegmentPool::~SegmentPool()
 
 void SegmentPool::save(std::ostream& ostr) const
 {
+    ostr.write((const char*)&maxPoolSize_, sizeof(maxPoolSize_));
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
     ostr.write((const char*)&segment_, sizeof(segment_));
     ostr.write((const char*)&offset_, sizeof(offset_));
@@ -45,13 +48,14 @@ void SegmentPool::save(std::ostream& ostr) const
 
     for (size_t i = 0; i < segment_; ++i)
     {
-        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
+        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
     ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
 void SegmentPool::load(std::istream& istr)
 {
+    istr.read((char*)&maxPoolSize_, sizeof(maxPoolSize_));
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
     istr.read((char*)&segment_, sizeof(segment_));
     istr.read((char*)&offset_, sizeof(offset_));
@@ -63,10 +67,10 @@ void SegmentPool::load(std::istream& istr)
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
-        pool_[i] = getAlignedMemory(MAX_POOL_SIZE);
-        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
+        pool_[i] = getAlignedIntArray(maxPoolSize_);
+        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
-    pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+    pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
@@ -131,7 +135,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
 
     uint32_t reqspace = csize + filterSize + 8;
-    if (reqspace > MAX_POOL_SIZE/sizeof(int) - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -139,7 +143,7 @@ size_t SegmentPool::compressAndAddNonPositional(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -217,7 +221,7 @@ size_t SegmentPool::compressAndAddTfOnly(
     codec.encodeArray(tf_list, BLOCK_SIZE, &tfblock[0], tfcsize);
 
     uint32_t reqspace = csize + tfcsize + filterSize + 9;
-    if (reqspace > MAX_POOL_SIZE - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -225,7 +229,7 @@ size_t SegmentPool::compressAndAddTfOnly(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -339,7 +343,7 @@ size_t SegmentPool::compressAndAddPositional(
     }
 
     uint32_t reqspace = csize + tfcsize + pcsize + filterSize + 11;
-    if (reqspace > MAX_POOL_SIZE - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -347,7 +351,7 @@ size_t SegmentPool::compressAndAddPositional(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     }
 
     pool_[segment_][offset_] = reqspace;

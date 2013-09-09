@@ -12,7 +12,7 @@ namespace Zambezi
 static const uint32_t BLOCK_SIZE = 128;
 
 // Pool size
-static const size_t MAX_POOL_SIZE = 1UL << 32;
+static const size_t MAX_POOL_SIZE = 1UL << 30;
 // Number of pools in segment pool
 static const uint32_t NUMBER_OF_POOLS = 16;
 

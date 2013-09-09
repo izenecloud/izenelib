@@ -11,8 +11,9 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-NewSegmentPool::NewSegmentPool(uint32_t numberOfPools, bool reverse)
-    : numberOfPools_(numberOfPools)
+NewSegmentPool::NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
+    : maxPoolSize_(maxPoolSize)
+    , numberOfPools_(numberOfPools)
     , segment_(0)
     , offset_(0)
     , reverse_(reverse)
@@ -30,6 +31,7 @@ NewSegmentPool::~NewSegmentPool()
 
 void NewSegmentPool::save(std::ostream& ostr) const
 {
+    ostr.write((const char*)&maxPoolSize_, sizeof(maxPoolSize_));
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
     ostr.write((const char*)&segment_, sizeof(segment_));
     ostr.write((const char*)&offset_, sizeof(offset_));
@@ -37,13 +39,14 @@ void NewSegmentPool::save(std::ostream& ostr) const
 
     for (size_t i = 0; i < segment_; ++i)
     {
-        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
+        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
     ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
 void NewSegmentPool::load(std::istream& istr)
 {
+    istr.read((char*)&maxPoolSize_, sizeof(maxPoolSize_));
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
     istr.read((char*)&segment_, sizeof(segment_));
     istr.read((char*)&offset_, sizeof(offset_));
@@ -52,10 +55,10 @@ void NewSegmentPool::load(std::istream& istr)
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
-        pool_[i] = getAlignedMemory(MAX_POOL_SIZE);
-        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * MAX_POOL_SIZE);
+        pool_[i] = getAlignedIntArray(maxPoolSize_);
+        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
-    pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+    pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
@@ -85,7 +88,7 @@ size_t NewSegmentPool::compressAndAppend(
     codec.encodeArray(score_list, BLOCK_SIZE, &sblock[0], scsize);
 
     uint32_t reqspace = csize + scsize + 7;
-    if (reqspace > MAX_POOL_SIZE/sizeof(int) - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -93,7 +96,7 @@ size_t NewSegmentPool::compressAndAppend(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedMemory(MAX_POOL_SIZE);
+        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
     }
 
     pool_[segment_][offset_] = reqspace;

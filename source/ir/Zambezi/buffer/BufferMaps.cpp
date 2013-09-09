@@ -53,6 +53,7 @@ void BufferMaps::save(std::ostream& ostr) const
             size = position_[i].size();
             ostr.write((const char*)&size, sizeof(uint32_t));
             ostr.write((const char*)&position_[i][0], sizeof(uint32_t) * size);
+            ostr.write((const char*)&posBlockHead_[i], sizeof(uint32_t));
         }
     }
 
@@ -62,6 +63,17 @@ void BufferMaps::save(std::ostream& ostr) const
 void BufferMaps::load(std::istream& istr)
 {
     istr.read((char*)&capacity_, sizeof(capacity_));
+
+    docid_.resize(capacity_);
+    if (type_ != NON_POSITIONAL)
+    {
+        tf_.resize(capacity_);
+    }
+    if (type_ == POSITIONAL)
+    {
+        position_.resize(capacity_);
+        posBlockHead_.resize(capacity_);
+    }
 
     for (size_t i = 0; i < capacity_; ++i)
     {
@@ -93,6 +105,7 @@ void BufferMaps::load(std::istream& istr)
             position_.resize(size);
 
             istr.read((char*)&position_[i][0], sizeof(uint32_t) * size);
+            istr.read((char*)&posBlockHead_[i], sizeof(uint32_t));
         }
     }
 

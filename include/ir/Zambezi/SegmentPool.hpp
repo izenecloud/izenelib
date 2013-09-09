@@ -28,7 +28,8 @@ public:
      *        this indicates number of bits per element
      */
     SegmentPool(
-            uint32_t numberOfPools, bool reverse, bool bloomEnabled,
+            uint32_t maxPoolSize, uint32_t numberOfPools,
+            bool reverse, bool bloomEnabled,
             bool nbHash, bool bitsPerElement);
 
     ~SegmentPool();
@@ -202,6 +203,7 @@ private:
             std::vector<uint32_t>& docid_list) const;
 
 private:
+    uint32_t maxPoolSize_;
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

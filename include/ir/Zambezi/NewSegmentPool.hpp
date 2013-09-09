@@ -22,7 +22,7 @@ public:
      * @param numberOfPools Number of pools, where each pool is an array of integers
      * @param reverse Whether to store postings in reverse order (e.g., to index tweets)
      */
-    NewSegmentPool(uint32_t numberOfPools, bool reverse);
+    NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse);
 
     ~NewSegmentPool();
 
@@ -110,6 +110,7 @@ private:
             std::vector<uint32_t>& score_list) const;
 
 private:
+    uint32_t maxPoolSize_;
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;

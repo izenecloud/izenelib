@@ -34,7 +34,9 @@ namespace Zambezi
 class NewInvertedIndex
 {
 public:
-    NewInvertedIndex(bool reverse = true);
+    NewInvertedIndex(
+            uint32_t maxPoolSize = MAX_POOL_SIZE, uint32_t numberOfPools = NUMBER_OF_POOLS,
+            bool reverse = true);
 
     ~NewInvertedIndex();
 
