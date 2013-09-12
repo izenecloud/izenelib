@@ -61,7 +61,7 @@ class LineReader
 
         IASSERT(la_n != NULL);
         fseek(f_, p + (la_n - mem_+1), SEEK_SET);
-        IASSERT((la_n - mem_+1) <= bytes_);
+        IASSERT((uint64_t)(la_n - mem_+1) <= bytes_);
         memset(la_n+1, 0, bytes_ -(la_n - mem_+1));
         return true;
     }
