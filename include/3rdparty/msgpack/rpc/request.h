@@ -149,7 +149,8 @@ template <typename Result>
 void request::result(Result res, auto_zone z)
 {
 	msgpack::type::nil err;
-	shared_zone sz(z.release());
+	shared_zone sz;
+    shared_zone_helper::reset_shared_zone(sz, z.release());
 	call(res, err, sz);
 }
 
@@ -178,7 +179,8 @@ template <typename Error>
 void request::error(Error err, auto_zone z)
 {
 	msgpack::type::nil res;
-	shared_zone sz(z.release());
+	shared_zone sz;
+    shared_zone_helper::reset_shared_zone(sz, z.release());
 	call(res, err, sz);
 }
 

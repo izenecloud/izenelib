@@ -20,14 +20,31 @@
 
 #include "../msgpack.hpp"
 #include "../mp/memory.h"
+#include "../msgpack/zone.hpp"
 
 namespace msgpack {
 namespace rpc {
 
 
-typedef std::auto_ptr<zone> auto_zone;
 typedef mp::shared_ptr<zone> shared_zone;
 
+class shared_zone_helper
+{
+public:
+    static shared_zone create_shared_zone()
+    {
+        shared_zone p(static_cast<msgpack::zone*>(msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE)), &msgpack_zone_free);
+        return p;
+    }
+    static void reset_shared_zone(shared_zone& orig, msgpack_zone* data)
+    {
+        orig.reset(static_cast<msgpack::zone*>(data), &msgpack_zone_free);
+    }
+    static void reset_shared_zone(shared_zone& orig, zone* data)
+    {
+        orig.reset(data, &msgpack_zone_free);
+    }
+};
 
 template <typename T>
 class with_shared_zone : public T {

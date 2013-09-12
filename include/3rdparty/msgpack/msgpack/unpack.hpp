@@ -42,7 +42,7 @@ class unpacked {
 public:
 	unpacked() { }
 
-	unpacked(object obj, std::auto_ptr<msgpack::zone> z) :
+	unpacked(object obj, msgpack::auto_zone z) :
 		m_obj(obj), m_zone(z) { }
 
 	object& get()
@@ -51,15 +51,15 @@ public:
 	const object& get() const
 		{ return m_obj; }
 
-	std::auto_ptr<msgpack::zone>& zone()
+	msgpack::auto_zone& zone()
 		{ return m_zone; }
 
-	const std::auto_ptr<msgpack::zone>& zone() const
+	const msgpack::auto_zone& zone() const
 		{ return m_zone; }
 
 private:
 	object m_obj;
-	std::auto_ptr<msgpack::zone> m_zone;
+	msgpack::auto_zone m_zone;
 };
 
 
@@ -307,7 +307,7 @@ inline void unpack(unpacked* result,
 		const char* data, size_t len, size_t* offset)
 {
 	msgpack::object obj;
-	std::auto_ptr<msgpack::zone> z(new zone());
+	msgpack::auto_zone z(static_cast<msgpack::zone*>(msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE)));
 
 	unpack_return ret = (unpack_return)msgpack_unpack(
 			data, len, offset, z.get(),
