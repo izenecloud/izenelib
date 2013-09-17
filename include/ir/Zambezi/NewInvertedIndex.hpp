@@ -35,7 +35,7 @@ class NewInvertedIndex
 {
 public:
     NewInvertedIndex(
-            bool reverse = true,
+            bool reverse = false,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS);
 

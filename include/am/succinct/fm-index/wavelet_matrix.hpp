@@ -3,7 +3,6 @@
 
 #include "wavelet_tree.hpp"
 #include <am/succinct/sdarray/SDArray.hpp>
-#include <am/succinct/utils.hpp>
 #include <am/interval_heap.hpp>
 
 #include <deque>
@@ -124,8 +123,6 @@ template <class CharT>
 void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
-
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     zero_counts_.resize(this->alphabet_bit_num_);
 
@@ -1706,8 +1703,6 @@ void WaveletMatrix<CharT>::load(std::istream &istr)
     {
         if (nodes_[i]) delete nodes_[i];
     }
-
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     zero_counts_.resize(this->alphabet_bit_num_);
     istr.read((char *)&zero_counts_[0], sizeof(zero_counts_[0]) * zero_counts_.size());

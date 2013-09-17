@@ -2,7 +2,6 @@
 #define _FM_INDEX_WAVELET_TREE_HUFFMAN_HPP
 
 #include "wavelet_tree.hpp"
-#include <am/succinct/utils.hpp>
 #include <am/interval_heap.hpp>
 
 #include <deque>
@@ -122,8 +121,6 @@ template <class CharT>
 void WaveletTreeHuffman<CharT>::build(const char_type *char_seq, size_t len)
 {
     if (this->alphabet_num_ == 0) return;
-
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
     for (size_t i = 0; i < len; ++i)
@@ -1278,8 +1275,6 @@ void WaveletTreeHuffman<CharT>::load(std::istream &istr)
     WaveletTree<CharT>::load(istr);
 
     if (root_) deleteTree_(root_);
-
-    this->alphabet_bit_num_ = SuccinctUtils::log2(this->alphabet_num_ - 1);
 
     occ_.resize((1 << this->alphabet_bit_num_) + 1);
     istr.read((char *)&occ_[0], sizeof(occ_[0]) * occ_.size());
