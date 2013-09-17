@@ -32,15 +32,18 @@ uint64_t EnumCoder::Encode(uint64_t val, size_t rank_sb)
 {
     if (rank_sb == 0 || rank_sb == kBlockSize) return 0;
 
-    rank_sb = rank_sb > 32 ? (val = ~val, kBlockSize - rank_sb) : rank_sb;
+    if (rank_sb > 32)
+    {
+        val = ~val;
+        rank_sb = kBlockSize - rank_sb;
+    }
 
     uint64_t code = 0;
     for (size_t i = 0; i < kBlockSize; ++i)
     {
         if (val >> i & 1LLU)
         {
-            code += kCombinationTable64_[rank_sb][kBlockSize - i - 1];
-            --rank_sb;
+            code += kCombinationTable64_[rank_sb--][kBlockSize - i - 1];
         }
     }
 
@@ -91,9 +94,7 @@ bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos)
         }
     }
 
-    return orig_rank_sb <= 32
-        ? code >= kCombinationTable64_[rank_sb][kBlockSize - pos - 1]
-        : code < kCombinationTable64_[rank_sb][kBlockSize - pos - 1];
+    return (orig_rank_sb > 32) ^ (code >= kCombinationTable64_[rank_sb][kBlockSize - pos - 1]);
 }
 
 bool EnumCoder::GetBit(uint64_t code, size_t rank_sb, size_t pos, size_t& rank)
