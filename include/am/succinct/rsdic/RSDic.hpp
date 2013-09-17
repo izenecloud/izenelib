@@ -82,10 +82,11 @@ public:
 private:
     struct RankBlock
     {
+        rsdic_uint pointer_;
         rsdic_uint large_block_;
         uint8_t small_blocks_[kBlockPerLargeBlock];
 
-        RankBlock() : large_block_(), small_blocks_() {}
+        RankBlock() : pointer_(), large_block_(), small_blocks_() {}
     };
 
     void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
@@ -95,7 +96,6 @@ private:
     rsdic_uint one_num_;
 
     std::vector<uint64_t> bits_;
-    std::vector<rsdic_uint> pointer_blocks_;
     std::vector<RankBlock> rank_blocks_;
 
     std::vector<rsdic_uint> select_one_inds_;
