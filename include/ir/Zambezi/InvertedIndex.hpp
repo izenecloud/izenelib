@@ -36,7 +36,7 @@ class InvertedIndex
 public:
     InvertedIndex(
             IndexType type = NON_POSITIONAL,
-            bool reverse = true,
+            bool reverse = false,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
             bool bloomEnabled = true,

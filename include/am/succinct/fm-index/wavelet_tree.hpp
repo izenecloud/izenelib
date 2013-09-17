@@ -3,6 +3,7 @@
 
 #include "const.hpp"
 #include "range_list.hpp"
+#include <am/succinct/utils.hpp>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -20,7 +21,7 @@ public:
 
     WaveletTree(uint64_t alphabet_num, bool support_select, bool dense)
         : alphabet_num_(alphabet_num)
-        , alphabet_bit_num_()
+        , alphabet_bit_num_(SuccinctUtils::log2(alphabet_num_ - 1))
         , support_select_(support_select)
         , dense_(dense)
     {
@@ -97,6 +98,7 @@ public:
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
         istr.read((char *)&support_select_, sizeof(support_select_));
         istr.read((char *)&dense_, sizeof(dense_));
+        alphabet_bit_num_ = SuccinctUtils::log2(alphabet_num_ - 1);
     }
 
     static uint64_t getAlphabetNum(const char_type *char_seq, size_t len)
