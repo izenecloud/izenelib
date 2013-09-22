@@ -4,6 +4,7 @@
 #include <types.h>
 #include <util/compression/int/fastpfor/fastpfor.h>
 
+#include <boost/function.hpp>
 #include <iostream>
 #include <vector>
 
@@ -82,8 +83,24 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 
+    void wand(
+            std::vector<size_t>& headPointers,
+            const boost::function<bool(uint32_t)>& filter,
+            uint32_t threshold,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list,
+            std::vector<uint32_t>& score_list) const;
+
     void intersectSvS(
             std::vector<size_t>& headPointers,
+            uint32_t minDf,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list,
+            std::vector<uint32_t>& score_list) const;
+
+    void intersectSvS(
+            std::vector<size_t>& headPointers,
+            const boost::function<bool(uint32_t)>& filter,
             uint32_t minDf,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
@@ -99,7 +116,16 @@ private:
 
     void intersectPostingsLists_(
             FastPFor& codec,
-            size_t pointer0, size_t pointer1,
+            size_t pointer0,
+            size_t pointer1,
+            std::vector<uint32_t>& docid_list,
+            std::vector<uint32_t>& score_list) const;
+
+    void intersectPostingsLists_(
+            FastPFor& codec,
+            size_t pointer0,
+            size_t pointer1,
+            const boost::function<bool(uint32_t)>& filter,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 

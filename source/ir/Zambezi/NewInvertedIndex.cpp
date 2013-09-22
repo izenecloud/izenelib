@@ -216,6 +216,53 @@ void NewInvertedIndex::retrieval(
     }
 }
 
+void NewInvertedIndex::retrievalAndFiltering(
+        Algorithm algorithm,
+        const std::vector<std::string>& term_list,
+        const boost::function<bool(uint32_t)>& filter,
+        uint32_t hits,
+        std::vector<uint32_t>& docid_list,
+        std::vector<uint32_t>& score_list) const
+{
+    std::vector<std::pair<uint32_t, size_t> > queries;
+    uint32_t minimumDf = 0xFFFFFFFF;
+    for (uint32_t i = 0; i < term_list.size(); ++i)
+    {
+        uint32_t termid = dictionary_.getTermId(term_list[i]);
+        if (termid != INVALID_ID)
+        {
+            size_t pointer = pointers_.getHeadPointer(termid);
+            if (pointer != UNDEFINED_POINTER)
+            {
+                queries.push_back(std::make_pair(pointers_.getDf(termid), pointer));
+                minimumDf = std::min(queries.back().first, minimumDf);
+            }
+        }
+    }
+
+    if (queries.empty()) return;
+
+    if (algorithm == SVS)
+    {
+        std::sort(queries.begin(), queries.end());
+    }
+
+    std::vector<size_t> qHeadPointers(queries.size());
+    for (uint32_t i = 0; i < queries.size(); ++i)
+    {
+        qHeadPointers[i] = queries[i].second;
+    }
+
+    if (algorithm == SVS)
+    {
+        pool_.intersectSvS(qHeadPointers, filter, minimumDf, hits, docid_list, score_list);
+    }
+    else if (algorithm == WAND)
+    {
+        pool_.wand(qHeadPointers, filter, 0, hits, docid_list, score_list);
+    }
+}
+
 }
 
 NS_IZENELIB_IR_END
