@@ -21,9 +21,9 @@ inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, cons
 
 InvertedIndex::InvertedIndex(
         IndexType type,
-        bool reverse,
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
+        bool reverse,
         bool bloomEnabled,
         uint32_t nbHash,
         uint32_t bitsPerElement)
@@ -264,7 +264,7 @@ void InvertedIndex::flush()
         std::vector<uint32_t>& docBuffer = buffer_.getDocidList(term);
         std::vector<uint32_t>& tfBuffer = buffer_.getTfList(term);
         std::vector<uint32_t>& posBuffer = buffer_.getPositionList(term);
-        
+
         uint32_t pos = docBuffer.size();
         size_t pointer = buffer_.tailPointer_[term];
 

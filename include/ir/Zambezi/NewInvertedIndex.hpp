@@ -62,6 +62,14 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 
+    void retrievalAndFiltering(
+            Algorithm algorithm,
+            const std::vector<std::string>& term_list,
+            const boost::function<bool(uint32_t)>& filter,
+            uint32_t hits,
+            std::vector<uint32_t>& docid_list,
+            std::vector<uint32_t>& score_list) const;
+
 private:
     NewBufferMaps buffer_;
     NewSegmentPool pool_;
