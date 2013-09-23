@@ -15,6 +15,7 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
+#include <boost/atomic.hpp>
 #include <iostream>
 
 namespace net{
@@ -253,7 +254,7 @@ protected:
     boost::scoped_ptr<MergerProxy> mergerProxy_;
     boost::scoped_ptr<LocalWorkerProxy> localWorkerProxy_;
 
-    size_t ro_index_;
+    boost::atomic<uint32_t> ro_index_;
     std::map<workerid_t, std::vector<WorkerSessionPtr> > ro_workers_;
     std::vector<workerid_t> workeridList_;
     std::vector<WorkerSessionPtr> workerSessionList_;
