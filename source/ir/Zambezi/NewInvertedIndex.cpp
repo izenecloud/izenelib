@@ -210,10 +210,6 @@ void NewInvertedIndex::retrieval(
     {
         pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list, score_list);
     }
-    else if (algorithm == WAND)
-    {
-        pool_.wand(qHeadPointers, 0, hits, docid_list, score_list);
-    }
 }
 
 void NewInvertedIndex::retrievalAndFiltering(
@@ -256,10 +252,6 @@ void NewInvertedIndex::retrievalAndFiltering(
     if (algorithm == SVS)
     {
         pool_.intersectSvS(qHeadPointers, filter, minimumDf, hits, docid_list, score_list);
-    }
-    else if (algorithm == WAND)
-    {
-        pool_.wand(qHeadPointers, filter, 0, hits, docid_list, score_list);
     }
 }
 

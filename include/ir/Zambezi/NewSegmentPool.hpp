@@ -76,21 +76,6 @@ public:
             FastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
-    void wand(
-            std::vector<size_t>& headPointers,
-            uint32_t threshold,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
-    void wand(
-            std::vector<size_t>& headPointers,
-            const boost::function<bool(uint32_t)>& filter,
-            uint32_t threshold,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
     void intersectSvS(
             std::vector<size_t>& headPointers,
             uint32_t minDf,
@@ -111,7 +96,9 @@ private:
             FastPFor& codec,
             std::vector<uint32_t>& blockDocid,
             std::vector<uint32_t>& blockScore,
-            uint32_t& count, uint32_t& index, size_t& pointer,
+            uint32_t& count,
+            uint32_t& index,
+            size_t& pointer,
             uint32_t pivot) const;
 
     void intersectPostingsLists_(
@@ -120,6 +107,15 @@ private:
             size_t pointer1,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
+
+    bool skipInvalidDoc_(
+            FastPFor& codec,
+            const boost::function<bool(uint32_t)>& filter,
+            std::vector<uint32_t>& blockDocid,
+            std::vector<uint32_t>& blockScore,
+            uint32_t& count,
+            uint32_t& index,
+            size_t& pointer) const;
 
     void intersectPostingsLists_(
             FastPFor& codec,
