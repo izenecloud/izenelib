@@ -68,7 +68,7 @@ private:
     /// @brief Handle the request
     void handleRequest(const context_ptr& context,
                        const boost::system::error_code& e);
-    void handleRequestFunc(const context_ptr& context);
+    void handleRequestFunc(context_ptr context);
 
     /// @brief Write response asynchronously.
     void asyncWriteResponse(const context_ptr& context);

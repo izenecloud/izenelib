@@ -142,7 +142,7 @@ void DriverConnection::afterReadFormPayload(
 }
 
 void DriverConnection::handleRequestFunc(
-    const context_ptr& context)
+    context_ptr context)
 {
     driver::Router::handler_ptr handler = router_->find(
         context->request.controller(),
