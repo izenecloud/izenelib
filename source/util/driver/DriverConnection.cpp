@@ -186,7 +186,7 @@ void DriverConnection::handleRequestFunc(
 }
 
 void DriverConnection::handleRequest(
-    const context_ptr& context,
+    context_ptr context,
     const boost::system::error_code& e)
 {
     if (!e)
@@ -215,7 +215,7 @@ void DriverConnection::handleRequest(
     // Error if send end is closed, just ignore it
 }
 
-void DriverConnection::asyncWriteResponse(const context_ptr& context)
+void DriverConnection::asyncWriteResponse(context_ptr context)
 {
     if (asBool(context->request.header()[driver::Keys::check_time]))
     {
@@ -246,7 +246,7 @@ void DriverConnection::asyncWriteError(
     asyncWriteResponse(context);
 }
 
-void DriverConnection::afterWriteResponse(const context_ptr&)
+void DriverConnection::afterWriteResponse(context_ptr)
 {}
 
 void DriverConnection::shutdownReceive()
