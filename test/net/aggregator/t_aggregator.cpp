@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
     SearchRequest req;
     req.keyword = TERM_ABC;
     SearchResult res;
-    BOOST_CHECK(ag.distributeRequest("", "getKeywordSearchResult", req, res));
+    BOOST_CHECK(ag.distributeRequest("", 0, "getKeywordSearchResult", req, res));
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
     {
     AddRequest addRequest(1, 2);
     AddResult addResult;
-    BOOST_CHECK(ag.distributeRequest("", "add", addRequest, addResult));
+    BOOST_CHECK(ag.distributeRequest("", 0, "add", addRequest, addResult));
     BOOST_CHECK_EQUAL(addResult.sum, (1+2)*2);
     }
 }
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
     SearchRequest req;
     req.keyword = TERM_ABC;
     SearchResult res;
-    BOOST_CHECK(ag.distributeRequest("", "getKeywordSearchResult", req, res));
+    BOOST_CHECK(ag.distributeRequest("", 0, "getKeywordSearchResult", req, res));
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
     {
     AddRequest addRequest(1, 2);
     AddResult addResult;
-    BOOST_CHECK(ag.distributeRequest("", "add", addRequest, addResult));
+    BOOST_CHECK(ag.distributeRequest("", 0, "add", addRequest, addResult));
     BOOST_CHECK_EQUAL(addResult.sum, (1+2)*2);
     }
 }
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     requestGroup.addRequest(2, &req1, &res);
     requestGroup.addRequest(3, &req2, &res);
 
-    BOOST_CHECK(ag.distributeRequest("", "getKeywordSearchResult", requestGroup, res));
+    BOOST_CHECK(ag.distributeRequest("", 0, "getKeywordSearchResult", requestGroup, res));
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, ABC_DOC+CHINESE_DOC+ABC_DOC);
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     addRequestGroup.addRequest(2, &addRequest1, &addResult);
     addRequestGroup.addRequest(3, &addRequest2, &addResult);
 
-    BOOST_CHECK(ag.distributeRequest("", "add", addRequestGroup, addResult));
+    BOOST_CHECK(ag.distributeRequest("", 0, "add", addRequestGroup, addResult));
     BOOST_CHECK_EQUAL(addResult.sum, 1+2+3+4+5+6);
     }
 }
