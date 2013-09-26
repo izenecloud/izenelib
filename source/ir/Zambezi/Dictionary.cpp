@@ -1,6 +1,9 @@
 #include <ir/Zambezi/Dictionary.hpp>
 #include <ir/Zambezi/Consts.hpp>
 
+#include <vector>
+#include <algorithm>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -33,8 +36,10 @@ void Dictionary::save(std::ostream& ostr) const
 {
     uint32_t vocabSize = dict_.size();
     ostr.write((const char*)&vocabSize, sizeof(uint32_t));
-    for (boost::unordered_map<std::string, uint32_t>::const_iterator it = dict_.begin();
-            it != dict_.end(); ++it)
+    std::vector<std::pair<std::string, uint32_t> > seq(dict_.begin(), dict_.end());
+    std::sort(seq.begin(), seq.end());
+    for (std::vector<std::pair<std::string, uint32_t> >::const_iterator it = seq.begin();
+            it != seq.end(); ++it)
     {
         uint32_t len = it->first.size();
         ostr.write((const char*)&len, sizeof(uint32_t));
