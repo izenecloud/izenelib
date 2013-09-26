@@ -96,13 +96,13 @@ public:
             const std::string& func, const RequestType& param, const ResultType& result, unsigned int sec)
     {
         msgpack::rpc::session session =
-                sessionPool.get_session(workerSrv_.host_, workerSrv_.port_);
+                sessionPool.get_session(workerSrv_.host_, workerSrv_.port_, sec);
 
         // timeout is set for session, i.e., if send 2 or more requests through the same session, the time for timeout
         // is the total time for processing these 2 or more requests, but not for processing each request respectively.
         // Because the sessions for a worker got from a same session pool are the same session, each request should share
         // a different session pool.
-        session.set_timeout(sec);
+        //session.set_timeout(sec);
         return session.call(func, param, result);
     }
 

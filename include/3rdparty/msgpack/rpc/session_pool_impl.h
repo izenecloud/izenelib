@@ -32,10 +32,10 @@ public:
 	session_pool_impl(const builder& b, loop lo);
 	~session_pool_impl();
 
-	session get_session(const address& addr);
+	session get_session(const address& addr, unsigned int tm);
 
-	session get_session(const std::string& host, uint16_t port)
-		{ return get_session(ip_address(host, port)); }
+	session get_session(const std::string& host, uint16_t port, unsigned int tm = 20)
+		{ return get_session(ip_address(host, port), tm); }
 
 	loop get_loop()
 		{ return m_loop; }

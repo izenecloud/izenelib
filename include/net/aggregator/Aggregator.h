@@ -292,7 +292,7 @@ Aggregator<MergerProxy, LocalWorkerProxy>::Aggregator(
 , localWorkerId_(0)
 , mergerProxy_(mergerProxy)
 , localWorkerProxy_(localWorkerProxy)
-, timeout_(0)
+, timeout_(20)
 {
 }
 
@@ -604,9 +604,7 @@ template <class MergerProxy, class LocalWorkerProxy>
 session_t Aggregator<MergerProxy, LocalWorkerProxy>::getMsgPackSession_(const WorkerSessionPtr& workerSessionPtr)
 {
     const ServerInfo& serverInfo = workerSessionPtr->getServerInfo();
-    session_t session = sessionPool_->get_session(serverInfo.host_, serverInfo.port_);
-    if (timeout_)
-        session.set_timeout(timeout_);
+    session_t session = sessionPool_->get_session(serverInfo.host_, serverInfo.port_, timeout_);
 
     if (debug_)
     {
