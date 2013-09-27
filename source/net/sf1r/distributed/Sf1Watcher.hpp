@@ -40,8 +40,6 @@ public:
     void onSessionExpired() {};
     void onAuthFailed() {};
 
-    void onMonitor() {};
-    
 private:
     ZooKeeperRouter& router;
     const bool rewatch;

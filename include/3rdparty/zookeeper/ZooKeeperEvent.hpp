@@ -108,9 +108,6 @@ public:
     virtual void onSessionConnected() {}
     virtual void onSessionExpired() {}
     virtual void onAuthFailed() {}
-
-    // for monitoring zookeeper connection status
-    virtual void onMonitor() {}
 };
 
 }} // namespace
