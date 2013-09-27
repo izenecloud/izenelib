@@ -373,8 +373,7 @@ void NewSegmentPool::intersectPostingsLists_(
     decompressScoreBlock(codec, &blockScore0[0], pointer0);
     decompressScoreBlock(codec, &blockScore1[0], pointer1);
 
-    if (!skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, i0, pointer0)
-            || !skipInvalidDoc_(codec, filter, blockDocid1, blockScore1, c1, i1, pointer1))
+    if (!skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, i0, pointer0))
         return;
 
     while (true)
@@ -384,18 +383,32 @@ void NewSegmentPool::intersectPostingsLists_(
             docid_list.push_back(blockDocid0[i0]);
             score_list.push_back(blockScore0[i0] + blockScore1[i1]);
 
-            if (!skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, ++i0, pointer0)
-                    || !skipInvalidDoc_(codec, filter, blockDocid1, blockScore1, c1, ++i1, pointer1))
-                break;
-        }
+            if (++i0 == c0)
+            {
+                if ((pointer0 = nextPointer(pointer0)) == UNDEFINED_POINTER)
+                    break;
 
-        if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], reverse_))
+                c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0);
+                decompressScoreBlock(codec, &blockScore0[0], pointer0);
+                i0 = 0;
+            }
+            if (++i1 == c1)
+            {
+                if ((pointer1 = nextPointer(pointer1)) == UNDEFINED_POINTER)
+                    break;
+
+                c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1);
+                decompressScoreBlock(codec, &blockScore1[0], pointer1);
+                i1 = 0;
+            }
+        }
+        else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], reverse_))
         {
             if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1])
                     || !skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, i0, pointer0))
                 break;
         }
-        else if (LESS_THAN(blockDocid1[i1], blockDocid0[i0], reverse_))
+        else
         {
             if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0])
                     || !skipInvalidDoc_(codec, filter, blockDocid1, blockScore1, c1, i1, pointer1))
@@ -415,9 +428,9 @@ bool NewSegmentPool::skipInvalidDoc_(
 {
     size_t oldPointer = pointer;
 
-    do
+    while (!filter(blockDocid[index]));
     {
-        if (index == count)
+        if (++index == count)
         {
             if ((pointer = nextPointer(pointer)) == UNDEFINED_POINTER)
                 return false;
@@ -426,7 +439,6 @@ bool NewSegmentPool::skipInvalidDoc_(
             index = 0;
         }
     }
-    while (!filter(blockDocid[index]) && ++index);
 
     if (oldPointer != pointer)
         decompressScoreBlock(codec, &blockScore[0], pointer);
@@ -451,9 +463,9 @@ void NewSegmentPool::intersectSetPostingsList_(
         if (blockDocid[i] == docid_list[iCurrent])
         {
             docid_list[iSet] = docid_list[iCurrent];
-            score_list[iSet++] = score_list[iCurrent++] + blockScore[i];
+            score_list[iSet++] = score_list[iCurrent] + blockScore[i];
 
-            if (iCurrent == docid_list.size())
+            if (++iCurrent == docid_list.size())
                 break;
 
             if (++i == c)
@@ -473,12 +485,12 @@ void NewSegmentPool::intersectSetPostingsList_(
         }
         else
         {
-            while (iCurrent < docid_list.size() && LESS_THAN(docid_list[iCurrent], blockDocid[i], reverse_))
+            do
             {
-                ++iCurrent;
+                if (++iCurrent == docid_list.size())
+                    break;
             }
-            if (iCurrent == docid_list.size())
-                break;
+            while (LESS_THAN(docid_list[iCurrent], blockDocid[i], reverse_));
         }
     }
 
