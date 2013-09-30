@@ -9,7 +9,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-namespace detail
+namespace
 {
 
 inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, const boost::tuple<uint32_t, uint32_t, size_t>& t2)
@@ -396,7 +396,7 @@ void InvertedIndex::retrieval(
 
     if (algorithm == BWAND_OR || algorithm == BWAND_AND || algorithm == SVS) // get the shortest posting
     {
-        std::sort(queries.begin(), queries.end(), detail::termCompare);
+        std::sort(queries.begin(), queries.end(), termCompare);
     }
 
     std::vector<uint32_t> qdf(queries.size());

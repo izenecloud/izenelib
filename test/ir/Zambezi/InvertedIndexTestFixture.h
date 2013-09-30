@@ -33,7 +33,7 @@ namespace Zambezi
 
         void initIndex(bool isReverse)
         {
-            index_ = new InvertedIndex(NON_POSITIONAL, isReverse);
+            index_ = new InvertedIndex(NON_POSITIONAL, 1 << 28, 4, isReverse);
         }
 
         ~InvertedIndexTestFixture()
@@ -183,7 +183,7 @@ namespace Zambezi
                 lastDocid += DefullNum;
             }
             if (number != 0)
-            {  
+            {
                 prepareBigDocument(docTermMap, number, lastDocid);
                 buildIndex(docTermMap);
             }

@@ -28,14 +28,14 @@ namespace Zambezi
     {
     public:
         newInvertedIndexTestFixture()
-            :index_(NULL)
-            , indexPath_("Inverted.index") 
+            : index_(NULL)
+            , indexPath_("Inverted.index")
         {
         }
 
         void initIndex(bool isReverse)
         {
-            index_ = new NewInvertedIndex(isReverse);
+            index_ = new NewInvertedIndex(1 << 28, 4, isReverse);
         }
 
         ~newInvertedIndexTestFixture()
@@ -69,12 +69,11 @@ namespace Zambezi
             term_tmp.push_back("abp");
             term_tmp.push_back("abq");
             unsigned int x = 0;
-            for (std::vector<uint32_t>::iterator i = DocIdList.begin(); i != DocIdList.end(); ++i)
+            for (std::vector<uint32_t>::iterator it = DocIdList.begin(); it != DocIdList.end(); ++it)
             {
                 termList.push_back(term_tmp[x]);
-                DocIdTermMap[*i] = termList;
-                x++;
-                if (x == term_tmp.size() )
+                DocIdTermMap[*it] = termList;
+                if (++x == term_tmp.size())
                 {
                     termList.clear();
                     x = 0;
@@ -184,7 +183,7 @@ namespace Zambezi
                 lastDocid += DefullNum;
             }
             if (number != 0)
-            {  
+            {
                 prepareBigDocument(docTermMap, number, lastDocid);
                 buildIndex(docTermMap);
             }
@@ -245,7 +244,7 @@ namespace Zambezi
 
             if (fileIndex.is_open())
             {
-                index_->load(fileIndex);    
+                index_->load(fileIndex);
             }
         }
 

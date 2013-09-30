@@ -617,7 +617,6 @@ void SegmentPool::bwandAnd(
     FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
 
-    std::cout << UNDEFINED_POINTER << std::endl;
     while (headPointers[0] != UNDEFINED_POINTER)
     {
         uint32_t count = decompressDocidBlock(codec, &docid_block[0], headPointers[0]);
