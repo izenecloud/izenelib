@@ -253,9 +253,8 @@ std::string ZooKeeper::getLastCreatedNodePath()
     return std::string(realNodePath_);
 }
 
-bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
+bool ZooKeeper::deleteZNodeNoLock(const string &path, bool recursive, int version)
 {
-    boost::lock_guard<boost::mutex> g(mutex_);
     if (zk_ == NULL)
         return false;
     int rc = zoo_delete(zk_, path.c_str(), version);
@@ -281,13 +280,13 @@ bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
         if (recursive)
         {
             std::vector<std::string> children;
-            getZNodeChildren(path, children);
+            getZNodeChildrenNoLock(path, children);
             for (size_t i = 0; i < children.size(); i++)
             {
-                deleteZNode(children[i], true);
+                deleteZNodeNoLock(children[i], true);
             }
 
-            return deleteZNode(path);
+            return deleteZNodeNoLock(path);
         }
         break;
     case ZBADARGUMENTS:
@@ -304,6 +303,12 @@ bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
     }
 
     return false;
+}
+
+bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
+{
+    boost::lock_guard<boost::mutex> g(mutex_);
+    return deleteZNodeNoLock(path, recursive, version);
 }
 
 bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
@@ -378,9 +383,8 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+bool ZooKeeper::getZNodeChildrenNoLock(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
-    boost::lock_guard<boost::mutex> g(mutex_);
     childrenList.clear();
 
     String_vector children;
@@ -423,6 +427,13 @@ bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
         deallocate_String_vector(&children);
     }
     return true;
+
+}
+
+bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+{
+    boost::lock_guard<boost::mutex> g(mutex_);
+    return getZNodeChildrenNoLock(path, childrenList, watch, inAbsPath);
 }
 
 /// Asynchronous API

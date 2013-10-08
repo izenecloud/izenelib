@@ -300,6 +300,12 @@ public:
 
 
 private:
+    bool deleteZNodeNoLock(const std::string &path, bool recursive = false, int version = -1);
+    bool getZNodeChildrenNoLock(
+            const std::string &path, std::vector<std::string>& childrenList,
+            ZNodeWatchType watch = NOT_WATCH,
+            bool inAbsPath = true);
+
     std::string hosts_;
     int recvTimeout_;
     clientid_t* sessionId_; //pass 0 if not reconnecting to a previous session.
