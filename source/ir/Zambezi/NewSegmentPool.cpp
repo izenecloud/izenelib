@@ -23,10 +23,6 @@ NewSegmentPool::NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, boo
 
 NewSegmentPool::~NewSegmentPool()
 {
-    for (size_t i = 0; i <= segment_; ++i)
-    {
-        free(pool_[i]);
-    }
 }
 
 void NewSegmentPool::save(std::ostream& ostr) const
@@ -55,10 +51,16 @@ void NewSegmentPool::load(std::istream& istr)
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
-        pool_[i] = getAlignedIntArray(maxPoolSize_);
+        if (!pool_[i])
+        {
+            pool_[i].reset(getAlignedIntArray(maxPoolSize_));
+        }
         istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
-    pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+    if (!pool_[segment_])
+    {
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+    }
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
@@ -88,7 +90,7 @@ size_t NewSegmentPool::compressAndAppend(
     codec.encodeArray(score_list, BLOCK_SIZE, &sblock[0], scsize);
 
     uint32_t reqspace = csize + scsize + 7;
-    if (reqspace > maxPoolSize_ - offset_)
+    if (reqspace >= maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -96,7 +98,7 @@ size_t NewSegmentPool::compressAndAppend(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -309,72 +311,10 @@ void NewSegmentPool::intersectPostingsLists_(
     std::vector<uint32_t> blockScore0(BLOCK_SIZE);
     std::vector<uint32_t> blockScore1(BLOCK_SIZE);
 
-    uint32_t c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0);
-    uint32_t c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1);
-    decompressScoreBlock(codec, &blockScore0[0], pointer0);
-    decompressScoreBlock(codec, &blockScore1[0], pointer1);
-    uint32_t i0 = 0, i1 = 0;
-
-    while (true)
-    {
-        if (blockDocid0[i0] == blockDocid1[i1])
-        {
-            docid_list.push_back(blockDocid0[i0]);
-            score_list.push_back(blockScore0[i0] + blockScore1[i1]);
-
-            if (++i0 == c0)
-            {
-                if ((pointer0 = nextPointer(pointer0)) == UNDEFINED_POINTER)
-                    break;
-
-                c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0);
-                decompressScoreBlock(codec, &blockScore0[0], pointer0);
-                i0 = 0;
-            }
-            if (++i1 == c1)
-            {
-                if ((pointer1 = nextPointer(pointer1)) == UNDEFINED_POINTER)
-                    break;
-
-                c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1);
-                decompressScoreBlock(codec, &blockScore1[0], pointer1);
-                i1 = 0;
-            }
-        }
-
-        if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], reverse_))
-        {
-            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1]))
-                break;
-        }
-        else if (LESS_THAN(blockDocid1[i1], blockDocid0[i0], reverse_))
-        {
-            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0]))
-                break;
-        }
-    }
-}
-
-void NewSegmentPool::intersectPostingsLists_(
-        FastPFor& codec,
-        size_t pointer0,
-        size_t pointer1,
-        const boost::function<bool(uint32_t)>& filter,
-        std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
-{
-    std::vector<uint32_t> blockDocid0(BLOCK_SIZE);
-    std::vector<uint32_t> blockDocid1(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore0(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore1(BLOCK_SIZE);
-
     uint32_t c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0), i0 = 0;
     uint32_t c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1), i1 = 0;
     decompressScoreBlock(codec, &blockScore0[0], pointer0);
     decompressScoreBlock(codec, &blockScore1[0], pointer1);
-
-    if (!skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, i0, pointer0))
-        return;
 
     while (true)
     {
@@ -404,46 +344,75 @@ void NewSegmentPool::intersectPostingsLists_(
         }
         else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], reverse_))
         {
-            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1])
-                    || !skipInvalidDoc_(codec, filter, blockDocid0, blockScore0, c0, i0, pointer0))
+            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1]))
                 break;
         }
         else
         {
-            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0])
-                    || !skipInvalidDoc_(codec, filter, blockDocid1, blockScore1, c1, i1, pointer1))
+            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0]))
                 break;
         }
     }
 }
 
-bool NewSegmentPool::skipInvalidDoc_(
+void NewSegmentPool::intersectPostingsLists_(
         FastPFor& codec,
+        size_t pointer0,
+        size_t pointer1,
         const boost::function<bool(uint32_t)>& filter,
-        std::vector<uint32_t>& blockDocid,
-        std::vector<uint32_t>& blockScore,
-        uint32_t& count,
-        uint32_t& index,
-        size_t& pointer) const
+        std::vector<uint32_t>& docid_list,
+        std::vector<uint32_t>& score_list) const
 {
-    size_t oldPointer = pointer;
+    std::vector<uint32_t> blockDocid0(BLOCK_SIZE);
+    std::vector<uint32_t> blockDocid1(BLOCK_SIZE);
+    std::vector<uint32_t> blockScore0(BLOCK_SIZE);
+    std::vector<uint32_t> blockScore1(BLOCK_SIZE);
 
-    while (!filter(blockDocid[index]));
+    uint32_t c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0), i0 = 0;
+    uint32_t c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1), i1 = 0;
+    decompressScoreBlock(codec, &blockScore0[0], pointer0);
+    decompressScoreBlock(codec, &blockScore1[0], pointer1);
+
+    while (true)
     {
-        if (++index == count)
+        if (blockDocid0[i0] == blockDocid1[i1])
         {
-            if ((pointer = nextPointer(pointer)) == UNDEFINED_POINTER)
-                return false;
+            if (filter(blockDocid0[i0]))
+            {
+                docid_list.push_back(blockDocid0[i0]);
+                score_list.push_back(blockScore0[i0] + blockScore1[i1]);
+            }
 
-            count = decompressDocidBlock(codec, &blockDocid[0], pointer);
-            index = 0;
+            if (++i0 == c0)
+            {
+                if ((pointer0 = nextPointer(pointer0)) == UNDEFINED_POINTER)
+                    break;
+
+                c0 = decompressDocidBlock(codec, &blockDocid0[0], pointer0);
+                decompressScoreBlock(codec, &blockScore0[0], pointer0);
+                i0 = 0;
+            }
+            if (++i1 == c1)
+            {
+                if ((pointer1 = nextPointer(pointer1)) == UNDEFINED_POINTER)
+                    break;
+
+                c1 = decompressDocidBlock(codec, &blockDocid1[0], pointer1);
+                decompressScoreBlock(codec, &blockScore1[0], pointer1);
+                i1 = 0;
+            }
+        }
+        else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], reverse_))
+        {
+            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1]))
+                break;
+        }
+        else
+        {
+            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0]))
+                break;
         }
     }
-
-    if (oldPointer != pointer)
-        decompressScoreBlock(codec, &blockScore[0], pointer);
-
-    return true;
 }
 
 void NewSegmentPool::intersectSetPostingsList_(

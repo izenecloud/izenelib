@@ -8,9 +8,9 @@ namespace Zambezi
 {
 
 NewInvertedIndex::NewInvertedIndex(
-        bool reverse,
         uint32_t maxPoolSize,
-        uint32_t numberOfPools)
+        uint32_t numberOfPools,
+        bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
     , pool_(maxPoolSize, numberOfPools, reverse)
     , pointers_(DEFAULT_VOCAB_SIZE)

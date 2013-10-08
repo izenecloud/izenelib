@@ -4,6 +4,7 @@
 #include <types.h>
 #include <util/compression/int/fastpfor/fastpfor.h>
 
+#include <boost/shared_array.hpp>
 #include <iostream>
 #include <vector>
 
@@ -217,7 +218,7 @@ private:
     uint32_t bitsPerElement_;
 
     // Segment pool
-    std::vector<uint32_t*> pool_;
+    std::vector<boost::shared_array<uint32_t> > pool_;
 };
 
 }

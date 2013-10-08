@@ -29,10 +29,6 @@ SegmentPool::SegmentPool(
 
 SegmentPool::~SegmentPool()
 {
-    for (size_t i = 0; i <= segment_; ++i)
-    {
-        free(pool_[i]);
-    }
 }
 
 void SegmentPool::save(std::ostream& ostr) const
@@ -67,10 +63,16 @@ void SegmentPool::load(std::istream& istr)
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
-        pool_[i] = getAlignedIntArray(maxPoolSize_);
+        if (!pool_[i])
+        {
+            pool_[i].reset(getAlignedIntArray(maxPoolSize_));
+        }
         istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
     }
-    pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+    if (!pool_[segment_])
+    {
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+    }
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
@@ -135,7 +137,7 @@ size_t SegmentPool::compressAndAddNonPositional(
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
 
     uint32_t reqspace = csize + filterSize + 8;
-    if (reqspace > maxPoolSize_ - offset_)
+    if (reqspace >= maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -143,7 +145,7 @@ size_t SegmentPool::compressAndAddNonPositional(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -221,7 +223,7 @@ size_t SegmentPool::compressAndAddTfOnly(
     codec.encodeArray(tf_list, BLOCK_SIZE, &tfblock[0], tfcsize);
 
     uint32_t reqspace = csize + tfcsize + filterSize + 9;
-    if (reqspace > maxPoolSize_ - offset_)
+    if (reqspace >= maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -229,7 +231,7 @@ size_t SegmentPool::compressAndAddTfOnly(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -343,7 +345,7 @@ size_t SegmentPool::compressAndAddPositional(
     }
 
     uint32_t reqspace = csize + tfcsize + pcsize + filterSize + 11;
-    if (reqspace > maxPoolSize_ - offset_)
+    if (reqspace >= maxPoolSize_ - offset_)
     {
         ++segment_;
         offset_ = 0;
@@ -351,7 +353,7 @@ size_t SegmentPool::compressAndAddPositional(
 
     if (!pool_[segment_])
     {
-        pool_[segment_] = getAlignedIntArray(maxPoolSize_);
+        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -615,7 +617,6 @@ void SegmentPool::bwandAnd(
     FastPFor codec;
     std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
 
-    std::cout << UNDEFINED_POINTER << std::endl;
     while (headPointers[0] != UNDEFINED_POINTER)
     {
         uint32_t count = decompressDocidBlock(codec, &docid_block[0], headPointers[0]);

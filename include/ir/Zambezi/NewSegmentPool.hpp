@@ -4,6 +4,7 @@
 #include <types.h>
 #include <util/compression/int/fastpfor/fastpfor.h>
 
+#include <boost/shared_array.hpp>
 #include <boost/function.hpp>
 #include <iostream>
 #include <vector>
@@ -108,15 +109,6 @@ private:
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 
-    bool skipInvalidDoc_(
-            FastPFor& codec,
-            const boost::function<bool(uint32_t)>& filter,
-            std::vector<uint32_t>& blockDocid,
-            std::vector<uint32_t>& blockScore,
-            uint32_t& count,
-            uint32_t& index,
-            size_t& pointer) const;
-
     void intersectPostingsLists_(
             FastPFor& codec,
             size_t pointer0,
@@ -141,7 +133,7 @@ private:
     bool reverse_;
 
     // Segment pool
-    std::vector<uint32_t*> pool_;
+    std::vector<boost::shared_array<uint32_t> > pool_;
 };
 
 }
