@@ -31,6 +31,10 @@ struct pthread_error : system_error {
 		system_error(errno_, msg) {}
 };
 
+struct pthread_joinself_error : system_error {
+    pthread_joinself_error(int errno_, const std::string& msg) :
+        system_error(errno_, msg) {}
+};
 
 struct pthread_thread {
 private:
@@ -61,7 +65,7 @@ public:
 	{
 		void* ret;
 		int err = pthread_join(m_thread, &ret);
-		if(err) { throw pthread_error(err, "failed to join thread"); }
+		if(err) { printf("join failed with error: %d\n", err); throw pthread_error(err, "failed to join thread"); }
 		return ret;
 	}
 
@@ -70,6 +74,10 @@ public:
 		pthread_cancel(m_thread);
 	}
 
+    pthread_t& get_thread()
+    {
+        return m_thread;
+    }
 
 	bool operator== (const pthread_thread& other) const
 	{
@@ -105,7 +113,10 @@ class pthread_mutex {
 public:
 	pthread_mutex(const pthread_mutexattr_t *attr = NULL)
 	{
-		pthread_mutex_init(&m_mutex, attr);
+		if(pthread_mutex_init(&m_mutex, attr) != 0)
+        {
+            perror("failed to init mutex.");
+        }
 	}
 
 	pthread_mutex(int kind)
@@ -113,7 +124,10 @@ public:
 		pthread_mutexattr_t attr;
 		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, kind);
-		pthread_mutex_init(&m_mutex, &attr);
+		if(pthread_mutex_init(&m_mutex, &attr) != 0)
+        {
+            perror("failed to init mutex with kind.");
+        }
 	}
 
 	~pthread_mutex()
@@ -125,7 +139,7 @@ public:
 	void lock()
 	{
 		int err = pthread_mutex_lock(&m_mutex);
-		if(err != 0) { throw pthread_error(-err, "failed to lock pthread mutex"); }
+		if(err != 0) { printf("lock failed with err: %d\n", err); throw pthread_error(-err, "failed to lock pthread mutex"); }
 	}
 
 	bool trylock()
@@ -422,9 +436,14 @@ namespace mp {
 inline void* pthread_thread::trampoline(void* user)
 {
 	std::auto_ptr<function_t> f(reinterpret_cast<function_t*>(user));
+    try{
 	(*f)();
 	return NULL;
-
+    } catch(const mp::pthread_joinself_error& e) {
+        // ignore this error.
+        std::cerr << "thread terminated with joinself error." << std::endl;
+        return NULL;
+    }
 }
 
 }  // namespace mp
