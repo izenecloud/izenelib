@@ -523,8 +523,8 @@ void NewSegmentPool::intersectSvS(
         std::vector<uint32_t> block(BLOCK_SIZE);
         std::vector<uint32_t> sblock(BLOCK_SIZE);
         uint32_t length = std::min(minDf, hits);
-        docid_list.resize(length);
-        score_list.resize(length);
+        docid_list.reserve(length);
+        score_list.reserve(length);
         uint32_t iSet = 0;
         size_t t = headPointers[0];
         while (t != UNDEFINED_POINTER && iSet < length)
@@ -535,8 +535,8 @@ void NewSegmentPool::intersectSvS(
             {
                 if (filter(block[i]))
                 {
-                    docid_list[iSet] = block[i];
-                    score_list[iSet] = sblock[i];
+                    docid_list.push_back(block[i]);
+                    score_list.push_back(sblock[i]);
                     if (++iSet == length) break;
                 }
             }
