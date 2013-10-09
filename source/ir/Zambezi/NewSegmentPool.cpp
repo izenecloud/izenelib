@@ -498,6 +498,7 @@ void NewSegmentPool::intersectSvS(
     }
 
     docid_list.reserve(minDf);
+    score_list.reserve(minDf);
     intersectPostingsLists_(codec, headPointers[0], headPointers[1], docid_list, score_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
@@ -525,9 +526,8 @@ void NewSegmentPool::intersectSvS(
         uint32_t length = std::min(minDf, hits);
         docid_list.reserve(length);
         score_list.reserve(length);
-        uint32_t iSet = 0;
         size_t t = headPointers[0];
-        while (t != UNDEFINED_POINTER && iSet < length)
+        while (t != UNDEFINED_POINTER && docid_list.size() < length)
         {
             uint32_t c = decompressDocidBlock(codec, &block[0], t);
             decompressScoreBlock(codec, &sblock[0], t);
@@ -537,7 +537,7 @@ void NewSegmentPool::intersectSvS(
                 {
                     docid_list.push_back(block[i]);
                     score_list.push_back(sblock[i]);
-                    if (++iSet == length) break;
+                    if (docid_list.size() == length) break;
                 }
             }
             t = nextPointer(t);
@@ -546,6 +546,7 @@ void NewSegmentPool::intersectSvS(
     }
 
     docid_list.reserve(minDf);
+    score_list.reserve(minDf);
     intersectPostingsLists_(codec, headPointers[0], headPointers[1], filter, docid_list, score_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
