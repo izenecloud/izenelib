@@ -112,6 +112,7 @@ private:
 private:
     friend class InvertedIndex;
     friend class NewInvertedIndex;
+    friend class BEInvertedIndex;
 
     uint32_t totalDocs_;
     size_t totalDocLen_;

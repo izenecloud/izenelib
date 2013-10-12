@@ -15,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class NewSegmentPool
+class BESegmentPool
 {
 public:
     /**
@@ -24,9 +24,9 @@ public:
      * @param numberOfPools Number of pools, where each pool is an array of integers
      * @param reverse Whether to store postings in reverse order (e.g., to index tweets)
      */
-    NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse);
+    BESegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse);
 
-    ~NewSegmentPool();
+    ~BESegmentPool();
 
     void save(std::ostream& ostr) const;
 
@@ -50,7 +50,9 @@ public:
 
     size_t compressAndAppend(
             FastPFor& codec,
-            uint32_t* docid_list, uint32_t* score_list,
+            uint32_t* docid_list,
+            uint32_t* score_list,
+            uint32_t* belong_list,
             uint32_t len, size_t tailPointer);
 
     /**
@@ -76,52 +78,6 @@ public:
     uint32_t decompressScoreBlock(
             FastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
-
-    void intersectSvS(
-            std::vector<size_t>& headPointers,
-            uint32_t minDf,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
-    void intersectSvS(
-            std::vector<size_t>& headPointers,
-            const boost::function<bool(uint32_t)>& filter,
-            uint32_t minDf,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
-private:
-    bool gallopSearch_(
-            FastPFor& codec,
-            std::vector<uint32_t>& blockDocid,
-            std::vector<uint32_t>& blockScore,
-            uint32_t& count,
-            uint32_t& index,
-            size_t& pointer,
-            uint32_t pivot) const;
-
-    void intersectPostingsLists_(
-            FastPFor& codec,
-            size_t pointer0,
-            size_t pointer1,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
-    void intersectPostingsLists_(
-            FastPFor& codec,
-            size_t pointer0,
-            size_t pointer1,
-            const boost::function<bool(uint32_t)>& filter,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
-    void intersectSetPostingsList_(
-            FastPFor& codec,
-            size_t pointer,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
 
 private:
     uint32_t maxPoolSize_;
