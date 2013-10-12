@@ -1,0 +1,66 @@
+#ifndef AVMAPPER_H_
+#define AVMAPPER_H_
+
+#include "IDMapper.hpp"
+#include <utility>
+#include <string>
+#include <vector>
+#include <3rdparty/json/json.h>
+
+namespace izenelib { namespace ir { namespace be_index {
+
+class AVMapper {
+public:
+    AVMapper()
+    {
+    }
+
+    ~AVMapper()
+    {
+    }
+
+    std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > insert(const std::string & attr, const std::string & value)
+    {
+        std::pair<uint32_t, bool> attrResult = attrMapper.insert(attr);
+        if (attrResult.second == true) {
+            valueMapper.push_back(IDMapper());
+        }
+        std::pair<uint32_t, bool> valueResult = valueMapper[attrResult.first].insert(value);
+        return std::make_pair(attrResult, valueResult);
+    }
+
+    void toJson(Json::Value & root)
+    {
+        attrMapper.toJson(root["attrMapper"]);
+        valueMapperToJson(root["valueMapper"]);
+    }
+
+    void valueMapperToJson(Json::Value & root)
+    {
+        for (std::size_t i = 0; i != valueMapper.size(); ++i) {
+            valueMapper[i].toJson(root[i]);
+        }
+    }
+
+    void fromJson(Json::Value & root)
+    {
+        attrMapper.fromJson(root["attrMapper"]);
+        valueMapperFromJson(root["valueMapper"]);
+    }
+
+    void valueMapperFromJson(Json::Value & root)
+    {
+        valueMapper.resize(root.size());
+        for (std::size_t i = 0; i != root.size(); ++i) {
+            valueMapper[i].fromJson(root[i]);
+        }
+    }
+
+private:
+    IDMapper attrMapper;
+    std::vector<IDMapper> valueMapper;
+};
+
+}}}
+
+#endif
