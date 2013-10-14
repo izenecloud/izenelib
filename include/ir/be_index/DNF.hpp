@@ -8,6 +8,10 @@ namespace izenelib { namespace ir { namespace be_index {
 
 class Assignment {
 public:
+    Assignment()
+    {
+    }
+
     std::string attribute;
     bool belongsTo;
     std::vector<std::string> values;
@@ -36,6 +40,10 @@ public:
 
 class Conjunction {
 public:
+    Conjunction()
+    {
+    }
+
     std::vector<Assignment> assignments;
 
     Conjunction(const std::vector<Assignment> & assignments): assignments(assignments)
@@ -69,6 +77,9 @@ public:
 
 class DNF {
 public:
+    DNF()
+    {
+    }
     std::vector<Conjunction> conjunctions;
 
     DNF(const std::vector<Conjunction> & conjunctions): conjunctions(conjunctions)
