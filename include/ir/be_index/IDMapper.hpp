@@ -1,6 +1,7 @@
 #ifndef IDMAPPER_H_
 #define IDMAPPER_H_
 
+#include <types.h>
 #include <utility>
 #include <string>
 #include <iostream>

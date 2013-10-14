@@ -1,6 +1,7 @@
 #ifndef INVINDEX_H_
 #define INVINDEX_H_
 
+#include <types.h>
 #include <list>
 #include <string>
 #include <vector>

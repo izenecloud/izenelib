@@ -2,6 +2,7 @@
 #define AVMAPPER_H_
 
 #include "IDMapper.hpp"
+#include <types.h>
 #include <utility>
 #include <string>
 #include <vector>

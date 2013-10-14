@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <types.h>
 
 namespace izenelib { namespace ir { namespace be_index {
 
