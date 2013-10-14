@@ -132,6 +132,11 @@ size_t PositionalSegmentPool::compressAndAddNonPositional(
         std::reverse(docid_list, docid_list + len);
     }
 
+    if (len < BLOCK_SIZE)
+    {
+        memset(&docid_list[len], 0, BLOCK_SIZE - len);
+    }
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     size_t csize = BLOCK_SIZE * 2;
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
@@ -213,6 +218,12 @@ size_t PositionalSegmentPool::compressAndAddTfOnly(
     {
         std::reverse(docid_list, docid_list + len);
         std::reverse(tf_list, tf_list + len);
+    }
+
+    if (len < BLOCK_SIZE)
+    {
+        memset(&docid_list[len], 0, BLOCK_SIZE - len);
+        memset(&tf_list[len], 0, BLOCK_SIZE - len);
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
@@ -315,6 +326,12 @@ size_t PositionalSegmentPool::compressAndAddPositional(
         memcpy(position_list, &rpositions[0], plen * sizeof(uint32_t));
     }
 
+    if (len < BLOCK_SIZE)
+    {
+        memset(&docid_list[len], 0, BLOCK_SIZE - len);
+        memset(&tf_list[len], 0, BLOCK_SIZE - len);
+    }
+
     uint32_t pblocksize = 3 * (plen / BLOCK_SIZE + 1) * BLOCK_SIZE;
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> tfblock(BLOCK_SIZE * 2);
@@ -338,6 +355,7 @@ size_t PositionalSegmentPool::compressAndAddPositional(
 
     if (res > 0)
     {
+        memset(&position_list[plen], 0, BLOCK_SIZE - res);
         size_t tempPcsize = BLOCK_SIZE * 2;
         codec.encodeArray(&position_list[nb * BLOCK_SIZE], BLOCK_SIZE, &pblock[pcsize + 1], tempPcsize);
         pblock[pcsize] = tempPcsize;

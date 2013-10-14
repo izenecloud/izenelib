@@ -82,6 +82,12 @@ size_t AttrScoreSegmentPool::compressAndAppend(
         std::reverse(score_list, score_list + len);
     }
 
+    if (len < BLOCK_SIZE)
+    {
+        memset(&docid_list[len], 0, BLOCK_SIZE - len);
+        memset(&score_list[len], 0, BLOCK_SIZE - len);
+    }
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> sblock(BLOCK_SIZE * 2);
     size_t csize = BLOCK_SIZE * 2;
