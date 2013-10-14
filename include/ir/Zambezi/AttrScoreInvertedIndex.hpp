@@ -1,24 +1,10 @@
-/**
- * An inverted index data structure consisting of
- * the following components:
- *
- *  - SegmentPool, which contains all segments.
- *  - Dictionary, which is a mapping from term to term id
- *  - Pointers, which contains Document Frequency, Head/Tail Pointers,
- *    etc.
- *  - DocumentVectors, which contains compressed document vector representation
- *    of documents
- *
- * @author Nima Asadi
- */
+#ifndef IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
+#define IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
 
-#ifndef IZENELIB_IR_ZAMBEZI_NEW_INVERTED_INDEX_HPP
-#define IZENELIB_IR_ZAMBEZI_NEW_INVERTED_INDEX_HPP
-
-#include "NewSegmentPool.hpp"
+#include "AttrScoreSegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
-#include "buffer/NewBufferMaps.hpp"
+#include "buffer/AttrScoreBufferMaps.hpp"
 #include "Consts.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -31,15 +17,15 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class NewInvertedIndex
+class AttrScoreInvertedIndex
 {
 public:
-    NewInvertedIndex(
+    AttrScoreInvertedIndex(
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
             bool reverse = true);
 
-    ~NewInvertedIndex();
+    ~AttrScoreInvertedIndex();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
@@ -71,9 +57,9 @@ public:
             std::vector<uint32_t>& score_list) const;
 
 private:
-    NewBufferMaps buffer_;
-    NewSegmentPool pool_;
-    Dictionary dictionary_;
+    AttrScoreBufferMaps buffer_;
+    AttrScoreSegmentPool pool_;
+    Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
     FastPFor codec_;

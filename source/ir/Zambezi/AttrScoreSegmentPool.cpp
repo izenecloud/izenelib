@@ -1,4 +1,4 @@
-#include <ir/Zambezi/NewSegmentPool.hpp>
+#include <ir/Zambezi/AttrScoreSegmentPool.hpp>
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
@@ -11,7 +11,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-NewSegmentPool::NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
+AttrScoreSegmentPool::AttrScoreSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
     : maxPoolSize_(maxPoolSize)
     , numberOfPools_(numberOfPools)
     , segment_(0)
@@ -21,11 +21,11 @@ NewSegmentPool::NewSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, boo
 {
 }
 
-NewSegmentPool::~NewSegmentPool()
+AttrScoreSegmentPool::~AttrScoreSegmentPool()
 {
 }
 
-void NewSegmentPool::save(std::ostream& ostr) const
+void AttrScoreSegmentPool::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&maxPoolSize_, sizeof(maxPoolSize_));
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
@@ -40,7 +40,7 @@ void NewSegmentPool::save(std::ostream& ostr) const
     ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
-void NewSegmentPool::load(std::istream& istr)
+void AttrScoreSegmentPool::load(std::istream& istr)
 {
     istr.read((char*)&maxPoolSize_, sizeof(maxPoolSize_));
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
@@ -64,7 +64,7 @@ void NewSegmentPool::load(std::istream& istr)
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
-size_t NewSegmentPool::compressAndAppend(
+size_t AttrScoreSegmentPool::compressAndAppend(
         FastPFor& codec,
         uint32_t* docid_list, uint32_t* score_list,
         uint32_t len, size_t tailPointer)
@@ -135,7 +135,7 @@ size_t NewSegmentPool::compressAndAppend(
     return newPointer;
 }
 
-size_t NewSegmentPool::nextPointer(size_t pointer) const
+size_t AttrScoreSegmentPool::nextPointer(size_t pointer) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -149,7 +149,7 @@ size_t NewSegmentPool::nextPointer(size_t pointer) const
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
 
-size_t NewSegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
+size_t AttrScoreSegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -171,7 +171,7 @@ size_t NewSegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     return ENCODE_POINTER(pSegment, pOffset);
 }
 
-uint32_t NewSegmentPool::decompressDocidBlock(
+uint32_t AttrScoreSegmentPool::decompressDocidBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
@@ -202,7 +202,7 @@ uint32_t NewSegmentPool::decompressDocidBlock(
     return len;
 }
 
-uint32_t NewSegmentPool::decompressScoreBlock(
+uint32_t AttrScoreSegmentPool::decompressScoreBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
@@ -218,7 +218,7 @@ uint32_t NewSegmentPool::decompressScoreBlock(
     return pool_[pSegment][pOffset + 4];
 }
 
-bool NewSegmentPool::gallopSearch_(
+bool AttrScoreSegmentPool::gallopSearch_(
         FastPFor& codec,
         std::vector<uint32_t>& blockDocid,
         std::vector<uint32_t>& blockScore,
@@ -299,7 +299,7 @@ bool NewSegmentPool::gallopSearch_(
     return true;
 }
 
-void NewSegmentPool::intersectPostingsLists_(
+void AttrScoreSegmentPool::intersectPostingsLists_(
         FastPFor& codec,
         size_t pointer0,
         size_t pointer1,
@@ -355,7 +355,7 @@ void NewSegmentPool::intersectPostingsLists_(
     }
 }
 
-void NewSegmentPool::intersectPostingsLists_(
+void AttrScoreSegmentPool::intersectPostingsLists_(
         FastPFor& codec,
         size_t pointer0,
         size_t pointer1,
@@ -415,7 +415,7 @@ void NewSegmentPool::intersectPostingsLists_(
     }
 }
 
-void NewSegmentPool::intersectSetPostingsList_(
+void AttrScoreSegmentPool::intersectSetPostingsList_(
         FastPFor& codec,
         size_t pointer,
         std::vector<uint32_t>& docid_list,
@@ -467,7 +467,7 @@ void NewSegmentPool::intersectSetPostingsList_(
     score_list.resize(iSet);
 }
 
-void NewSegmentPool::intersectSvS(
+void AttrScoreSegmentPool::intersectSvS(
         std::vector<size_t>& headPointers,
         uint32_t minDf,
         uint32_t hits,
@@ -510,7 +510,7 @@ void NewSegmentPool::intersectSvS(
         docid_list.resize(hits);
 }
 
-void NewSegmentPool::intersectSvS(
+void AttrScoreSegmentPool::intersectSvS(
         std::vector<size_t>& headPointers,
         const boost::function<bool(uint32_t)>& filter,
         uint32_t minDf,

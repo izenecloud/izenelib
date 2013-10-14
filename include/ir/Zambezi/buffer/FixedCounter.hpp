@@ -111,8 +111,6 @@ public:
         return pos;
     }
 
-private:
-    friend class InvertedIndex;
     T defaultValue_;
     std::vector<T> counter_;
 };

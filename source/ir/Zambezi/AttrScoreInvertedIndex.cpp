@@ -1,4 +1,4 @@
-#include <ir/Zambezi/NewInvertedIndex.hpp>
+#include <ir/Zambezi/AttrScoreInvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
 
@@ -7,7 +7,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-NewInvertedIndex::NewInvertedIndex(
+AttrScoreInvertedIndex::AttrScoreInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
         bool reverse)
@@ -17,11 +17,11 @@ NewInvertedIndex::NewInvertedIndex(
 {
 }
 
-NewInvertedIndex::~NewInvertedIndex()
+AttrScoreInvertedIndex::~AttrScoreInvertedIndex()
 {
 }
 
-void NewInvertedIndex::save(std::ostream& ostr) const
+void AttrScoreInvertedIndex::save(std::ostream& ostr) const
 {
     buffer_.save(ostr);
     pool_.save(ostr);
@@ -29,7 +29,7 @@ void NewInvertedIndex::save(std::ostream& ostr) const
     pointers_.save(ostr);
 }
 
-void NewInvertedIndex::load(std::istream& istr)
+void AttrScoreInvertedIndex::load(std::istream& istr)
 {
     buffer_.load(istr);
     pool_.load(istr);
@@ -37,12 +37,12 @@ void NewInvertedIndex::load(std::istream& istr)
     pointers_.load(istr);
 }
 
-bool NewInvertedIndex::hasValidPostingsList(uint32_t termid) const
+bool AttrScoreInvertedIndex::hasValidPostingsList(uint32_t termid) const
 {
     return pointers_.getHeadPointer(termid) != UNDEFINED_POINTER;
 }
 
-void NewInvertedIndex::insertDoc(
+void AttrScoreInvertedIndex::insertDoc(
         uint32_t docid,
         const std::vector<std::string>& term_list,
         const std::vector<uint32_t>& score_list)
@@ -114,7 +114,7 @@ void NewInvertedIndex::insertDoc(
     }
 }
 
-void NewInvertedIndex::flush()
+void AttrScoreInvertedIndex::flush()
 {
     uint32_t term = UNDEFINED_OFFSET;
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != UNDEFINED_OFFSET)
@@ -165,12 +165,12 @@ void NewInvertedIndex::flush()
     }
 }
 
-uint32_t NewInvertedIndex::totalDocNum() const
+uint32_t AttrScoreInvertedIndex::totalDocNum() const
 {
     return pointers_.getTotalDocs();
 }
 
-void NewInvertedIndex::retrieval(
+void AttrScoreInvertedIndex::retrieval(
         Algorithm algorithm,
         const std::vector<std::string>& term_list,
         uint32_t hits,
@@ -212,7 +212,7 @@ void NewInvertedIndex::retrieval(
     }
 }
 
-void NewInvertedIndex::retrievalAndFiltering(
+void AttrScoreInvertedIndex::retrievalAndFiltering(
         Algorithm algorithm,
         const std::vector<std::string>& term_list,
         const boost::function<bool(uint32_t)>& filter,

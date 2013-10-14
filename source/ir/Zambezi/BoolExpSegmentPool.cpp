@@ -1,4 +1,4 @@
-#include <ir/Zambezi/BESegmentPool.hpp>
+#include <ir/Zambezi/BoolExpSegmentPool.hpp>
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
@@ -11,7 +11,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-BESegmentPool::BESegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
+BoolExpSegmentPool::BoolExpSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
     : maxPoolSize_(maxPoolSize)
     , numberOfPools_(numberOfPools)
     , segment_(0)
@@ -21,11 +21,11 @@ BESegmentPool::BESegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool 
 {
 }
 
-BESegmentPool::~BESegmentPool()
+BoolExpSegmentPool::~BoolExpSegmentPool()
 {
 }
 
-void BESegmentPool::save(std::ostream& ostr) const
+void BoolExpSegmentPool::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&maxPoolSize_, sizeof(maxPoolSize_));
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
@@ -40,7 +40,7 @@ void BESegmentPool::save(std::ostream& ostr) const
     ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
-void BESegmentPool::load(std::istream& istr)
+void BoolExpSegmentPool::load(std::istream& istr)
 {
     istr.read((char*)&maxPoolSize_, sizeof(maxPoolSize_));
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
@@ -64,7 +64,7 @@ void BESegmentPool::load(std::istream& istr)
     istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
 }
 
-size_t BESegmentPool::compressAndAppend(
+size_t BoolExpSegmentPool::compressAndAppend(
         FastPFor& codec,
         uint32_t* docid_list,
         uint32_t* score_list,
@@ -139,7 +139,7 @@ size_t BESegmentPool::compressAndAppend(
     return newPointer;
 }
 
-size_t BESegmentPool::nextPointer(size_t pointer) const
+size_t BoolExpSegmentPool::nextPointer(size_t pointer) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -153,7 +153,7 @@ size_t BESegmentPool::nextPointer(size_t pointer) const
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
 
-size_t BESegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
+size_t BoolExpSegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -175,7 +175,7 @@ size_t BESegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     return ENCODE_POINTER(pSegment, pOffset);
 }
 
-uint32_t BESegmentPool::decompressDocidBlock(
+uint32_t BoolExpSegmentPool::decompressDocidBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {
@@ -206,7 +206,7 @@ uint32_t BESegmentPool::decompressDocidBlock(
     return len;
 }
 
-uint32_t BESegmentPool::decompressScoreBlock(
+uint32_t BoolExpSegmentPool::decompressScoreBlock(
         FastPFor& codec,
         uint32_t* outBlock, size_t pointer) const
 {

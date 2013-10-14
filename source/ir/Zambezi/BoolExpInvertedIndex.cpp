@@ -1,4 +1,4 @@
-#include <ir/Zambezi/BEInvertedIndex.hpp>
+#include <ir/Zambezi/BoolExpInvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
 
@@ -7,7 +7,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-BEInvertedIndex::BEInvertedIndex(
+BoolExpInvertedIndex::BoolExpInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
         bool reverse)
@@ -17,11 +17,11 @@ BEInvertedIndex::BEInvertedIndex(
 {
 }
 
-BEInvertedIndex::~BEInvertedIndex()
+BoolExpInvertedIndex::~BoolExpInvertedIndex()
 {
 }
 
-void BEInvertedIndex::save(std::ostream& ostr) const
+void BoolExpInvertedIndex::save(std::ostream& ostr) const
 {
     buffer_.save(ostr);
     pool_.save(ostr);
@@ -29,7 +29,7 @@ void BEInvertedIndex::save(std::ostream& ostr) const
     pointers_.save(ostr);
 }
 
-void BEInvertedIndex::load(std::istream& istr)
+void BoolExpInvertedIndex::load(std::istream& istr)
 {
     buffer_.load(istr);
     pool_.load(istr);
@@ -37,12 +37,12 @@ void BEInvertedIndex::load(std::istream& istr)
     pointers_.load(istr);
 }
 
-bool BEInvertedIndex::hasValidPostingsList(uint32_t termid) const
+bool BoolExpInvertedIndex::hasValidPostingsList(uint32_t termid) const
 {
     return pointers_.getHeadPointer(termid) != UNDEFINED_POINTER;
 }
 
-void BEInvertedIndex::insertConjunction(
+void BoolExpInvertedIndex::insertConjunction(
         uint32_t conj_id,
         const std::vector<std::string>& term_list,
         const std::vector<uint32_t>& score_list)
@@ -115,7 +115,7 @@ void BEInvertedIndex::insertConjunction(
     }
 }
 
-void BEInvertedIndex::flush()
+void BoolExpInvertedIndex::flush()
 {
     uint32_t term = UNDEFINED_OFFSET;
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != UNDEFINED_OFFSET)
@@ -168,12 +168,12 @@ void BEInvertedIndex::flush()
     }
 }
 
-uint32_t BEInvertedIndex::totalDocNum() const
+uint32_t BoolExpInvertedIndex::totalDocNum() const
 {
     return pointers_.getTotalDocs();
 }
 
-void BEInvertedIndex::retrieval(
+void BoolExpInvertedIndex::retrieval(
         Algorithm algorithm,
         const std::vector<std::string>& term_list,
         uint32_t hits,

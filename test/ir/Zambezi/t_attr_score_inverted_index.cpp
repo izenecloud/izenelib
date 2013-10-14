@@ -1,4 +1,4 @@
-#include "newInvertedIndexTestFixture.h"
+#include "AttrScoreInvertedIndexTestFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <util/ClockTimer.h>
 NS_IZENELIB_IR_BEGIN

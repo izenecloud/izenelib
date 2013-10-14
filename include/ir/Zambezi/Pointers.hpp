@@ -106,14 +106,7 @@ public:
         return headPointers_.nextIndex(currentTermId);
     }
 
-private:
-    void updateDefaultValues_();
-
-private:
-    friend class InvertedIndex;
-    friend class NewInvertedIndex;
-    friend class BEInvertedIndex;
-
+public:
     uint32_t totalDocs_;
     size_t totalDocLen_;
 
@@ -128,6 +121,9 @@ private:
     uint32_t defaultDf_;
     float defaultIdf_;
     size_t defaultCf_;
+
+private:
+    void updateDefaultValues_();
 };
 
 }

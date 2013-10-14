@@ -1,11 +1,11 @@
-#include <ir/Zambezi/buffer/NewBufferMaps.hpp>
+#include <ir/Zambezi/buffer/AttrScoreBufferMaps.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
 {
 
-NewBufferMaps::NewBufferMaps(uint32_t initialSize)
+AttrScoreBufferMaps::AttrScoreBufferMaps(uint32_t initialSize)
     : capacity_(initialSize)
     , docid_(initialSize)
     , score_(initialSize)
@@ -13,11 +13,11 @@ NewBufferMaps::NewBufferMaps(uint32_t initialSize)
 {
 }
 
-NewBufferMaps::~NewBufferMaps()
+AttrScoreBufferMaps::~AttrScoreBufferMaps()
 {
 }
 
-void NewBufferMaps::save(std::ostream& ostr) const
+void AttrScoreBufferMaps::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&capacity_, sizeof(capacity_));
 
@@ -36,7 +36,7 @@ void NewBufferMaps::save(std::ostream& ostr) const
     ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
-void NewBufferMaps::load(std::istream& istr)
+void AttrScoreBufferMaps::load(std::istream& istr)
 {
     istr.read((char*)&capacity_, sizeof(capacity_));
     docid_.resize(capacity_);
@@ -62,7 +62,7 @@ void NewBufferMaps::load(std::istream& istr)
     istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
-void NewBufferMaps::expand(uint32_t newSize)
+void AttrScoreBufferMaps::expand(uint32_t newSize)
 {
     if (newSize <= capacity_) return;
 
@@ -83,12 +83,12 @@ void NewBufferMaps::expand(uint32_t newSize)
     tailPointer_.resize(capacity_, UNDEFINED_POINTER);
 }
 
-bool NewBufferMaps::containsKey(uint32_t k) const
+bool AttrScoreBufferMaps::containsKey(uint32_t k) const
 {
     return !docid_[k].empty();
 }
 
-uint32_t NewBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
+uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do
     {

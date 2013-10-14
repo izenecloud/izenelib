@@ -15,7 +15,9 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#include <ir/Zambezi/NewInvertedIndex.hpp>
+#include <ir/Zambezi/AttrScoreInvertedIndex.hpp>
+
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -35,7 +37,7 @@ namespace Zambezi
 
         void initIndex(bool isReverse)
         {
-            index_ = new NewInvertedIndex(1 << 28, 4, isReverse);
+            index_ = new AttrScoreInvertedIndex(1 << 28, 4, isReverse);
         }
 
         ~newInvertedIndexTestFixture()
@@ -259,7 +261,7 @@ namespace Zambezi
         }
 
     private:
-        NewInvertedIndex* index_;
+        AttrScoreInvertedIndex* index_;
         std::string indexPath_;
         std::vector<std::string> wordlist_;
     };

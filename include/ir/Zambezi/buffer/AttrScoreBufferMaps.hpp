@@ -1,5 +1,5 @@
-#ifndef IZENELIB_IR_ZAMBEZI_BUFFER_NEW_BUFFER_MAPS_HPP
-#define IZENELIB_IR_ZAMBEZI_BUFFER_NEW_BUFFER_MAPS_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_BUFFER_ATTR_SCORE_BUFFER_MAPS_HPP
+#define IZENELIB_IR_ZAMBEZI_BUFFER_ATTR_SCORE_BUFFER_MAPS_HPP
 
 #include "../Consts.hpp"
 
@@ -12,7 +12,7 @@ namespace Zambezi
 {
 
 // Buffer maps
-class NewBufferMaps
+class AttrScoreBufferMaps
 {
 public:
     /**
@@ -20,8 +20,8 @@ public:
      *
      * @param initialSize Initial capacity of buffer maps
      */
-    NewBufferMaps(uint32_t initialSize);
-    ~NewBufferMaps();
+    AttrScoreBufferMaps(uint32_t initialSize);
+    ~AttrScoreBufferMaps();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
@@ -75,7 +75,7 @@ public:
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
 private:
-    friend class NewInvertedIndex;
+    friend class AttrScoreInvertedIndex;
 
     // Current capacity (number of vocabulary terms)
     uint32_t capacity_;
