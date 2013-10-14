@@ -3,6 +3,7 @@
 
 #include "Consts.hpp"
 
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
 
