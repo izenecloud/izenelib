@@ -96,8 +96,9 @@ size_t AttrScoreSegmentPool::compressAndAppend(
     codec.encodeArray(score_list, BLOCK_SIZE, &sblock[0], scsize);
 
     uint32_t reqspace = csize + scsize + 7;
-    if (reqspace >= maxPoolSize_ - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
         ++segment_;
         offset_ = 0;
     }

@@ -44,10 +44,14 @@ void Pointers::save(std::ostream& ostr) const
     size = docLen_.size();
     ostr.write((const char*)&size, sizeof(uint32_t));
 
-    while ((term = docLen_.nextIndex(term)) != (uint32_t)-1)
+    if (size)
     {
-        ostr.write((const char*)&term, sizeof(uint32_t));
-        ostr.write((const char*)&docLen_.get(term), sizeof(uint32_t));
+        term = -1;
+        while ((term = docLen_.nextIndex(term)) != (uint32_t)-1)
+        {
+            ostr.write((const char*)&term, sizeof(uint32_t));
+            ostr.write((const char*)&docLen_.get(term), sizeof(uint32_t));
+        }
     }
 
     ostr.write((const char*)&totalDocs_, sizeof(uint32_t));
