@@ -84,6 +84,12 @@ size_t BoolExpSegmentPool::compressAndAppend(
         std::reverse(score_list, score_list + len);
     }
 
+    if (len < BLOCK_SIZE)
+    {
+        memset(&docid_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&score_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+    }
+
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
     std::vector<uint32_t> sblock(BLOCK_SIZE * 2);
     size_t csize = BLOCK_SIZE * 2;
@@ -94,6 +100,7 @@ size_t BoolExpSegmentPool::compressAndAppend(
     uint32_t reqspace = csize + scsize + 7;
     if (reqspace >= maxPoolSize_ - offset_)
     {
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
         ++segment_;
         offset_ = 0;
     }

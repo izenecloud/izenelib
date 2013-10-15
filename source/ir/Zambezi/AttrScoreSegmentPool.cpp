@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cstring>
 
+#include <glog/logging.h>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -47,6 +49,7 @@ void AttrScoreSegmentPool::load(std::istream& istr)
     istr.read((char*)&segment_, sizeof(segment_));
     istr.read((char*)&offset_, sizeof(offset_));
     istr.read((char*)&reverse_, sizeof(reverse_));
+    LOG(INFO) << "Loading segment pool: segment " << segment_ << " offset " << offset_;
 
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
@@ -84,8 +87,8 @@ size_t AttrScoreSegmentPool::compressAndAppend(
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docid_list[len], 0, BLOCK_SIZE - len);
-        memset(&score_list[len], 0, BLOCK_SIZE - len);
+        memset(&docid_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&score_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);

@@ -18,8 +18,15 @@
  *
  *
  * Designed by D. Lemire. This scheme is NOT patented.
+ *
+ * Reference and documentation:
+ *
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * Software: Practice & Experience
+ * http://arxiv.org/abs/1209.2137
+ * http://onlinelibrary.wiley.com/doi/10.1002/spe.2203/abstract
+ *
  */
-
 class FastPFor: public IntegerCODEC
 {
 public:
@@ -106,7 +113,7 @@ public:
         //const uint32_t * const initout(out);
         const uint32_t * const finalin(in + length);
 
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         const size_t oldnvalue = nvalue;
         nvalue = 1;
         while (in != finalin)
@@ -143,8 +150,8 @@ public:
         maxb = bestb;
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
-        bestcexcept = cexcept;
-        for (uint32_t b = bestb - 1; b < 32; --b)
+        bestcexcept = static_cast<uint8_t>(cexcept);
+        for (uint32_t b = bestb - 1; b < 32; --b) 
         {
             cexcept += freqs[b + 1];
             uint32_t thiscost = cexcept * overheadofeachexcept + cexcept
@@ -152,8 +159,8 @@ public:
             if (thiscost < bestcost)
             {
                 bestcost = thiscost;
-                bestb = b;
-                bestcexcept = cexcept;
+                bestb = static_cast<uint8_t>(b);
+                bestcexcept = static_cast<uint8_t>(cexcept);
             }
         }
     }
@@ -186,14 +193,14 @@ public:
                     {
                         // we have an exception
                         thisexceptioncontainer.push_back(in[k] >> bestb);
-                        *bc++ = k;
+                        *bc++ = static_cast<uint8_t>(k);
                     }
                 }
             }
             out = packblockup<BlockSize>(in, out, bestb);
         }
         headerout[0] = static_cast<uint32_t> (out - headerout);
-        const uint32_t bytescontainersize = bc - &bytescontainer[0];
+        const uint32_t bytescontainersize = static_cast<uint32_t>(bc - &bytescontainer[0]);
         *(out++) = bytescontainersize;
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)
@@ -272,7 +279,18 @@ public:
 
 
 
-
+/**
+ * SimplePFor
+ *
+ *
+ * Designed by D. Lemire. This scheme is NOT patented.
+ *
+ * Reference and documentation:
+ *
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * http://arxiv.org/abs/1209.2137
+ *
+ */
 template <class EXCEPTIONCODER=Simple8b<true> >
 class SimplePFor: public IntegerCODEC
 {
@@ -343,7 +361,7 @@ public:
         const uint32_t * const initout(out);
         const uint32_t * const finalin(in + length);
 
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         const size_t oldnvalue = nvalue;
         nvalue = 1;
         while (in != finalin)
@@ -379,8 +397,8 @@ public:
         maxb = bestb;
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
-        bestcexcept = cexcept;
-        for (uint32_t b = bestb - 1; b < 32; --b)
+        bestcexcept = static_cast<uint8_t>(cexcept);
+        for (uint32_t b = bestb - 1; b < 32; --b) 
         {
             cexcept += freqs[b + 1];
             uint32_t thiscost = cexcept * overheadofeachexcept + cexcept
@@ -388,8 +406,8 @@ public:
             if (thiscost < bestcost)
             {
                 bestcost = thiscost;
-                bestb = b;
-                bestcexcept = cexcept;
+                bestb = static_cast<uint8_t>(b);
+                bestcexcept = static_cast<uint8_t>(cexcept);
             }
         }
     }
@@ -417,14 +435,14 @@ public:
                     if (in[k] >= maxval)
                     {
                         datatobepacked.push_back(in[k] >> bestb);
-                        *bc++ = k;
+                        *bc++ = static_cast<uint8_t>(k);
                     }
                 }
             }
             out = packblockup<BlockSize>(in, out, bestb);
         }
         headerout[0] = static_cast<uint32_t> (out - headerout);
-        const uint32_t bytescontainersize = bc - &bytescontainer[0];
+        const uint32_t bytescontainersize = static_cast<uint32_t>(bc - &bytescontainer[0]);
         *(out++) = bytescontainersize;
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)

@@ -3,6 +3,7 @@
 
 #include "Consts.hpp"
 
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
 
@@ -54,6 +55,7 @@ inline uint32_t* getAlignedIntArray(size_t size)
     uint32_t* block;
     if (posix_memalign((void**)&block, 0x200000LU, size * sizeof(uint32_t)))
         block = (uint32_t*)malloc(size * sizeof(uint32_t));
+    memset(block, 0, size * sizeof(uint32_t));
     return block;
 }
 
