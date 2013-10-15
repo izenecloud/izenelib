@@ -1,6 +1,8 @@
 #include <ir/Zambezi/AttrScoreInvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <glog/logging.h>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -23,18 +25,34 @@ AttrScoreInvertedIndex::~AttrScoreInvertedIndex()
 
 void AttrScoreInvertedIndex::save(std::ostream& ostr) const
 {
+    std::streamoff offset = ostr.tellp();
     buffer_.save(ostr);
+    LOG(INFO) << "Saving: buffer maps size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     pool_.save(ostr);
+    LOG(INFO) << "Saving: segment pools size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     dictionary_.save(ostr);
+    LOG(INFO) << "Saving: dictionary size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     pointers_.save(ostr);
+    LOG(INFO) << "Saving: head pointers size " << ostr.tellp() - offset;
 }
 
 void AttrScoreInvertedIndex::load(std::istream& istr)
 {
+    std::streamoff offset = istr.tellg();
     buffer_.load(istr);
+    LOG(INFO) << "Loading: buffer maps size " << istr.tellg() - offset;
+    offset = istr.tellg();
     pool_.load(istr);
+    LOG(INFO) << "Loading: segment pool size " << istr.tellg() - offset;
+    offset = istr.tellg();
     dictionary_.load(istr);
+    LOG(INFO) << "Loading: dictionary size " << istr.tellg() - offset;
+    offset = istr.tellg();
     pointers_.load(istr);
+    LOG(INFO) << "Loading: head pointers size " << istr.tellg() - offset;
 }
 
 bool AttrScoreInvertedIndex::hasValidPostingsList(uint32_t termid) const

@@ -14,7 +14,7 @@
 #include <map>
 #include <iostream>
 #include <stdlib.h>
-#include <ir/Zambezi/InvertedIndex.hpp>
+#include <ir/Zambezi/PositionalInvertedIndex.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -33,7 +33,7 @@ namespace Zambezi
 
         void initIndex(bool isReverse)
         {
-            index_ = new InvertedIndex(NON_POSITIONAL, 1 << 28, 4, isReverse);
+            index_ = new PositionalInvertedIndex(NON_POSITIONAL, 1 << 28, 4, isReverse);
         }
 
         ~InvertedIndexTestFixture()
@@ -234,7 +234,7 @@ namespace Zambezi
         }
 
     private:
-        InvertedIndex* index_;
+        PositionalInvertedIndex* index_;
         std::string indePath_;
         std::vector<std::string> wordlist_;
     };

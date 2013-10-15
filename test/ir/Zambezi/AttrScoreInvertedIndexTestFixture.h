@@ -129,9 +129,9 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 100;
+            int termNumber = 181;
             //build word;
-            srand( (unsigned int)time(0) );
+            srand(0);
             for (int i = 0; i < termNumber; ++i)
             {
                 int wordlen = rand()%5 + 2;
@@ -211,7 +211,7 @@ namespace Zambezi
                 std::vector<uint32_t> score_list;
                 score_list.resize(i->second.size(), 1);
                 index_->insertDoc(i->first, i->second, score_list);
-                if (count%1000000 == 0)
+                if (count % 100000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
                 }

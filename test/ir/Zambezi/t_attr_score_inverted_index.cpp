@@ -175,20 +175,18 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_reverse)
             indexTestFixture.search(term_list, docid_list);
             resultNumber.push_back(docid_list.size());
         }
-        std::cout << indexTestFixture.getTotalDocCount() << std::endl;
-        std::cout <<"Begin save index ..." ;
+        std::cout << "\nBegin save index ..." << std::endl;
         indexTestFixture.saveIndex();
-        std::cout <<"   Save index finished..." << std::endl;
+        std::cout << "Save index finished..." << std::endl;
     }
 
     /// load
     {
         newInvertedIndexTestFixture indexTestFixture1;
         indexTestFixture1.initBIGIndexer(0, reverse);
-        std::cout <<"begin load index ..." ;
+        std::cout << "\nBegin load index ..." << std::endl;
         indexTestFixture1.loadIndex();
-        std::cout <<"   Load index finished..." << std::endl;
-        std::cout << indexTestFixture1.getTotalDocCount() << std::endl;
+        std::cout << "Load index finished..." << std::endl;
 
         for (unsigned int i = 0; i < wordNumber; ++i)
         {
@@ -227,20 +225,18 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_forward)
             indexTestFixture.search(term_list, docid_list);
             resultNumber.push_back(docid_list.size());
         }
-        std::cout << indexTestFixture.getTotalDocCount() << std::endl;
-        std::cout <<"Begin save index ..." ;
+        std::cout << "\nBegin save index ..." << std::endl;
         indexTestFixture.saveIndex();
-        std::cout <<"   Save index finished..." << std::endl;
+        std::cout << "Save index finished..." << std::endl;
     }
 
     /// load
     {
         newInvertedIndexTestFixture indexTestFixture1;
         indexTestFixture1.initBIGIndexer(0, reverse);
-        std::cout <<"begin load index ..." ;
+        std::cout << "\nBegin load index ..." << std::endl;
         indexTestFixture1.loadIndex();
-        std::cout <<"   Load index finished..." << std::endl;
-        std::cout << indexTestFixture1.getTotalDocCount() << std::endl;
+        std::cout << "Load index finished..." << std::endl;
 
         for (unsigned int i = 0; i < wordNumber; ++i)
         {
