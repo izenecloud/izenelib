@@ -513,7 +513,10 @@ void AttrScoreSegmentPool::intersectSvS(
     }
 
     if (hits < docid_list.size())
+    {
         docid_list.resize(hits);
+        score_list.resize(hits);
+    }
 }
 
 void AttrScoreSegmentPool::intersectSvS(
@@ -561,7 +564,10 @@ void AttrScoreSegmentPool::intersectSvS(
     }
 
     if (hits < docid_list.size())
+    {
         docid_list.resize(hits);
+        score_list.resize(hits);
+    }
 }
 
 }
