@@ -13,6 +13,7 @@ BoolExpInvertedIndex::BoolExpInvertedIndex(
         bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
     , pool_(maxPoolSize, numberOfPools, reverse)
+    , dictionary_(DEFAULT_VOCAB_SIZE)
     , pointers_(DEFAULT_VOCAB_SIZE)
 {
 }
