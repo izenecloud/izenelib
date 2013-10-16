@@ -30,6 +30,15 @@ public:
         return std::make_pair(attrResult, valueResult);
     }
 
+    std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > has(const std::string & attr, const std::string & value)
+    {
+        std::pair<uint32_t, bool> hasAttr = attrMapper.has(attr);
+        if (hasAttr.second == false) {
+            return std::make_pair(hasAttr, std::make_pair(0U, false));
+        }
+        return std::make_pair(hasAttr, valueMapper[hasAttr.first].has(value));
+    }
+
     void toJson(Json::Value & root)
     {
         attrMapper.toJson(root["attrMapper"]);

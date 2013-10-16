@@ -34,6 +34,18 @@ public:
         }
     }
 
+    std::pair<uint32_t, bool> has(const std::string & attr)
+    {
+        typedef boost::unordered_map<std::string, uint32_t> dictT;
+
+        dictT::iterator i = dict.find(attr);
+        if (i != dict.end()) {
+            return std::make_pair(i->second, true);
+        } else {
+            return std::make_pair(0U, false);
+        }
+    }
+
     void toJson(Json::Value & root)
     {
         dictToJson(root["dict"]);
