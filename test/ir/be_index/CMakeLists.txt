@@ -11,6 +11,7 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 SET(libs
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
+  json
 )
 
 IF(Boost_FOUND)

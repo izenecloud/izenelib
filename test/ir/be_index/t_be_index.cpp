@@ -1,7 +1,8 @@
+// #include <ir/be_index/AdPredictor.hpp>
 #include <ir/be_index/InvIndex.hpp>
 #include <ir/be_index/DNF.hpp>
-#include <ir/be_index/IDMapper.hpp>
-#include <ir/be_index/AVMapper.hpp>
+// #include <ir/be_index/IDMapper.hpp>
+// #include <ir/be_index/AVMapper.hpp>
 
 #include <boost/test/unit_test.hpp>
 #include <util/ClockTimer.h>
@@ -77,6 +78,15 @@ BOOST_AUTO_TEST_CASE(do_search_reverse)
     std::cout << std::endl;
 
     std::cout << a.totalNumDNF() << std::endl;
+
+    a.save(std::cout);
+    // AdPredictor a(0.0, 400.0, 450.0);
+    // a.update(assignment, true);
+    // std::cout << a.predict(assignment) << std::endl;
+
+    // Json::Value root;
+    // a.toJson(root);
+    // a.save(std::cout);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
