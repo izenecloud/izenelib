@@ -2,9 +2,11 @@
 #define IZENELIB_IR_ZAMBEZI_DICTIONARY_HPP
 
 #include "Consts.hpp"
-#include <types.h>
+#include <util/izene_serialization.h>
+
 #include <boost/unordered_map.hpp>
 #include <iostream>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -16,7 +18,7 @@ class Dictionary
 {
 public:
     /* Create hash table, initialise ptrs to NULL */
-    Dictionary(size_t vocab_size = DEFAULT_VOCAB_SIZE)
+    Dictionary(size_t vocab_size)
         : dict_(vocab_size)
     {
     }
@@ -50,9 +52,13 @@ public:
         for (typename std::vector<std::pair<WordType, uint32_t> >::const_iterator it = seq.begin();
                 it != seq.end(); ++it)
         {
-            uint32_t len = it->first.size();
-            ostr.write((const char*)&len, sizeof(uint32_t));
-            ostr.write((const char*)&it->first[0], len);
+            char* buf;
+            size_t len = 0;
+            izenelib::util::izene_serialization<WordType> izsKey(it->first);
+            izsKey.write_image(buf, len);
+            uint32_t slen = len;
+            ostr.write((const char*)(&slen), sizeof(slen));
+            ostr.write(buf, len);
             ostr.write((const char*)&it->second, sizeof(uint32_t));
         }
     }
@@ -63,10 +69,14 @@ public:
         istr.read((char*)&vocabSize, sizeof(uint32_t));
         for (uint32_t i = 0; i < vocabSize; ++i)
         {
-            uint32_t len = 0;
-            istr.read((char*)&len, sizeof(uint32_t));
-            std::string word(len, '\0');
-            istr.read((char*)&word[0], len);
+            uint32_t slen = 0;
+            istr.read((char*)(&slen), sizeof(slen));
+            size_t len = slen;
+            char buf[len];
+            istr.read(buf, len);
+            izenelib::util::izene_deserialization<WordType> izsKey(buf, len);
+            WordType word;
+            izsKey.read_image(word);
             istr.read((char*)&dict_[word], sizeof(uint32_t));
         }
     }

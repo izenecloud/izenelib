@@ -134,7 +134,7 @@ size_t PositionalSegmentPool::compressAndAddNonPositional(
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docid_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&docid_list[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
@@ -142,8 +142,9 @@ size_t PositionalSegmentPool::compressAndAddNonPositional(
     codec.encodeArray(docid_list, BLOCK_SIZE, &block[0], csize);
 
     uint32_t reqspace = csize + filterSize + 8;
-    if (reqspace >= maxPoolSize_ - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
         ++segment_;
         offset_ = 0;
     }
@@ -222,8 +223,8 @@ size_t PositionalSegmentPool::compressAndAddTfOnly(
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docid_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
-        memset(&tf_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&docid_list[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
+        memset(&tf_list[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
     }
 
     std::vector<uint32_t> block(BLOCK_SIZE * 2);
@@ -234,8 +235,9 @@ size_t PositionalSegmentPool::compressAndAddTfOnly(
     codec.encodeArray(tf_list, BLOCK_SIZE, &tfblock[0], tfcsize);
 
     uint32_t reqspace = csize + tfcsize + filterSize + 9;
-    if (reqspace >= maxPoolSize_ - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
         ++segment_;
         offset_ = 0;
     }
@@ -328,8 +330,8 @@ size_t PositionalSegmentPool::compressAndAddPositional(
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docid_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
-        memset(&tf_list[len], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&docid_list[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
+        memset(&tf_list[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
     }
 
     uint32_t pblocksize = 3 * (plen / BLOCK_SIZE + 1) * BLOCK_SIZE;
@@ -355,7 +357,7 @@ size_t PositionalSegmentPool::compressAndAddPositional(
 
     if (res > 0)
     {
-        memset(&position_list[plen], 0, (BLOCK_SIZE - len)*sizeof(uint32_t));
+        memset(&position_list[plen], 0, (BLOCK_SIZE - res) * sizeof(uint32_t));
         size_t tempPcsize = BLOCK_SIZE * 2;
         codec.encodeArray(&position_list[nb * BLOCK_SIZE], BLOCK_SIZE, &pblock[pcsize + 1], tempPcsize);
         pblock[pcsize] = tempPcsize;
@@ -363,8 +365,9 @@ size_t PositionalSegmentPool::compressAndAddPositional(
     }
 
     uint32_t reqspace = csize + tfcsize + pcsize + filterSize + 11;
-    if (reqspace >= maxPoolSize_ - offset_)
+    if (reqspace > maxPoolSize_ - offset_)
     {
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
         ++segment_;
         offset_ = 0;
     }

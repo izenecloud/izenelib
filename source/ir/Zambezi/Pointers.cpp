@@ -9,15 +9,15 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-Pointers::Pointers(uint32_t size)
+Pointers::Pointers(uint32_t termNum, uint32_t docNum)
     : totalDocs_(0)
     , totalDocLen_(0)
-    , df_(size, 0)
-    , cf_(size, 0)
-    , headPointers_(size, UNDEFINED_POINTER)
-    , docLen_(size, 0)
-    , maxTf_(size, 0)
-    , maxTfDocLen_(size, 0)
+    , df_(termNum, 0)
+    , cf_(termNum, 0)
+    , headPointers_(termNum, UNDEFINED_POINTER)
+    , docLen_(docNum, 0)
+    , maxTf_(termNum, 0)
+    , maxTfDocLen_(termNum, 0)
 {
     updateDefaultValues_();
 }

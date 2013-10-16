@@ -15,7 +15,8 @@ AttrScoreInvertedIndex::AttrScoreInvertedIndex(
         bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
     , pool_(maxPoolSize, numberOfPools, reverse)
-    , pointers_(DEFAULT_VOCAB_SIZE)
+    , dictionary_(DEFAULT_VOCAB_SIZE)
+    , pointers_(DEFAULT_VOCAB_SIZE, 0)
 {
 }
 
@@ -65,8 +66,6 @@ void AttrScoreInvertedIndex::insertDoc(
         const std::vector<std::string>& term_list,
         const std::vector<uint32_t>& score_list)
 {
-    pointers_.setDocLen(docid, term_list.size());
-
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);

@@ -30,7 +30,8 @@ PositionalInvertedIndex::PositionalInvertedIndex(
     : type_(type)
     , buffer_(DEFAULT_VOCAB_SIZE, type)
     , pool_(maxPoolSize, numberOfPools, reverse, bloomEnabled, nbHash, bitsPerElement)
-    , pointers_(DEFAULT_VOCAB_SIZE)
+    , dictionary_(DEFAULT_VOCAB_SIZE)
+    , pointers_(DEFAULT_VOCAB_SIZE, DEFAULT_COLLECTION_SIZE)
 {
 }
 

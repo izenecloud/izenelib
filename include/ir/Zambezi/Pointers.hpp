@@ -12,7 +12,7 @@ namespace Zambezi
 class Pointers
 {
 public:
-    Pointers(uint32_t size);
+    Pointers(uint32_t termNum, uint32_t docNum = 0);
     ~Pointers();
 
     void save(std::ostream& ostr) const;
