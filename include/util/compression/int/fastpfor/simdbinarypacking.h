@@ -1,5 +1,5 @@
 /**
- * This is code is released under the
+ * This code is released under the
  * Apache License Version 2.0 http://www.apache.org/licenses/.
  *
  * (c) Daniel Lemire, http://lemire.me/en/
@@ -9,7 +9,7 @@
 #define SIMDBINARYPACKING_H_
 
 #include "codecs.h"
-#include "bitpacksimd.h"
+#include "simdbitpacking.h"
 #include "util.h"
 
 
@@ -21,6 +21,11 @@
  * To preserve alignment, we use regroup
  * 8 such miniblocks into a block of 8 * 128 = 1024
  * integers.
+ *
+ * Reference and documentation:
+ *
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * http://arxiv.org/abs/1209.2137
  */
 class SIMDBinaryPacking: public IntegerCODEC
 {
@@ -40,7 +45,7 @@ public:
     {
         checkifdivisibleby(length, BlockSize);
         const uint32_t * const initout(out);
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         while(needPaddingTo128Bits(out)) *out++ = CookiePadder;
         uint32_t Bs[HowManyMiniBlocks];
         for (const uint32_t * const final = in + length; in + BlockSize
@@ -124,7 +129,7 @@ public:
     {
         checkifdivisibleby(length, BlockSize);
         const uint32_t * const initout(out);
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         uint32_t Bs = maxbits(in,in + length);
         *out++ = Bs;
         while(needPaddingTo128Bits(out)) *out++ = CookiePadder;

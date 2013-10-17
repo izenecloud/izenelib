@@ -60,15 +60,6 @@ public:
         }
     }
 
-    // sometimes, mem. usage can grow too much, this clears it up
-    void describeBuffer()
-    {
-        for (size_t i = 0; i < datatobepacked.size(); ++i)
-        {
-            cout << "i = " << i << " " << datatobepacked[i].capacity() * 1.0
-                 / PageSize << endl;
-        }
-    }
     const uint32_t PageSize;
     const uint32_t bitsPageSize;
 
@@ -151,7 +142,7 @@ public:
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
         bestcexcept = static_cast<uint8_t>(cexcept);
-        for (uint32_t b = bestb - 1; b < 32; --b) 
+        for (uint32_t b = bestb - 1; b < 32; --b)
         {
             cexcept += freqs[b + 1];
             uint32_t thiscost = cexcept * overheadofeachexcept + cexcept
@@ -215,7 +206,7 @@ public:
         for (uint32_t k = 1; k <= 32; ++k)
         {
             if (datatobepacked[k].size() > 0)
-                out = packmeupwithoutmask(datatobepacked[k], out, k);
+                out = packingvector<32>::packmeupwithoutmask(datatobepacked[k], out, k);
         }
         nvalue = out - initout;
     }
@@ -235,7 +226,7 @@ public:
         {
             if ((bitmap & (1U << (k - 1))) != 0)
             {
-                inexcept = unpackme(inexcept, datatobepacked[k], k);
+                inexcept = packingvector<32>::unpackme(inexcept, datatobepacked[k], k);
             }
         }
         length = inexcept - initin;
@@ -398,7 +389,7 @@ public:
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
         bestcexcept = static_cast<uint8_t>(cexcept);
-        for (uint32_t b = bestb - 1; b < 32; --b) 
+        for (uint32_t b = bestb - 1; b < 32; --b)
         {
             cexcept += freqs[b + 1];
             uint32_t thiscost = cexcept * overheadofeachexcept + cexcept
@@ -447,9 +438,9 @@ public:
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)
                / sizeof(uint32_t);
-        size_t outcap = 10000;
-        ecoder.encodeArray(&datatobepacked[0],datatobepacked.size(),out,outcap);
-        out+=outcap;
+        size_t outcap = 0;
+        ecoder.encodeArray(datatobepacked.data(),datatobepacked.size(),out,outcap);
+        out += outcap;
         nvalue = out - initout;
     }
 
@@ -463,7 +454,8 @@ public:
         const uint32_t bytesize = *inexcept++;
         const uint8_t * bytep = reinterpret_cast<const uint8_t *> (inexcept);
         inexcept += (bytesize + sizeof(uint32_t) - 1) / sizeof(uint32_t);
-        size_t cap = datatobepacked.capacity();// theoretically unsafe
+        datatobepacked.resize(datatobepacked.capacity());
+        size_t cap = datatobepacked.size();
         size_t le = initin+length - inexcept;
         inexcept = ecoder.decodeArray(inexcept, le,&datatobepacked[0],cap );
 

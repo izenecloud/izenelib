@@ -154,16 +154,24 @@ static bool  needPaddingTo64bytes(const T * inbyte)
     return reinterpret_cast<uintptr_t> (inbyte) & 63;
 }
 
-
-
-static __attribute__ ((const))
-uint32_t gccbits(const uint32_t v)
+__attribute__ ((const))
+inline uint32_t gccbits(const uint32_t v)
 {
-    return 32 - __builtin_clz(v);
+#ifdef _MSC_VER
+    if (v == 0)
+    {
+        return 0;
+    }
+    unsigned long answer;
+    _BitScanReverse(&answer, v);
+    return answer + 1;
+#else
+    return v == 0 ? 0 : 32 - __builtin_clz(v);
+#endif
 }
 
-static __attribute__ ((const))
-bool divisibleby(size_t a, uint32_t x)
+__attribute__ ((const))
+inline bool divisibleby(size_t a, uint32_t x)
 {
     return (a % x == 0);
 }
@@ -310,7 +318,7 @@ int greedy_bit_size_lookahead( const iterator &begin,
 // assume the previous bit size is close to the required bit size
 template<int b, class t, class iterator>
 static int greedy_bit_size_lookahead( const iterator &begin,
-                               const iterator &end, uint32_t previous_size)
+                                      const iterator &end, uint32_t previous_size)
 {
 
     uint32_t  span_length = end-begin;
