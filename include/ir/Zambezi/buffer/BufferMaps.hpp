@@ -1,5 +1,5 @@
-#ifndef IZENELIB_IR_ZAMBEZI_BUFFER_ATTR_SCORE_BUFFER_MAPS_HPP
-#define IZENELIB_IR_ZAMBEZI_BUFFER_ATTR_SCORE_BUFFER_MAPS_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_BUFFER_BUFFER_MAPS_HPP
+#define IZENELIB_IR_ZAMBEZI_BUFFER_BUFFER_MAPS_HPP
 
 #include "../Consts.hpp"
 
@@ -12,16 +12,18 @@ namespace Zambezi
 {
 
 // Buffer maps
-class AttrScoreBufferMaps
+class BufferMaps
 {
 public:
     /**
      * Creates buffer maps.
      *
      * @param initialSize Initial capacity of buffer maps
+     * @param type Type of index (non-positional, docids and tf,
+     *        or positional)
      */
-    AttrScoreBufferMaps(uint32_t initialSize);
-    ~AttrScoreBufferMaps();
+    BufferMaps(uint32_t initialSize, IndexType type);
+    ~BufferMaps();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
@@ -52,15 +54,42 @@ public:
         return docid_[k];
     }
 
-    inline std::vector<uint32_t>& getScoreList(uint32_t k)
+    inline std::vector<uint32_t>& getTfList(uint32_t k)
     {
-        expand(k + 1);
-        return score_[k];
+        if (type_ != NON_POSITIONAL)
+        {
+            expand(k + 1);
+            return tf_[k];
+        }
+        return emptyList_;
     }
 
-    inline const std::vector<uint32_t>& getScoreList(uint32_t k) const
+    inline const std::vector<uint32_t>& getTfList(uint32_t k) const
     {
-        return score_[k];
+        if (type_ != NON_POSITIONAL)
+        {
+            return tf_[k];
+        }
+        return emptyList_;
+    }
+
+    inline std::vector<uint32_t>& getPositionList(uint32_t k)
+    {
+        if (type_ == POSITIONAL)
+        {
+            expand(k + 1);
+            return position_[k];
+        }
+        return emptyList_;
+    }
+
+    inline const std::vector<uint32_t>& getPositionList(uint32_t k) const
+    {
+        if (type_ == POSITIONAL)
+        {
+            return position_[k];
+        }
+        return emptyList_;
     }
 
     /**
@@ -75,17 +104,24 @@ public:
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
 private:
-    friend class AttrScoreInvertedIndex;
+    friend class InvertedIndex;
 
+    IndexType type_;
     // Current capacity (number of vocabulary terms)
     uint32_t capacity_;
 
     // Docid buffer map
     std::vector<std::vector<uint32_t> > docid_;
-    // Doc-term score buffer map
-    std::vector<std::vector<uint32_t> > score_;
+    // Term frequency buffer map
+    std::vector<std::vector<uint32_t> > tf_;
+    // Term positions buffer map
+    std::vector<std::vector<uint32_t> > position_;
     // Table of tail pointers for vocabulary terms
     std::vector<size_t> tailPointer_;
+    // Cursor of last position block head
+    std::vector<uint32_t> posBlockHead_;
+
+    std::vector<uint32_t> emptyList_;
 };
 
 }

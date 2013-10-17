@@ -1,11 +1,11 @@
-#include <ir/Zambezi/buffer/PositionalBufferMaps.hpp>
+#include <ir/Zambezi/buffer/BufferMaps.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
 {
 
-PositionalBufferMaps::PositionalBufferMaps(uint32_t initialSize, IndexType type)
+BufferMaps::BufferMaps(uint32_t initialSize, IndexType type)
     : type_(type)
     , capacity_(initialSize)
     , docid_(initialSize)
@@ -23,11 +23,11 @@ PositionalBufferMaps::PositionalBufferMaps(uint32_t initialSize, IndexType type)
     }
 }
 
-PositionalBufferMaps::~PositionalBufferMaps()
+BufferMaps::~BufferMaps()
 {
 }
 
-void PositionalBufferMaps::save(std::ostream& ostr) const
+void BufferMaps::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&capacity_, sizeof(capacity_));
 
@@ -60,7 +60,7 @@ void PositionalBufferMaps::save(std::ostream& ostr) const
     ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
-void PositionalBufferMaps::load(std::istream& istr)
+void BufferMaps::load(std::istream& istr)
 {
     istr.read((char*)&capacity_, sizeof(capacity_));
 
@@ -113,7 +113,7 @@ void PositionalBufferMaps::load(std::istream& istr)
     istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
 }
 
-void PositionalBufferMaps::expand(uint32_t newSize)
+void BufferMaps::expand(uint32_t newSize)
 {
     if (newSize <= capacity_) return;
 
@@ -144,12 +144,12 @@ void PositionalBufferMaps::expand(uint32_t newSize)
     }
 }
 
-bool PositionalBufferMaps::containsKey(uint32_t k) const
+bool BufferMaps::containsKey(uint32_t k) const
 {
     return !docid_[k].empty();
 }
 
-uint32_t PositionalBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
+uint32_t BufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do
     {

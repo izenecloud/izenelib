@@ -12,11 +12,61 @@ namespace Zambezi
 class Pointers
 {
 public:
-    Pointers(uint32_t termNum, uint32_t docNum);
+    Pointers(uint32_t termNum, uint32_t docNum = 0);
     ~Pointers();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
+
+    inline uint32_t getTotalDocs() const
+    {
+        return totalDocs_;
+    }
+
+    inline size_t getTotalDocLen() const
+    {
+        return totalDocLen_;
+    }
+
+    inline uint32_t getDefaultDf() const
+    {
+        return defaultDf_;
+    }
+
+    inline float getDefaultIdf() const
+    {
+        return defaultIdf_;
+    }
+
+    inline size_t getDefaultCf() const
+    {
+        return defaultCf_;
+    }
+
+    inline uint32_t getDf(uint32_t term) const
+    {
+        return df_.get(term);
+    }
+
+    inline void setDf(uint32_t term, uint32_t df)
+    {
+        df_.set(term, df);
+    }
+
+    inline size_t getCf(uint32_t term) const
+    {
+        return cf_.get(term);
+    }
+
+    inline void setCf(uint32_t term, size_t cf)
+    {
+        cf_.set(term, cf);
+    }
+
+    inline uint32_t getDocLen(uint32_t docid) const
+    {
+        return docLen_.get(docid);
+    }
 
     inline void setDocLen(uint32_t docid, uint32_t docLen)
     {
@@ -25,19 +75,36 @@ public:
         ++totalDocs_;
     }
 
+    inline uint32_t getMaxTf(uint32_t term) const
+    {
+        return maxTf_.get(term);
+    }
+
+    inline uint32_t getMaxTfDocLen(uint32_t term) const
+    {
+        return maxTfDocLen_.get(term);
+    }
+
     inline void setMaxTf(uint32_t term, uint32_t tf, uint32_t dl)
     {
         maxTf_.set(term, tf);
         maxTfDocLen_.set(term, dl);
     }
 
+    inline size_t getHeadPointer(uint32_t term) const
+    {
+        return headPointers_.get(term);
+    }
+
+    inline void setHeadPointer(uint32_t term, size_t sp)
+    {
+        headPointers_.set(term, sp);
+    }
+
     inline uint32_t nextTerm(uint32_t currentTermId) const
     {
         return headPointers_.nextIndex(currentTermId);
     }
-
-private:
-    void updateDefaultValues_();
 
 public:
     uint32_t totalDocs_;
@@ -54,6 +121,9 @@ public:
     uint32_t defaultDf_;
     float defaultIdf_;
     size_t defaultCf_;
+
+private:
+    void updateDefaultValues_();
 };
 
 }
