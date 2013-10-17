@@ -22,7 +22,6 @@ public:
     {
         docLen_.set(docid, docLen);
         totalDocLen_ += docLen;
-        ++totalDocs_;
     }
 
     inline void setMaxTf(uint32_t term, uint32_t tf, uint32_t dl)

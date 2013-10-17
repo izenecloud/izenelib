@@ -122,6 +122,7 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
     }
 
     pointers_.docLen_.set(docid, term_list.size());
+    ++pointers_.totalDocs_;
 
     for (std::set<uint32_t>::const_iterator it = uniqueTerms.begin();
             it != uniqueTerms.end(); ++it)
