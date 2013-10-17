@@ -43,55 +43,6 @@ public:
      */
     bool containsKey(uint32_t k) const;
 
-    inline std::vector<uint32_t>& getDocidList(uint32_t k)
-    {
-        expand(k + 1);
-        return docid_[k];
-    }
-
-    inline const std::vector<uint32_t>& getDocidList(uint32_t k) const
-    {
-        return docid_[k];
-    }
-
-    inline std::vector<uint32_t>& getTfList(uint32_t k)
-    {
-        if (type_ != NON_POSITIONAL)
-        {
-            expand(k + 1);
-            return tf_[k];
-        }
-        return emptyList_;
-    }
-
-    inline const std::vector<uint32_t>& getTfList(uint32_t k) const
-    {
-        if (type_ != NON_POSITIONAL)
-        {
-            return tf_[k];
-        }
-        return emptyList_;
-    }
-
-    inline std::vector<uint32_t>& getPositionList(uint32_t k)
-    {
-        if (type_ == POSITIONAL)
-        {
-            expand(k + 1);
-            return position_[k];
-        }
-        return emptyList_;
-    }
-
-    inline const std::vector<uint32_t>& getPositionList(uint32_t k) const
-    {
-        if (type_ == POSITIONAL)
-        {
-            return position_[k];
-        }
-        return emptyList_;
-    }
-
     /**
      * An iterator that goes through the vocabulary terms,
      * and return the index of the next buffer whose length is more
@@ -103,9 +54,7 @@ public:
      */
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
-private:
-    friend class PositionalInvertedIndex;
-
+public:
     IndexType type_;
     // Current capacity (number of vocabulary terms)
     uint32_t capacity_;

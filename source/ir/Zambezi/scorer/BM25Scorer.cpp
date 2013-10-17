@@ -40,10 +40,10 @@ float BM25Scorer::computeTermScore(
 {
     return details::bm25(
             tf,
-            pointers.getDf(query),
-            pointers.getTotalDocs(),
-            pointers.getDocLen(docid),
-            pointers.getTotalDocLen() / (float) pointers.getTotalDocs(),
+            pointers.df_.get(query),
+            pointers.totalDocs_,
+            pointers.docLen_.get(docid),
+            pointers.totalDocLen_ / (float) pointers.totalDocs_,
             K1_, B_);
 }
 
@@ -52,9 +52,9 @@ float BM25Scorer::computePhraseScore(
 {
     return details::bm25Phrase(
             tf,
-            pointers.getDocLen(docid),
-            pointers.getTotalDocLen() / (float) pointers.getTotalDocs(),
-            pointers.getDefaultIdf(),
+            pointers.docLen_.get(docid),
+            pointers.totalDocLen_ / (float) pointers.totalDocs_,
+            pointers.defaultIdf_,
             K1_, B_);
 }
 

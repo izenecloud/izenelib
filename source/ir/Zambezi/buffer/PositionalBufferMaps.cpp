@@ -9,18 +9,11 @@ PositionalBufferMaps::PositionalBufferMaps(uint32_t initialSize, IndexType type)
     : type_(type)
     , capacity_(initialSize)
     , docid_(initialSize)
+    , tf_(initialSize)
+    , position_(initialSize)
     , tailPointer_(initialSize, UNDEFINED_POINTER)
+    , posBlockHead_(initialSize)
 {
-    if (type != NON_POSITIONAL)
-    {
-        tf_.resize(initialSize);
-    }
-
-    if (type == POSITIONAL)
-    {
-        position_.resize(initialSize);
-        posBlockHead_.resize(initialSize);
-    }
 }
 
 PositionalBufferMaps::~PositionalBufferMaps()
