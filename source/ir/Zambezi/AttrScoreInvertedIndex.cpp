@@ -128,6 +128,7 @@ void AttrScoreInvertedIndex::insertDoc(
             }
         }
     }
+    ++pointers_.totalDocs_;
 }
 
 void AttrScoreInvertedIndex::flush()

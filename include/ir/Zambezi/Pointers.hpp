@@ -72,7 +72,6 @@ public:
     {
         docLen_.set(docid, docLen);
         totalDocLen_ += docLen;
-        ++totalDocs_;
     }
 
     inline uint32_t getMaxTf(uint32_t term) const
