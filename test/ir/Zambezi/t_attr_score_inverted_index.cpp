@@ -1,6 +1,8 @@
 #include "AttrScoreInvertedIndexTestFixture.h"
 #include <boost/test/unit_test.hpp>
 #include <util/ClockTimer.h>
+
+
 NS_IZENELIB_IR_BEGIN
 using namespace Zambezi;
 
@@ -10,7 +12,7 @@ BOOST_AUTO_TEST_CASE(do_search_reverse)
 {
     std::cout <<"test case 1: [do_search_reverse] ..." << std::endl;
     uint32_t DocNum = 300000;
-    newInvertedIndexTestFixture indexTestFixture;
+    AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -58,7 +60,7 @@ BOOST_AUTO_TEST_CASE(do_search_forward)
 {
     std::cout << std::endl <<"test case 2: [do_search_forward] ..." << std::endl;
     uint32_t DocNum = 300000;
-    newInvertedIndexTestFixture indexTestFixture;
+    AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
     indexTestFixture.initIndexer(DocNum, reverse);
 
@@ -106,7 +108,7 @@ BOOST_AUTO_TEST_CASE(do_search_new_forward)
 {
     std::cout << std::endl <<"test case 3: [do_search_new_forward] ..." << std::endl;
     uint32_t DocNum = 10000000;
-    newInvertedIndexTestFixture indexTestFixture;
+    AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
     indexTestFixture.initBIGIndexer(DocNum, reverse);
 
@@ -130,7 +132,7 @@ BOOST_AUTO_TEST_CASE(do_search_new_reverse)
 {
     std::cout << std::endl <<"test case 4: [do_search_new_reverse] ..." << std::endl;
     uint32_t DocNum = 10000000;
-    newInvertedIndexTestFixture indexTestFixture;
+    AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
     indexTestFixture.initBIGIndexer(DocNum, reverse);
 
@@ -161,7 +163,7 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_reverse)
     bool reverse = true;
     ///save
     {
-        newInvertedIndexTestFixture indexTestFixture;
+        AttrScoreInvertedIndexTestFixture indexTestFixture;
         indexTestFixture.initBIGIndexer(DocNum, reverse);
         wordlist = indexTestFixture.getWordList();
 
@@ -176,16 +178,16 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_reverse)
             resultNumber.push_back(docid_list.size());
         }
         std::cout << "\nBegin save index ..." << std::endl;
-        indexTestFixture.saveIndex();
+        indexTestFixture.saveIndex("zambezi.reverse");
         std::cout << "Save index finished..." << std::endl;
     }
 
     /// load
     {
-        newInvertedIndexTestFixture indexTestFixture1;
+        AttrScoreInvertedIndexTestFixture indexTestFixture1;
         indexTestFixture1.initBIGIndexer(0, reverse);
         std::cout << "\nBegin load index ..." << std::endl;
-        indexTestFixture1.loadIndex();
+        indexTestFixture1.loadIndex("zambezi.reverse");
         std::cout << "Load index finished..." << std::endl;
 
         for (unsigned int i = 0; i < wordNumber; ++i)
@@ -211,7 +213,7 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_forward)
     bool reverse = false;
     ///save
     {
-        newInvertedIndexTestFixture indexTestFixture;
+        AttrScoreInvertedIndexTestFixture indexTestFixture;
         indexTestFixture.initBIGIndexer(DocNum, reverse);
         wordlist = indexTestFixture.getWordList();
 
@@ -226,16 +228,16 @@ BOOST_AUTO_TEST_CASE(do_index_save_load_forward)
             resultNumber.push_back(docid_list.size());
         }
         std::cout << "\nBegin save index ..." << std::endl;
-        indexTestFixture.saveIndex();
+        indexTestFixture.saveIndex("zambezi.forward");
         std::cout << "Save index finished..." << std::endl;
     }
 
     /// load
     {
-        newInvertedIndexTestFixture indexTestFixture1;
+        AttrScoreInvertedIndexTestFixture indexTestFixture1;
         indexTestFixture1.initBIGIndexer(0, reverse);
         std::cout << "\nBegin load index ..." << std::endl;
-        indexTestFixture1.loadIndex();
+        indexTestFixture1.loadIndex("zambezi.forward");
         std::cout << "Load index finished..." << std::endl;
 
         for (unsigned int i = 0; i < wordNumber; ++i)

@@ -1,13 +1,13 @@
 /**
-* @file       newInvertedIndexTestFixture.h
+* @file       AttrScoreInvertedIndexTestFixture.h
 * @author     Hongliang
 * @version    1.0
 * @brief Fixture to test Inverted Index module.
 *
 */
 
-#ifndef NEW_INVERTED_INDEX_TEST_FIXTURE_H
-#define NEW_INVERTED_INDEX_TEST_FIXTURE_H
+#ifndef ATTR_SCORE_INVERTED_INDEX_TEST_FIXTURE_H
+#define ATTR_SCORE_INVERTED_INDEX_TEST_FIXTURE_H
 
 #include <string>
 #include <vector>
@@ -26,12 +26,11 @@ namespace Zambezi
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
     const unsigned int DefullNum = 5000000;
-    class newInvertedIndexTestFixture
+    class AttrScoreInvertedIndexTestFixture
     {
     public:
-        newInvertedIndexTestFixture()
+        AttrScoreInvertedIndexTestFixture()
             : index_(NULL)
-            , indexPath_("Inverted.index")
         {
         }
 
@@ -40,7 +39,7 @@ namespace Zambezi
             index_ = new AttrScoreInvertedIndex(1 << 28, 4, isReverse);
         }
 
-        ~newInvertedIndexTestFixture()
+        ~AttrScoreInvertedIndexTestFixture()
         {
             delete index_;
         }
@@ -129,7 +128,7 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 181;
+            int termNumber = 4096;
             //build word;
             srand(0);
             for (int i = 0; i < termNumber; ++i)
@@ -233,16 +232,16 @@ namespace Zambezi
                 score_list);
         }
 
-        void saveIndex()
+        void saveIndex(const std::string& path)
         {
             fstream fileIndex;
-            fileIndex.open(indexPath_.c_str(), ios::binary|ios::out);
+            fileIndex.open(path.c_str(), ios::binary|ios::out);
             index_->save(fileIndex);
         }
-        void loadIndex()
+        void loadIndex(const std::string& path)
         {
             fstream fileIndex;
-            fileIndex.open(indexPath_.c_str(), ios::binary|ios::in);
+            fileIndex.open(path.c_str(), ios::binary|ios::in);
 
             if (fileIndex.is_open())
             {
@@ -262,7 +261,6 @@ namespace Zambezi
 
     private:
         AttrScoreInvertedIndex* index_;
-        std::string indexPath_;
         std::vector<std::string> wordlist_;
     };
 }

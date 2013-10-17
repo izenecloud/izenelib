@@ -34,36 +34,6 @@ public:
     void expand(uint32_t newSize);
 
     /**
-     * Whether buffer maps contain a buffer for a given vocabulary term
-     *
-     * @param buffer Buffer maps
-     * @param k Term id
-     */
-    bool containsKey(uint32_t k) const;
-
-    inline std::vector<uint32_t>& getDocidList(uint32_t k)
-    {
-        expand(k + 1);
-        return docid_[k];
-    }
-
-    inline const std::vector<uint32_t>& getDocidList(uint32_t k) const
-    {
-        return docid_[k];
-    }
-
-    inline std::vector<uint32_t>& getScoreList(uint32_t k)
-    {
-        expand(k + 1);
-        return score_[k];
-    }
-
-    inline const std::vector<uint32_t>& getScoreList(uint32_t k) const
-    {
-        return score_[k];
-    }
-
-    /**
      * An iterator that goes through the vocabulary terms,
      * and return the index of the next buffer whose length is more
      * than a given threshold.
@@ -74,9 +44,7 @@ public:
      */
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
-private:
-    friend class AttrScoreInvertedIndex;
-
+public:
     // Current capacity (number of vocabulary terms)
     uint32_t capacity_;
 

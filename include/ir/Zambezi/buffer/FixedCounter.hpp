@@ -15,40 +15,10 @@ template <class T>
 class FixedCounter
 {
 public:
-    FixedCounter()
-        : defaultValue_(T())
-    {
-    }
-
     FixedCounter(uint32_t initialSize, T defaultValue = T())
         : defaultValue_(defaultValue)
         , counter_(initialSize, defaultValue)
     {
-    }
-
-    bool expand(uint32_t newSize)
-    {
-        if (newSize <= counter_.size())
-            return false;
-
-        size_t newCap = counter_.capacity();
-
-        if (newCap == 0)
-        {
-            newCap = newSize;
-        }
-        else
-        {
-            do
-            {
-                newCap *= 2;
-            }
-            while (newSize > newCap);
-        }
-
-        counter_.resize(newCap, defaultValue_);
-
-        return true;
     }
 
     uint32_t size() const
@@ -67,34 +37,43 @@ public:
 
     const T& get(uint32_t index) const
     {
-        if (index >= counter_.size())
-            return defaultValue_;
-        else
-            return counter_[index];
+        assert(index < counter_.size());
+        return counter_[index];
+    }
+
+    T& get(uint32_t index)
+    {
+        assert(index < counter_.size());
+        return counter_[index];
     }
 
     void add(uint32_t index, T c)
     {
-        expand(index + 1);
+        assert(index < counter_.size());
         counter_[index] += c;
     }
 
     void increment(uint32_t index)
     {
-        expand(index + 1);
+        assert(index < counter_.size());
         ++counter_[index];
     }
 
     void set(uint32_t index, T c)
     {
-        expand(index + 1);
+        assert(index < counter_.size());
         counter_[index] = c;
     }
 
     void reset(uint32_t index)
     {
-        if (!expand(index + 1))
-            counter_[index] = defaultValue_;
+        assert(index < counter_.size());
+        counter_[index] = defaultValue_;
+    }
+
+    const std::vector<T>& getCounter() const
+    {
+        return counter_;
     }
 
     uint32_t nextIndex(uint32_t pos) const
@@ -111,6 +90,7 @@ public:
         return pos;
     }
 
+private:
     T defaultValue_;
     std::vector<T> counter_;
 };

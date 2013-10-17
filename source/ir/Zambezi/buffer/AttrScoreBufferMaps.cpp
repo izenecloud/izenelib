@@ -83,11 +83,6 @@ void AttrScoreBufferMaps::expand(uint32_t newSize)
     tailPointer_.resize(capacity_, UNDEFINED_POINTER);
 }
 
-bool AttrScoreBufferMaps::containsKey(uint32_t k) const
-{
-    return !docid_[k].empty();
-}
-
 uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do

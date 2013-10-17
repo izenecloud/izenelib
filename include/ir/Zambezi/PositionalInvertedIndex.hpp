@@ -34,8 +34,6 @@ public:
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
 
-    bool hasValidPostingsList(uint32_t termid) const;
-
     void insertDoc(uint32_t docid, const std::vector<std::string>& term_list);
     void flush();
 
