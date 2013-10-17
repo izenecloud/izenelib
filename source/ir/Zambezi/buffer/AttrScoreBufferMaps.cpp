@@ -89,7 +89,7 @@ uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
     {
         if (++pos >= capacity_)
         {
-            return -1;
+            return UNDEFINED_OFFSET;
         }
     }
     while (docid_[pos].capacity() <= minLength);
