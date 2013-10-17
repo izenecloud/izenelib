@@ -6,6 +6,7 @@
 #include "Pointers.hpp"
 #include "buffer/AttrScoreBufferMaps.hpp"
 #include "Consts.hpp"
+#include <util/compression/int/fastpfor/fastpfor.h>
 
 #include <boost/shared_ptr.hpp>
 #include <iostream>

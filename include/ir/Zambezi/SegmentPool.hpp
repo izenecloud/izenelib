@@ -2,7 +2,6 @@
 #define IZENELIB_IR_ZAMBEZI_SEGMENT_POOL_HPP
 
 #include <types.h>
-#include <util/compression/int/fastpfor/fastpfor.h>
 
 #include <boost/shared_array.hpp>
 #include <iostream>
