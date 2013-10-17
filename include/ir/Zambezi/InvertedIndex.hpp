@@ -1,10 +1,24 @@
-#ifndef IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
-#define IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
+/**
+ * An inverted index data structure consisting of
+ * the following components:
+ *
+ *  - SegmentPool, which contains all segments.
+ *  - Dictionary, which is a mapping from term to term id
+ *  - Pointers, which contains Document Frequency, Head/Tail Pointers,
+ *    etc.
+ *  - DocumentVectors, which contains compressed document vector representation
+ *    of documents
+ *
+ * @author Nima Asadi
+ */
 
-#include "PositionalSegmentPool.hpp"
+#ifndef IZENELIB_IR_ZAMBEZI_INVERTED_INDEX_HPP
+#define IZENELIB_IR_ZAMBEZI_INVERTED_INDEX_HPP
+
+#include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
-#include "buffer/PositionalBufferMaps.hpp"
+#include "buffer/BufferMaps.hpp"
 #include "Consts.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -17,10 +31,10 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class PositionalInvertedIndex
+class InvertedIndex
 {
 public:
-    PositionalInvertedIndex(
+    InvertedIndex(
             IndexType type = NON_POSITIONAL,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
@@ -29,7 +43,7 @@ public:
             uint32_t nbHash = 3,
             uint32_t bitsPerElement = 8);
 
-    ~PositionalInvertedIndex();
+    ~InvertedIndex();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
@@ -48,8 +62,8 @@ public:
 
 private:
     IndexType type_;
-    PositionalBufferMaps buffer_;
-    PositionalSegmentPool pool_;
+    BufferMaps buffer_;
+    SegmentPool pool_;
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 

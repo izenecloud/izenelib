@@ -1,7 +1,5 @@
-#include <ir/Zambezi/AttrScoreInvertedIndex.hpp>
+#include <ir/Zambezi/BoolExpInvertedIndex.hpp>
 #include <ir/Zambezi/Utils.hpp>
-
-#include <glog/logging.h>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -9,68 +7,53 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-AttrScoreInvertedIndex::AttrScoreInvertedIndex(
+BoolExpInvertedIndex::BoolExpInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
         bool reverse)
     : buffer_(DEFAULT_VOCAB_SIZE)
     , pool_(maxPoolSize, numberOfPools, reverse)
     , dictionary_(DEFAULT_VOCAB_SIZE)
-    , pointers_(DEFAULT_VOCAB_SIZE, 0)
+    , pointers_(DEFAULT_VOCAB_SIZE)
 {
 }
 
-AttrScoreInvertedIndex::~AttrScoreInvertedIndex()
+BoolExpInvertedIndex::~BoolExpInvertedIndex()
 {
 }
 
-void AttrScoreInvertedIndex::save(std::ostream& ostr) const
+void BoolExpInvertedIndex::save(std::ostream& ostr) const
 {
-    std::streamoff offset = ostr.tellp();
     buffer_.save(ostr);
-    LOG(INFO) << "Saving: buffer maps size " << ostr.tellp() - offset;
-    offset = ostr.tellp();
     pool_.save(ostr);
-    LOG(INFO) << "Saving: segment pools size " << ostr.tellp() - offset;
-    offset = ostr.tellp();
     dictionary_.save(ostr);
-    LOG(INFO) << "Saving: dictionary size " << ostr.tellp() - offset;
-    offset = ostr.tellp();
     pointers_.save(ostr);
-    LOG(INFO) << "Saving: head pointers size " << ostr.tellp() - offset;
 }
 
-void AttrScoreInvertedIndex::load(std::istream& istr)
+void BoolExpInvertedIndex::load(std::istream& istr)
 {
-    std::streamoff offset = istr.tellg();
     buffer_.load(istr);
-    LOG(INFO) << "Loading: buffer maps size " << istr.tellg() - offset;
-    offset = istr.tellg();
     pool_.load(istr);
-    LOG(INFO) << "Loading: segment pool size " << istr.tellg() - offset;
-    offset = istr.tellg();
     dictionary_.load(istr);
-    LOG(INFO) << "Loading: dictionary size " << istr.tellg() - offset;
-    offset = istr.tellg();
     pointers_.load(istr);
-    LOG(INFO) << "Loading: head pointers size " << istr.tellg() - offset;
 }
 
-bool AttrScoreInvertedIndex::hasValidPostingsList(uint32_t termid) const
+bool BoolExpInvertedIndex::hasValidPostingsList(uint32_t termid) const
 {
     return pointers_.getHeadPointer(termid) != UNDEFINED_POINTER;
 }
 
-void AttrScoreInvertedIndex::insertDoc(
-        uint32_t docid,
+void BoolExpInvertedIndex::insertConjunction(
+        uint32_t conj_id,
         const std::vector<std::string>& term_list,
         const std::vector<uint32_t>& score_list)
 {
+    pointers_.setDocLen(conj_id, term_list.size());
+
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
         pointers_.cf_.increment(id);
-        pointers_.df_.increment(id);
         std::vector<uint32_t>& docBuffer = buffer_.getDocidList(id);
         std::vector<uint32_t>& scoreBuffer = buffer_.getScoreList(id);
 
@@ -81,8 +64,9 @@ void AttrScoreInvertedIndex::insertDoc(
                 docBuffer.reserve(DF_CUTOFF);
                 scoreBuffer.reserve(DF_CUTOFF);
             }
-            docBuffer.push_back(docid);
+            docBuffer.push_back(conj_id);
             scoreBuffer.push_back(score_list[i]);
+            pointers_.df_.increment(id);
             continue;
         }
 
@@ -92,8 +76,9 @@ void AttrScoreInvertedIndex::insertDoc(
             scoreBuffer.reserve(BLOCK_SIZE);
         }
 
-        docBuffer.push_back(docid);
+        docBuffer.push_back(conj_id);
         scoreBuffer.push_back(score_list[i]);
+        pointers_.df_.increment(id);
 
         if (docBuffer.size() == docBuffer.capacity())
         {
@@ -106,6 +91,7 @@ void AttrScoreInvertedIndex::insertDoc(
                         codec_,
                         &docBuffer[j * BLOCK_SIZE],
                         &scoreBuffer[j * BLOCK_SIZE],
+                        NULL,
                         BLOCK_SIZE,
                         pointer);
 
@@ -128,10 +114,9 @@ void AttrScoreInvertedIndex::insertDoc(
             }
         }
     }
-    ++pointers_.totalDocs_;
 }
 
-void AttrScoreInvertedIndex::flush()
+void BoolExpInvertedIndex::flush()
 {
     uint32_t term = UNDEFINED_OFFSET;
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != UNDEFINED_OFFSET)
@@ -151,6 +136,7 @@ void AttrScoreInvertedIndex::flush()
                     codec_,
                     &docBuffer[i * BLOCK_SIZE],
                     &scoreBuffer[i * BLOCK_SIZE],
+                    NULL,
                     BLOCK_SIZE,
                     pointer);
 
@@ -166,6 +152,7 @@ void AttrScoreInvertedIndex::flush()
                     codec_,
                     &docBuffer[nb * BLOCK_SIZE],
                     &scoreBuffer[nb * BLOCK_SIZE],
+                    NULL,
                     res,
                     pointer);
 
@@ -182,12 +169,12 @@ void AttrScoreInvertedIndex::flush()
     }
 }
 
-uint32_t AttrScoreInvertedIndex::totalDocNum() const
+uint32_t BoolExpInvertedIndex::totalDocNum() const
 {
     return pointers_.getTotalDocs();
 }
 
-void AttrScoreInvertedIndex::retrieval(
+void BoolExpInvertedIndex::retrieval(
         Algorithm algorithm,
         const std::vector<std::string>& term_list,
         uint32_t hits,
@@ -221,54 +208,6 @@ void AttrScoreInvertedIndex::retrieval(
     for (uint32_t i = 0; i < queries.size(); ++i)
     {
         qHeadPointers[i] = queries[i].second;
-    }
-
-    if (algorithm == SVS)
-    {
-        pool_.intersectSvS(qHeadPointers, minimumDf, hits, docid_list, score_list);
-    }
-}
-
-void AttrScoreInvertedIndex::retrievalAndFiltering(
-        Algorithm algorithm,
-        const std::vector<std::string>& term_list,
-        const boost::function<bool(uint32_t)>& filter,
-        uint32_t hits,
-        std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
-{
-    std::vector<std::pair<uint32_t, size_t> > queries;
-    uint32_t minimumDf = 0xFFFFFFFF;
-    for (uint32_t i = 0; i < term_list.size(); ++i)
-    {
-        uint32_t termid = dictionary_.getTermId(term_list[i]);
-        if (termid != INVALID_ID)
-        {
-            size_t pointer = pointers_.getHeadPointer(termid);
-            if (pointer != UNDEFINED_POINTER)
-            {
-                queries.push_back(std::make_pair(pointers_.getDf(termid), pointer));
-                minimumDf = std::min(queries.back().first, minimumDf);
-            }
-        }
-    }
-
-    if (queries.empty()) return;
-
-    if (algorithm == SVS)
-    {
-        std::sort(queries.begin(), queries.end());
-    }
-
-    std::vector<size_t> qHeadPointers(queries.size());
-    for (uint32_t i = 0; i < queries.size(); ++i)
-    {
-        qHeadPointers[i] = queries[i].second;
-    }
-
-    if (algorithm == SVS)
-    {
-        pool_.intersectSvS(qHeadPointers, filter, minimumDf, hits, docid_list, score_list);
     }
 }
 

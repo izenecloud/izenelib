@@ -1,10 +1,10 @@
-#ifndef IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
-#define IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_BOOL_EXP_INVERTED_INDEX_HPP
+#define IZENELIB_IR_ZAMBEZI_BOOL_EXP_INVERTED_INDEX_HPP
 
-#include "AttrScoreSegmentPool.hpp"
+#include "BoolExpSegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
-#include "buffer/AttrScoreBufferMaps.hpp"
+#include "buffer/BoolExpBufferMaps.hpp"
 #include "Consts.hpp"
 
 #include <boost/shared_ptr.hpp>
@@ -17,24 +17,24 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class AttrScoreInvertedIndex
+class BoolExpInvertedIndex
 {
 public:
-    AttrScoreInvertedIndex(
+    BoolExpInvertedIndex(
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
             bool reverse = true);
 
-    ~AttrScoreInvertedIndex();
+    ~BoolExpInvertedIndex();
 
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
 
     bool hasValidPostingsList(uint32_t termid) const;
 
-    void insertDoc(
-            uint32_t docid,
-            const std::vector<std::string>& term_list,
+    void insertConjunction(
+            uint32_t conj_id,
+            const std::vector<std::string>& pred_list,
             const std::vector<uint32_t>& score_list);
 
     void flush();
@@ -48,17 +48,9 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 
-    void retrievalAndFiltering(
-            Algorithm algorithm,
-            const std::vector<std::string>& term_list,
-            const boost::function<bool(uint32_t)>& filter,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
-
 private:
-    AttrScoreBufferMaps buffer_;
-    AttrScoreSegmentPool pool_;
+    BoolExpBufferMaps buffer_;
+    BoolExpSegmentPool pool_;
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 

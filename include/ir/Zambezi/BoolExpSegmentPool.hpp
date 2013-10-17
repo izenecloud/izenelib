@@ -1,0 +1,99 @@
+#ifndef IZENELIB_IR_ZAMBEZI_BOOL_EXP_SEGMENT_POOL_HPP
+#define IZENELIB_IR_ZAMBEZI_BOOL_EXP_SEGMENT_POOL_HPP
+
+#include <types.h>
+#include <util/compression/int/fastpfor/fastpfor.h>
+
+#include <boost/shared_array.hpp>
+#include <boost/function.hpp>
+#include <iostream>
+#include <vector>
+
+
+NS_IZENELIB_IR_BEGIN
+
+namespace Zambezi
+{
+
+class BoolExpSegmentPool
+{
+public:
+    /**
+     * Create a new segment pool.
+     *
+     * @param numberOfPools Number of pools, where each pool is an array of integers
+     * @param reverse Whether to store postings in reverse order (e.g., to index tweets)
+     */
+    BoolExpSegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse);
+
+    ~BoolExpSegmentPool();
+
+    void save(std::ostream& ostr) const;
+
+    void load(std::istream& istr);
+
+    inline bool isReverse() const
+    {
+        return reverse_;
+    }
+
+    /**
+     * Compress and write a segment into a non-positional segment pool with term frequencies,
+     * and link it to the previous segment (if present)
+     *
+     * @param docid_list Document ids
+     * @param score_list Term score in docs
+     * @param len Number of document ids
+     * @param tailPointer Pointer to the previous segment
+     * @return Pointer to the new segment
+     */
+
+    size_t compressAndAppend(
+            FastPFor& codec,
+            uint32_t* docid_list,
+            uint32_t* score_list,
+            uint32_t* belong_list,
+            uint32_t len, size_t tailPointer);
+
+    /**
+     * Given the current pointer, this function returns
+     * the next pointer. If the current pointer points to
+     * the last block (i.e., there is no "next" block),
+     * then this function returns UNDEFINED_POINTER.
+     */
+    size_t nextPointer(size_t pointer) const;
+
+    size_t nextPointer(size_t pointer, uint32_t pivot) const;
+
+    /**
+     * Decompresses the docid block from the segment pointed to by "pointer,"
+     * into the "outBlock" buffer. Block size is 128.
+     *
+     * Note that outBlock must be at least 128 integers long.
+     */
+    uint32_t decompressDocidBlock(
+            FastPFor& codec,
+            uint32_t* outBlock, size_t pointer) const;
+
+    uint32_t decompressScoreBlock(
+            FastPFor& codec,
+            uint32_t* outBlock, size_t pointer) const;
+
+private:
+    uint32_t maxPoolSize_;
+    uint32_t numberOfPools_;
+    uint32_t segment_;
+    uint32_t offset_;
+
+    // Whether or not postings are stored backwards
+    bool reverse_;
+
+    // Segment pool
+    std::vector<boost::shared_array<uint32_t> > pool_;
+};
+
+}
+
+NS_IZENELIB_IR_END
+
+#endif
