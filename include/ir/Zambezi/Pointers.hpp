@@ -45,9 +45,10 @@ public:
     FixedCounter<uint32_t> df_;
     FixedCounter<size_t> cf_;
     FixedCounter<size_t> headPointers_;
-    FixedCounter<uint32_t> docLen_;
     FixedCounter<uint32_t> maxTf_;
     FixedCounter<uint32_t> maxTfDocLen_;
+
+    FixedCounter<uint32_t> docLen_;
 
     // Do not store
     uint32_t defaultDf_;

@@ -21,19 +21,22 @@ void AttrScoreBufferMaps::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&capacity_, sizeof(capacity_));
 
-    for (size_t i = 0; i < capacity_; ++i)
+    size_t termNum;
+    for (termNum = 0; termNum < capacity_; ++termNum)
     {
-        uint32_t capacity = docid_[i].capacity();
+        uint32_t capacity = docid_[termNum].capacity();
         ostr.write((const char*)&capacity, sizeof(uint32_t));
 
-        uint32_t size = docid_[i].size();
+        if (capacity == 0) break;
+
+        uint32_t size = docid_[termNum].size();
         ostr.write((const char*)&size, sizeof(uint32_t));
 
-        ostr.write((const char*)&docid_[i][0], sizeof(uint32_t) * size);
-        ostr.write((const char*)&score_[i][0], sizeof(uint32_t) * size);
+        ostr.write((const char*)&docid_[termNum][0], sizeof(uint32_t) * size);
+        ostr.write((const char*)&score_[termNum][0], sizeof(uint32_t) * size);
     }
 
-    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * capacity_);
+    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * termNum);
 }
 
 void AttrScoreBufferMaps::load(std::istream& istr)
@@ -42,24 +45,28 @@ void AttrScoreBufferMaps::load(std::istream& istr)
     docid_.resize(capacity_);
     score_.resize(capacity_);
 
-    for (size_t i = 0; i < capacity_; ++i)
+    size_t termNum;
+    for (termNum = 0; termNum < capacity_; ++termNum)
     {
         uint32_t capacity = 0;
         istr.read((char*)&capacity, sizeof(uint32_t));
-        docid_[i].reserve(capacity);
-        score_[i].reserve(capacity);
+
+        if (capacity == 0) break;
+
+        docid_[termNum].reserve(capacity);
+        score_[termNum].reserve(capacity);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(uint32_t));
-        docid_[i].resize(size);
-        score_[i].resize(size);
+        docid_[termNum].resize(size);
+        score_[termNum].resize(size);
 
-        istr.read((char*)&docid_[i][0], sizeof(uint32_t) * size);
-        istr.read((char*)&score_[i][0], sizeof(uint32_t) * size);
+        istr.read((char*)&docid_[termNum][0], sizeof(uint32_t) * size);
+        istr.read((char*)&score_[termNum][0], sizeof(uint32_t) * size);
     }
 
     tailPointer_.resize(capacity_, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
+    istr.read((char*)&tailPointer_[0], sizeof(size_t) * termNum);
 }
 
 void AttrScoreBufferMaps::expand(uint32_t newSize)

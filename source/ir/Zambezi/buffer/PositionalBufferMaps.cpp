@@ -24,35 +24,39 @@ void PositionalBufferMaps::save(std::ostream& ostr) const
 {
     ostr.write((const char*)&capacity_, sizeof(capacity_));
 
-    for (size_t i = 0; i < capacity_; ++i)
+    size_t termNum;
+    for (termNum = 0; termNum < capacity_; ++termNum)
     {
-        uint32_t capacity = docid_[i].capacity();
+        uint32_t capacity = docid_[termNum].capacity();
         ostr.write((const char*)&capacity, sizeof(uint32_t));
 
-        uint32_t size = docid_[i].size();
+        if (capacity == 0) break;
+
+        uint32_t size = docid_[termNum].size();
         ostr.write((const char*)&size, sizeof(uint32_t));
 
-        ostr.write((const char*)&docid_[i][0], sizeof(uint32_t) * size);
+        ostr.write((const char*)&docid_[termNum][0], sizeof(uint32_t) * size);
 
         if (type_ != NON_POSITIONAL)
         {
-            ostr.write((const char*)&tf_[i][0], sizeof(uint32_t) * size);
+            ostr.write((const char*)&tf_[termNum][0], sizeof(uint32_t) * size);
         }
 
         if (type_ == POSITIONAL)
         {
-            capacity = position_[i].capacity();
+            ostr.write((const char*)&posBlockCount_[termNum][0], sizeof(uint32_t) * size);
+
+            capacity = position_[termNum].capacity();
             ostr.write((const char*)&capacity, sizeof(uint32_t));
-            size = position_[i].size();
+
+            size = position_[termNum].size();
             ostr.write((const char*)&size, sizeof(uint32_t));
-            ostr.write((const char*)&position_[i][0], sizeof(uint32_t) * size);
-            size = posBlockCount_[i].size();
-            ostr.write((const char*)&size, sizeof(uint32_t));
-            ostr.write((const char*)&posBlockCount_[i][0], sizeof(uint32_t) * size);
+
+            ostr.write((const char*)&position_[termNum][0], sizeof(uint32_t) * size);
         }
     }
 
-    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * capacity_);
+    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * termNum);
 }
 
 void PositionalBufferMaps::load(std::istream& istr)
@@ -70,45 +74,48 @@ void PositionalBufferMaps::load(std::istream& istr)
         posBlockCount_.resize(capacity_);
     }
 
-    for (size_t i = 0; i < capacity_; ++i)
+    size_t termNum;
+    for (termNum = 0; termNum < capacity_; ++termNum)
     {
         uint32_t capacity = 0;
         istr.read((char*)&capacity, sizeof(uint32_t));
-        docid_[i].reserve(capacity);
+
+        if (capacity == 0) break;
+
+        docid_[termNum].reserve(capacity);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(uint32_t));
-        docid_[i].resize(size);
+        docid_[termNum].resize(size);
 
-        istr.read((char*)&docid_[i][0], sizeof(uint32_t) * size);
+        istr.read((char*)&docid_[termNum][0], sizeof(uint32_t) * size);
 
         if (type_ != NON_POSITIONAL)
         {
-            tf_[i].reserve(capacity);
-            tf_[i].resize(size);
-            istr.read((char*)&tf_[i][0], sizeof(uint32_t) * size);
+            tf_[termNum].reserve(capacity);
+            tf_[termNum].resize(size);
+            istr.read((char*)&tf_[termNum][0], sizeof(uint32_t) * size);
         }
 
         if (type_ == POSITIONAL)
         {
+            posBlockCount_[termNum].reserve(capacity);
+            posBlockCount_[termNum].resize(size);
+            istr.read((char*)&posBlockCount_[termNum][0], sizeof(uint32_t) * size);
+
             capacity = 0;
             istr.read((char*)&capacity, sizeof(uint32_t));
-            position_[i].reserve(capacity);
+            position_[termNum].reserve(capacity);
 
             size = 0;
             istr.read((char*)&size, sizeof(uint32_t));
-            position_[i].resize(size);
-            istr.read((char*)&position_[i][0], sizeof(uint32_t) * size);
-
-            size = 0;
-            istr.read((char*)&size, sizeof(uint32_t));
-            posBlockCount_.resize(size);
-            istr.read((char*)&posBlockCount_[i][0], sizeof(uint32_t) * size);
+            position_[termNum].resize(size);
+            istr.read((char*)&position_[termNum][0], sizeof(uint32_t) * size);
         }
     }
 
     tailPointer_.resize(capacity_, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer_[0], sizeof(size_t) * capacity_);
+    istr.read((char*)&tailPointer_[0], sizeof(size_t) * termNum);
 }
 
 void PositionalBufferMaps::expand(uint32_t newSize)
