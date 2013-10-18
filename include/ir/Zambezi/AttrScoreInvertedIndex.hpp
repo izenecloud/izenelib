@@ -49,7 +49,7 @@ public:
 
     void retrievalAndFiltering(
             Algorithm algorithm,
-            const std::vector<std::string>& term_list,
+            const std::vector<std::pair<std::string, int> >& term_list,
             const boost::function<bool(uint32_t)>& filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
@@ -85,6 +85,7 @@ private:
 
     void intersectSvS_(
             std::vector<size_t>& headPointers,
+            const std::vector<int>& qScores,
             const boost::function<bool(uint32_t)>& filter,
             uint32_t minDf,
             uint32_t hits,
@@ -111,6 +112,8 @@ private:
             FastPFor& codec,
             size_t pointer0,
             size_t pointer1,
+            int weight0,
+            int weight1,
             const boost::function<bool(uint32_t)>& filter,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
@@ -118,6 +121,7 @@ private:
     void intersectSetPostingsList_(
             FastPFor& codec,
             size_t pointer,
+            int weight,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 

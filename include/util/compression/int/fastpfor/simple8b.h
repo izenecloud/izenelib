@@ -151,7 +151,7 @@ template<bool MarkLength>
 void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
                                        uint32_t *out, size_t &nvalue)
 {
-    //const uint32_t * const initin(in);
+    const uint32_t * const initin(in);
     uint32_t NumberOfValuesCoded = 0;
     const uint32_t * const initout(out);
     if (MarkLength)
