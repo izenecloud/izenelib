@@ -368,7 +368,9 @@ void AttrScoreSegmentPool::intersectPostingsLists_(
         size_t pointer1,
         const boost::function<bool(uint32_t)>& filter,
         std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
+        std::vector<uint32_t>& score_list,
+        int weight0,
+        int weight1) const
 {
     std::vector<uint32_t> blockDocid0(BLOCK_SIZE);
     std::vector<uint32_t> blockDocid1(BLOCK_SIZE);
@@ -387,7 +389,7 @@ void AttrScoreSegmentPool::intersectPostingsLists_(
             if (filter(blockDocid0[i0]))
             {
                 docid_list.push_back(blockDocid0[i0]);
-                score_list.push_back(blockScore0[i0] + blockScore1[i1]);
+                score_list.push_back(blockScore0[i0]*weight0 + blockScore1[i1]*weight1);
             }
 
             if (++i0 == c0)
@@ -426,7 +428,8 @@ void AttrScoreSegmentPool::intersectSetPostingsList_(
         FastPFor& codec,
         size_t pointer,
         std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
+        std::vector<uint32_t>& score_list,
+        int weight) const
 {
     std::vector<uint32_t> blockDocid(BLOCK_SIZE);
     std::vector<uint32_t> blockScore(BLOCK_SIZE);
@@ -439,7 +442,7 @@ void AttrScoreSegmentPool::intersectSetPostingsList_(
         if (blockDocid[i] == docid_list[iCurrent])
         {
             docid_list[iSet] = docid_list[iCurrent];
-            score_list[iSet++] = score_list[iCurrent] + blockScore[i];
+            score_list[iSet++] = score_list[iCurrent] + blockScore[i]*weight;
 
             if (++iCurrent == docid_list.size())
                 break;
@@ -522,6 +525,7 @@ void AttrScoreSegmentPool::intersectSvS(
 
 void AttrScoreSegmentPool::intersectSvS(
         std::vector<size_t>& headPointers,
+        std::vector<int>& queryscores,
         const boost::function<bool(uint32_t)>& filter,
         uint32_t minDf,
         uint32_t hits,
@@ -557,11 +561,11 @@ void AttrScoreSegmentPool::intersectSvS(
 
     docid_list.reserve(minDf);
     score_list.reserve(minDf);
-    intersectPostingsLists_(codec, headPointers[0], headPointers[1], filter, docid_list, score_list);
+    intersectPostingsLists_(codec, headPointers[0], headPointers[1], filter, docid_list, score_list, queryscores[0], queryscores[1]);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
         if (docid_list.empty()) break;
-        intersectSetPostingsList_(codec, headPointers[i], docid_list, score_list);
+        intersectSetPostingsList_(codec, headPointers[i], docid_list, score_list, queryscores[i]);
     }
 
     if (hits < docid_list.size())

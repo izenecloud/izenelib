@@ -86,6 +86,7 @@ public:
 
     void intersectSvS(
             std::vector<size_t>& headPointers,
+            std::vector<int>& queryScores,
             const boost::function<bool(uint32_t)>& filter,
             uint32_t minDf,
             uint32_t hits,
@@ -115,13 +116,16 @@ private:
             size_t pointer1,
             const boost::function<bool(uint32_t)>& filter,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+            std::vector<uint32_t>& score_list,
+            int weight0 = 1,
+            int weight1 = 1) const;
 
     void intersectSetPostingsList_(
             FastPFor& codec,
             size_t pointer,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+            std::vector<uint32_t>& score_list,
+            int weight = 1) const;
 
 private:
     uint32_t maxPoolSize_;

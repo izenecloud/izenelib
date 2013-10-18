@@ -50,7 +50,7 @@ public:
 
     void retrievalAndFiltering(
             Algorithm algorithm,
-            const std::vector<std::string>& term_list,
+            const std::vector<std::pair<std::string, int> >& term_list,
             const boost::function<bool(uint32_t)>& filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,

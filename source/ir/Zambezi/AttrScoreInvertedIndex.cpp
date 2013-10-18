@@ -231,23 +231,24 @@ void AttrScoreInvertedIndex::retrieval(
 
 void AttrScoreInvertedIndex::retrievalAndFiltering(
         Algorithm algorithm,
-        const std::vector<std::string>& term_list,
+        const std::vector<std::pair<std::string, int> >& term_list,
         const boost::function<bool(uint32_t)>& filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
-    std::vector<std::pair<uint32_t, size_t> > queries;
+    std::vector<std::pair<uint32_t, std::pair<size_t, int> > > queries;
+
     uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
-        uint32_t termid = dictionary_.getTermId(term_list[i]);
+        uint32_t termid = dictionary_.getTermId(term_list[i].first);
         if (termid != INVALID_ID)
         {
             size_t pointer = pointers_.getHeadPointer(termid);
             if (pointer != UNDEFINED_POINTER)
             {
-                queries.push_back(std::make_pair(pointers_.getDf(termid), pointer));
+                queries.push_back(std::make_pair(pointers_.getDf(termid), std::make_pair(pointer, term_list[i].second)));
                 minimumDf = std::min(queries.back().first, minimumDf);
             }
         }
@@ -260,15 +261,20 @@ void AttrScoreInvertedIndex::retrievalAndFiltering(
         std::sort(queries.begin(), queries.end());
     }
 
+    std::vector<int> queryscores;
+    for (unsigned int i = 0; i < queries.size(); ++i)
+        queryscores.push_back(queries[i].second.second);
+
     std::vector<size_t> qHeadPointers(queries.size());
+    
     for (uint32_t i = 0; i < queries.size(); ++i)
     {
-        qHeadPointers[i] = queries[i].second;
+        qHeadPointers[i] = queries[i].second.first;
     }
 
     if (algorithm == SVS)
     {
-        pool_.intersectSvS(qHeadPointers, filter, minimumDf, hits, docid_list, score_list);
+        pool_.intersectSvS(qHeadPointers, queryscores, filter, minimumDf, hits, docid_list, score_list);
     }
 }
 
