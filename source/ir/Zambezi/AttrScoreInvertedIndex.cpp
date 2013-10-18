@@ -261,9 +261,9 @@ void AttrScoreInvertedIndex::retrievalAndFiltering(
         std::sort(queries.begin(), queries.end());
     }
 
-    std::vector<int> queryscores;
+    std::vector<int> queryscores(queries.size());
     for (unsigned int i = 0; i < queries.size(); ++i)
-        queryscores.push_back(queries[i].second.second);
+        queryscores[i] = (queries[i].second.second);
 
     std::vector<size_t> qHeadPointers(queries.size());
     
