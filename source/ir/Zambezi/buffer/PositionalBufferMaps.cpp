@@ -11,8 +11,8 @@ PositionalBufferMaps::PositionalBufferMaps(uint32_t initialSize, IndexType type)
     , docid_(initialSize)
     , tf_(initialSize)
     , position_(initialSize)
+    , posBlockCount_(initialSize)
     , tailPointer_(initialSize, UNDEFINED_POINTER)
-    , posBlockHead_(initialSize)
 {
 }
 
@@ -46,7 +46,9 @@ void PositionalBufferMaps::save(std::ostream& ostr) const
             size = position_[i].size();
             ostr.write((const char*)&size, sizeof(uint32_t));
             ostr.write((const char*)&position_[i][0], sizeof(uint32_t) * size);
-            ostr.write((const char*)&posBlockHead_[i], sizeof(uint32_t));
+            size = posBlockCount_[i].size();
+            ostr.write((const char*)&size, sizeof(uint32_t));
+            ostr.write((const char*)&posBlockCount_[i][0], sizeof(uint32_t) * size);
         }
     }
 
@@ -65,7 +67,7 @@ void PositionalBufferMaps::load(std::istream& istr)
     if (type_ == POSITIONAL)
     {
         position_.resize(capacity_);
-        posBlockHead_.resize(capacity_);
+        posBlockCount_.resize(capacity_);
     }
 
     for (size_t i = 0; i < capacity_; ++i)
@@ -91,14 +93,17 @@ void PositionalBufferMaps::load(std::istream& istr)
         {
             capacity = 0;
             istr.read((char*)&capacity, sizeof(uint32_t));
-            position_.reserve(capacity);
+            position_[i].reserve(capacity);
 
             size = 0;
             istr.read((char*)&size, sizeof(uint32_t));
-            position_.resize(size);
-
+            position_[i].resize(size);
             istr.read((char*)&position_[i][0], sizeof(uint32_t) * size);
-            istr.read((char*)&posBlockHead_[i], sizeof(uint32_t));
+
+            size = 0;
+            istr.read((char*)&size, sizeof(uint32_t));
+            posBlockCount_.resize(size);
+            istr.read((char*)&posBlockCount_[i][0], sizeof(uint32_t) * size);
         }
     }
 
@@ -133,7 +138,7 @@ void PositionalBufferMaps::expand(uint32_t newSize)
     if (type_ == POSITIONAL)
     {
         position_.resize(capacity_);
-        posBlockHead_.resize(capacity_);
+        posBlockCount_.resize(capacity_);
     }
 }
 

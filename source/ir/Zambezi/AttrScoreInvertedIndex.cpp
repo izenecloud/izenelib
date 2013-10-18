@@ -117,8 +117,8 @@ void AttrScoreInvertedIndex::insertDoc(
 
 void AttrScoreInvertedIndex::flush()
 {
-    uint32_t term = UNDEFINED_OFFSET;
-    while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != UNDEFINED_OFFSET)
+    uint32_t term = INVALID_ID;
+    while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != INVALID_ID)
     {
         processTermBuffer_(
                 buffer_.docid_[term],

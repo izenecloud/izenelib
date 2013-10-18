@@ -30,8 +30,8 @@ void Pointers::save(std::ostream& ostr) const
 {
     uint32_t size = headPointers_.size();
     ostr.write((const char*)&size, sizeof(uint32_t));
-    uint32_t term = UNDEFINED_OFFSET;
-    while ((term = headPointers_.nextIndex(term)) != UNDEFINED_OFFSET)
+    uint32_t term = INVALID_ID;
+    while ((term = headPointers_.nextIndex(term)) != INVALID_ID)
     {
         ostr.write((const char*)&term, sizeof(uint32_t));
         ostr.write((const char*)&df_.get(term), sizeof(uint32_t));
@@ -46,8 +46,8 @@ void Pointers::save(std::ostream& ostr) const
 
     if (size)
     {
-        term = UNDEFINED_OFFSET;
-        while ((term = docLen_.nextIndex(term)) != UNDEFINED_OFFSET)
+        term = INVALID_ID;
+        while ((term = docLen_.nextIndex(term)) != INVALID_ID)
         {
             ostr.write((const char*)&term, sizeof(uint32_t));
             ostr.write((const char*)&docLen_.get(term), sizeof(uint32_t));

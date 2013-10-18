@@ -37,8 +37,10 @@ public:
 
     const T& get(uint32_t index) const
     {
-        assert(index < counter_.size());
-        return counter_[index];
+        if (index < counter_.size())
+            return counter_[index];
+        else
+            return defaultValue_;
     }
 
     T& get(uint32_t index)
@@ -49,26 +51,31 @@ public:
 
     void add(uint32_t index, T c)
     {
-        assert(index < counter_.size());
-        counter_[index] += c;
+        if (index < counter_.size())
+            counter_[index] += c;
     }
 
     void increment(uint32_t index)
     {
-        assert(index < counter_.size());
-        ++counter_[index];
+        if (index < counter_.size())
+            ++counter_[index];
     }
 
     void set(uint32_t index, T c)
     {
-        assert(index < counter_.size());
-        counter_[index] = c;
+        if (index < counter_.size())
+            counter_[index] = c;
     }
 
     void reset(uint32_t index)
     {
-        assert(index < counter_.size());
-        counter_[index] = defaultValue_;
+        if (index < counter_.size())
+            counter_[index] = defaultValue_;
+    }
+
+    std::vector<T>& getCounter()
+    {
+        return counter_;
     }
 
     const std::vector<T>& getCounter() const

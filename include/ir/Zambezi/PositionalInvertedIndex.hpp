@@ -46,6 +46,14 @@ public:
             std::vector<float>& score_list) const;
 
 private:
+    void processTermBuffer_(
+            std::vector<uint32_t>& docBuffer,
+            std::vector<uint32_t>& tfBuffer,
+            std::vector<uint32_t>& posBuffer,
+            std::vector<uint32_t>& posCountBuffer,
+            size_t& tailPointer,
+            size_t& headPointer);
+
     size_t compressAndAddNonPositional_(
             FastPFor& codec,
             uint32_t* docid_list,
@@ -58,8 +66,12 @@ private:
 
     size_t compressAndAddPositional_(
             FastPFor& codec,
-            uint32_t* docid_list, uint32_t* tf_list, uint32_t* position_list,
-            uint32_t len, uint32_t plen, size_t tailPointer);
+            uint32_t* docid_list,
+            uint32_t* tf_list,
+            uint32_t* position_list,
+            uint32_t len,
+            uint32_t plen,
+            size_t tailPointer);
 
     uint32_t decompressDocidBlock_(
             FastPFor& codec,

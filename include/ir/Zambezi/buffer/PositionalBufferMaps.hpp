@@ -65,10 +65,10 @@ public:
     std::vector<std::vector<uint32_t> > tf_;
     // Term positions buffer map
     std::vector<std::vector<uint32_t> > position_;
+    // Cursor of last position block head
+    std::vector<std::vector<uint32_t> > posBlockCount_;
     // Table of tail pointers for vocabulary terms
     std::vector<size_t> tailPointer_;
-    // Cursor of last position block head
-    std::vector<uint32_t> posBlockHead_;
 
     std::vector<uint32_t> emptyList_;
 };

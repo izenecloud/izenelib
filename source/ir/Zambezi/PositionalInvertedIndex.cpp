@@ -100,9 +100,7 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
 
             if (posBuffer.capacity() == 0)
             {
-                posBuffer.reserve(DF_CUTOFF);
-                posBuffer.push_back(0);
-
+                posBuffer.reserve(BLOCK_SIZE);
                 tfBuffer.reserve(DF_CUTOFF + 1);
             }
 
@@ -116,8 +114,6 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
                 posBuffer.push_back(i + 1 - posBuffer.back());
                 ++tfBuffer.back();
             }
-
-            ++posBuffer[buffer_.posBlockHead_[id]];
         }
     }
 
@@ -151,15 +147,14 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
             }
         }
 
-        uint32_t df = pointers_.df_.get(id);
-        if (df < DF_CUTOFF)
+        pointers_.df_.increment(id);
+        if (pointers_.df_.get(id) < DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {
                 docBuffer.reserve(DF_CUTOFF);
             }
             docBuffer.push_back(docid);
-            pointers_.df_.increment(id);
             continue;
         }
 
@@ -180,69 +175,22 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
         }
 
         docBuffer.push_back(docid);
-        pointers_.df_.increment(id);
 
         if (type_ == POSITIONAL && docBuffer.size() % BLOCK_SIZE == 0)
         {
-            buffer_.posBlockHead_[id] = posBuffer.size();
-            posBuffer.push_back(0);
+            buffer_.posBlockCount_[id].push_back(posBuffer.size());
+            posBuffer.resize((posBuffer.size() + BLOCK_SIZE - 1) / BLOCK_SIZE);
         }
 
         if (docBuffer.size() == docBuffer.capacity())
         {
-            uint32_t nb = docBuffer.size() / BLOCK_SIZE;
-            size_t pointer = buffer_.tailPointer_[id];
-
-            for (uint32_t j = 0, ps = 0; j < nb; ++j)
-            {
-                switch (type_)
-                {
-                    case NON_POSITIONAL:
-                        pointer = compressAndAddNonPositional_(
-                                codec_,
-                                &docBuffer[j * BLOCK_SIZE],
-                                BLOCK_SIZE,
-                                pointer);
-                        break;
-
-                    case TF_ONLY:
-                        pointer = compressAndAddTfOnly_(
-                                codec_,
-                                &docBuffer[j * BLOCK_SIZE],
-                                &tfBuffer[j * BLOCK_SIZE],
-                                BLOCK_SIZE,
-                                pointer);
-                        break;
-
-                    case POSITIONAL:
-                        pointer = compressAndAddPositional_(
-                                codec_,
-                                &docBuffer[j * BLOCK_SIZE],
-                                &tfBuffer[j * BLOCK_SIZE],
-                                &posBuffer[ps + 1],
-                                BLOCK_SIZE,
-                                posBuffer[ps],
-                                pointer);
-                        ps += posBuffer[ps] + 1;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                if (pool_.reverse_ || pointers_.headPointers_.get(id) == UNDEFINED_POINTER)
-                {
-                    pointers_.headPointers_.set(id, pointer);
-                }
-            }
-
-            buffer_.tailPointer_[id] = pointer;
-
-            docBuffer.clear();
-            if (type_ != NON_POSITIONAL)
-            {
-                tfBuffer.clear();
-            }
+            processTermBuffer_(
+                    buffer_.docid_[id],
+                    buffer_.tf_[id],
+                    buffer_.position_[id],
+                    buffer_.posBlockCount_[id],
+                    buffer_.tailPointer_[id],
+                    pointers_.headPointers_.get(id));
 
             if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
@@ -254,128 +202,129 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
                     tfBuffer.reserve(newLen);
                 }
             }
-
-            if (type_ == POSITIONAL)
-            {
-                posBuffer.clear();
-                posBuffer.push_back(0);
-                buffer_.posBlockHead_[id] = 0;
-            }
         }
     }
 }
 
 void PositionalInvertedIndex::flush()
 {
-    uint32_t term = -1;
-    while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != (uint32_t)-1)
+    uint32_t term = INVALID_ID;
+    while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != INVALID_ID)
     {
-        std::vector<uint32_t>& docBuffer = buffer_.docid_[term];
-        std::vector<uint32_t>& tfBuffer = buffer_.tf_[term];
-        std::vector<uint32_t>& posBuffer = buffer_.position_[term];
+        processTermBuffer_(
+                buffer_.docid_[term],
+                buffer_.tf_[term],
+                buffer_.position_[term],
+                buffer_.posBlockCount_[term],
+                buffer_.tailPointer_[term],
+                pointers_.headPointers_.get(term));
 
-        uint32_t pos = docBuffer.size();
-        size_t pointer = buffer_.tailPointer_[term];
-
-        uint32_t nb = pos / BLOCK_SIZE;
-        uint32_t res = pos % BLOCK_SIZE;
-        uint32_t ps = 0;
-
-        for (uint32_t i = 0; i < nb; ++i)
-        {
-            switch (type_)
-            {
-            case NON_POSITIONAL:
-                pointer = compressAndAddNonPositional_(
-                        codec_,
-                        &docBuffer[i * BLOCK_SIZE],
-                        BLOCK_SIZE,
-                        pointer);
-                break;
-
-            case TF_ONLY:
-                pointer = compressAndAddTfOnly_(
-                        codec_,
-                        &docBuffer[i * BLOCK_SIZE],
-                        &tfBuffer[i * BLOCK_SIZE],
-                        BLOCK_SIZE,
-                        pointer);
-                break;
-
-            case POSITIONAL:
-                pointer = compressAndAddPositional_(
-                        codec_,
-                        &docBuffer[i * BLOCK_SIZE],
-                        &tfBuffer[i * BLOCK_SIZE],
-                        &posBuffer[ps + 1],
-                        BLOCK_SIZE,
-                        posBuffer[ps],
-                        pointer);
-                ps += posBuffer[ps] + 1;
-                break;
-
-            default:
-                break;
-            }
-
-            if (pool_.reverse_ || pointers_.headPointers_.get(term) == UNDEFINED_POINTER)
-            {
-                pointers_.headPointers_.set(term, pointer);
-            }
-        }
-
-        if (res > 0)
-        {
-            switch (type_)
-            {
-            case NON_POSITIONAL:
-                pointer = compressAndAddNonPositional_(
-                        codec_,
-                        &docBuffer[nb * BLOCK_SIZE],
-                        res,
-                        pointer);
-                break;
-
-            case TF_ONLY:
-                pointer = compressAndAddTfOnly_(
-                        codec_,
-                        &docBuffer[nb * BLOCK_SIZE],
-                        &tfBuffer[nb * BLOCK_SIZE],
-                        res,
-                        pointer);
-                break;
-
-            case POSITIONAL:
-                pointer = compressAndAddPositional_(
-                        codec_,
-                        &docBuffer[nb * BLOCK_SIZE],
-                        &tfBuffer[nb * BLOCK_SIZE],
-                        &posBuffer[ps + 1],
-                        res,
-                        posBuffer[ps],
-                        pointer);
-                break;
-
-            default:
-                break;
-            }
-
-            if (pool_.reverse_ || pointers_.headPointers_.get(term) == UNDEFINED_POINTER)
-            {
-                pointers_.headPointers_.set(term, pointer);
-            }
-        }
-
-        buffer_.tailPointer_[term] = pointer;
-
-        docBuffer.clear();
-
-        if (type_ != NON_POSITIONAL)
-            tfBuffer.clear();
-
-        if (type_ == POSITIONAL)
-            posBuffer.clear();
     }
+}
+
+void PositionalInvertedIndex::processTermBuffer_(
+        std::vector<uint32_t>& docBuffer,
+        std::vector<uint32_t>& tfBuffer,
+        std::vector<uint32_t>& posBuffer,
+        std::vector<uint32_t>& posCountBuffer,
+        size_t& tailPointer,
+        size_t& headPointer)
+{
+    uint32_t nb = docBuffer.size() / BLOCK_SIZE;
+    uint32_t res = docBuffer.size() % BLOCK_SIZE;
+
+    uint32_t ps = 0;
+
+    for (uint32_t i = 0; i < nb; ++i)
+    {
+        switch (type_)
+        {
+        case NON_POSITIONAL:
+            tailPointer = compressAndAddNonPositional_(
+                    codec_,
+                    &docBuffer[i * BLOCK_SIZE],
+                    BLOCK_SIZE,
+                    tailPointer);
+            break;
+
+        case TF_ONLY:
+            tailPointer = compressAndAddTfOnly_(
+                    codec_,
+                    &docBuffer[i * BLOCK_SIZE],
+                    &tfBuffer[i * BLOCK_SIZE],
+                    BLOCK_SIZE,
+                    tailPointer);
+            break;
+
+        case POSITIONAL:
+            tailPointer = compressAndAddPositional_(
+                    codec_,
+                    &docBuffer[i * BLOCK_SIZE],
+                    &tfBuffer[i * BLOCK_SIZE],
+                    &posBuffer[ps],
+                    BLOCK_SIZE,
+                    posCountBuffer[i] - ps,
+                    tailPointer);
+
+            ps = posCountBuffer[i];
+            break;
+
+        default:
+            break;
+        }
+
+        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        {
+            headPointer = tailPointer;
+        }
+    }
+
+    if (res > 0)
+    {
+        switch (type_)
+        {
+        case NON_POSITIONAL:
+            tailPointer = compressAndAddNonPositional_(
+                    codec_,
+                    &docBuffer[nb * BLOCK_SIZE],
+                    res,
+                    tailPointer);
+            break;
+
+        case TF_ONLY:
+            tailPointer = compressAndAddTfOnly_(
+                    codec_,
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &tfBuffer[nb * BLOCK_SIZE],
+                    res,
+                    tailPointer);
+            break;
+
+        case POSITIONAL:
+            tailPointer = compressAndAddPositional_(
+                    codec_,
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &tfBuffer[nb * BLOCK_SIZE],
+                    &posBuffer[ps],
+                    res,
+                    posBuffer.size() - ps,
+                    tailPointer);
+            break;
+
+        default:
+            break;
+        }
+
+        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        {
+            headPointer = tailPointer;
+        }
+    }
+
+    docBuffer.clear();
+    tfBuffer.clear();
+    posBuffer.clear();
+    posCountBuffer.clear();
 }
 
 size_t PositionalInvertedIndex::compressAndAddNonPositional_(
@@ -1097,7 +1046,7 @@ void PositionalInvertedIndex::wand_(
     while (true)
     {
         float sum = 0;
-        uint32_t pTermIdx = -1;
+        uint32_t pTermIdx = INVALID_ID;
         for (uint32_t i = 0; i < len; ++i)
         {
             if ((sum += UB[mapping[i]]) > threshold)
@@ -1111,7 +1060,7 @@ void PositionalInvertedIndex::wand_(
             }
         }
 
-        if (sum == 0 || pTermIdx == (uint32_t)-1)
+        if (sum == 0 || pTermIdx == INVALID_ID)
         {
             break;
         }
