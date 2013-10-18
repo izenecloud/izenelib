@@ -54,22 +54,13 @@ private:
             size_t& tailPointer,
             size_t& headPointer);
 
-    size_t compressAndAddNonPositional_(
+    size_t compressAndAppendBlock_(
             FastPFor& codec,
-            uint32_t* docid_list,
-            uint32_t len, size_t tailPointer);
-
-    size_t compressAndAddTfOnly_(
-            FastPFor& codec,
-            uint32_t* docid_list, uint32_t* tf_list,
-            uint32_t len, size_t tailPointer);
-
-    size_t compressAndAddPositional_(
-            FastPFor& codec,
-            uint32_t* docid_list,
-            uint32_t* tf_list,
-            uint32_t* position_list,
+            uint32_t* docBlock,
+            uint32_t* tfBlock,
+            uint32_t* posBlock,
             uint32_t len,
+            uint32_t tflen,
             uint32_t plen,
             size_t tailPointer);
 
