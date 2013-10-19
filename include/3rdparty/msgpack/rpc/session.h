@@ -40,7 +40,7 @@ public:
 	const loop& get_loop() const;
 	loop get_loop();
 
-	void set_timeout(unsigned int sec);
+	//void set_timeout(unsigned int sec);
 	unsigned int get_timeout() const;
 
 protected:

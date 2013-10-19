@@ -1,13 +1,13 @@
 /**
-* @file       newInvertedIndexTestFixture.h
+* @file       AttrScoreInvertedIndexTestFixture.h
 * @author     Hongliang
 * @version    1.0
 * @brief Fixture to test Inverted Index module.
 *
 */
 
-#ifndef NEW_INVERTED_INDEX_TEST_FIXTURE_H
-#define NEW_INVERTED_INDEX_TEST_FIXTURE_H
+#ifndef ATTR_SCORE_INVERTED_INDEX_TEST_FIXTURE_H
+#define ATTR_SCORE_INVERTED_INDEX_TEST_FIXTURE_H
 
 #include <string>
 #include <vector>
@@ -15,7 +15,9 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#include <ir/Zambezi/NewInvertedIndex.hpp>
+#include <ir/Zambezi/AttrScoreInvertedIndex.hpp>
+
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -24,21 +26,20 @@ namespace Zambezi
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
     const unsigned int DefullNum = 5000000;
-    class newInvertedIndexTestFixture
+    class AttrScoreInvertedIndexTestFixture
     {
     public:
-        newInvertedIndexTestFixture()
-            :index_(NULL)
-            , indexPath_("Inverted.index") 
+        AttrScoreInvertedIndexTestFixture()
+            : index_(NULL)
         {
         }
 
         void initIndex(bool isReverse)
         {
-            index_ = new NewInvertedIndex(isReverse);
+            index_ = new AttrScoreInvertedIndex(1 << 28, 4, isReverse);
         }
 
-        ~newInvertedIndexTestFixture()
+        ~AttrScoreInvertedIndexTestFixture()
         {
             delete index_;
         }
@@ -69,12 +70,11 @@ namespace Zambezi
             term_tmp.push_back("abp");
             term_tmp.push_back("abq");
             unsigned int x = 0;
-            for (std::vector<uint32_t>::iterator i = DocIdList.begin(); i != DocIdList.end(); ++i)
+            for (std::vector<uint32_t>::iterator it = DocIdList.begin(); it != DocIdList.end(); ++it)
             {
                 termList.push_back(term_tmp[x]);
-                DocIdTermMap[*i] = termList;
-                x++;
-                if (x == term_tmp.size() )
+                DocIdTermMap[*it] = termList;
+                if (++x == term_tmp.size())
                 {
                     termList.clear();
                     x = 0;
@@ -128,9 +128,9 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 100;
+            int termNumber = 4096;
             //build word;
-            srand( (unsigned int)time(0) );
+            srand(0);
             for (int i = 0; i < termNumber; ++i)
             {
                 int wordlen = rand()%5 + 2;
@@ -184,7 +184,7 @@ namespace Zambezi
                 lastDocid += DefullNum;
             }
             if (number != 0)
-            {  
+            {
                 prepareBigDocument(docTermMap, number, lastDocid);
                 buildIndex(docTermMap);
             }
@@ -210,7 +210,7 @@ namespace Zambezi
                 std::vector<uint32_t> score_list;
                 score_list.resize(i->second.size(), 1);
                 index_->insertDoc(i->first, i->second, score_list);
-                if (count%1000000 == 0)
+                if (count % 100000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
                 }
@@ -232,20 +232,20 @@ namespace Zambezi
                 score_list);
         }
 
-        void saveIndex()
+        void saveIndex(const std::string& path)
         {
             fstream fileIndex;
-            fileIndex.open(indexPath_.c_str(), ios::binary|ios::out);
+            fileIndex.open(path.c_str(), ios::binary|ios::out);
             index_->save(fileIndex);
         }
-        void loadIndex()
+        void loadIndex(const std::string& path)
         {
             fstream fileIndex;
-            fileIndex.open(indexPath_.c_str(), ios::binary|ios::in);
+            fileIndex.open(path.c_str(), ios::binary|ios::in);
 
             if (fileIndex.is_open())
             {
-                index_->load(fileIndex);    
+                index_->load(fileIndex);
             }
         }
 
@@ -260,8 +260,7 @@ namespace Zambezi
         }
 
     private:
-        NewInvertedIndex* index_;
-        std::string indexPath_;
+        AttrScoreInvertedIndex* index_;
         std::vector<std::string> wordlist_;
     };
 }

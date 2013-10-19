@@ -646,8 +646,9 @@ protected:
         {
             //boost::mutex::scoped_lock lock(mutex_);
             //if (p_!=NULL && *(ReferT*)p_ > 0)
-            __gnu_cxx::__atomic_add((ReferT*)p_, -1);//  (*(ReferT*)p_)--;
-            if (*(ReferT*)p_== 0)
+            //__gnu_cxx::__atomic_add((ReferT*)p_, -1);//  (*(ReferT*)p_)--;
+            //if (*(ReferT*)p_== 0)
+            if (__sync_add_and_fetch((ReferT*)p_, -1) <= 0)
             {
                 //std::cout<<"free me!\n";
                 HLmemory::hlfree(p_);
@@ -871,6 +872,8 @@ public:
      **/
     inline SelfT& operator= ( const SelfT& str )
     {
+        if (p_ == str.p_)
+            return *this;
         return this->assign(str);
     }
 

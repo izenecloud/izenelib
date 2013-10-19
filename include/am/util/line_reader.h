@@ -99,7 +99,7 @@ class LineReader
             IASSERT(prev_line < mem_+bytes_);
 
             prev_line++;
-            if (*prev_line  == 0 || prev_line >= mem_+bytes_)
+            if (prev_line >= mem_+bytes_ || *prev_line  == 0)
             {
                 if(next_block_())return mem_;
                 return NULL;

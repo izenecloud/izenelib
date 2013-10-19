@@ -1,5 +1,5 @@
 /**
- * This is code is released under the
+ * This code is released under the
  * Apache License Version 2.0 http://www.apache.org/licenses/.
  */
 /**
@@ -16,7 +16,7 @@
  * with minor modifications by D. Lemire.
  */
 #ifndef __SSSE3__
-#pragma message "Disabling varintg8iu due to lack of SSSE3 support, try adding -mssse3"
+#pragma message "Disabling varintg8iu due to lack of SSSE3 support, try adding -mssse3 or the equivalent on your compiler"
 #else
 #ifndef VARINTG8IU_H__
 #define VARINTG8IU_H__
@@ -29,7 +29,7 @@
 #define PREDICT_FALSE(x) x
 #define PREDICT_TRUE(x) x
 #endif
-typedef char v16qi __attribute__ ((vector_size (16)));
+//typedef char v16qi __attribute__ ((vector_size (16)));
 
 class VarIntG8IU: public IntegerCODEC
 {
@@ -70,7 +70,7 @@ public:
                 {
                     if (n < ithSize[i])
                     {
-                        mask[desc][k] = j;
+                        mask[desc][k] = static_cast<unsigned char>(j);
                         j = j + 1;
                     }
                     else
@@ -100,7 +100,7 @@ public:
             compressed_size += encodeBlock(src, srclength, dst, nvalue);
         }
         //Ouput might not be a multiple of 4 so we make it so
-        nvalue = (compressed_size / 4) + (compressed_size % 4 && 1);
+        nvalue = ((compressed_size + 3 )/ 4);
     }
 
     const uint32_t * decodeArray(const uint32_t *in,
@@ -154,9 +154,9 @@ public:
             }
 
             //flip the correct bit in desc
-            bitmask = bitmask << (byteNeeded - 1);
+            bitmask = static_cast<unsigned char>(bitmask << (byteNeeded - 1));
             desc = desc ^ bitmask;
-            bitmask = bitmask << 1;
+            bitmask = static_cast<unsigned char>(bitmask << 1);
 
             ithSize[numInt] = byteNeeded;
             length += byteNeeded;
@@ -175,7 +175,7 @@ public:
             uint32_t value = buffer[i];
             for (int j = 0; j < size; j++)
             {
-                dest[written] = value >> (j * 8);
+                dest[written] = static_cast<unsigned char>(value >> (j * 8));
                 written++;
             }
         }
@@ -198,32 +198,32 @@ public:
         srclength -= 1;
 
         const unsigned char* peek = src;
-        v16qi data;
+        __m128i data;//v16qi data;
         if (PREDICT_TRUE(srclength >= 16))
         {
             // read 16 byte of data only if we need
             // to avoid cache miss
-            data = __builtin_ia32_lddqu(reinterpret_cast<const char*> (peek));
+            data = _mm_lddqu_si128 (reinterpret_cast<__m128i const* > (peek)) ;//__builtin_ia32_lddqu(reinterpret_cast<const char*> (peek));
         }
         else
         {
             static char buff[16];
             memcpy(buff, peek, 8);
-            data = __builtin_ia32_lddqu(buff);
+            data = _mm_lddqu_si128 (reinterpret_cast<__m128i const*> (buff)) ;//__builtin_ia32_lddqu(buff);
         }
 
         // load de required mask
-        v16qi shf = __builtin_ia32_lddqu(mask[desc]);
-        v16qi result = __builtin_ia32_pshufb128(data, shf);
+        __m128i shf = _mm_lddqu_si128 (reinterpret_cast<__m128i const*> (mask[desc])) ;//__builtin_ia32_lddqu(mask[desc]);
+        __m128i result =  _mm_shuffle_epi8 (data, shf);//__builtin_ia32_pshufb128(data, shf);
         char* dst = reinterpret_cast<char*> (dest);
-        __builtin_ia32_storedqu(dst, result);
+        _mm_storeu_si128(reinterpret_cast<__m128i*> (dst), result);//__builtin_ia32_storedqu(dst, result);
         int readSize = maskOutputSize[desc];
 
         if (PREDICT_TRUE( readSize >= 4))
         {
-            v16qi shf2 = __builtin_ia32_lddqu(mask[desc] + 16);
-            v16qi result2 = __builtin_ia32_pshufb128(data, shf2);
-            __builtin_ia32_storedqu(dst + (16), result2);
+            __m128i shf2 = _mm_lddqu_si128 (reinterpret_cast<__m128i const*> (mask[desc] + 16));//__builtin_ia32_lddqu(mask[desc] + 16);
+            __m128i result2 = _mm_shuffle_epi8 (data, shf2);//__builtin_ia32_pshufb128(data, shf2);
+            _mm_storeu_si128(reinterpret_cast<__m128i *> (dst + (16)), result2);//__builtin_ia32_storedqu(dst + (16), result2);
         }
         // pop 8 input char
         src += 8;

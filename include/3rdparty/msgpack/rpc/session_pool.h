@@ -38,10 +38,10 @@ public:
 
 	~session_pool();
 
-	session get_session(const address& addr);
+	session get_session(const address& addr, unsigned int tm = 20);
 
-	session get_session(const std::string& host, uint16_t port)
-		{ return get_session(ip_address(host, port)); }
+	session get_session(const std::string& host, uint16_t port, unsigned int tm = 20)
+		{ return get_session(ip_address(host, port), tm); }
 
 	const loop& get_loop() const;
 	loop get_loop();

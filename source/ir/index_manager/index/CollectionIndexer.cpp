@@ -69,7 +69,7 @@ void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool
     if (!realtime)
     {
         size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
-        assert(!fieldIndexerMap_.empty());
+        //assert(!fieldIndexerMap_.empty());
         size_t indexedProperties = fieldIndexerMap_.size();
         if (indexedProperties == 0)
         {

@@ -6,6 +6,8 @@
 *.swp
 *.swo
 .svn
+.hg
+.hgignore
 tags
 TAGS
 dump

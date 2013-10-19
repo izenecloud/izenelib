@@ -58,7 +58,7 @@ session_pool_impl::session_pool_impl(const builder& b, loop lo) :
 
 session_pool_impl::~session_pool_impl() { }
 
-session session_pool_impl::get_session(const address& addr)
+session session_pool_impl::get_session(const address& addr, unsigned int tm)
 {
 	table_ref ref(m_table);
 
@@ -68,7 +68,7 @@ session session_pool_impl::get_session(const address& addr)
 		return session(found->second.session);
 	}
 
-	shared_session s(session_impl::create(*m_builder, addr, m_loop));
+	shared_session s(session_impl::create(*m_builder, addr, m_loop, tm));
 	ref->insert( table_t::value_type(addr, entry_t(s, SESSION_POOL_TIME_LIMIT)) );
 
 	return session(s);
@@ -126,8 +126,8 @@ session_pool::session_pool(shared_session_pool pimpl) :
 
 session_pool::~session_pool() { }
 
-session session_pool::get_session(const address& addr)
-	{ return m_pimpl->get_session(addr); }
+session session_pool::get_session(const address& addr, unsigned int tm)
+	{ return m_pimpl->get_session(addr, tm); }
 
 const loop& session_pool::get_loop() const
 	{ return const_cast<const session_pool_impl*>(m_pimpl.get())->get_loop(); }

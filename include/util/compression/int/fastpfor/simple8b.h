@@ -36,7 +36,7 @@ public:
     {
         if (log1 >= 32)
             return true;
-        const uint32_t min = (len < num1) ? len : num1;
+        const uint32_t min = (static_cast<uint32_t>(len) < num1) ? static_cast<uint32_t>(len) : num1;
         for (uint32_t i = 0; i < min; i++)
         {
             if (n[i] >= (1U << (log1 % 32)))
@@ -70,7 +70,7 @@ public:
 
     static uint32_t which(const uint64_t * const in)
     {
-        return (*in) >> (64 - SIMPLE8B_LOGDESC);
+        return static_cast<uint32_t>((*in) >> (64 - SIMPLE8B_LOGDESC));
     }
     void encodeArray(const uint32_t *in, const size_t length, uint32_t *out,
                      size_t &nvalue);
@@ -97,8 +97,8 @@ public:
     {
         if (log1 < 32)
         {
-            uint32_t actuallog1 = log1 < 32 ? log1 : 31;// bogus to silence compiler warnings
-            uint32_t mask = ((static_cast<uint32_t> (1) << actuallog1) - 1);
+            const uint32_t actuallog1 = log1 < 32 ? log1 : 31;// bogus to silence compiler warnings
+            const uint32_t mask = ((static_cast<uint32_t> (1) << actuallog1) - 1);
             for (uint32_t k = 0; k < num1; ++k)
             {
                 *(out++) = static_cast<uint32_t> (in[0] >> (64
@@ -121,8 +121,8 @@ public:
     {
         if (log1 < 32)
         {
-            uint32_t actuallog1 = log1 < 32 ? log1 : 31;// bogus to silence compiler warnings
-            uint32_t mask = ((static_cast<uint32_t> (1) << actuallog1) - 1);
+            const uint32_t actuallog1 = log1 < 32 ? log1 : 31;// bogus to silence compiler warnings
+            const uint32_t mask = ((static_cast<uint32_t> (1) << actuallog1) - 1);
             for (uint32_t k = 0; k < num1; ++k)
             {
                 *(out++) = static_cast<uint32_t> (in[0] >> (64
@@ -156,7 +156,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
     const uint32_t * const initout(out);
     if (MarkLength)
     {
-        *out = length ;
+        *out = static_cast<uint32_t>(length) ;
         ++out;
     }
     // this may lead to unaligned access. Performance may be affected.
@@ -283,7 +283,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (trymefull<5, 12> (in))
         {
             out64[0] = 11;
-            NumberOfValuesCoded = (ValuesRemaining < 5) ? ValuesRemaining : 5;
+            NumberOfValuesCoded = (ValuesRemaining < 5) ? static_cast<uint32_t>(ValuesRemaining) : 5;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 12);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 12 * NumberOfValuesCoded;
@@ -343,7 +343,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
     {
         if (tryme<240, 0> (in, ValuesRemaining))
         {
-            NumberOfValuesCoded = (ValuesRemaining < 240) ? ValuesRemaining
+            NumberOfValuesCoded = (ValuesRemaining < 240) ? static_cast<uint32_t>(ValuesRemaining)
                                   : 240;
             out64[0] = 0;
             in += NumberOfValuesCoded;
@@ -352,7 +352,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         }
         else if (tryme<120, 0> (in, ValuesRemaining))
         {
-            NumberOfValuesCoded = (ValuesRemaining < 120) ? ValuesRemaining
+            NumberOfValuesCoded = (ValuesRemaining < 120) ? static_cast<uint32_t>(ValuesRemaining)
                                   : 120;
             out64[0] = 1ULL << (64 - SIMPLE8B_LOGDESC);
             in += NumberOfValuesCoded;
@@ -362,7 +362,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<60, 1> (in, ValuesRemaining))
         {
             out64[0] = 2;
-            NumberOfValuesCoded = (ValuesRemaining < 60) ? ValuesRemaining : 60;
+            NumberOfValuesCoded = (ValuesRemaining < 60) ? static_cast<uint32_t>(ValuesRemaining) : 60;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
             {
                 bit_writer(out64, *in++, 1);
@@ -374,7 +374,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<30, 2> (in, ValuesRemaining))
         {
             out64[0] = 3;
-            NumberOfValuesCoded = (ValuesRemaining < 30) ? ValuesRemaining : 30;
+            NumberOfValuesCoded = (ValuesRemaining < 30) ? static_cast<uint32_t>(ValuesRemaining) : 30;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 2);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 2 * NumberOfValuesCoded;
@@ -384,7 +384,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<20, 3> (in, ValuesRemaining))
         {
             out64[0] = 4;
-            NumberOfValuesCoded = (ValuesRemaining < 20) ? ValuesRemaining : 20;
+            NumberOfValuesCoded = (ValuesRemaining < 20) ? static_cast<uint32_t>(ValuesRemaining) : 20;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 3);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 3 * NumberOfValuesCoded;
@@ -394,7 +394,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<15, 4> (in, ValuesRemaining))
         {
             out64[0] = 5;
-            NumberOfValuesCoded = (ValuesRemaining < 15) ? ValuesRemaining : 15;
+            NumberOfValuesCoded = (ValuesRemaining < 15) ? static_cast<uint32_t>(ValuesRemaining) : 15;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 4);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 4 * NumberOfValuesCoded;
@@ -404,7 +404,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<12, 5> (in, ValuesRemaining))
         {
             out64[0] = 6;
-            NumberOfValuesCoded = (ValuesRemaining < 12) ? ValuesRemaining : 12;
+            NumberOfValuesCoded = (ValuesRemaining < 12) ? static_cast<uint32_t>(ValuesRemaining) : 12;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 5);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 5 * NumberOfValuesCoded;
@@ -414,7 +414,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<10, 6> (in, ValuesRemaining))
         {
             out64[0] = 7;
-            NumberOfValuesCoded = (ValuesRemaining < 10) ? ValuesRemaining : 10;
+            NumberOfValuesCoded = (ValuesRemaining < 10) ? static_cast<uint32_t>(ValuesRemaining) : 10;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 6);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 6 * NumberOfValuesCoded;
@@ -424,7 +424,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<8, 7> (in, ValuesRemaining))
         {
             out64[0] = 8;
-            NumberOfValuesCoded = (ValuesRemaining < 8) ? ValuesRemaining : 8;
+            NumberOfValuesCoded = (ValuesRemaining < 8) ? static_cast<uint32_t>(ValuesRemaining) : 8;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 7);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 7 * NumberOfValuesCoded;
@@ -434,7 +434,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<7, 8> (in, ValuesRemaining))
         {
             out64[0] = 9;
-            NumberOfValuesCoded = (ValuesRemaining < 7) ? ValuesRemaining : 7;
+            NumberOfValuesCoded = (ValuesRemaining < 7) ? static_cast<uint32_t>(ValuesRemaining) : 7;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 8);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 8 * NumberOfValuesCoded;
@@ -444,7 +444,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<6, 10> (in, ValuesRemaining))
         {
             out64[0] = 10;
-            NumberOfValuesCoded = (ValuesRemaining < 6) ? ValuesRemaining : 6;
+            NumberOfValuesCoded = (ValuesRemaining < 6) ? static_cast<uint32_t>(ValuesRemaining) : 6;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 10);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 10 * NumberOfValuesCoded;
@@ -454,7 +454,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<5, 12> (in, ValuesRemaining))
         {
             out64[0] = 11;
-            NumberOfValuesCoded = (ValuesRemaining < 5) ? ValuesRemaining : 5;
+            NumberOfValuesCoded = (ValuesRemaining < 5) ? static_cast<uint32_t>(ValuesRemaining) : 5;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 12);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 12 * NumberOfValuesCoded;
@@ -464,7 +464,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<4, 15> (in, ValuesRemaining))
         {
             out64[0] = 12;
-            NumberOfValuesCoded = (ValuesRemaining < 4) ? ValuesRemaining : 4;
+            NumberOfValuesCoded = (ValuesRemaining < 4) ? static_cast<uint32_t>(ValuesRemaining) : 4;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 15);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 15 * NumberOfValuesCoded;
@@ -474,7 +474,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<3, 20> (in, ValuesRemaining))
         {
             out64[0] = 13;
-            NumberOfValuesCoded = (ValuesRemaining < 3) ? ValuesRemaining : 3;
+            NumberOfValuesCoded = (ValuesRemaining < 3) ? static_cast<uint32_t>(ValuesRemaining) : 3;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 20);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 20 * NumberOfValuesCoded;
@@ -484,7 +484,7 @@ void Simple8b<MarkLength>::encodeArray(const uint32_t *in, const size_t length,
         else if (tryme<2, 30> (in, ValuesRemaining))
         {
             out64[0] = 14;
-            NumberOfValuesCoded = (ValuesRemaining < 2) ? ValuesRemaining : 2;
+            NumberOfValuesCoded = (ValuesRemaining < 2) ? static_cast<uint32_t>(ValuesRemaining) : 2;
             for (uint32_t i = 0; i < NumberOfValuesCoded; i++)
                 bit_writer(out64, *in++, 30);
             out64[0] <<= 64 - SIMPLE8B_LOGDESC - 30 * NumberOfValuesCoded;
@@ -695,49 +695,49 @@ const uint32_t * Simple8b<MarkLength>::decodeArray(const uint32_t *in,
         switch (which(in64))
         {
         case 0:
-            carefulunpack<0> (min(end - out, 240), out, in64);
+            carefulunpack<0> (min(static_cast<uint32_t>(end - out), 240), out, in64);
             break;
         case 1:
-            carefulunpack<0> (min(end - out, 120), out, in64);
+            carefulunpack<0> (min(static_cast<uint32_t>(end - out), 120), out, in64);
             break;
         case 2:
-            carefulunpack<1> (min(end - out, 60), out, in64);
+            carefulunpack<1> (min(static_cast<uint32_t>(end - out), 60), out, in64);
             break;
         case 3:
-            carefulunpack<2> (min(end - out, 30), out, in64);
+            carefulunpack<2> (min(static_cast<uint32_t>(end - out), 30), out, in64);
             break;
         case 4:
-            carefulunpack<3> (min(end - out, 20), out, in64);
+            carefulunpack<3> (min(static_cast<uint32_t>(end - out), 20), out, in64);
             break;
         case 5:
-            carefulunpack<4> (min(end - out, 15), out, in64);
+            carefulunpack<4> (min(static_cast<uint32_t>(end - out), 15), out, in64);
             break;
         case 6:
-            carefulunpack<5> (min(end - out, 12), out, in64);
+            carefulunpack<5> (min(static_cast<uint32_t>(end - out), 12), out, in64);
             break;
         case 7:
-            carefulunpack<6> (min(end - out, 10), out, in64);
+            carefulunpack<6> (min(static_cast<uint32_t>(end - out), 10), out, in64);
             break;
         case 8:
-            carefulunpack<7> (min(end - out, 8), out, in64);
+            carefulunpack<7> (min(static_cast<uint32_t>(end - out), 8), out, in64);
             break;
         case 9:
-            carefulunpack<8> (min(end - out, 7), out, in64);
+            carefulunpack<8> (min(static_cast<uint32_t>(end - out), 7), out, in64);
             break;
         case 10:
-            carefulunpack<10> (min(end - out, 6), out, in64);
+            carefulunpack<10> (min(static_cast<uint32_t>(end - out), 6), out, in64);
             break;
         case 11:
-            carefulunpack<12> (min(end - out, 5), out, in64);
+            carefulunpack<12> (min(static_cast<uint32_t>(end - out), 5), out, in64);
             break;
         case 12:
-            carefulunpack<15> (min(end - out, 4), out, in64);
+            carefulunpack<15> (min(static_cast<uint32_t>(end - out), 4), out, in64);
             break;
         case 13:
-            carefulunpack<20> (min(end - out, 3), out, in64);
+            carefulunpack<20> (min(static_cast<uint32_t>(end - out), 3), out, in64);
             break;
         case 14:
-            carefulunpack<30> (min(end - out, 2), out, in64);
+            carefulunpack<30> (min(static_cast<uint32_t>(end - out), 2), out, in64);
             break;
         case 15:
             carefulunpack<60> (1, out, in64);
@@ -754,7 +754,7 @@ const uint32_t * Simple8b<MarkLength>::decodeArray(const uint32_t *in,
         cout << "simple8b stats[" << k << "]=" << stats[k]*1.0/sum << endl;
     }
 #endif
-    assert(in64 <= finalin64);
+    IASSERT(in64 <= finalin64);
     in = reinterpret_cast<const uint32_t *> (in64);
     assert(in <= endin);
     //check that we don't overrun the buffer too much?

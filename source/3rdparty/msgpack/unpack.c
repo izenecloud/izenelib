@@ -368,27 +368,27 @@ void msgpack_unpacker_reset(msgpack_unpacker* mpac)
 	mpac->parsed = 0;
 }
 
-bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* result)
-{
-	if(result->zone != NULL) {
-		msgpack_zone_free(result->zone);
-	}
-
-	int ret = msgpack_unpacker_execute(mpac);
-
-	if(ret <= 0) {
-		result->zone = NULL;
-		memset(&result->data, 0, sizeof(msgpack_object));
-		return false;
-	}
-
-	result->zone = msgpack_unpacker_release_zone(mpac);
-	result->data = msgpack_unpacker_data(mpac);
-	msgpack_unpacker_reset(mpac);
-
-	return true;
-}
-
+//bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* result)
+//{
+//	if(result->zone != NULL) {
+//		msgpack_zone_free(result->zone);
+//	}
+//
+//	int ret = msgpack_unpacker_execute(mpac);
+//
+//	if(ret <= 0) {
+//		result->zone = NULL;
+//		memset(&result->data, 0, sizeof(msgpack_object));
+//		return false;
+//	}
+//
+//	result->zone = msgpack_unpacker_release_zone(mpac);
+//	result->data = msgpack_unpacker_data(mpac);
+//	msgpack_unpacker_reset(mpac);
+//
+//	return true;
+//}
+//
 
 msgpack_unpack_return
 msgpack_unpack(const char* data, size_t len, size_t* off,
@@ -428,37 +428,37 @@ msgpack_unpack(const char* data, size_t len, size_t* off,
 	return MSGPACK_UNPACK_SUCCESS;
 }
 
-bool msgpack_unpack_next(msgpack_unpacked* result,
-		const char* data, size_t len, size_t* off)
-{
-	msgpack_unpacked_destroy(result);
-
-	size_t noff = 0;
-	if(off != NULL) { noff = *off; }
-
-	if(len <= noff) {
-		return false;
-	}
-
-	msgpack_zone* z = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
-
-	template_context ctx;
-	template_init(&ctx);
-
-	ctx.user.z = z;
-	ctx.user.referenced = false;
-
-	int e = template_execute(&ctx, data, len, &noff);
-	if(e <= 0) {
-		msgpack_zone_free(z);
-		return false;
-	}
-
-	if(off != NULL) { *off = noff; }
-
-	result->zone = z;
-	result->data = template_data(&ctx);
-
-	return true;
-}
+//bool msgpack_unpack_next(msgpack_unpacked* result,
+//		const char* data, size_t len, size_t* off)
+//{
+//	msgpack_unpacked_destroy(result);
+//
+//	size_t noff = 0;
+//	if(off != NULL) { noff = *off; }
+//
+//	if(len <= noff) {
+//		return false;
+//	}
+//
+//	msgpack_zone* z = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
+//
+//	template_context ctx;
+//	template_init(&ctx);
+//
+//	ctx.user.z = z;
+//	ctx.user.referenced = false;
+//
+//	int e = template_execute(&ctx, data, len, &noff);
+//	if(e <= 0) {
+//		msgpack_zone_free(z);
+//		return false;
+//	}
+//
+//	if(off != NULL) { *off = noff; }
+//
+//	result->zone = z;
+//	result->data = template_data(&ctx);
+//
+//	return true;
+//}
 

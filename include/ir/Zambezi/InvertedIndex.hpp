@@ -36,9 +36,9 @@ class InvertedIndex
 public:
     InvertedIndex(
             IndexType type = NON_POSITIONAL,
-            bool reverse = false,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
+            bool reverse = true,
             bool bloomEnabled = true,
             uint32_t nbHash = 3,
             uint32_t bitsPerElement = 8);
@@ -64,7 +64,7 @@ private:
     IndexType type_;
     BufferMaps buffer_;
     SegmentPool pool_;
-    Dictionary dictionary_;
+    Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
     FastPFor codec_;

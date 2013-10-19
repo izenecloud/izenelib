@@ -29,8 +29,8 @@ SET(t_index_SRC
   t_master_suite.cpp
 )
 
-SET(t_new_index_SRC
-  t_new_inverted_index.cpp
+SET(t_attr_score_index_SRC
+  t_attr_score_inverted_index.cpp
   t_master_suite.cpp
 )
 
@@ -39,8 +39,8 @@ ADD_EXECUTABLE(t_ZambeziSearch ${t_index_SRC})
 TARGET_LINK_LIBRARIES(t_ZambeziSearch ${libs})
 
 
-ADD_EXECUTABLE(t_newZambeziSearch ${t_new_index_SRC})
+ADD_EXECUTABLE(t_AttrScoreZambeziSearch ${t_attr_score_index_SRC})
 
-TARGET_LINK_LIBRARIES(t_newZambeziSearch ${libs})
+TARGET_LINK_LIBRARIES(t_AttrScoreZambeziSearch ${libs})
 
 ENDIF(Boost_FOUND)

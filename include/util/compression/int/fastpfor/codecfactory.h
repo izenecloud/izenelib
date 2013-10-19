@@ -9,7 +9,7 @@
 #define CODECFACTORY_H_
 
 #include "common.h"
-#include "codecs.h" 
+#include "codecs.h"
 #include "util.h"
 #include "fastpfor.h"
 #include "simdfastpfor.h"

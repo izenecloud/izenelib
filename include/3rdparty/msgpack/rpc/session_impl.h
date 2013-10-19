@@ -30,12 +30,12 @@ namespace rpc {
 
 class session_impl : public mp::enable_shared_from_this<session_impl> {
 public:
-	static shared_session create(const builder& b, const address addr, loop lo);
+	static shared_session create(const builder& b, const address addr, loop lo, unsigned int tm);
 
 	~session_impl();
 
 private:
-	session_impl(const address& addr, loop lo);
+	session_impl(const address& addr, loop lo, unsigned int tm);
 	void build(const builder& b);
 
 public:
@@ -54,8 +54,8 @@ public:
 	const loop& get_loop_ref() const
 		{ return m_loop; }
 
-	void set_timeout(unsigned int sec)
-		{ m_timeout = sec; }
+	//void set_timeout(unsigned int sec)
+	//	{ m_timeout = sec; }
 
 	unsigned int get_timeout() const
 		{ return m_timeout; }

@@ -26,19 +26,19 @@ namespace msgpack {
 namespace rpc {
 
 
-typedef mp::shared_ptr<zone> shared_zone;
+typedef mp::shared_ptr<msgpack_zone> shared_zone;
 
 class shared_zone_helper
 {
 public:
     static shared_zone create_shared_zone()
     {
-        shared_zone p(static_cast<msgpack::zone*>(msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE)), &msgpack_zone_free);
+        shared_zone p(msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE), &msgpack_zone_free);
         return p;
     }
     static void reset_shared_zone(shared_zone& orig, msgpack_zone* data)
     {
-        orig.reset(static_cast<msgpack::zone*>(data), &msgpack_zone_free);
+        orig.reset(data, &msgpack_zone_free);
     }
     static void reset_shared_zone(shared_zone& orig, zone* data)
     {

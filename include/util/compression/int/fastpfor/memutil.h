@@ -1,5 +1,5 @@
 /**
- * This is code is released under the
+ * This code is released under the
  * Apache License Version 2.0 http://www.apache.org/licenses/.
  *
  * (c) Daniel Lemire, http://lemire.me/en/
@@ -17,6 +17,8 @@ T * moveToBoundary(T * inbyte)
     return reinterpret_cast<T *> ((reinterpret_cast<uintptr_t> (inbyte)
                                    + (alignment - 1)) & ~(alignment - 1));
 }
+
+
 
 // use this when calling STL object if you want
 // their memory to be aligned on cache lines
@@ -81,7 +83,7 @@ public:
          * some kind of data structure like a hash table, which might be slow.
          */
         size_t * buffer = reinterpret_cast<size_t *> (::operator new(
-                              sizeof(uintptr_t) + num * sizeof(T) + alignment));
+                              sizeof(uintptr_t) + (num + alignment) * sizeof(T)));
         size_t * answer = moveToBoundary<size_t, alignment> (buffer + 1);
         *(answer - 1) = reinterpret_cast<uintptr_t> (answer) - reinterpret_cast<uintptr_t> (buffer);
         return reinterpret_cast<pointer> (answer);

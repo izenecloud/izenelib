@@ -18,8 +18,15 @@
  *
  *
  * Designed by D. Lemire. This scheme is NOT patented.
+ *
+ * Reference and documentation:
+ *
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * Software: Practice & Experience
+ * http://arxiv.org/abs/1209.2137
+ * http://onlinelibrary.wiley.com/doi/10.1002/spe.2203/abstract
+ *
  */
-
 class FastPFor: public IntegerCODEC
 {
 public:
@@ -53,15 +60,6 @@ public:
         }
     }
 
-    // sometimes, mem. usage can grow too much, this clears it up
-    void describeBuffer()
-    {
-        for (size_t i = 0; i < datatobepacked.size(); ++i)
-        {
-            cout << "i = " << i << " " << datatobepacked[i].capacity() * 1.0
-                 / PageSize << endl;
-        }
-    }
     const uint32_t PageSize;
     const uint32_t bitsPageSize;
 
@@ -106,7 +104,7 @@ public:
         //const uint32_t * const initout(out);
         const uint32_t * const finalin(in + length);
 
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         const size_t oldnvalue = nvalue;
         nvalue = 1;
         while (in != finalin)
@@ -143,7 +141,7 @@ public:
         maxb = bestb;
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
-        bestcexcept = cexcept;
+        bestcexcept = static_cast<uint8_t>(cexcept);
         for (uint32_t b = bestb - 1; b < 32; --b)
         {
             cexcept += freqs[b + 1];
@@ -152,8 +150,8 @@ public:
             if (thiscost < bestcost)
             {
                 bestcost = thiscost;
-                bestb = b;
-                bestcexcept = cexcept;
+                bestb = static_cast<uint8_t>(b);
+                bestcexcept = static_cast<uint8_t>(cexcept);
             }
         }
     }
@@ -186,14 +184,14 @@ public:
                     {
                         // we have an exception
                         thisexceptioncontainer.push_back(in[k] >> bestb);
-                        *bc++ = k;
+                        *bc++ = static_cast<uint8_t>(k);
                     }
                 }
             }
             out = packblockup<BlockSize>(in, out, bestb);
         }
         headerout[0] = static_cast<uint32_t> (out - headerout);
-        const uint32_t bytescontainersize = bc - &bytescontainer[0];
+        const uint32_t bytescontainersize = static_cast<uint32_t>(bc - &bytescontainer[0]);
         *(out++) = bytescontainersize;
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)
@@ -208,7 +206,7 @@ public:
         for (uint32_t k = 1; k <= 32; ++k)
         {
             if (datatobepacked[k].size() > 0)
-                out = packmeupwithoutmask(datatobepacked[k], out, k);
+                out = packingvector<32>::packmeupwithoutmask(datatobepacked[k], out, k);
         }
         nvalue = out - initout;
     }
@@ -228,7 +226,7 @@ public:
         {
             if ((bitmap & (1U << (k - 1))) != 0)
             {
-                inexcept = unpackme(inexcept, datatobepacked[k], k);
+                inexcept = packingvector<32>::unpackme(inexcept, datatobepacked[k], k);
             }
         }
         length = inexcept - initin;
@@ -272,7 +270,18 @@ public:
 
 
 
-
+/**
+ * SimplePFor
+ *
+ *
+ * Designed by D. Lemire. This scheme is NOT patented.
+ *
+ * Reference and documentation:
+ *
+ * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization
+ * http://arxiv.org/abs/1209.2137
+ *
+ */
 template <class EXCEPTIONCODER=Simple8b<true> >
 class SimplePFor: public IntegerCODEC
 {
@@ -343,7 +352,7 @@ public:
         const uint32_t * const initout(out);
         const uint32_t * const finalin(in + length);
 
-        *out++ = length;
+        *out++ = static_cast<uint32_t>(length);
         const size_t oldnvalue = nvalue;
         nvalue = 1;
         while (in != finalin)
@@ -379,7 +388,7 @@ public:
         maxb = bestb;
         uint32_t bestcost = bestb * BlockSize;
         uint32_t cexcept = 0;
-        bestcexcept = cexcept;
+        bestcexcept = static_cast<uint8_t>(cexcept);
         for (uint32_t b = bestb - 1; b < 32; --b)
         {
             cexcept += freqs[b + 1];
@@ -388,8 +397,8 @@ public:
             if (thiscost < bestcost)
             {
                 bestcost = thiscost;
-                bestb = b;
-                bestcexcept = cexcept;
+                bestb = static_cast<uint8_t>(b);
+                bestcexcept = static_cast<uint8_t>(cexcept);
             }
         }
     }
@@ -417,21 +426,21 @@ public:
                     if (in[k] >= maxval)
                     {
                         datatobepacked.push_back(in[k] >> bestb);
-                        *bc++ = k;
+                        *bc++ = static_cast<uint8_t>(k);
                     }
                 }
             }
             out = packblockup<BlockSize>(in, out, bestb);
         }
         headerout[0] = static_cast<uint32_t> (out - headerout);
-        const uint32_t bytescontainersize = bc - &bytescontainer[0];
+        const uint32_t bytescontainersize = static_cast<uint32_t>(bc - &bytescontainer[0]);
         *(out++) = bytescontainersize;
         memcpy(out, &bytescontainer[0], bytescontainersize);
         out += (bytescontainersize + sizeof(uint32_t) - 1)
                / sizeof(uint32_t);
-        size_t outcap = 10000;
-        ecoder.encodeArray(&datatobepacked[0],datatobepacked.size(),out,outcap);
-        out+=outcap;
+        size_t outcap = 0;
+        ecoder.encodeArray(datatobepacked.data(),datatobepacked.size(),out,outcap);
+        out += outcap;
         nvalue = out - initout;
     }
 
@@ -445,7 +454,8 @@ public:
         const uint32_t bytesize = *inexcept++;
         const uint8_t * bytep = reinterpret_cast<const uint8_t *> (inexcept);
         inexcept += (bytesize + sizeof(uint32_t) - 1) / sizeof(uint32_t);
-        size_t cap = datatobepacked.capacity();// theoretically unsafe
+        datatobepacked.resize(datatobepacked.capacity());
+        size_t cap = datatobepacked.size();
         size_t le = initin+length - inexcept;
         inexcept = ecoder.decodeArray(inexcept, le,&datatobepacked[0],cap );
 
