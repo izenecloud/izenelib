@@ -143,7 +143,9 @@ private:
     uint32_t bitsPerElement_;
 
     FastPFor codec_;
-    uint32_t segment_[4096];
+
+    static const size_t BUFFER_SIZE = 4096;
+    uint32_t segment_[BUFFER_SIZE];
 };
 
 }

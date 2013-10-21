@@ -69,12 +69,12 @@ void AttrScoreInvertedIndex::insertDoc(
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
-        pointers_.cf_.increment(id);
         pointers_.df_.increment(id);
+        pointers_.cf_.increment(id);
         std::vector<uint32_t>& docBuffer = buffer_.docid_[id];
         std::vector<uint32_t>& scoreBuffer = buffer_.score_[id];
 
-        if (pointers_.df_.get(id) < DF_CUTOFF)
+        if (pointers_.df_.get(id) <= DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {

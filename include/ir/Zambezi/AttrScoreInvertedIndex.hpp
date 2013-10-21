@@ -132,7 +132,9 @@ private:
     Pointers pointers_;
 
     FastPFor codec_;
-    uint32_t segment_[1024];
+
+    static const size_t BUFFER_SIZE = 1024;
+    uint32_t segment_[BUFFER_SIZE];
 };
 
 }

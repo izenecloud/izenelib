@@ -148,7 +148,7 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
         }
 
         pointers_.df_.increment(id);
-        if (pointers_.df_.get(id) < DF_CUTOFF)
+        if (pointers_.df_.get(id) <= DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {
@@ -296,9 +296,10 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (bloomEnabled_)
     {
         filterSize = BloomFilter::computeLength(len, bitsPerElement_);
+        memset(&segment_[BUFFER_SIZE - filterSize], 0, filterSize * sizeof(uint32_t));
         for (uint32_t i = 0; i < len; ++i)
         {
-            BloomFilter::insert(&segment_[4096 - filterSize], filterSize, nbHash_, docBlock[i]);
+            BloomFilter::insert(&segment_[BUFFER_SIZE - filterSize], filterSize, nbHash_, docBlock[i]);
         }
     }
 
@@ -383,7 +384,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (bloomEnabled_)
     {
         segment_[reqspace] = filterSize;
-        memcpy(&segment_[reqspace + 1], &segment_[4096 - filterSize], filterSize * sizeof(uint32_t));
+        memcpy(&segment_[reqspace + 1], &segment_[BUFFER_SIZE - filterSize], filterSize * sizeof(uint32_t));
         reqspace += filterSize + 1;
     }
 
