@@ -347,6 +347,8 @@ public:
     {
     }
 
+    // interface addDNF:
+    // add a dnf which stands for an advertiser's targeting requirement.
     void addDNF(uint32_t dnfID, const DNF & dnf)
     {
         for (std::size_t i = 0; i != dnf.conjunctions.size(); ++i) {
@@ -360,7 +362,8 @@ public:
         ++numDNF;
     }
 
-    // may do merge.
+    // interface retrieve:
+    // read in a given assignment, and returns the valid dnf's.
     void retrieve(const std::vector<std::pair<std::string, std::string> > & assignment, boost::unordered_set<uint32_t> & dnfIDs)
     {
         std::vector<uint32_t> conjunctionIDs;
@@ -372,11 +375,15 @@ public:
         }
     }
 
+    // interface totalNumDNF:
+    // returns the total number of indexed dnf's.
     uint32_t totalNumDNF() const
     {
         return numDNF;
     }
 
+    // interface save:
+    // serialize the index in json text format.
     void save(std::ostream & os)
     {
         Json::FastWriter writer;
@@ -385,6 +392,8 @@ public:
         os << writer.write(root);
     }
 
+    // interface load:
+    // deserialize the index in json text format.
     void load(std::istream & is)
     {
         Json::Reader reader;
@@ -397,6 +406,57 @@ public:
         fromJson(root);
     }
 
+    // interface save_binary:
+    // serialize the index in binary format(for size consideration).
+    void save_binary(std::ostream & os)
+    {
+        conjIndex.save_binary(os);
+
+        serialize(index.size(), os);
+        for (boost::unordered_map<uint32_t, std::vector<uint32_t> >::iterator i = index.begin(); i != index.end(); ++i) {
+            serialize(i->first, os);
+
+            serialize(i->second.size(), os);
+            for (std::size_t j = 0; j != i->second.size(); ++j) {
+                serialize(i->second[j], os);
+            }
+        }
+
+        conjunctionMapper.save_binary(os);
+
+        serialize(numDNF, os);
+    }
+
+    // interface load_binary:
+    // deserialize the index in binary format(for size consideration).
+    void load_binary(std::istream & is)
+    {
+        conjIndex.load_binary(is);
+
+        index.clear();
+        std::size_t indexSize;
+        deserialize(is, indexSize);
+        for (std::size_t i = 0; i != indexSize; ++i) {
+            uint32_t conjunctionID;
+            deserialize(is, conjunctionID);
+
+            std::size_t dnfListSize;
+            deserialize(is, dnfListSize);
+            std::vector<uint32_t> dnfList(dnfListSize);
+            for (std::size_t j = 0; j != dnfListSize; ++j) {
+                deserialize(is, dnfList[j]);
+            }
+
+            index[conjunctionID] = dnfList;
+        }
+
+        conjunctionMapper.load_binary(is);
+
+        deserialize(is, numDNF);
+    }
+
+    // interface show:
+    // show the index in human readable format(mainly for debug purpose).
     void show()
     {
         conjIndex.show();
@@ -458,51 +518,6 @@ public:
         for (std::size_t i = 0; i != root.size(); ++i) {
             postingList.push_back(root[i].asUInt());
         }
-    }
-
-    void save_binary(std::ostream & os)
-    {
-        conjIndex.save_binary(os);
-
-        serialize(index.size(), os);
-        for (boost::unordered_map<uint32_t, std::vector<uint32_t> >::iterator i = index.begin(); i != index.end(); ++i) {
-            serialize(i->first, os);
-
-            serialize(i->second.size(), os);
-            for (std::size_t j = 0; j != i->second.size(); ++j) {
-                serialize(i->second[j], os);
-            }
-        }
-
-        conjunctionMapper.save_binary(os);
-
-        serialize(numDNF, os);
-    }
-
-    void load_binary(std::istream & is)
-    {
-        conjIndex.load_binary(is);
-
-        index.clear();
-        std::size_t indexSize;
-        deserialize(is, indexSize);
-        for (std::size_t i = 0; i != indexSize; ++i) {
-            uint32_t conjunctionID;
-            deserialize(is, conjunctionID);
-
-            std::size_t dnfListSize;
-            deserialize(is, dnfListSize);
-            std::vector<uint32_t> dnfList(dnfListSize);
-            for (std::size_t j = 0; j != dnfListSize; ++j) {
-                deserialize(is, dnfList[j]);
-            }
-
-            index[conjunctionID] = dnfList;
-        }
-
-        conjunctionMapper.load_binary(is);
-
-        deserialize(is, numDNF);
     }
 };
 
