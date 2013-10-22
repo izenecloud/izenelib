@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <3rdparty/json/json.h>
+#include "SimpleSerialization.hpp"
 
 namespace izenelib { namespace ir { namespace be_index {
 
@@ -63,6 +64,26 @@ public:
         valueMapper.resize(root.size());
         for (std::size_t i = 0; i != root.size(); ++i) {
             valueMapper[i].fromJson(root[i]);
+        }
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        attrMapper.save_binary(os);
+        serialize(valueMapper.size(), os);
+        for (std::size_t i = 0; i != valueMapper.size(); ++i) {
+            valueMapper[i].save_binary(os);
+        }
+    }
+
+    void load_binary(std::istream & is)
+    {
+        attrMapper.load_binary(is);
+        std::size_t size;
+        deserialize(is, size);
+        valueMapper.resize(size);
+        for (std::size_t i = 0; i != size; ++i) {
+            valueMapper[i].load_binary(is);
         }
     }
 

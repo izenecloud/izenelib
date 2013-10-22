@@ -77,8 +77,6 @@ BOOST_AUTO_TEST_CASE(do_search_reverse)
     std::cout << std::endl;
 
     std::cout << a.totalNumDNF() << std::endl;
-
-    a.save(std::cout);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
