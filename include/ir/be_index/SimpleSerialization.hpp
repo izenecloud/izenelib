@@ -1,0 +1,4 @@
+#ifndef SIMPLESERIALIZATION_H
+#define SIMPLESERIALIZATION_H
+
+#endif
