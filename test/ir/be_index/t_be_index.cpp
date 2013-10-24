@@ -77,6 +77,10 @@ BOOST_AUTO_TEST_CASE(do_search_reverse)
     std::cout << std::endl;
 
     std::cout << a.totalNumDNF() << std::endl;
+
+    DNFInvIndex b(a);
+
+    std::cout << b.totalNumDNF() << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
