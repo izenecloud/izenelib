@@ -3,6 +3,7 @@
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 
 #include <boost/tuple/tuple.hpp>
+#include <glog/logging.h>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -45,26 +46,50 @@ PositionalInvertedIndex::~PositionalInvertedIndex()
 
 void PositionalInvertedIndex::save(std::ostream& ostr) const
 {
+    LOG(INFO) << "Save: start....";
+
+    std::streamoff offset = ostr.tellp();
     buffer_.save(ostr);
+    LOG(INFO) << "Saved: buffer maps size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     pool_.save(ostr);
+    LOG(INFO) << "Saved: segment pools size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     dictionary_.save(ostr);
+    LOG(INFO) << "Saved: dictionary size " << ostr.tellp() - offset;
+    offset = ostr.tellp();
     pointers_.save(ostr);
+    LOG(INFO) << "Saved: head pointers size " << ostr.tellp() - offset;
 
     ostr.write((const char*)&bloomEnabled_, sizeof(bloomEnabled_));
     ostr.write((const char*)&nbHash_, sizeof(nbHash_));
     ostr.write((const char*)&bitsPerElement_, sizeof(bitsPerElement_));
+
+    LOG(INFO) << "Save: done!";
 }
 
 void PositionalInvertedIndex::load(std::istream& istr)
 {
+    LOG(INFO) << "Load: start....";
+
+    std::streamoff offset = istr.tellg();
     buffer_.load(istr);
+    LOG(INFO) << "Loaded: buffer maps size " << istr.tellg() - offset;
+    offset = istr.tellg();
     pool_.load(istr);
+    LOG(INFO) << "Loaded: segment pool size " << istr.tellg() - offset;
+    offset = istr.tellg();
     dictionary_.load(istr);
+    LOG(INFO) << "Loaded: dictionary size " << istr.tellg() - offset;
+    offset = istr.tellg();
     pointers_.load(istr);
+    LOG(INFO) << "Loaded: head pointers size " << istr.tellg() - offset;
 
     istr.read((char*)&bloomEnabled_, sizeof(bloomEnabled_));
     istr.read((char*)&nbHash_, sizeof(nbHash_));
     istr.read((char*)&bitsPerElement_, sizeof(bitsPerElement_));
+
+    LOG(INFO) << "Load: done!";
 }
 
 void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& term_list)
@@ -233,44 +258,105 @@ void PositionalInvertedIndex::processTermBuffer_(
     uint32_t nb = docBuffer.size() / BLOCK_SIZE;
     uint32_t res = docBuffer.size() % BLOCK_SIZE;
 
-    uint32_t ps = 0;
-
-    for (uint32_t i = 0; i < nb; ++i)
+    if (pool_.reverse_)
     {
-        uint32_t pt = posCountBuffer.empty() ? 0 : posCountBuffer[i];
-        tailPointer = compressAndAppendBlock_(
-                codec_,
-                &docBuffer[i * BLOCK_SIZE],
-                &tfBuffer[i * BLOCK_SIZE],
-                &posBuffer[ps],
-                BLOCK_SIZE,
-                tfBuffer.empty() ? 0 : BLOCK_SIZE,
-                pt - ps,
-                tailPointer);
+        size_t curPointer = UNDEFINED_POINTER;
+        size_t lastPointer = UNDEFINED_POINTER;
 
-        ps = (pt + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+        uint32_t ps = posCountBuffer.empty() ? 0 : posCountBuffer[nb - 1];
 
-        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        if (res > 0)
         {
-            headPointer = tailPointer;
+            uint32_t ceil_ps = (ps + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+
+            lastPointer = compressAndAppendBlock_(
+                    codec_,
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &tfBuffer[nb * BLOCK_SIZE],
+                    &posBuffer[ceil_ps],
+                    res,
+                    tfBuffer.empty() ? 0 : res,
+                    posBuffer.size() - ceil_ps,
+                    lastPointer,
+                    tailPointer);
+
+
+            if (curPointer == UNDEFINED_POINTER)
+            {
+                curPointer = lastPointer;
+            }
         }
-    }
 
-    if (res > 0)
-    {
-        tailPointer = compressAndAppendBlock_(
-                codec_,
-                &docBuffer[nb * BLOCK_SIZE],
-                &tfBuffer[nb * BLOCK_SIZE],
-                &posBuffer[ps],
-                res,
-                tfBuffer.empty() ? 0 : res,
-                posBuffer.size() - ps,
-                tailPointer);
-
-        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        for (int i = nb - 1; i >= 0; --i)
         {
-            headPointer = tailPointer;
+            uint32_t last_ps = posCountBuffer.empty() || i == 0 ? 0 : posCountBuffer[i - 1];
+            uint32_t ceil_ps = (last_ps + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+
+            lastPointer = compressAndAppendBlock_(
+                    codec_,
+                    &docBuffer[i * BLOCK_SIZE],
+                    &tfBuffer[i * BLOCK_SIZE],
+                    &posBuffer[ceil_ps],
+                    BLOCK_SIZE,
+                    tfBuffer.empty() ? 0 : BLOCK_SIZE,
+                    ps - ceil_ps,
+                    lastPointer,
+                    tailPointer);
+
+            ps = last_ps;
+
+            if (curPointer == UNDEFINED_POINTER)
+            {
+                curPointer = lastPointer;
+            }
+        }
+
+        headPointer = tailPointer = curPointer;
+    }
+    else
+    {
+        uint32_t ps = 0;
+
+        for (uint32_t i = 0; i < nb; ++i)
+        {
+            uint32_t next_ps = posCountBuffer.empty() ? 0 : posCountBuffer[i];
+
+            tailPointer = compressAndAppendBlock_(
+                    codec_,
+                    &docBuffer[i * BLOCK_SIZE],
+                    &tfBuffer[i * BLOCK_SIZE],
+                    &posBuffer[ps],
+                    BLOCK_SIZE,
+                    tfBuffer.empty() ? 0 : BLOCK_SIZE,
+                    next_ps - ps,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+            ps = (next_ps + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
+        }
+
+        if (res > 0)
+        {
+            tailPointer = compressAndAppendBlock_(
+                    codec_,
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &tfBuffer[nb * BLOCK_SIZE],
+                    &posBuffer[ps],
+                    res,
+                    tfBuffer.empty() ? 0 : res,
+                    posBuffer.size() - ps,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
         }
     }
 
@@ -288,7 +374,8 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         uint32_t len,
         uint32_t tflen,
         uint32_t plen,
-        size_t tailPointer)
+        size_t lastPointer,
+        size_t nextPointer)
 {
     uint32_t maxDocId = pool_.reverse_ ? docBlock[0] : docBlock[len - 1];
 
@@ -388,7 +475,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         reqspace += filterSize + 1;
     }
 
-    return pool_.appendSegment(segment_, maxDocId, reqspace, tailPointer);
+    return pool_.appendSegment(segment_, maxDocId, reqspace, lastPointer, nextPointer);
 }
 
 void PositionalInvertedIndex::retrieval(

@@ -66,7 +66,8 @@ private:
             uint32_t* docBlock,
             uint32_t* scoreBlock,
             uint32_t len,
-            size_t tailPointer);
+            size_t lastPointer,
+            size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
             FastPFor& codec,
@@ -94,8 +95,8 @@ private:
 
     bool gallopSearch_(
             FastPFor& codec,
-            std::vector<uint32_t>& blockDocid,
-            std::vector<uint32_t>& blockScore,
+            uint32_t* blockDocid,
+            uint32_t* blockScore,
             uint32_t& count,
             uint32_t& index,
             size_t& pointer,
