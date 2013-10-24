@@ -81,6 +81,7 @@ public:
     DNF()
     {
     }
+
     std::vector<Conjunction> conjunctions;
 
     DNF(const std::vector<Conjunction> & conjunctions): conjunctions(conjunctions)

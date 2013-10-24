@@ -26,34 +26,42 @@ AttrScoreInvertedIndex::~AttrScoreInvertedIndex()
 
 void AttrScoreInvertedIndex::save(std::ostream& ostr) const
 {
+    LOG(INFO) << "Save: start....";
+
     std::streamoff offset = ostr.tellp();
     buffer_.save(ostr);
-    LOG(INFO) << "Saving: buffer maps size " << ostr.tellp() - offset;
+    LOG(INFO) << "Saved: buffer maps size " << ostr.tellp() - offset;
     offset = ostr.tellp();
     pool_.save(ostr);
-    LOG(INFO) << "Saving: segment pools size " << ostr.tellp() - offset;
+    LOG(INFO) << "Saved: segment pools size " << ostr.tellp() - offset;
     offset = ostr.tellp();
     dictionary_.save(ostr);
-    LOG(INFO) << "Saving: dictionary size " << ostr.tellp() - offset;
+    LOG(INFO) << "Saved: dictionary size " << ostr.tellp() - offset;
     offset = ostr.tellp();
     pointers_.save(ostr);
-    LOG(INFO) << "Saving: head pointers size " << ostr.tellp() - offset;
+    LOG(INFO) << "Saved: head pointers size " << ostr.tellp() - offset;
+
+    LOG(INFO) << "Save: done!";
 }
 
 void AttrScoreInvertedIndex::load(std::istream& istr)
 {
+    LOG(INFO) << "Load: start....";
+
     std::streamoff offset = istr.tellg();
     buffer_.load(istr);
-    LOG(INFO) << "Loading: buffer maps size " << istr.tellg() - offset;
+    LOG(INFO) << "Loaded: buffer maps size " << istr.tellg() - offset;
     offset = istr.tellg();
     pool_.load(istr);
-    LOG(INFO) << "Loading: segment pool size " << istr.tellg() - offset;
+    LOG(INFO) << "Loaded: segment pool size " << istr.tellg() - offset;
     offset = istr.tellg();
     dictionary_.load(istr);
-    LOG(INFO) << "Loading: dictionary size " << istr.tellg() - offset;
+    LOG(INFO) << "Loaded: dictionary size " << istr.tellg() - offset;
     offset = istr.tellg();
     pointers_.load(istr);
-    LOG(INFO) << "Loading: head pointers size " << istr.tellg() - offset;
+    LOG(INFO) << "Loaded: head pointers size " << istr.tellg() - offset;
+
+    LOG(INFO) << "Load: done!";
 }
 
 uint32_t AttrScoreInvertedIndex::totalDocNum() const
@@ -137,31 +145,73 @@ void AttrScoreInvertedIndex::processTermBuffer_(
     uint32_t nb = docBuffer.size() / BLOCK_SIZE;
     uint32_t res = docBuffer.size() % BLOCK_SIZE;
 
-    for (uint32_t i = 0; i < nb; ++i)
+    if (pool_.reverse_)
     {
-        tailPointer = compressAndAppendBlock_(
-                &docBuffer[i * BLOCK_SIZE],
-                &scoreBuffer[i * BLOCK_SIZE],
-                BLOCK_SIZE,
-                tailPointer);
+        size_t curPointer = UNDEFINED_POINTER;
+        size_t lastPointer = UNDEFINED_POINTER;
 
-        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        if (res > 0)
         {
-            headPointer = tailPointer;
+            lastPointer = compressAndAppendBlock_(
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &scoreBuffer[nb * BLOCK_SIZE],
+                    res,
+                    lastPointer,
+                    tailPointer);
+
+            if (curPointer == UNDEFINED_POINTER)
+            {
+                curPointer = lastPointer;
+            }
         }
-    }
 
-    if (res > 0)
-    {
-        tailPointer = compressAndAppendBlock_(
-                &docBuffer[nb * BLOCK_SIZE],
-                &scoreBuffer[nb * BLOCK_SIZE],
-                res,
-                tailPointer);
-
-        if (pool_.reverse_ || headPointer == UNDEFINED_POINTER)
+        for (int i = nb - 1; i >= 0; --i)
         {
-            headPointer = tailPointer;
+            lastPointer = compressAndAppendBlock_(
+                    &docBuffer[i * BLOCK_SIZE],
+                    &scoreBuffer[i * BLOCK_SIZE],
+                    BLOCK_SIZE,
+                    lastPointer,
+                    tailPointer);
+
+            if (curPointer == UNDEFINED_POINTER)
+            {
+                curPointer = lastPointer;
+            }
+        }
+
+        headPointer = tailPointer = curPointer;
+    }
+    else
+    {
+        for (uint32_t i = 0; i < nb; ++i)
+        {
+            tailPointer = compressAndAppendBlock_(
+                    &docBuffer[i * BLOCK_SIZE],
+                    &scoreBuffer[i * BLOCK_SIZE],
+                    BLOCK_SIZE,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
+        }
+
+        if (res > 0)
+        {
+            tailPointer = compressAndAppendBlock_(
+                    &docBuffer[nb * BLOCK_SIZE],
+                    &scoreBuffer[nb * BLOCK_SIZE],
+                    res,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
         }
     }
 
@@ -173,7 +223,8 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         uint32_t* docBlock,
         uint32_t* scoreBlock,
         uint32_t len,
-        size_t tailPointer)
+        size_t lastPointer,
+        size_t nextPointer)
 {
     uint32_t maxDocId = pool_.reverse_ ? docBlock[0] : docBlock[len - 1];
 
@@ -206,7 +257,7 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
     codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 3], scsize);
     segment_[csize + 2] = scsize;
 
-    return pool_.appendSegment(segment_, maxDocId, csize + scsize + 3, tailPointer);
+    return pool_.appendSegment(segment_, maxDocId, csize + scsize + 3, lastPointer, nextPointer);
 }
 
 void AttrScoreInvertedIndex::retrieval(
@@ -347,9 +398,11 @@ uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
 
 bool AttrScoreInvertedIndex::gallopSearch_(
         FastPFor& codec,
-        std::vector<uint32_t>& blockDocid,
-        std::vector<uint32_t>& blockScore,
-        uint32_t& count, uint32_t& index, size_t& pointer,
+        uint32_t* blockDocid,
+        uint32_t* blockScore,
+        uint32_t& count,
+        uint32_t& index,
+        size_t& pointer,
         uint32_t pivot) const
 {
     if (LESS_THAN(blockDocid[count - 1], pivot, pool_.reverse_))
@@ -433,10 +486,10 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
-    std::vector<uint32_t> blockDocid0(BLOCK_SIZE);
-    std::vector<uint32_t> blockDocid1(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore0(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore1(BLOCK_SIZE);
+    uint32_t blockDocid0[BLOCK_SIZE];
+    uint32_t blockDocid1[BLOCK_SIZE];
+    uint32_t blockScore0[BLOCK_SIZE];
+    uint32_t blockScore1[BLOCK_SIZE];
 
     uint32_t c0 = decompressDocidBlock_(codec, &blockDocid0[0], pointer0), i0 = 0;
     uint32_t c1 = decompressDocidBlock_(codec, &blockDocid1[0], pointer1), i1 = 0;
@@ -492,10 +545,10 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
-    std::vector<uint32_t> blockDocid0(BLOCK_SIZE);
-    std::vector<uint32_t> blockDocid1(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore0(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore1(BLOCK_SIZE);
+    uint32_t blockDocid0[BLOCK_SIZE];
+    uint32_t blockDocid1[BLOCK_SIZE];
+    uint32_t blockScore0[BLOCK_SIZE];
+    uint32_t blockScore1[BLOCK_SIZE];
 
     uint32_t c0 = decompressDocidBlock_(codec, &blockDocid0[0], pointer0), i0 = 0;
     uint32_t c1 = decompressDocidBlock_(codec, &blockDocid1[0], pointer1), i1 = 0;
@@ -551,8 +604,8 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         std::vector<uint32_t>& docid_list,
         std::vector<uint32_t>& score_list) const
 {
-    std::vector<uint32_t> blockDocid(BLOCK_SIZE);
-    std::vector<uint32_t> blockScore(BLOCK_SIZE);
+    uint32_t blockDocid[BLOCK_SIZE];
+    uint32_t blockScore[BLOCK_SIZE];
     uint32_t c = decompressDocidBlock_(codec, &blockDocid[0], pointer);
     decompressScoreBlock_(codec, &blockScore[0], pointer);
     uint32_t iSet = 0, iCurrent = 0, i = 0;
@@ -607,8 +660,8 @@ void AttrScoreInvertedIndex::intersectSvS_(
     FastPFor codec;
     if (headPointers.size() < 2)
     {
-        std::vector<uint32_t> block(BLOCK_SIZE);
-        std::vector<uint32_t> sblock(BLOCK_SIZE);
+        uint32_t block[BLOCK_SIZE];
+        uint32_t sblock[BLOCK_SIZE];
         uint32_t length = std::min(minDf, hits);
         docid_list.resize(length);
         score_list.resize(length);
@@ -655,8 +708,8 @@ void AttrScoreInvertedIndex::intersectSvS_(
     FastPFor codec;
     if (headPointers.size() < 2)
     {
-        std::vector<uint32_t> block(BLOCK_SIZE);
-        std::vector<uint32_t> sblock(BLOCK_SIZE);
+        uint32_t block[BLOCK_SIZE];
+        uint32_t sblock[BLOCK_SIZE];
         uint32_t length = std::min(minDf, hits);
         docid_list.reserve(length);
         score_list.reserve(length);

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <boost/unordered_map.hpp>
 #include <3rdparty/json/json.h>
+#include "SimpleSerialization.hpp"
 
 namespace izenelib { namespace ir { namespace be_index {
 
@@ -67,6 +68,30 @@ public:
     {
         for (Json::ValueIterator i = root.begin(); i != root.end(); ++i) {
             dict[i.key().asString()] = (*i).asUInt();
+        }
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(dict.size(), os);
+        for (boost::unordered_map<std::string, uint32_t>::iterator i = dict.begin(); i != dict.end(); ++i) {
+            serialize(i->first, os);
+            serialize(i->second, os);
+        }
+    }
+
+    void load_binary(std::istream & is)
+    {
+        dict.clear();
+
+        std::size_t size;
+        deserialize(is, size);
+        for (std::size_t i = 0; i != size; ++i) {
+            std::string s;
+            deserialize(is, s);
+            uint32_t id;
+            deserialize(is, id);
+            dict[s] = id;
         }
     }
 

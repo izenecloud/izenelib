@@ -28,7 +28,8 @@ public:
             uint32_t* dataSegment,
             uint32_t maxDocId,
             uint32_t len,
-            size_t tailPointer);
+            size_t lastPointer,
+            size_t nextPointer);
 
     size_t nextPointer(size_t pointer) const;
 

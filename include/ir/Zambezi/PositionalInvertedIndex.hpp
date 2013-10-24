@@ -62,7 +62,8 @@ private:
             uint32_t len,
             uint32_t tflen,
             uint32_t plen,
-            size_t tailPointer);
+            size_t lastPointer,
+            size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
             FastPFor& codec,

@@ -14,6 +14,7 @@
 #include "IDMapper.hpp"
 #include "AVMapper.hpp"
 #include "DNF.hpp"
+#include "SimpleSerialization.hpp"
 #include <3rdparty/json/json.h>
 
 namespace izenelib { namespace ir { namespace be_index {
@@ -258,6 +259,77 @@ public:
             conjunctionPairFromJson(root[i], zeroConjunctionList[i]);
         }
     }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(index.size(), os);
+        for (OuterT::iterator i = index.begin(); i != index.end(); ++i) {
+            serialize(i->first, os);
+
+            serialize(i->second.size(), os);
+            for (InnerT::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                serialize(j->first.first, os);
+                serialize(j->first.second, os);
+
+                serialize(j->second.size(), os);
+                for (std::size_t k = 0; k != j->second.size(); ++k) {
+                    serialize(j->second[k].first, os);
+                    serialize(j->second[k].second, os);
+                }
+            }
+        }
+
+        serialize(zeroConjunctionList.size(), os);
+        for (std::size_t i = 0; i != zeroConjunctionList.size(); ++i) {
+            serialize(zeroConjunctionList[i].first, os);
+            serialize(zeroConjunctionList[i].second, os);
+        }
+
+        avMapper.save_binary(os);
+    }
+
+    void load_binary(std::istream & is)
+    {
+        index.clear();
+        std::size_t OuterSize;
+        deserialize(is, OuterSize);
+        for (std::size_t i = 0; i != OuterSize; ++i) {
+            uint32_t K;
+            deserialize(is, K);
+
+            std::size_t InnerSize;
+            deserialize(is, InnerSize);
+            InnerT innerIndex;
+            for (std::size_t j = 0; j != InnerSize; ++j) {
+                uint32_t attrID;
+                deserialize(is, attrID);
+                uint32_t valueID;
+                deserialize(is, valueID);
+
+                std::size_t conjunctionListSize;
+                deserialize(is, conjunctionListSize);
+                std::vector<std::pair<uint32_t, bool> > conjunctionList(conjunctionListSize);
+                for (std::size_t k = 0; k != conjunctionListSize; ++k) {
+                    deserialize(is, conjunctionList[k].first);
+                    deserialize(is, conjunctionList[k].second);
+                }
+
+                innerIndex[std::make_pair(attrID, valueID)] = conjunctionList;
+            }
+
+            index[K] = innerIndex;
+        }
+
+        std::size_t zeroConjunctionListSize;
+        deserialize(is, zeroConjunctionListSize);
+        zeroConjunctionList.resize(zeroConjunctionListSize);
+        for (std::size_t i = 0; i != zeroConjunctionListSize; ++i) {
+            deserialize(is, zeroConjunctionList[i].first);
+            deserialize(is, zeroConjunctionList[i].second);
+        }
+
+        avMapper.load_binary(is);
+    }
 };
 
 class DNFInvIndex {
@@ -275,6 +347,8 @@ public:
     {
     }
 
+    // interface addDNF:
+    // add a dnf which stands for an advertiser's targeting requirement.
     void addDNF(uint32_t dnfID, const DNF & dnf)
     {
         for (std::size_t i = 0; i != dnf.conjunctions.size(); ++i) {
@@ -288,7 +362,8 @@ public:
         ++numDNF;
     }
 
-    // may do merge.
+    // interface retrieve:
+    // read in a given assignment, and returns the valid dnf's.
     void retrieve(const std::vector<std::pair<std::string, std::string> > & assignment, boost::unordered_set<uint32_t> & dnfIDs)
     {
         std::vector<uint32_t> conjunctionIDs;
@@ -300,11 +375,15 @@ public:
         }
     }
 
+    // interface totalNumDNF:
+    // returns the total number of indexed dnf's.
     uint32_t totalNumDNF() const
     {
         return numDNF;
     }
 
+    // interface save:
+    // serialize the index in json text format.
     void save(std::ostream & os)
     {
         Json::FastWriter writer;
@@ -313,6 +392,8 @@ public:
         os << writer.write(root);
     }
 
+    // interface load:
+    // deserialize the index in json text format.
     void load(std::istream & is)
     {
         Json::Reader reader;
@@ -325,6 +406,57 @@ public:
         fromJson(root);
     }
 
+    // interface save_binary:
+    // serialize the index in binary format(for size consideration).
+    void save_binary(std::ostream & os)
+    {
+        conjIndex.save_binary(os);
+
+        serialize(index.size(), os);
+        for (boost::unordered_map<uint32_t, std::vector<uint32_t> >::iterator i = index.begin(); i != index.end(); ++i) {
+            serialize(i->first, os);
+
+            serialize(i->second.size(), os);
+            for (std::size_t j = 0; j != i->second.size(); ++j) {
+                serialize(i->second[j], os);
+            }
+        }
+
+        conjunctionMapper.save_binary(os);
+
+        serialize(numDNF, os);
+    }
+
+    // interface load_binary:
+    // deserialize the index in binary format(for size consideration).
+    void load_binary(std::istream & is)
+    {
+        conjIndex.load_binary(is);
+
+        index.clear();
+        std::size_t indexSize;
+        deserialize(is, indexSize);
+        for (std::size_t i = 0; i != indexSize; ++i) {
+            uint32_t conjunctionID;
+            deserialize(is, conjunctionID);
+
+            std::size_t dnfListSize;
+            deserialize(is, dnfListSize);
+            std::vector<uint32_t> dnfList(dnfListSize);
+            for (std::size_t j = 0; j != dnfListSize; ++j) {
+                deserialize(is, dnfList[j]);
+            }
+
+            index[conjunctionID] = dnfList;
+        }
+
+        conjunctionMapper.load_binary(is);
+
+        deserialize(is, numDNF);
+    }
+
+    // interface show:
+    // show the index in human readable format(mainly for debug purpose).
     void show()
     {
         conjIndex.show();

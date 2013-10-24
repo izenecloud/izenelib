@@ -68,7 +68,8 @@ size_t SegmentPool::appendSegment(
         uint32_t* dataSegment,
         uint32_t maxDocId,
         uint32_t len,
-        size_t tailPointer)
+        size_t lastPointer,
+        size_t nextPointer)
 {
     uint32_t reqspace = len + 4;
     if (reqspace > maxPoolSize_ - offset_)
@@ -84,26 +85,19 @@ size_t SegmentPool::appendSegment(
     }
 
     pool_[segment_][offset_] = reqspace;
-    pool_[segment_][offset_ + 1] = UNDEFINED_SEGMENT;
-    pool_[segment_][offset_ + 2] = UNDEFINED_OFFSET;
+    pool_[segment_][offset_ + 1] = DECODE_SEGMENT(nextPointer);
+    pool_[segment_][offset_ + 2] = DECODE_OFFSET(nextPointer);
     pool_[segment_][offset_ + 3] = maxDocId;
 
     memcpy(&pool_[segment_][offset_ + 4], &dataSegment[0], len * sizeof(uint32_t));
 
-    if (tailPointer != UNDEFINED_POINTER)
+    if (lastPointer != UNDEFINED_POINTER)
     {
-        uint32_t lastSegment = DECODE_SEGMENT(tailPointer);
-        uint32_t lastOffset = DECODE_OFFSET(tailPointer);
-        if (reverse_)
-        {
-            pool_[segment_][offset_ + 1] = lastSegment;
-            pool_[segment_][offset_ + 2] = lastOffset;
-        }
-        else
-        {
-            pool_[lastSegment][lastOffset + 1] = segment_;
-            pool_[lastSegment][lastOffset + 2] = offset_;
-        }
+        uint32_t lastSegment = DECODE_SEGMENT(lastPointer);
+        uint32_t lastOffset = DECODE_OFFSET(lastPointer);
+
+        pool_[lastSegment][lastOffset + 1] = segment_;
+        pool_[lastSegment][lastOffset + 2] = offset_;
     }
 
     size_t newPointer = ENCODE_POINTER(segment_, offset_);
