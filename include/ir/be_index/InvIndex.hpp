@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <queue>
 #include <utility>
 #include <map>
@@ -267,14 +268,16 @@ public:
             serialize(i->first, os);
 
             serialize(i->second.size(), os);
-            for (InnerT::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                serialize(j->first.first, os);
-                serialize(j->first.second, os);
+            std::vector<std::pair<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, bool> > > > temp(i->second.begin(), i->second.end());
+            std::sort(temp.begin(), temp.end());
+            for (std::size_t j = 0; j != temp.size(); ++j) {
+                serialize(temp[j].first.first, os);
+                serialize(temp[j].first.second, os);
 
-                serialize(j->second.size(), os);
-                for (std::size_t k = 0; k != j->second.size(); ++k) {
-                    serialize(j->second[k].first, os);
-                    serialize(j->second[k].second, os);
+                serialize(temp[j].second.size(), os);
+                for (std::size_t k = 0; k != temp[j].second.size(); ++k) {
+                    serialize(temp[j].second[k].first, os);
+                    serialize(temp[j].second[k].second, os);
                 }
             }
         }
@@ -413,12 +416,14 @@ public:
         conjIndex.save_binary(os);
 
         serialize(index.size(), os);
-        for (boost::unordered_map<uint32_t, std::vector<uint32_t> >::iterator i = index.begin(); i != index.end(); ++i) {
-            serialize(i->first, os);
+        std::vector<std::pair<uint32_t, std::vector<uint32_t> > > temp(index.begin(), index.end());
+        std::sort(temp.begin(), temp.end());
+        for (std::size_t i = 0; i != temp.size(); ++i) {
+            serialize(temp[i].first, os);
 
-            serialize(i->second.size(), os);
-            for (std::size_t j = 0; j != i->second.size(); ++j) {
-                serialize(i->second[j], os);
+            serialize(temp[i].second.size(), os);
+            for (std::size_t j = 0; j != temp[i].second.size(); ++j) {
+                serialize(temp[i].second[j], os);
             }
         }
 

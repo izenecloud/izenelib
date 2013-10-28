@@ -5,6 +5,8 @@
 #include <utility>
 #include <string>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <boost/unordered_map.hpp>
 #include <3rdparty/json/json.h>
 #include "SimpleSerialization.hpp"
@@ -74,9 +76,11 @@ public:
     void save_binary(std::ostream & os)
     {
         serialize(dict.size(), os);
-        for (boost::unordered_map<std::string, uint32_t>::iterator i = dict.begin(); i != dict.end(); ++i) {
-            serialize(i->first, os);
-            serialize(i->second, os);
+        std::vector<std::pair<std::string, uint32_t> > temp(dict.begin(), dict.end());
+        std::sort(temp.begin(), temp.end());
+        for (std::size_t i = 0; i != temp.size(); ++i) {
+            serialize(temp[i].first, os);
+            serialize(temp[i].second, os);
         }
     }
 
