@@ -52,6 +52,7 @@ public:
             const std::vector<std::pair<std::string, int> >& term_list,
             const boost::function<bool(uint32_t)>& filter,
             uint32_t hits,
+            bool search_buffer,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 
@@ -90,6 +91,7 @@ private:
             const boost::function<bool(uint32_t)>& filter,
             uint32_t minDf,
             uint32_t hits,
+            bool hit_buffer,
             std::vector<uint32_t>& docid_list,
             std::vector<uint32_t>& score_list) const;
 

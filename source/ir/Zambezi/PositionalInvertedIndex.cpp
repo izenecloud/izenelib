@@ -243,7 +243,6 @@ void PositionalInvertedIndex::flush()
                 buffer_.posBlockCount_[term],
                 buffer_.tailPointer_[term],
                 pointers_.headPointers_.get(term));
-
     }
 }
 
@@ -1221,6 +1220,7 @@ void PositionalInvertedIndex::intersectSvS_(
         std::vector<uint32_t>& docid_list) const
 {
     FastPFor codec;
+
     if (headPointers.size() < 2)
     {
         std::vector<uint32_t> block(BLOCK_SIZE);
@@ -1243,7 +1243,7 @@ void PositionalInvertedIndex::intersectSvS_(
     intersectPostingsLists_(codec, headPointers[0], headPointers[1], docid_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
-        if (docid_list.empty()) break;
+        if (docid_list.empty()) return;
         intersectSetPostingsList_(codec, headPointers[i], docid_list);
     }
 
