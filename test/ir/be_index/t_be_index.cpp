@@ -8,6 +8,8 @@
 
 #include <boost/assign/list_of.hpp>
 
+// #include <fstream>
+
 using namespace izenelib::ir::be_index;
 using namespace boost::assign;
 
@@ -81,6 +83,15 @@ BOOST_AUTO_TEST_CASE(do_search_reverse)
     DNFInvIndex b(a);
 
     std::cout << b.totalNumDNF() << std::endl;
+
+    // std::ofstream ofs("out");
+    // a.save_binary(ofs);
+
+    // DNFInvIndex c;
+    // std::ifstream ifs("out");
+    // c.load_binary(ifs);
+    // std::ofstream ofs("out2");
+    // c.save_binary(ofs);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
