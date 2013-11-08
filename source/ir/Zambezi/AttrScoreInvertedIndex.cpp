@@ -338,7 +338,7 @@ void AttrScoreInvertedIndex::retrievalAndFiltering(
                     score_list.clear();
                     for (uint32_t j = 0; j < docBuffer.size(); ++j)
                     {
-                        if (filter(docBuffer[j]))
+                        if (!filter || filter(docBuffer[j]))
                         {
                             docid_list.push_back(docBuffer[j]);
                             score_list.push_back(scoreBuffer[j]);
@@ -610,7 +610,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     {
         if (blockDocid0[i0] == blockDocid1[i1])
         {
-            if (filter(blockDocid0[i0]))
+            if (!filter || filter(blockDocid0[i0]))
             {
                 docid_list.push_back(blockDocid0[i0]);
                 score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
@@ -787,7 +787,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
 
             for (uint32_t i = 0; i < c; ++i)
             {
-                if (filter(block[i]))
+                if (!filter || filter(block[i]))
                 {
                     docid_list.push_back(block[i]);
                     score_list.push_back(sblock[i]);
