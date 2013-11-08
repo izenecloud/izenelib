@@ -902,6 +902,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
     AuxFilteredPatternList<self_type> *top_ranges;
     AuxFilteredPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
+    zero_filter = one_filter = NULL;
     size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
 
@@ -1404,6 +1405,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
     AuxFilteredSynonymPatternList<self_type> *top_ranges;
     AuxFilteredSynonymPatternList<self_type> *zero_ranges, *one_ranges;
     FilterList<self_type> *zero_filter, *one_filter;
+    zero_filter = one_filter = NULL;
     size_t level, rank_start, rank_end, zero_end;
     const WaveletTreeNode *node;
 
