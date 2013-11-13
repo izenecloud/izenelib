@@ -1,0 +1,120 @@
+#ifndef IZENELIB_UTIL_TIMING_BLOOM_FILTER_H
+#define IZENELIB_UTIL_TIMING_BLOOM_FILTER_H
+
+#include <cmath>
+#include <limits.h>
+#include <stdexcept>
+#include <types.h>
+#include <time.h>
+
+#include <util/hashFunction.h>
+
+namespace izenelib { namespace util {
+
+/**
+ * TimingBloomFilter
+ */
+template <typename KeyType, typename HashType = uint32_t>
+class TimingBloomFilter
+{
+typedef uint32_t TimeType;
+public:
+    TimingBloomFilter()
+        : num_hash_functions_(0)
+        , num_items_(0)
+        , vector_(NULL)
+        , base_time_(0)
+    {}
+
+    TimingBloomFilter(size_t num_items, size_t num_hashes)
+        : num_hash_functions_(num_hashes)
+        , num_items_(num_items)
+        , vector_(NULL)
+        , base_time_(0)
+    {
+        if (num_items_ == 0)
+        {
+            throw std::runtime_error("Empty bloom filter");
+        }
+        
+        vector_ = new TimeType[num_items_];
+        memset(vector_, 0, num_items_ * sizeof(TimeType));
+
+        base_time_ = time(NULL);
+    }
+
+    ~TimingBloomFilter()
+    {
+        if (NULL != vector_)
+        {
+            delete[] vector_;
+            vector_ = NULL;
+        }
+    }
+
+    void put(const KeyType& key, uint32_t exp)
+    {
+        time_t t = time(NULL);
+        uint32_t e = t - base_time_;
+        e += exp;
+
+        uint32_t hash = 0;
+        for (size_t i = 0; i < num_hash_functions_; ++i)
+        {
+            hash = hasher_(key,hash) % num_items_;
+            if (vector_[hash] < e)
+                vector_[hash] = e;
+        }
+    }
+
+    bool get(const KeyType& key) const
+    {
+        time_t now = time(NULL);
+        uint32_t shed = now -base_time_;
+        uint32_t hash = 0;
+        for (size_t i = 0; i < num_hash_functions_; ++i)
+        {
+            hash = hasher_(key,hash) % num_items_;
+
+            if (0 == vector_[hash] || vector_[hash] < shed )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void save(std::ostream& ostr) const
+    {
+        ostr.write((const char *)&num_hash_functions_, sizeof(num_hash_functions_));
+        ostr.write((const char *)&num_items_, sizeof(num_items_));
+        ostr.write((const char *)vector_, num_items_ * sizeof(TimeType));
+    }
+
+    void load(std::istream& istr)
+    {
+        istr.read((char *)&num_hash_functions_, sizeof(num_hash_functions_));
+        istr.read((char *)&num_items_, sizeof(num_items_));
+        if (!vector_) 
+            vector_ = new TimeType[num_items_];
+        istr.read((char *)vector_, num_items_ * sizeof(TimeType));
+    }
+
+    size_t size()
+    {
+        return num_items_ * sizeof(TimeType);
+    }
+
+private:
+    DISALLOW_COPY_AND_ASSIGN(TimingBloomFilter);
+
+    HashIDTraits<KeyType,HashType> hasher_;
+    size_t num_hash_functions_;
+    size_t num_items_;
+    TimeType* vector_;
+    time_t base_time_;
+};
+
+}}
+
+#endif // IZENELIB_UTIL_TIMING_BLOOM_FILTER_H
