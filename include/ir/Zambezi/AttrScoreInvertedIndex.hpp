@@ -287,33 +287,26 @@ private:
                     score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
                 }
 
-                if (++i0 == c0)
-                {
-                    if ((pointer0 = pool_.nextPointer(pointer0)) == UNDEFINED_POINTER)
-                        break;
+                uint32_t next = filter.skipTo(blockDocid0[i0] + 1);
 
-                    c0 = decompressDocidBlock_(codec, &blockDocid0[0], pointer0);
-                    decompressScoreBlock_(codec, &blockScore0[0], pointer0);
-                    i0 = 0;
-                }
-                if (++i1 == c1)
-                {
-                    if ((pointer1 = pool_.nextPointer(pointer1)) == UNDEFINED_POINTER)
-                        break;
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
+                    break;
 
-                    c1 = decompressDocidBlock_(codec, &blockDocid1[0], pointer1);
-                    decompressScoreBlock_(codec, &blockScore1[0], pointer1);
-                    i1 = 0;
-                }
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, next))
+                    break;
             }
             else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], pool_.reverse_))
             {
-                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, blockDocid1[i1]))
+                uint32_t next = filter.skipTo(blockDocid0[i0]);
+
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
                     break;
             }
             else
             {
-                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, blockDocid0[i0]))
+                uint32_t next = filter.skipTo(blockDocid1[i1]);
+
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, next))
                     break;
             }
         }
