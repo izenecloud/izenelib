@@ -426,6 +426,24 @@ public:
         return false;
     }
 
+    friend class boost::serialization::access;
+    template<class Archive>
+    void save(Archive & ar, const unsigned int version)  const
+    {
+        ar & size_;
+        ar & maxBytesNum_;
+        ar.save_binary(bits_, maxBytesNum_);
+    }
+
+    template<class Archive>
+    void load(Archive & ar, const unsigned int version)
+    {
+        ar & size_;
+        ar & maxBytesNum_;
+        ar.load_binary(bits_, maxBytesNum_);
+    }
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
+
 private:
     /**
      * Get the number of bytes to contain @p bitNum bits.

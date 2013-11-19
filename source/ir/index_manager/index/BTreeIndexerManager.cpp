@@ -17,9 +17,9 @@ std::size_t BTreeIndexer<IndexPropString>::convertAllValue(std::size_t maxDoc, u
     docid_t docid = 0;
     while(term_enum->next(kvp))
     {
-        for(uint32_t i=0;i<kvp.second.size();i++)
+        for(uint32_t i=0;i< BTreeIndexer<IndexPropString>::getValueNum(kvp.second);i++)
         {
-            docid = kvp.second[i];
+            docid = BTreeIndexer<IndexPropString>::getDocId(kvp.second, i);
             if (docid >= maxDoc) break;
             data[docid] = kvp.first.empty() ? 0 : 1;
             ++result;
