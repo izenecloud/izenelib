@@ -8,6 +8,7 @@
 #include <time.h>
 
 #include <util/hashFunction.h>
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 namespace izenelib { namespace util {
 
@@ -40,7 +41,12 @@ public:
         vector_ = new TimeType[num_items_];
         memset(vector_, 0, num_items_ * sizeof(TimeType));
 
-        base_time_ = time(NULL);
+        using namespace boost::posix_time;
+        ptime t(second_clock::local_time());
+        std::string year = to_simple_string(t).substr(0, 4) + "-01-01 00:00:00";
+        t = time_from_string(year);
+        struct tm tm = to_tm(t);
+        base_time_ = mktime(&tm);
     }
 
     ~TimingBloomFilter()
@@ -52,11 +58,9 @@ public:
         }
     }
 
-    void put(const KeyType& key, uint32_t exp)
+    void put(const KeyType& key, time_t exp)
     {
-        time_t t = time(NULL);
-        uint32_t e = t - base_time_;
-        e += exp;
+        uint32_t e = exp - base_time_;
 
         uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
@@ -67,10 +71,9 @@ public:
         }
     }
 
-    bool get(const KeyType& key) const
+    bool get(const KeyType& key, time_t time) const
     {
-        time_t now = time(NULL);
-        uint32_t shed = now -base_time_;
+        uint32_t shed = time - base_time_;
         uint32_t hash = 0;
         for (size_t i = 0; i < num_hash_functions_; ++i)
         {
