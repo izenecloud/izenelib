@@ -111,6 +111,14 @@ public:
             return boost::get<BitVector>(val).count();
     }
 
+    static bool  isEmpltyValue(const ValueType& val)
+    {
+        if (val.which() == 0)
+            return boost::get<VecValueType>(val).empty();
+        else
+            return !boost::get<BitVector>(val).any();
+    }
+
     static docid_t getDocId(const ValueType& val, size_t index)
     {
         if (val.which() == 0)
@@ -123,7 +131,7 @@ public:
             // value is bitvector
             const BitVector& tmp = boost::get<BitVector>(val);
             size_t num = 0;
-            for(std::size_t i = 1; i < tmp.size(); i++)
+            for(std::size_t i = 0; i < tmp.size(); i++)
             {
                 if (tmp.test(i)) ++num;
                 if (num == index + 1)
@@ -178,7 +186,7 @@ public:
         boost::shared_lock<MutexType> lock(mutex_);
         BitVector docs;
         getValue_(key, docs);
-        return docs.count() > 0;
+        return docs.any();
     }
 
     void getNoneEmptyList(const KeyType& key, BitVector& docs)
@@ -201,29 +209,29 @@ public:
 
     std::size_t convertAllValue(std::size_t maxDoc, uint32_t* & data);
 
-    std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
-    {
-        if (compare_(lowKey, highKey) > 0) return 0;
-        boost::shared_lock<MutexType> lock(mutex_);
-        std::size_t result = 0;
+    //std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
+    //{
+    //    if (compare_(lowKey, highKey) > 0) return 0;
+    //    boost::shared_lock<MutexType> lock(mutex_);
+    //    std::size_t result = 0;
 
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
-        std::pair<KeyType, ValueType> kvp;
-        docid_t docid = 0;
-        while (term_enum->next(kvp))
-        {
-            if (compare_(kvp.first, highKey) > 0) break;
-            for (uint32_t i = 0; i < getValueNum(kvp.second); i++)
-            {
-                docid = getDocId(kvp.second, i);
-                if (docid >= maxDoc) break;
-                data[docid] = kvp.first;
-                ++result;
-            }
-        }
+    //    std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+    //    std::pair<KeyType, ValueType> kvp;
+    //    docid_t docid = 0;
+    //    while (term_enum->next(kvp))
+    //    {
+    //        if (compare_(kvp.first, highKey) > 0) break;
+    //        for (uint32_t i = 0; i < getValueNum(kvp.second); i++)
+    //        {
+    //            docid = getDocId(kvp.second, i);
+    //            if (docid >= maxDoc) break;
+    //            data[docid] = kvp.first;
+    //            ++result;
+    //        }
+    //    }
 
-        return result;
-    }
+    //    return result;
+    //}
 
     void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
     {
@@ -498,44 +506,29 @@ private:
 //#ifdef CACHE_TIME_INFO
 //      t3 += timer.elapsed();
 //#endif
-        boost::unique_lock<MutexType> lock(mutex_);
-        if ((common_value.which() == 1) || boost::get<VecValueType>(common_value).size() > 0)
+
+        size_t value_size = 0;
+        if (common_value.which() == 0)
         {
-            if (common_value.which() == 0)
+            VecValueType& tmp = boost::get<VecValueType>(common_value);
+            value_size = tmp.size();
+            if (value_size > MAX_VALUE_LEN)
             {
-                VecValueType& tmp = boost::get<VecValueType>(common_value);
-                if (tmp.size() > MAX_VALUE_LEN)
+                // too much value, convert it to bitvector to save space.
+                BitVector newvalue;
+                for(size_t i = 0; i < tmp.size(); ++i)
                 {
-                    // too much value, convert it to bitvector to save space.
-                    BitVector newvalue;
-                    for(size_t i = 0; i < tmp.size(); ++i)
-                    {
-                        newvalue.set(tmp[i]);
-                    }
-                    common_value = newvalue;
-                    std::cerr << "btree index value converted to BitVector since the list is too large."
-                        << ", key: " << kvp.first << ", value num: " << tmp.size() << std::endl;
+                    newvalue.set(tmp[i]);
                 }
+                std::cerr << "btree index value converted to BitVector since the list is too large."
+                    << ", key: " << kvp.first << ", value num: " << tmp.size() << std::endl;
+                common_value = newvalue;
             }
-            //else
-            //{
-            //    BitVector& tmp = boost::get<BitVector>(common_value);
-            //    size_t cnt = tmp.count();
-            //    if (cnt < MAX_VALUE_LEN/64)
-            //    {
-            //        // too less value, change bitvector to std::vector.
-            //        VecValueType newvalue;
-            //        newvalue.reserve(cnt);
-            //        for(size_t i = 0; i < tmp.size(); ++i)
-            //        {
-            //            if (tmp.test(i))
-            //                newvalue.push_back(i);
-            //        }
-            //        common_value = newvalue;
-            //        LOG(INFO)<< "btree index value changed to std::vector since the list is too less."
-            //            << ", key: " << kvp.first << ", value num: " << cnt;
-            //    }
-            //}
+        }
+
+        boost::unique_lock<MutexType> lock(mutex_);
+        if ((common_value.which() == 1) || value_size > 0)
+        {
             db_.update(kvp.first, common_value);
         }
         else
@@ -590,7 +583,7 @@ private:
             std::pair<KeyType, ValueType> kvp;
             while (term_enum->next(kvp))
             {
-                if (!kvp.second.empty())
+                if (!isEmpltyValue(kvp.second))
                 {
                     ++count;
                 }
@@ -672,7 +665,7 @@ private:
         }
         else
         {
-            value = boost::get<BitVector>(compressed);
+            value |= boost::get<BitVector>(compressed);
         }
     }
 

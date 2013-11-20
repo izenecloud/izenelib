@@ -29,8 +29,6 @@ public:
     BitVector()
         : bits_(0), size_(0), maxBytesNum_(MAX_BYTES_NUM_INIT)
     {
-        bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
     }
 
     BitVector(const BitVector& other)
@@ -44,18 +42,19 @@ public:
     BitVector(size_t n)
         : bits_(0), size_(n), maxBytesNum_(getMaxBytesNum(size_))
     {
-        bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
+        ensureInit();
     }
 
     ~BitVector()
     {
-        delete[] bits_;
+        if (bits_)
+            delete[] bits_;
     }
 
 public:
     void set(size_t bit)
     {
+        ensureInit();
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
             grow(bit + 1);
@@ -67,6 +66,7 @@ public:
 
     void clear(size_t bit)
     {
+        ensureInit();
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
             grow(bit + 1);
@@ -78,6 +78,7 @@ public:
 
     void clear()
     {
+        ensureInit();
         memset(bits_, 0 , getBytesNum(size_));
     }
 
@@ -86,6 +87,7 @@ public:
         if(size_ == 0)
             return;
 
+        ensureInit();
         const size_t byteNum = getBytesNum(size_);
         memset(bits_, 0xFF, byteNum);
 
@@ -126,6 +128,7 @@ public:
     template <typename word_t>
     void importFromEWAH(const EWAHBoolArray<word_t>& ewahBitmap)
     {
+        ensureInit();
         uint pointer(0);
         uint currentoffset(0);
         const uint wordBitNum = sizeof(word_t) << 3;
@@ -188,6 +191,7 @@ public:
 
     void toggle()
     {
+        ensureInit();
         typedef uint64_t word_t;
         const size_t byteNum = getBytesNum(size_);
         const size_t wordByteNum = sizeof(word_t);
@@ -223,6 +227,7 @@ public:
 
     BitVector& operator&=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
@@ -231,6 +236,35 @@ public:
         const size_t byteNum = getBytesNum(b.size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] &= b.bits_[i];
+        const size_t my_byteNum = getBytesNum(size_);
+        for(size_t i = byteNum; i < my_byteNum; ++i)
+        {
+            bits_[i] = 0;
+        }
+        return *this;
+    }
+
+    BitVector& operator=(const BitVector& b)
+    {
+        if (this != &b )
+        {
+            const size_t newBytesNum = getMaxBytesNum(b.size_);
+            size_ = b.size_;
+            if(newBytesNum > maxBytesNum_)
+            {
+                unsigned char* newBits = new unsigned char[newBytesNum];
+                std::copy(b.bits_, b.bits_ + getBytesNum(b.size_), newBits);
+                if (bits_)
+                    delete[] bits_;
+                bits_ = newBits;
+                maxBytesNum_ = newBytesNum;
+            }
+            else
+            {
+                ensureInit();
+                std::copy(b.bits_, b.bits_ + getBytesNum(b.size_), bits_);
+            }
+        }
         return *this;
     }
 
@@ -273,6 +307,7 @@ public:
 
     BitVector& operator|=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
@@ -286,6 +321,7 @@ public:
 
     BitVector& operator^=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
@@ -294,6 +330,9 @@ public:
         const size_t byteNum = getBytesNum(b.size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] ^= b.bits_[i];
+        const size_t my_byteNum = getBytesNum(size_);
+        for(size_t i = byteNum; i < my_byteNum; ++i)
+            bits_[i] ^= 0;
         return *this;
     }
 
@@ -306,6 +345,7 @@ public:
 
     void logicalNotAnd(const BitVector& b)
     {
+        ensureInit();
         typedef uint64_t word_t;
         std::size_t min_size = std::min(size_, b.size_);
 
@@ -348,20 +388,26 @@ public:
         if(newBytesNum > maxBytesNum_)
         {
             unsigned char* newBits = new unsigned char[newBytesNum];
-            delete[] bits_;
+            memset(newBits, 0 , newBytesNum);
+            if (bits_)
+                delete[] bits_;
             bits_ = newBits;
             maxBytesNum_ = newBytesNum;
         }
-        memset(bits_, 0 , maxBytesNum_);
+        else
+        {
+            ensureInit();
+        }
         pInput->read((char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pInput;
     }
 
-    void write(Directory* pDirectory,const char* name)
+    void write(Directory* pDirectory,const char* name) const
     {
         IndexOutput* pOutput = pDirectory->createOutput(name);
         pOutput->writeInt((int32_t)size_);
-        pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
+        if (bits_)
+            pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pOutput;
     }
 
@@ -433,20 +479,42 @@ public:
     void save(Archive & ar, const unsigned int version)  const
     {
         ar & size_;
-        ar & maxBytesNum_;
-        ar.save_binary(bits_, maxBytesNum_);
+        if (bits_)
+            ar.save_binary(bits_, getBytesNum(size_)*sizeof(unsigned char));
     }
 
     template<class Archive>
     void load(Archive & ar, const unsigned int version)
     {
         ar & size_;
-        ar & maxBytesNum_;
-        ar.load_binary(bits_, maxBytesNum_);
+        const size_t newBytesNum = getMaxBytesNum(size_);
+        if(newBytesNum > maxBytesNum_)
+        {
+            unsigned char* newBits = new unsigned char[newBytesNum];
+            memset(newBits, 0 , newBytesNum);
+            if (bits_)
+                delete[] bits_;
+            bits_ = newBits;
+            maxBytesNum_ = newBytesNum;
+        }
+        else
+        {
+            ensureInit();
+        }
+        ar.load_binary(bits_, getBytesNum(size_)*sizeof(unsigned char));
     }
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 private:
+
+    void ensureInit()
+    {
+        if (bits_ == NULL)
+        {
+            bits_ = new unsigned char[maxBytesNum_];
+            memset(bits_, 0 , maxBytesNum_);
+        }
+    }
     /**
      * Get the number of bytes to contain @p bitNum bits.
      * @param bitNum the number of bits
@@ -490,6 +558,7 @@ private:
         if ((size_ & 7) == 0)
             return;
 
+        ensureInit();
         const size_t endBit = size_ - 1;
         const unsigned char endMask = (1 << ((endBit & 7) + 1)) - 1;
         bits_[endBit >> 3] &= endMask;
@@ -549,6 +618,12 @@ private:
         size_t newMax = maxBytesNum_;
         while(newMax < newBytesNum)
             newMax <<= 1;
+
+        if (newMax == maxBytesNum_)
+        {
+            ensureInit();
+            return;
+        }
 
         unsigned char* newBits = new unsigned char[newMax];
         memset(newBits, 0, newMax);
