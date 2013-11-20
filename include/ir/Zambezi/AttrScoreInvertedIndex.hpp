@@ -202,21 +202,25 @@ private:
             score_list.reserve(length);
 
             size_t t = headPointers[0];
-            while (t != UNDEFINED_POINTER && docid_list.size() < length)
-            {
-                uint32_t c = decompressDocidBlock_(codec, &block[0], t);
-                decompressScoreBlock_(codec, &sblock[0], t);
+            uint32_t next = filter.skipTo(1);
+            uint32_t c = decompressDocidBlock_(codec, &block[0], t);
+            uint32_t i = 0;
+            decompressScoreBlock_(codec, &sblock[0], t);
 
-                for (uint32_t i = 0; i < c; ++i)
+            while (gallopSearch_(codec, block, sblock, c, i, t, next))
+            {
+                if (block[i] == next)
                 {
-                    if (filter.test(block[i]))
-                    {
-                        docid_list.push_back(block[i]);
-                        score_list.push_back(sblock[i]);
-                        if (docid_list.size() == length) break;
-                    }
+                    docid_list.push_back(block[i]);
+                    score_list.push_back(sblock[i]);
+                    if ((next = filter.skipTo(block[i] + 1)) == INVALID_ID)
+                        break;
                 }
-                t = pool_.nextPointer(t);
+                else
+                {
+                    if ((next = filter.skipTo(block[i])) == INVALID_ID)
+                        break;
+                }
             }
 
             return;
@@ -277,6 +281,8 @@ private:
         decompressScoreBlock_(codec, &blockScore0[0], pointer0);
         decompressScoreBlock_(codec, &blockScore1[0], pointer1);
 
+        uint32_t next = filter.skipTo(1);
+
         while (true)
         {
             if (blockDocid0[i0] == blockDocid1[i1])
@@ -287,7 +293,8 @@ private:
                     score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
                 }
 
-                uint32_t next = filter.skipTo(blockDocid0[i0] + 1);
+                if ((next = filter.skipTo(blockDocid0[i0] + 1)) == INVALID_ID)
+                    break;
 
                 if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
                     break;
@@ -297,14 +304,16 @@ private:
             }
             else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], pool_.reverse_))
             {
-                uint32_t next = filter.skipTo(blockDocid0[i0]);
+                if ((next = filter.skipTo(blockDocid0[i0])) == INVALID_ID)
+                    break;
 
                 if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
                     break;
             }
             else
             {
-                uint32_t next = filter.skipTo(blockDocid1[i1]);
+                if ((next = filter.skipTo(blockDocid1[i1])) == INVALID_ID)
+                    break;
 
                 if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, next))
                     break;
