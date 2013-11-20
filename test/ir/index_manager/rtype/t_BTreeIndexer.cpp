@@ -213,6 +213,14 @@ BOOST_AUTO_TEST_CASE(simple)
     bt.close();
 }
 
+BOOST_AUTO_TEST_CASE(framework_int_small)
+{
+    DirController dir("./t_bt_framework_int");
+
+    BTreeTestRunner<uint32_t> runner(dir.path()+"/test", 100);
+    runner.start();
+}
+
 BOOST_AUTO_TEST_CASE(framework_int)
 {
     DirController dir("./t_bt_framework_int");
@@ -239,7 +247,6 @@ BOOST_AUTO_TEST_CASE(framework_str)
     runner.start();
 
 }
-
 
 BOOST_AUTO_TEST_CASE(performance_int)
 {
