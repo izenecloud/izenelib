@@ -228,7 +228,7 @@ public:
             grow(b.size());
             size_ = b.size();
         }
-        const size_t byteNum = getBytesNum(size_);
+        const size_t byteNum = getBytesNum(b.size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] &= b.bits_[i];
         return *this;
@@ -278,7 +278,7 @@ public:
             grow(b.size());
             size_ = b.size();
         }
-        const size_t byteNum = getBytesNum(size_);
+        const size_t byteNum = getBytesNum(b.size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] |= b.bits_[i];
         return *this;
@@ -291,23 +291,25 @@ public:
             grow(b.size());
             size_ = b.size();
         }
-        const size_t byteNum = getBytesNum(size_);
+        const size_t byteNum = getBytesNum(b.size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] ^= b.bits_[i];
         return *this;
     }
 
-    void logicalNot(BitVector& b)
-    {
-        const size_t byteNum = getBytesNum(size_);
-        for(size_t i = 0; i < byteNum; ++i )
-            b.bits_[i] = ~bits_[i];
-     }
+    //void logicalNot(const BitVector& b)
+    //{
+    //    const size_t byteNum = getBytesNum(size_);
+    //    for(size_t i = 0; i < byteNum; ++i )
+    //        bits_[i] = ~b.bits_[i];
+    //}
 
     void logicalNotAnd(const BitVector& b)
     {
         typedef uint64_t word_t;
-        const size_t byteNum = getBytesNum(size_);
+        std::size_t min_size = std::min(size_, b.size_);
+
+        const size_t byteNum = getBytesNum(min_size);
         const size_t wordByteNum = sizeof(word_t);
 
         const size_t wordNum = byteNum / wordByteNum;

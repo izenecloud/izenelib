@@ -28,7 +28,7 @@ public:
     , min_docid_(1), max_docid_(100)
 //     , low_(low), high_(high)
     , insert_ratio_(80), flush_ratio_(10), read_thread_count_(3), ge_only_(false)
-    , write_limit_(10000000), write_count_(0), end_(false)
+    , write_limit_(50000000), write_count_(0), end_(false)
     , read_wait_ms_(1)
     {
         
@@ -76,23 +76,23 @@ public:
             {
                 indexer_.add(key, docid);
                 ref_.add(key, docid);
-                LOG(ERROR)<<"[W]1,"<<key<<","<<docid<<std::endl;
+                //LOG(ERROR)<<"[W]1,"<<key<<","<<docid<<std::endl;
 //                 record_.append(1, key, docid);
             }
             else
             {
                 indexer_.remove(key, docid);
                 ref_.remove(key, docid);
-                LOG(ERROR)<<"[W]2,"<<key<<","<<docid<<std::endl;
+                //LOG(ERROR)<<"[W]2,"<<key<<","<<docid<<std::endl;
 //                 record_.append(2, key, docid);
             }
             uint32_t iff;
             RandomGenerator<uint32_t>::Gen(0, 99, iff);
             if(iff<flush_ratio_)
             {
-                LOG(ERROR)<<"[W]flushing"<<std::endl;
+                //LOG(ERROR)<<"[W]flushing"<<std::endl;
                 indexer_.flush();
-                LOG(ERROR)<<"[W]flushed"<<std::endl;
+                //LOG(ERROR)<<"[W]flushed"<<std::endl;
 //                 std::cout<<"%%%flushed"<<std::endl;
             }
             ++write_count_;
@@ -101,7 +101,7 @@ public:
                 end();
             }
             
-            if(write_count_%100==0)
+            if(write_count_%1000==0)
             {
                 LOG(ERROR)<<"[W]write count "<<write_count_<<std::endl;
             }

@@ -52,12 +52,9 @@ template <class KeyType>
 class BTreeIndexer
 {
     typedef BTreeIndexer<KeyType> ThisType;
+public:
     typedef std::vector<docid_t> VecValueType;
     typedef boost::variant<VecValueType, BitVector> ValueType;
-//  typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
-//  typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
-public:
-    //typedef boost::shared_mutex MutexType;
     typedef boost::mutex WriteOnlyMutex;
     typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
@@ -72,7 +69,7 @@ public:
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
     typedef izenelib::am::AMIterator<DbType> iterator;
-    static const size_t MAX_VALUE_LEN = 1024*1024*8;
+    static const size_t MAX_VALUE_LEN = 1024*1024;
 
     BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
         : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false)
@@ -196,7 +193,7 @@ public:
         getValue_(key, docs);
     }
 
-    bool getValue(const KeyType& key, std::vector<docid_t>& docs)
+    bool getValue(const KeyType& key, ValueType& docs)
     {
         boost::shared_lock<MutexType> lock(mutex_);
         return getValue_(key, docs);
@@ -516,8 +513,8 @@ private:
                         newvalue.set(tmp[i]);
                     }
                     common_value = newvalue;
-                    LOG(INFO)<< "btree index value converted to BitVector since the list is too large."
-                        << ", key: " << kvp.first << ", value num: " << tmp.size();
+                    std::cerr << "btree index value converted to BitVector since the list is too large."
+                        << ", key: " << kvp.first << ", value num: " << tmp.size() << std::endl;
                 }
             }
             //else
@@ -617,38 +614,38 @@ private:
         return true;
     }
 
-    bool getValue_(const KeyType& key, VecValueType& value)
-    {
-        ValueType dbvalue;
-        bool b_db = getDbValue_(key, dbvalue);
-        CacheValueType cache_value;
-        bool b_cache = getCacheValue_(key, cache_value);
-        if (!b_db && !b_cache) return false;
-        if (dbvalue.which() == 0)
-        {
-            value = boost::get<VecValueType>(dbvalue);
-        }
-        else
-        {
-            const BitVector& tmp = boost::get<BitVector>(dbvalue);
-            value.reserve(MAX_VALUE_LEN);
-            for(size_t i = 0; i < tmp.size(); ++i)
-            {
-                if (tmp.test(i))
-                    value.push_back(i);
-            }
-        }
-        if (b_cache)
-        {
-            applyCacheValue_(value, cache_value);
-        }
-        if (value.size() > (size_t)MAX_VALUE_LEN)
-        {
-            std::cerr << "============= Waring: Btree value len is too large for vector!" <<
-               " you should get this value using BitVector instead. ========= " << std::endl;
-        }
-        return true;
-    }
+    //bool getValue_(const KeyType& key, VecValueType& value)
+    //{
+    //    ValueType dbvalue;
+    //    bool b_db = getDbValue_(key, dbvalue);
+    //    CacheValueType cache_value;
+    //    bool b_cache = getCacheValue_(key, cache_value);
+    //    if (!b_db && !b_cache) return false;
+    //    if (dbvalue.which() == 0)
+    //    {
+    //        value = boost::get<VecValueType>(dbvalue);
+    //    }
+    //    else
+    //    {
+    //        const BitVector& tmp = boost::get<BitVector>(dbvalue);
+    //        value.reserve(MAX_VALUE_LEN);
+    //        for(size_t i = 0; i < tmp.size(); ++i)
+    //        {
+    //            if (tmp.test(i))
+    //                value.push_back(i);
+    //        }
+    //    }
+    //    if (b_cache)
+    //    {
+    //        applyCacheValue_(value, cache_value);
+    //    }
+    //    if (value.size() > (size_t)MAX_VALUE_LEN)
+    //    {
+    //        std::cerr << "============= Waring: Btree value len is too large for vector!" <<
+    //           " you should get this value using BitVector instead. ========= " << std::endl;
+    //    }
+    //    return true;
+    //}
 
     bool getValue_(const KeyType& key, ValueType& value)
     {

@@ -151,19 +151,27 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     }
 }
 
-void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, ValueType& docList)
 {
     if(!checkType_(property_name, key)) return;
     izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
     if (pFilter_)
     {
-        std::vector<docid_t> tmpIdList;
-        for(size_t i = 0; i < docList.size(); i++)
+        if (docList.which() == 0)
         {
-            if(!pFilter_->test(docList[i]))
-                tmpIdList.push_back(docList[i]);
+            VecValueType tmpIdList;
+            VecValueType& rawdata = boost::get<VecValueType>(docList);
+            for(size_t i = 0; i < rawdata.size(); i++)
+            {
+                if(!pFilter_->test(rawdata[i]))
+                    tmpIdList.push_back(rawdata[i]);
+            }
+            rawdata.swap(tmpIdList);
         }
-        docList.swap(tmpIdList);
+        else
+        {
+            doFilter_(boost::get<BitVector>(docList));
+        }
     }
 }
 
