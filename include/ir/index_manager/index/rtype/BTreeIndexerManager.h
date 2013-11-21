@@ -37,7 +37,8 @@ public:
 
     ~BTreeIndexerManager();
 public:
-    typedef std::vector<docid_t> ValueType;
+    typedef std::vector<docid_t> VecValueType;
+    typedef boost::variant<VecValueType, BitVector> ValueType;
     
     template<class T>
     BTreeIndexer<T>* getIndexer(const std::string& property_name)
@@ -81,7 +82,7 @@ public:
 
     void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter = true);
 
-    void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
+    void getValue(const std::string& property_name, const PropertyType& key, ValueType& docList);
 
     template <typename word_t>
     void getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<word_t>& docs);
@@ -144,7 +145,7 @@ public:
     ///So it should be used after flush operation has been called.
     template<typename KeyType>
     class Iterator 
-        : public boost::iterator_facade<Iterator<KeyType>, std::pair<KeyType,ValueType> const, boost::forward_traversal_tag >
+        : public boost::iterator_facade<Iterator<KeyType>, std::pair<KeyType, VecValueType> const, boost::forward_traversal_tag >
     {
     typedef typename BTreeIndexer<KeyType>::iterator BTreeIteratorType;
     public:
@@ -175,7 +176,7 @@ public:
             }
         }
 
-        const std::pair<KeyType,ValueType> & dereference() const {return *iter_; }
+        const std::pair<KeyType, VecValueType> & dereference() const {return *iter_; }
 
         bool equal(const Iterator<KeyType>& rhs) const
         {
@@ -327,7 +328,7 @@ class mget2_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BTreeIndexerManager::ValueType& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
@@ -496,17 +497,11 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     if (!checkType_(property_name, key))
         return;
 
-    std::vector<docid_t> docList;
-    izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
+    BitVector docList;
+    izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docList)), key);
 
-    for (std::vector<docid_t>::const_iterator it = docList.begin();
-         it != docList.end(); ++it)
-    {
-        if (!pFilter_ || !pFilter_->test(*it))
-        {
-            docs.set(*it);
-        }
-    }
+    doFilter_(docList);
+    docList.compressed(docs);
 }
 
 template <typename word_t>
@@ -518,43 +513,45 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
             return;
     }
 
-    std::vector<docid_t> docList;
     for (std::size_t i = 0; i < keys.size(); ++i)
     {
-        std::vector<docid_t> tempDocList;
-        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
-        docList.insert(docList.end(), tempDocList.begin(), tempDocList.end());
+        BitVector tempDocList;
+        izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
+        bitVector |= tempDocList;
     }
 
-    if (docList.size() < kDocIdNumSortLimit)
-    {
-        std::sort(docList.begin(), docList.end());
+    doFilter_(bitVector);
+    bitVector.compressed(docs);
 
-        docid_t lastDocId = 0;
-        for (std::vector<docid_t>::const_iterator it = docList.begin();
-             it != docList.end(); ++it)
-        {
-            // skip duplicated docid, required by EWAHBoolArray::set()
-            if (*it == lastDocId)
-                continue;
+    //if (docList.size() < kDocIdNumSortLimit)
+    //{
+    //    std::sort(docList.begin(), docList.end());
 
-            if (!pFilter_ || !pFilter_->test(*it))
-            {
-                docs.set(*it);
-            }
+    //    docid_t lastDocId = 0;
+    //    for (std::vector<docid_t>::const_iterator it = docList.begin();
+    //         it != docList.end(); ++it)
+    //    {
+    //        // skip duplicated docid, required by EWAHBoolArray::set()
+    //        if (*it == lastDocId)
+    //            continue;
 
-            lastDocId = *it;
-        }
-    }
-    else
-    {
-        for (std::size_t i = 0; i < docList.size(); ++i)
-        {
-            bitVector.set(docList[i]);
-        }
-        doFilter_(bitVector);
-        bitVector.compressed(docs);
-    }
+    //        if (!pFilter_ || !pFilter_->test(*it))
+    //        {
+    //            docs.set(*it);
+    //        }
+
+    //        lastDocId = *it;
+    //    }
+    //}
+    //else
+    //{
+    //    for (std::size_t i = 0; i < docList.size(); ++i)
+    //    {
+    //        bitVector.set(docList[i]);
+    //    }
+    //    doFilter_(bitVector);
+    //    bitVector.compressed(docs);
+    //}
 }
 
 }

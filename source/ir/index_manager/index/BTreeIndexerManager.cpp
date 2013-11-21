@@ -17,9 +17,9 @@ std::size_t BTreeIndexer<IndexPropString>::convertAllValue(std::size_t maxDoc, u
     docid_t docid = 0;
     while(term_enum->next(kvp))
     {
-        for(uint32_t i=0;i<kvp.second.size();i++)
+        for(uint32_t i=0;i< BTreeIndexer<IndexPropString>::getValueNum(kvp.second);i++)
         {
-            docid = kvp.second[i];
+            docid = BTreeIndexer<IndexPropString>::getDocId(kvp.second, i);
             if (docid >= maxDoc) break;
             data[docid] = kvp.first.empty() ? 0 : 1;
             ++result;
@@ -151,19 +151,27 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     }
 }
 
-void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
+void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, ValueType& docList)
 {
     if(!checkType_(property_name, key)) return;
     izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
     if (pFilter_)
     {
-        std::vector<docid_t> tmpIdList;
-        for(size_t i = 0; i < docList.size(); i++)
+        if (docList.which() == 0)
         {
-            if(!pFilter_->test(docList[i]))
-                tmpIdList.push_back(docList[i]);
+            VecValueType tmpIdList;
+            VecValueType& rawdata = boost::get<VecValueType>(docList);
+            for(size_t i = 0; i < rawdata.size(); i++)
+            {
+                if(!pFilter_->test(rawdata[i]))
+                    tmpIdList.push_back(rawdata[i]);
+            }
+            rawdata.swap(tmpIdList);
         }
-        docList.swap(tmpIdList);
+        else
+        {
+            doFilter_(boost::get<BitVector>(docList));
+        }
     }
 }
 

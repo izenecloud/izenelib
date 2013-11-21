@@ -583,7 +583,7 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& pr
     return true;
 }
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList)
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BTreeIndexerManager::ValueType& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValue(property, value, docList);
