@@ -38,6 +38,8 @@ public:
             throw std::runtime_error("Empty bloom filter");
         }
         
+        num_items_ *= num_hash_functions_ / std::log(2);
+
         vector_ = new TimeType[num_items_];
         memset(vector_, 0, num_items_ * sizeof(TimeType));
 
@@ -92,6 +94,7 @@ public:
         ostr.write((const char *)&num_hash_functions_, sizeof(num_hash_functions_));
         ostr.write((const char *)&num_items_, sizeof(num_items_));
         ostr.write((const char *)vector_, num_items_ * sizeof(TimeType));
+        ostr.write((const char *)&base_time_, sizeof(base_time_));
     }
 
     void load(std::istream& istr)
@@ -101,6 +104,7 @@ public:
         if (!vector_) 
             vector_ = new TimeType[num_items_];
         istr.read((char *)vector_, num_items_ * sizeof(TimeType));
+        istr.read((char *)&base_time_, sizeof(base_time_));
     }
 
     size_t size()
