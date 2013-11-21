@@ -38,6 +38,8 @@ public:
             throw std::runtime_error("Empty bloom filter");
         }
         
+        num_items_ *= num_hash_functions_ / std::log(2);
+
         vector_ = new TimeType[num_items_];
         memset(vector_, 0, num_items_ * sizeof(TimeType));
 
