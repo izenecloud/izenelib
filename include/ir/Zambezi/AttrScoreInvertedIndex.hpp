@@ -25,6 +25,7 @@ public:
     AttrScoreInvertedIndex(
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
+            uint32_t vocabSize = DEFAULT_VOCAB_SIZE,
             bool reverse = true);
 
     ~AttrScoreInvertedIndex();
