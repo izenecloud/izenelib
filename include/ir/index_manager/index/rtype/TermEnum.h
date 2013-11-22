@@ -24,8 +24,11 @@ class TermEnum
     {
         return false;
     }
-    
-    
+    // use this interface, you should not modify the content of value returned outside.
+    virtual bool next(KeyType& key, const ValueType*& value)
+    {
+        return false;
+    }
 };
 
 
@@ -93,7 +96,7 @@ public:
     :it_(am.lower_bound(key)), it_end_(am.end())
     {
     }
-    
+
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
@@ -143,6 +146,24 @@ public:
     {
     }
     
+    bool next(KeyType& key, const ValueType*& value)
+    {
+#ifdef TE_DEBUG
+//         std::cout<<"AMTermEnum next"<<std::endl;
+#endif
+        if(it_==it_end_) return false;
+        else
+        {
+            key = it_->first;
+            value = &(it_->second);
+            ++it_;
+#ifdef TE_DEBUG
+//             std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
+#endif
+            return true;
+        }
+    }
+
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
@@ -337,7 +358,6 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         {
         }
         
-        
         bool next(DataType& kvp)
         {
             //kvp.second.clear();
@@ -438,7 +458,8 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             
             if(!select[0] && !select[1] ) return false;
             ValueType1 value1;
-            ValueType2 value2;
+            static const ValueType2 emptyvalue;
+            const ValueType2* value2 = &emptyvalue;
             if(select[0])
             {
                 value1 = data1_.get().second;
@@ -446,11 +467,14 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             }
             if(select[1])
             {
-                value2 = data2_.get().second;
-                data2_.reset();
+                value2 = &data2_.get().second;
             }
             kvp.first = key;
-            func_(value1, value2, kvp.second);
+
+            func_(value1, *value2, kvp.second);
+
+            if(select[1])
+                data2_.reset();
             return true;
             
         }
