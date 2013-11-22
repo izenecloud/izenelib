@@ -49,6 +49,11 @@ public:
         }
     }
 
+    uint32_t size()
+    {
+        return dict.size();
+    }
+
     void toJson(Json::Value & root)
     {
         dictToJson(root["dict"]);
