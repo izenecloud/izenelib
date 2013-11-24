@@ -578,6 +578,7 @@ private:
             return db_.size();
         }
         else {
+            boost::shared_lock<MutexType> lock(mutex_);
             std::size_t count = 0;
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
             std::pair<KeyType, ValueType> kvp;

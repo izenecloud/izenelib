@@ -23,13 +23,13 @@ typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
 public:
     
     
-    BTreeTestRunner(const std::string& test_path)
+    BTreeTestRunner(const std::string& test_path, int max_key = 1000)
     :indexer_(test_path, "this_is_test")
-    , min_docid_(1), max_docid_(100)
+    , min_docid_(1), max_docid_(10000000)
 //     , low_(low), high_(high)
     , insert_ratio_(80), flush_ratio_(10), read_thread_count_(3), ge_only_(false)
-    , write_limit_(50000000), write_count_(0), end_(false)
-    , read_wait_ms_(1)
+    , write_limit_(10000000), write_count_(0), end_(false)
+    , read_wait_ms_(1), max_key_(max_key)
     {
         
     }
@@ -66,7 +66,7 @@ public:
         while(!end_)
         {
             KeyType key;
-            RandomGenerator<KeyType>::Gen(key);
+            RandomGenerator<KeyType>::Gen(0, max_key_, key);
             docid_t docid;
             RandomGenerator<docid_t>::Gen(min_docid_, max_docid_, docid);
             uint32_t ifi;
@@ -156,6 +156,7 @@ private:
     OperateRecord<KeyType> record_;
     int read_wait_ms_;
     boost::shared_mutex mutex_;
+    int max_key_;
 };
 
 template <class KeyType>
