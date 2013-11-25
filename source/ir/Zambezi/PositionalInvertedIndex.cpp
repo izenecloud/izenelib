@@ -92,7 +92,9 @@ void PositionalInvertedIndex::load(std::istream& istr)
     LOG(INFO) << "Load: done!";
 }
 
-void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& term_list)
+void PositionalInvertedIndex::insertDoc(uint32_t docid,
+                     const std::vector<std::string>& term_list,
+                     const std::vector<uint32_t>& score_list)
 {
     std::set<uint32_t> uniqueTerms;
     for (uint32_t i = 0; i < term_list.size(); ++i)
@@ -477,13 +479,22 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     return pool_.appendSegment(segment_, maxDocId, reqspace, lastPointer, nextPointer);
 }
 
-void PositionalInvertedIndex::retrieval(
+void PositionalInvertedIndex::retrievalWithBuffer(
         Algorithm algorithm,
-        const std::vector<std::string>& term_list,
+        const std::vector<std::pair<std::string, int> >& term_list_pair,
         uint32_t hits,
+        bool search_buffer,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
+    //std::vector<float> score_list;
+    std::vector<std::string> term_list;
+    for (std::vector<std::pair<std::string, int> >::const_iterator i = term_list_pair.begin();
+         i != term_list_pair.end(); ++i)
+    {
+        term_list.push_back(i->first);
+    }
+
     std::vector<boost::tuple<uint32_t, uint32_t, size_t> > queries;
     uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
@@ -567,6 +578,12 @@ void PositionalInvertedIndex::retrieval(
     {
         intersectSvS_(qHeadPointers, minimumDf, hits, docid_list);
     }
+
+    /*score_list_int.resize(score_list.size());
+    for (unsigned int i = 0; i < score_list.size(); ++i)
+    {
+        score_list_int[i] = score_list[i];
+    }*/
 }
 
 uint32_t PositionalInvertedIndex::decompressDocidBlock_(

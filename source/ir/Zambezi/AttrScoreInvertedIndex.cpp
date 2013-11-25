@@ -259,40 +259,40 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
     return pool_.appendSegment(segment_, maxDocId, csize + scsize + 3, lastPointer, nextPointer);
 }
 
-void AttrScoreInvertedIndex::retrieval(
-        const std::vector<std::string>& term_list,
-        uint32_t hits,
-        std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
-{
-    std::vector<std::pair<uint32_t, size_t> > queries;
-    uint32_t minimumDf = 0xFFFFFFFF;
-    for (uint32_t i = 0; i < term_list.size(); ++i)
-    {
-        uint32_t termid = dictionary_.getTermId(term_list[i]);
-        if (termid != INVALID_ID)
-        {
-            size_t pointer = pointers_.headPointers_.get(termid);
-            if (pointer != UNDEFINED_POINTER)
-            {
-                queries.push_back(std::make_pair(pointers_.df_.get(termid), pointer));
-                minimumDf = std::min(queries.back().first, minimumDf);
-            }
-        }
-    }
+// void AttrScoreInvertedIndex::retrieval(
+//         const std::vector<std::string>& term_list,
+//         uint32_t hits,
+//         std::vector<uint32_t>& docid_list,
+//         std::vector<uint32_t>& score_list) const
+// {
+//     std::vector<std::pair<uint32_t, size_t> > queries;
+//     uint32_t minimumDf = 0xFFFFFFFF;
+//     for (uint32_t i = 0; i < term_list.size(); ++i)
+//     {
+//         uint32_t termid = dictionary_.getTermId(term_list[i]);
+//         if (termid != INVALID_ID)
+//         {
+//             size_t pointer = pointers_.headPointers_.get(termid);
+//             if (pointer != UNDEFINED_POINTER)
+//             {
+//                 queries.push_back(std::make_pair(pointers_.df_.get(termid), pointer));
+//                 minimumDf = std::min(queries.back().first, minimumDf);
+//             }
+//         }
+//     }
 
-    if (queries.empty()) return;
+//     if (queries.empty()) return;
 
-    std::sort(queries.begin(), queries.end());
+//     std::sort(queries.begin(), queries.end());
 
-    std::vector<size_t> qHeadPointers(queries.size());
-    for (uint32_t i = 0; i < queries.size(); ++i)
-    {
-        qHeadPointers[i] = queries[i].second;
-    }
+//     std::vector<size_t> qHeadPointers(queries.size());
+//     for (uint32_t i = 0; i < queries.size(); ++i)
+//     {
+//         qHeadPointers[i] = queries[i].second;
+//     }
 
-    intersectSvS_(qHeadPointers, minimumDf, hits, docid_list, score_list);
-}
+//     intersectSvS_(qHeadPointers, minimumDf, hits, docid_list, score_list);
+// }
 
 uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
         FastPFor& codec,
@@ -429,7 +429,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         size_t pointer0,
         size_t pointer1,
         std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
+        std::vector<float>& score_list) const
 {
     uint32_t blockDocid0[BLOCK_SIZE];
     uint32_t blockDocid1[BLOCK_SIZE];
@@ -485,7 +485,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         size_t pointer,
         int weight,
         std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
+        std::vector<float>& score_list) const
 {
     uint32_t blockDocid[BLOCK_SIZE];
     uint32_t blockScore[BLOCK_SIZE];
@@ -538,7 +538,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         uint32_t minDf,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
-        std::vector<uint32_t>& score_list) const
+        std::vector<float>& score_list) const
 {
     FastPFor codec;
     if (headPointers.size() < 2)
