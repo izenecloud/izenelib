@@ -54,6 +54,10 @@ public:
 
     static void Gen(izenelib::util::UString& value)
     {
+        Gen(0, 0, value);
+    }
+    static void Gen(const int& low, const int& high, izenelib::util::UString& value)
+    {
         static uint32_t max_length = 2;
         static std::string chars("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
         static boost::mt19937 gen;

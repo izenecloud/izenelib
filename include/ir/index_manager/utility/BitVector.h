@@ -14,6 +14,8 @@
 
 #include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>
+#include <emmintrin.h>
+#include <algorithm>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -29,33 +31,41 @@ public:
     BitVector()
         : bits_(0), size_(0), maxBytesNum_(MAX_BYTES_NUM_INIT)
     {
-        bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
     }
 
     BitVector(const BitVector& other)
         : bits_(0), size_(other.size_), maxBytesNum_(other.maxBytesNum_)
     {
+        if (other.bits_ == NULL)
+            return;
         bits_ = new unsigned char[maxBytesNum_];
-        for(size_t i = 0; i < maxBytesNum_; ++i )
-            bits_[i] = other.bits_[i];
+        std::copy(other.bits_, other.bits_ + maxBytesNum_, bits_);
+        //for(size_t i = 0; i < maxBytesNum_; ++i )
+        //    bits_[i] = other.bits_[i];
     }
 
     BitVector(size_t n)
         : bits_(0), size_(n), maxBytesNum_(getMaxBytesNum(size_))
     {
-        bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
+        ensureInit();
     }
 
     ~BitVector()
     {
-        delete[] bits_;
+        if (bits_)
+            delete[] bits_;
     }
 
 public:
+    typedef __m128i block_t;
+    typedef void(*fast_opfunc)(block_t&, const block_t&);
+    typedef void(*byte_opfunc)(unsigned char&, const unsigned char&);
+    typedef bool(*fast_checkfunc)(const uint64_t&, const uint64_t&);
+    typedef bool(*byte_checkfunc)(const unsigned char&, const unsigned char&);
+
     void set(size_t bit)
     {
+        ensureInit();
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
             grow(bit + 1);
@@ -67,6 +77,7 @@ public:
 
     void clear(size_t bit)
     {
+        ensureInit();
         const size_t byte = bit >> 3;
         if(byte >= maxBytesNum_)
             grow(bit + 1);
@@ -78,6 +89,7 @@ public:
 
     void clear()
     {
+        ensureInit();
         memset(bits_, 0 , getBytesNum(size_));
     }
 
@@ -86,6 +98,7 @@ public:
         if(size_ == 0)
             return;
 
+        ensureInit();
         const size_t byteNum = getBytesNum(size_);
         memset(bits_, 0xFF, byteNum);
 
@@ -126,6 +139,7 @@ public:
     template <typename word_t>
     void importFromEWAH(const EWAHBoolArray<word_t>& ewahBitmap)
     {
+        ensureInit();
         uint pointer(0);
         uint currentoffset(0);
         const uint wordBitNum = sizeof(word_t) << 3;
@@ -166,49 +180,202 @@ public:
         }
     }
 
+    static void fastand(block_t& l, const block_t& r)
+    {
+        l = _mm_and_si128(l, r);
+    }
+    static void byteand(unsigned char& l, const unsigned char& r)
+    {
+        l &= r;
+    }
+
+    static void fastor(block_t& l, const block_t& r)
+    {
+        l = _mm_or_si128(l, r);
+    }
+    static void byteor(unsigned char& l, const unsigned char& r)
+    {
+        l |= r;
+    }
+
+    // ^
+    static void fastxor(block_t& l, const block_t& r)
+    {
+        l = _mm_xor_si128(l, r);
+    }
+    static void bytexor(unsigned char& l, const unsigned char& r)
+    {
+        l ^= r;
+    }
+
+    // L & (~R)
+    static void fastnotand(block_t& l, const block_t& r)
+    {
+        l = _mm_andnot_si128(r, l);
+    }
+    static void bytenotand(unsigned char& l, const unsigned char& r)
+    {
+        l &= (~r);
+    }
+
+    static void fastnot(block_t& l, const block_t& r)
+    {
+        static const __m128i allone = _mm_set1_epi8(0xFF);
+        l = _mm_andnot_si128(r, allone);
+    }
+    static void bytenot(unsigned char& l, const unsigned char& r)
+    {
+        l = ~r;
+    }
+
+    static bool fastcmpeq_sse(const block_t& l, const block_t& r)
+    {
+        // r0 := (a0 == b0) ? 0xffffffff : 0x0
+        // r1 := (a1 == b1) ? 0xffffffff : 0x0
+        // r2 := (a2 == b2) ? 0xffffffff : 0x0
+        // r3 := (a3 == b3) ? 0xffffffff : 0x0
+        __m128i ret = _mm_cmpeq_epi32(l, r);
+        char tmp[16]; 
+        _mm_storeu_si128((__m128i*)tmp, ret);
+        for(size_t i = 0; i < 16; ++i)
+        {
+            if (tmp[i] != 0xFF)
+                return false;
+        }
+        return true;
+    }
+
+    static bool bytecmpeq(const unsigned char& l, const unsigned char& r)
+    {
+        return l == r;
+    }
+
+    static bool fastcmpeq(const uint64_t& l, const uint64_t& r)
+    {
+        return l == r;
+    }
+
+    static bool fastcmpnteq(const uint64_t& l, const uint64_t& r)
+    {
+        return l != r;
+    }
+    static bool bytecmpnteq(const unsigned char& l, const unsigned char& r)
+    {
+        return l != r;
+    }
+
+    static bool fast_iszero(const uint64_t& l, const uint64_t& r)
+    {
+        return l == 0;
+    }
+    static bool byte_iszero(const unsigned char& l, const unsigned char& r)
+    {
+        return l == 0;
+    }
+
+    void fast_bitwise_op(fast_opfunc op, byte_opfunc byteop)
+    {
+        return fast_bitwise_op(op, byteop, *this);
+    }
+
+    void fast_bitwise_op(fast_opfunc op, byte_opfunc byteop, const BitVector& other)
+    {
+        const size_t min_size = std::min(size_, other.size_);
+        const size_t byteNum = getBytesNum(min_size);
+        const size_t blockByteNum = sizeof(block_t);
+
+        const size_t blockNum = byteNum / blockByteNum;
+        block_t* pBlock = reinterpret_cast<block_t*>(bits_);
+        const block_t* potherBlock = reinterpret_cast<const block_t*>(other.bits_);
+        for (std::size_t i = 0; i < blockNum; ++i)
+        {
+            __m128i tmp = _mm_loadu_si128(pBlock);
+            op(tmp, _mm_loadu_si128(potherBlock));
+            _mm_storeu_si128(pBlock, tmp);
+            ++pBlock;
+            ++potherBlock;
+        }
+
+        const size_t leftByteNum = byteNum % blockByteNum;
+        if (leftByteNum > 0)
+        {
+            unsigned char* pBytes = reinterpret_cast<unsigned char*>(pBlock);
+            const unsigned char* potherBytes = reinterpret_cast<const unsigned char*>(potherBlock);
+            for (std::size_t i = 0; i < leftByteNum; ++i)
+            {
+                byteop(*pBytes, *potherBytes);
+                ++pBytes;
+                ++potherBytes;
+            }
+        }
+    }
+
+    bool fast_check_op(fast_checkfunc ck, byte_checkfunc byteck, const BitVector& other) const
+    {
+        typedef uint64_t block_t;
+        const size_t min_size = std::min(size_, other.size_);
+        const size_t byteNum = getBytesNum(min_size);
+        const size_t blockByteNum = sizeof(block_t);
+
+        const size_t blockNum = byteNum / blockByteNum;
+        const block_t* pBlock = reinterpret_cast<const block_t*>(bits_);
+        const block_t* potherBlock = reinterpret_cast<const block_t*>(other.bits_);
+        for (std::size_t i = 0; i < blockNum; ++i)
+        {
+            if( !ck (*pBlock, *potherBlock) )
+                return false;
+            ++pBlock;
+            ++potherBlock;
+        }
+
+        const size_t leftByteNum = byteNum % blockByteNum;
+        if (leftByteNum > 0)
+        {
+            const unsigned char* pBytes = reinterpret_cast<const unsigned char*>(pBlock);
+            const unsigned char* potherBytes = reinterpret_cast<const unsigned char*>(potherBlock);
+            for (std::size_t i = 0; i < leftByteNum; ++i)
+            {
+                if( !byteck(*pBytes, *potherBytes) )
+                    return false;
+                ++pBytes;
+                ++potherBytes;
+            }
+        }
+        return true;
+    }
+
     bool any() const
     {
-        const size_t byteNum = getBytesNum(size_);
-        for(size_t i = 0; i < byteNum; ++i)
-            if(bits_[i])
-                return true;
-
-        return false;
+        return !fast_check_op(&fast_iszero, &byte_iszero, *this);
     }
 
     std::size_t count() const
     {
         std::size_t count = 0;
-        for(std::size_t i=0;i<size();i++)
+        typedef unsigned long long block_t;
+
+        const size_t byteNum = getBytesNum(size_);
+        const size_t blockByteNum = sizeof(block_t);
+
+        const size_t blockNum = byteNum / blockByteNum;
+        block_t* pBlock = reinterpret_cast<block_t*>(bits_);
+        for (std::size_t i = 0; i < blockNum; ++i)
         {
-            if(test(i)) ++count;
+            count += __builtin_popcountll(*pBlock);
+            ++pBlock;
+        }
+
+        for(std::size_t i = blockNum*blockByteNum*8; i < size(); ++i)
+        {
+            if ( test(i) ) ++count;
         }
         return count;
     }
 
     void toggle()
     {
-        typedef uint64_t word_t;
-        const size_t byteNum = getBytesNum(size_);
-        const size_t wordByteNum = sizeof(word_t);
-
-        const size_t wordNum = byteNum / wordByteNum;
-        word_t* pWord = reinterpret_cast<word_t*>(bits_);
-        for (std::size_t i = 0; i < wordNum; ++i, ++pWord)
-        {
-            *pWord = ~*pWord;
-        }
-
-        const size_t leftByteNum = byteNum % wordByteNum;
-        if (leftByteNum > 0)
-        {
-            unsigned char* pBytes = reinterpret_cast<unsigned char*>(pWord);
-            for (std::size_t i = 0; i < leftByteNum; ++i, ++pBytes)
-            {
-                *pBytes = ~*pBytes;
-            }
-        }
-
+        ensureInit();
+        fast_bitwise_op(&fastnot, &bytenot);
         clearDirtyBits();
     }
 
@@ -221,79 +388,113 @@ public:
         return output;
     }
 
+    void swap(BitVector& b)
+    {
+        std::swap(size_, b.size_);
+        std::swap(maxBytesNum_, b.maxBytesNum_);
+        unsigned char* tmp = b.bits_;
+        b.bits_ = bits_;
+        bits_ = tmp;
+    }
+
     BitVector& operator&=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
             size_ = b.size();
         }
+        fast_bitwise_op(&fastand, &byteand, b);
+
         const size_t byteNum = getBytesNum(b.size_);
-        for(size_t i = 0; i < byteNum; ++i )
-            bits_[i] &= b.bits_[i];
+        const size_t my_byteNum = getBytesNum(size_);
+        memset(bits_ + byteNum, 0, my_byteNum - byteNum);
+        return *this;
+    }
+
+    BitVector& operator=(const BitVector& b)
+    {
+        if (this != &b )
+        {
+            size_ = b.size_;
+            if (b.bits_ == NULL)
+            {
+                maxBytesNum_ = b.maxBytesNum_;
+                if (bits_)
+                {
+                    delete[] bits_;
+                    bits_ = NULL;
+                }
+            }
+            else if((b.maxBytesNum_ != maxBytesNum_) || (bits_ == NULL))
+            {
+                unsigned char* newBits = new unsigned char[b.maxBytesNum_];
+                std::copy(b.bits_, b.bits_ + b.maxBytesNum_, newBits);
+                if (bits_)
+                    delete[] bits_;
+                bits_ = newBits;
+                maxBytesNum_ = b.maxBytesNum_;
+            }
+            else
+            {
+                std::copy(b.bits_, b.bits_ + b.maxBytesNum_, bits_);
+            }
+        }
         return *this;
     }
 
     bool operator==(const BitVector& b) const
     {
-        if(size()!=b.size())
+        if(size() != b.size())
         {
             return false;
         }
-        for(std::size_t i=0;i<size();i++)
-        {
-            if(test(i)!=b.test(i)) return false;
-        }
-        return true;
+
+        return fast_check_op(&fastcmpeq, &bytecmpeq, b);
     }
 
     bool equal_ignore_size(const BitVector& b) const
     {
         std::size_t c_size = std::min(size(), b.size());
-        for(std::size_t i=0;i<c_size;i++)
+        if (!fast_check_op(&fastcmpeq, &bytecmpeq, b))
+            return false;
+
+        for(size_t i = getBytesNum(c_size); i < getBytesNum(size()); ++i)
         {
-            if(test(i)!=b.test(i)) return false;
+            if (bits_[i] != 0)
+                return false;
         }
-        if(size()>c_size)
+        for(size_t i = getBytesNum(c_size); i < getBytesNum(b.size()); ++i)
         {
-            for(std::size_t i=c_size;i<size();i++)
-            {
-                if(test(i)) return false;//should be 0
-            }
-        }
-        if(b.size()>c_size)
-        {
-            for(std::size_t i=c_size;i<b.size();i++)
-            {
-                if(b.test(i)) return false;//should be 0
-            }
+            if (b.bits_[i] != 0)
+                return false;
         }
         return true;
     }
 
     BitVector& operator|=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
             size_ = b.size();
         }
-        const size_t byteNum = getBytesNum(b.size_);
-        for(size_t i = 0; i < byteNum; ++i )
-            bits_[i] |= b.bits_[i];
+        fast_bitwise_op(&fastor, &byteor, b);
         return *this;
     }
 
     BitVector& operator^=(const BitVector& b)
     {
+        ensureInit();
         if(size()<b.size())
         {
             grow(b.size());
             size_ = b.size();
         }
-        const size_t byteNum = getBytesNum(b.size_);
-        for(size_t i = 0; i < byteNum; ++i )
-            bits_[i] ^= b.bits_[i];
+
+        fast_bitwise_op(&fastxor, &bytexor, b);
         return *this;
     }
 
@@ -306,30 +507,32 @@ public:
 
     void logicalNotAnd(const BitVector& b)
     {
-        typedef uint64_t word_t;
-        std::size_t min_size = std::min(size_, b.size_);
+        ensureInit();
+        //typedef uint64_t word_t;
+        //std::size_t min_size = std::min(size_, b.size_);
 
-        const size_t byteNum = getBytesNum(min_size);
-        const size_t wordByteNum = sizeof(word_t);
+        //const size_t byteNum = getBytesNum(min_size);
+        //const size_t wordByteNum = sizeof(word_t);
 
-        const size_t wordNum = byteNum / wordByteNum;
-        word_t* pWord1 = reinterpret_cast<word_t*>(bits_);
-        word_t* pWord2 = reinterpret_cast<word_t*>(b.bits_);
-        for (std::size_t i = 0; i < wordNum; ++i)
-        {
-            *pWord1++ &= ~*pWord2++;
-        }
+        //const size_t wordNum = byteNum / wordByteNum;
+        //word_t* pWord1 = reinterpret_cast<word_t*>(bits_);
+        //word_t* pWord2 = reinterpret_cast<word_t*>(b.bits_);
+        //for (std::size_t i = 0; i < wordNum; ++i)
+        //{
+        //    *pWord1++ &= ~*pWord2++;
+        //}
 
-        const size_t leftByteNum = byteNum % wordByteNum;
-        if (leftByteNum > 0)
-        {
-            unsigned char* pBytes1 = reinterpret_cast<unsigned char*>(pWord1);
-            unsigned char* pBytes2 = reinterpret_cast<unsigned char*>(pWord2);
-            for (std::size_t i = 0; i < leftByteNum; ++i)
-            {
-                *pBytes1++ &= ~*pBytes2++;
-            }
-        }
+        //const size_t leftByteNum = byteNum % wordByteNum;
+        //if (leftByteNum > 0)
+        //{
+        //    unsigned char* pBytes1 = reinterpret_cast<unsigned char*>(pWord1);
+        //    unsigned char* pBytes2 = reinterpret_cast<unsigned char*>(pWord2);
+        //    for (std::size_t i = 0; i < leftByteNum; ++i)
+        //    {
+        //        *pBytes1++ &= ~*pBytes2++;
+        //    }
+        //}
+        fast_bitwise_op(&fastnotand, &bytenotand, b);
     }
 
     void printout(ostream &o = cout) {
@@ -344,24 +547,31 @@ public:
     {
         IndexInput* pInput = pDirectory->openInput(name);
         size_= (size_t)pInput->readInt();
-        const size_t newBytesNum = getMaxBytesNum(size_);
-        if(newBytesNum > maxBytesNum_)
+        const size_t newBytesNum = (size_t)pInput->readInt();
+        if(newBytesNum != maxBytesNum_)
         {
             unsigned char* newBits = new unsigned char[newBytesNum];
-            delete[] bits_;
+            memset(newBits, 0 , newBytesNum);
+            if (bits_)
+                delete[] bits_;
             bits_ = newBits;
             maxBytesNum_ = newBytesNum;
         }
-        memset(bits_, 0 , maxBytesNum_);
+        else
+        {
+            ensureInit();
+        }
         pInput->read((char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pInput;
     }
 
-    void write(Directory* pDirectory,const char* name)
+    void write(Directory* pDirectory,const char* name) const
     {
         IndexOutput* pOutput = pDirectory->createOutput(name);
         pOutput->writeInt((int32_t)size_);
-        pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
+        pOutput->writeInt((int32_t)maxBytesNum_);
+        if (bits_)
+            pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pOutput;
     }
 
@@ -434,19 +644,43 @@ public:
     {
         ar & size_;
         ar & maxBytesNum_;
-        ar.save_binary(bits_, maxBytesNum_);
+        if (bits_)
+            ar.save_binary(bits_, getBytesNum(size_)*sizeof(unsigned char));
     }
 
     template<class Archive>
     void load(Archive & ar, const unsigned int version)
     {
         ar & size_;
-        ar & maxBytesNum_;
-        ar.load_binary(bits_, maxBytesNum_);
+        size_t newBytesNum = 0;
+        ar & newBytesNum;
+        if(newBytesNum != maxBytesNum_)
+        {
+            unsigned char* newBits = new unsigned char[newBytesNum];
+            memset(newBits, 0 , newBytesNum);
+            if (bits_)
+                delete[] bits_;
+            bits_ = newBits;
+            maxBytesNum_ = newBytesNum;
+        }
+        else
+        {
+            ensureInit();
+        }
+        ar.load_binary(bits_, getBytesNum(size_)*sizeof(unsigned char));
     }
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 private:
+
+    void ensureInit()
+    {
+        if (bits_ == NULL)
+        {
+            bits_ = new unsigned char[maxBytesNum_];
+            memset(bits_, 0 , maxBytesNum_);
+        }
+    }
     /**
      * Get the number of bytes to contain @p bitNum bits.
      * @param bitNum the number of bits
@@ -490,6 +724,7 @@ private:
         if ((size_ & 7) == 0)
             return;
 
+        ensureInit();
         const size_t endBit = size_ - 1;
         const unsigned char endMask = (1 << ((endBit & 7) + 1)) - 1;
         bits_[endBit >> 3] &= endMask;
@@ -550,6 +785,12 @@ private:
         while(newMax < newBytesNum)
             newMax <<= 1;
 
+        if (newMax == maxBytesNum_)
+        {
+            ensureInit();
+            return;
+        }
+
         unsigned char* newBits = new unsigned char[newMax];
         memset(newBits, 0, newMax);
         memcpy(newBits, bits_, getBytesNum(size_));
@@ -583,5 +824,14 @@ private:
 }
 
 NS_IZENELIB_IR_END
+
+namespace std {
+    template<> inline void swap<izenelib::ir::indexmanager::BitVector>(izenelib::ir::indexmanager::BitVector& a,
+        izenelib::ir::indexmanager::BitVector& b)
+    {
+        a.swap(b);
+    }
+
+}
 
 #endif
