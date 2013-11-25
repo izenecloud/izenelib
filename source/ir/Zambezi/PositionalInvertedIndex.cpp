@@ -25,15 +25,16 @@ PositionalInvertedIndex::PositionalInvertedIndex(
         IndexType type,
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
+        uint32_t vocabSize,
         bool reverse,
         bool bloomEnabled,
         uint32_t nbHash,
         uint32_t bitsPerElement)
     : type_(type)
-    , buffer_(DEFAULT_VOCAB_SIZE, type)
+    , buffer_(vocabSize, type)
     , pool_(maxPoolSize, numberOfPools, reverse)
-    , dictionary_(DEFAULT_VOCAB_SIZE)
-    , pointers_(DEFAULT_VOCAB_SIZE, DEFAULT_COLLECTION_SIZE)
+    , dictionary_(vocabSize)
+    , pointers_(vocabSize, DEFAULT_COLLECTION_SIZE)
     , bloomEnabled_(bloomEnabled)
     , nbHash_(nbHash)
     , bitsPerElement_(bitsPerElement)
@@ -100,6 +101,15 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid,
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
+
+        if (id == INVALID_ID)
+        {
+            LOG(WARNING) << "failed to insert term as dictionary is full"
+                         << ", term: " << term_list[i]
+                         << ", dictionary size: " << dictionary_.size();
+            continue;
+        }
+
         bool added = uniqueTerms.insert(id).second;
 
         pointers_.cf_.increment(id);

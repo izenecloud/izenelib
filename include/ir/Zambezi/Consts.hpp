@@ -32,7 +32,7 @@ static const uint32_t BLOOM_FILTER_UNIT_SIZE = sizeof(uint32_t) * 8;
 static const uint32_t DEFAULT_HASH_SEED = 0x7ed55d16;
 
 // Default vocabulary size
-static const uint32_t DEFAULT_VOCAB_SIZE = 33554432;
+static const uint32_t DEFAULT_VOCAB_SIZE = 1U << 25; // 32M terms in default
 // Default number of documents in the collection
 static const uint32_t DEFAULT_COLLECTION_SIZE = 30000000;
 

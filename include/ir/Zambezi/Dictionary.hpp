@@ -27,6 +27,11 @@ public:
     {
     }
 
+    std::size_t size() const
+    {
+        return dict_.size();
+    }
+
     /* Search hash table for given string */
     uint32_t getTermId(const WordType& word) const
     {
@@ -40,7 +45,11 @@ public:
     /* Search hash table for given string, insert if not found */
     uint32_t insertTerm(const WordType& word)
     {
-        return dict_.insert(std::make_pair(word, dict_.size())).first->second;
+        if (dict_.load_factor() < dict_.max_load_factor())
+            return dict_.insert(std::make_pair(word, dict_.size())).first->second;
+
+        // not to insert as dictionary is full
+        return getTermId(word);
     }
 
     void save(std::ostream& ostr) const

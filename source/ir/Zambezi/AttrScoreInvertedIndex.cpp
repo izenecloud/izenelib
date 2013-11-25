@@ -12,11 +12,12 @@ namespace Zambezi
 AttrScoreInvertedIndex::AttrScoreInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
+        uint32_t vocabSize,
         bool reverse)
-    : buffer_(DEFAULT_VOCAB_SIZE)
+    : buffer_(vocabSize)
     , pool_(maxPoolSize, numberOfPools, reverse)
-    , dictionary_(DEFAULT_VOCAB_SIZE)
-    , pointers_(DEFAULT_VOCAB_SIZE, 0)
+    , dictionary_(vocabSize)
+    , pointers_(vocabSize, 0)
 {
 }
 
@@ -77,6 +78,15 @@ void AttrScoreInvertedIndex::insertDoc(
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
+
+        if (id == INVALID_ID)
+        {
+            LOG(WARNING) << "failed to insert term as dictionary is full"
+                         << ", term: " << term_list[i]
+                         << ", dictionary size: " << dictionary_.size();
+            continue;
+        }
+
         pointers_.df_.increment(id);
         pointers_.cf_.increment(id);
         std::vector<uint32_t>& docBuffer = buffer_.docid_[id];
