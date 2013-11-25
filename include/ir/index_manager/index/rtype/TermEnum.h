@@ -6,6 +6,7 @@
 #include <boost/function.hpp>
 #include <3rdparty/am/stx/btree_map.h>
 #include "InMemoryBTreeCache.h"
+#include <util/ClockTimer.h>
 
 // #define TE_DEBUG
 
@@ -25,9 +26,12 @@ class TermEnum
         return false;
     }
     // use this interface, you should not modify the content of value returned outside.
-    virtual bool next(KeyType& key, const ValueType*& value)
+    virtual bool get(KeyType& key, const ValueType*& value)
     {
         return false;
+    }
+    void move()
+    {
     }
 };
 
@@ -146,7 +150,7 @@ public:
     {
     }
     
-    bool next(KeyType& key, const ValueType*& value)
+    bool get(KeyType& key, const ValueType*& value)
     {
 #ifdef TE_DEBUG
 //         std::cout<<"AMTermEnum next"<<std::endl;
@@ -156,12 +160,16 @@ public:
         {
             key = it_->first;
             value = &(it_->second);
-            ++it_;
 #ifdef TE_DEBUG
 //             std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
 #endif
             return true;
         }
+    }
+    void move()
+    {
+        if(it_==it_end_) return;
+        ++it_;
     }
 
     bool next(std::pair<KeyType, ValueType>& kvp)
@@ -360,8 +368,10 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         
         bool next(DataType& kvp)
         {
+            //izenelib::util::ClockTimer timer;
+            //timer.restart();
             //kvp.second.clear();
-            ValueType().swap(kvp.second);
+            //ValueType().swap(kvp.second);
 #ifdef TE_DEBUG
             std::cout<<"[TE] next ";
 #endif
@@ -391,12 +401,18 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
                 std::cout<<"exist key1 : "<<data1_.get().first<<",";
 #endif                
             }
+            //double t1 = timer.elapsed();
+            //double t2 = t1;
             if(!data2_)
             {
                 DataType2 rdata2;
-                if(enum2_.next(rdata2))
+                const ValueType2* tmp = NULL;
+                if(enum2_.get(rdata2.first, tmp))
                 {
+                    //t2 = timer.elapsed();
                     data2_ = rdata2;
+                    data2_.get().second = *tmp;
+                    enum2_.move();
 #ifdef TE_DEBUG
                     std::cout<<"get key2 : {"<<data2_.get().first<<"} :"<<data2_.get().second<<",";
 #endif
@@ -419,6 +435,7 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
 #endif             
             
             
+            //double t3 = timer.elapsed();
             KeyType key;
             bool select[2];
             select[0] = false;
@@ -471,7 +488,14 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             }
             kvp.first = key;
 
+            //double t4 = timer.elapsed();
+            //if (t4 > 0.05)
+            //    std::cerr << "next cost: " << t1 << "," << t2 << "," << t3 << "," << t4 << std::endl;
             func_(value1, *value2, kvp.second);
+
+            //double t5 = timer.elapsed();
+            //if (t5 > 0.08)
+            //    std::cerr << "combine cost: " << t5 << std::endl;
 
             if(select[1])
                 data2_.reset();

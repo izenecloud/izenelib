@@ -15,6 +15,7 @@
 #include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>
 #include <emmintrin.h>
+#include <algorithm>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -35,9 +36,12 @@ public:
     BitVector(const BitVector& other)
         : bits_(0), size_(other.size_), maxBytesNum_(other.maxBytesNum_)
     {
+        if (other.bits_ == NULL)
+            return;
         bits_ = new unsigned char[maxBytesNum_];
-        for(size_t i = 0; i < maxBytesNum_; ++i )
-            bits_[i] = other.bits_[i];
+        std::copy(other.bits_, other.bits_ + maxBytesNum_, bits_);
+        //for(size_t i = 0; i < maxBytesNum_; ++i )
+        //    bits_[i] = other.bits_[i];
     }
 
     BitVector(size_t n)
@@ -384,6 +388,15 @@ public:
         return output;
     }
 
+    void swap(BitVector& b)
+    {
+        std::swap(size_, b.size_);
+        std::swap(maxBytesNum_, b.maxBytesNum_);
+        unsigned char* tmp = b.bits_;
+        b.bits_ = bits_;
+        bits_ = tmp;
+    }
+
     BitVector& operator&=(const BitVector& b)
     {
         ensureInit();
@@ -404,21 +417,28 @@ public:
     {
         if (this != &b )
         {
-            const size_t newBytesNum = getMaxBytesNum(b.size_);
             size_ = b.size_;
-            if(newBytesNum > maxBytesNum_)
+            if (b.bits_ == NULL)
             {
-                unsigned char* newBits = new unsigned char[newBytesNum];
-                std::copy(b.bits_, b.bits_ + getBytesNum(b.size_), newBits);
+                maxBytesNum_ = b.maxBytesNum_;
+                if (bits_)
+                {
+                    delete[] bits_;
+                    bits_ = NULL;
+                }
+            }
+            else if((b.maxBytesNum_ != maxBytesNum_) || (bits_ == NULL))
+            {
+                unsigned char* newBits = new unsigned char[b.maxBytesNum_];
+                std::copy(b.bits_, b.bits_ + b.maxBytesNum_, newBits);
                 if (bits_)
                     delete[] bits_;
                 bits_ = newBits;
-                maxBytesNum_ = newBytesNum;
+                maxBytesNum_ = b.maxBytesNum_;
             }
             else
             {
-                ensureInit();
-                std::copy(b.bits_, b.bits_ + getBytesNum(b.size_), bits_);
+                std::copy(b.bits_, b.bits_ + b.maxBytesNum_, bits_);
             }
         }
         return *this;
@@ -527,8 +547,8 @@ public:
     {
         IndexInput* pInput = pDirectory->openInput(name);
         size_= (size_t)pInput->readInt();
-        const size_t newBytesNum = getMaxBytesNum(size_);
-        if(newBytesNum > maxBytesNum_)
+        const size_t newBytesNum = (size_t)pInput->readInt();
+        if(newBytesNum != maxBytesNum_)
         {
             unsigned char* newBits = new unsigned char[newBytesNum];
             memset(newBits, 0 , newBytesNum);
@@ -549,6 +569,7 @@ public:
     {
         IndexOutput* pOutput = pDirectory->createOutput(name);
         pOutput->writeInt((int32_t)size_);
+        pOutput->writeInt((int32_t)maxBytesNum_);
         if (bits_)
             pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pOutput;
@@ -622,6 +643,7 @@ public:
     void save(Archive & ar, const unsigned int version)  const
     {
         ar & size_;
+        ar & maxBytesNum_;
         if (bits_)
             ar.save_binary(bits_, getBytesNum(size_)*sizeof(unsigned char));
     }
@@ -630,8 +652,9 @@ public:
     void load(Archive & ar, const unsigned int version)
     {
         ar & size_;
-        const size_t newBytesNum = getMaxBytesNum(size_);
-        if(newBytesNum > maxBytesNum_)
+        size_t newBytesNum = 0;
+        ar & newBytesNum;
+        if(newBytesNum != maxBytesNum_)
         {
             unsigned char* newBits = new unsigned char[newBytesNum];
             memset(newBits, 0 , newBytesNum);
@@ -801,5 +824,14 @@ private:
 }
 
 NS_IZENELIB_IR_END
+
+namespace std {
+    template<> inline void swap<izenelib::ir::indexmanager::BitVector>(izenelib::ir::indexmanager::BitVector& a,
+        izenelib::ir::indexmanager::BitVector& b)
+    {
+        a.swap(b);
+    }
+
+}
 
 #endif
