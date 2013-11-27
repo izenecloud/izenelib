@@ -29,8 +29,10 @@ std::size_t BTreeIndexer<IndexPropString>::convertAllValue(std::size_t maxDoc, u
 }
 
 
-BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map)
-:dir_(dir), pDirectory_(pDirectory)
+BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory,
+    const std::map<std::string, PropertyType>& type_map,
+    const std::set<std::string>& no_preload_props)
+:dir_(dir), pDirectory_(pDirectory), no_preload_props_(no_preload_props)
 {
   for( std::map<std::string, PropertyType>::const_iterator it = type_map.begin(); it!=type_map.end(); ++it)
   {
