@@ -180,55 +180,55 @@ public:
         }
     }
 
-    static void fastand(block_t& l, const block_t& r)
+    static void inline fastand(block_t& l, const block_t& r)
     {
         l = _mm_and_si128(l, r);
     }
-    static void byteand(unsigned char& l, const unsigned char& r)
+    static void inline byteand(unsigned char& l, const unsigned char& r)
     {
         l &= r;
     }
 
-    static void fastor(block_t& l, const block_t& r)
+    static void inline fastor(block_t& l, const block_t& r)
     {
         l = _mm_or_si128(l, r);
     }
-    static void byteor(unsigned char& l, const unsigned char& r)
+    static void inline byteor(unsigned char& l, const unsigned char& r)
     {
         l |= r;
     }
 
     // ^
-    static void fastxor(block_t& l, const block_t& r)
+    static void inline fastxor(block_t& l, const block_t& r)
     {
         l = _mm_xor_si128(l, r);
     }
-    static void bytexor(unsigned char& l, const unsigned char& r)
+    static void inline bytexor(unsigned char& l, const unsigned char& r)
     {
         l ^= r;
     }
 
     // L & (~R)
-    static void fastnotand(block_t& l, const block_t& r)
+    static void inline fastnotand(block_t& l, const block_t& r)
     {
         l = _mm_andnot_si128(r, l);
     }
-    static void bytenotand(unsigned char& l, const unsigned char& r)
+    static void inline bytenotand(unsigned char& l, const unsigned char& r)
     {
         l &= (~r);
     }
 
-    static void fastnot(block_t& l, const block_t& r)
+    static void inline fastnot(block_t& l, const block_t& r)
     {
         static const __m128i allone = _mm_set1_epi8(0xFF);
         l = _mm_andnot_si128(r, allone);
     }
-    static void bytenot(unsigned char& l, const unsigned char& r)
+    static void inline bytenot(unsigned char& l, const unsigned char& r)
     {
         l = ~r;
     }
 
-    static bool fastcmpeq_sse(const block_t& l, const block_t& r)
+    static bool inline fastcmpeq_sse(const block_t& l, const block_t& r)
     {
         // r0 := (a0 == b0) ? 0xffffffff : 0x0
         // r1 := (a1 == b1) ? 0xffffffff : 0x0
@@ -245,30 +245,30 @@ public:
         return true;
     }
 
-    static bool bytecmpeq(const unsigned char& l, const unsigned char& r)
+    static bool inline bytecmpeq(const unsigned char& l, const unsigned char& r)
     {
         return l == r;
     }
 
-    static bool fastcmpeq(const uint64_t& l, const uint64_t& r)
+    static bool inline fastcmpeq(const uint64_t& l, const uint64_t& r)
     {
         return l == r;
     }
 
-    static bool fastcmpnteq(const uint64_t& l, const uint64_t& r)
+    static bool inline fastcmpnteq(const uint64_t& l, const uint64_t& r)
     {
         return l != r;
     }
-    static bool bytecmpnteq(const unsigned char& l, const unsigned char& r)
+    static bool inline bytecmpnteq(const unsigned char& l, const unsigned char& r)
     {
         return l != r;
     }
 
-    static bool fast_iszero(const uint64_t& l, const uint64_t& r)
+    static bool inline fast_iszero(const uint64_t& l, const uint64_t& r)
     {
         return l == 0;
     }
-    static bool byte_iszero(const unsigned char& l, const unsigned char& r)
+    static bool inline byte_iszero(const unsigned char& l, const unsigned char& r)
     {
         return l == 0;
     }
