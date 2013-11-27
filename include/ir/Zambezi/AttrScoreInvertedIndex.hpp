@@ -13,6 +13,7 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <vector>
+#include <glog/logging.h>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -63,6 +64,7 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const
     {
+        LOG(INFO) << "do retrievalWithBuffer ....";
         std::vector<std::pair<std::pair<uint32_t, int>, size_t> > queries;
 
         uint32_t minimumDf = 0xFFFFFFFF;
@@ -127,7 +129,7 @@ public:
             }
         }
 
-        if (queries.empty()) return;
+        if (queries.empty() || queries.size() != term_list.size()) return;
 
         std::sort(queries.begin(), queries.end());
 
