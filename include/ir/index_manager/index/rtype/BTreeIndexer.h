@@ -638,7 +638,7 @@ private:
         return db_.get(key, value);
     }
 
-    bool getDbValue_(const KeyType& key, const ValueType*& value)
+    bool getPreLoadDbValue_(const KeyType& key, const ValueType*& value)
     {
         if (pre_load_)
         {
@@ -648,7 +648,7 @@ private:
             value = &(it->second);
             return true;
         }
-        return db_.get(key, *const_cast<ValueType*>(value));
+        return false;
     }
 
     bool getCacheValue_(const KeyType& key, CacheValueType& value)
@@ -685,7 +685,15 @@ private:
     bool getValue_(const KeyType& key, BitVector& value)
     {
         const ValueType* compressed = NULL;
-        bool b_db = getDbValue_(key, compressed);
+        ValueType tmp;
+        bool b_db = false;
+        if (pre_load_)
+            b_db = getPreLoadDbValue_(key, compressed);
+        else
+        {
+            b_db = getDbValue_(key, tmp);
+            compressed = &tmp;
+        }
         CacheValueType cache_value;
         bool b_cache = getCacheValue_(key, cache_value);
         if (!b_db && !b_cache) return false;
