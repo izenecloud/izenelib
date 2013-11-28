@@ -78,7 +78,7 @@ public:
     static const size_t MAX_VALUE_LEN = 1024*1024;
 
     BTreeIndexer(const std::string& path, const std::string& property_name,
-        std::size_t cacheSize = 2000000, bool pre_load = false)//an experienced value
+        bool pre_load = false, std::size_t cacheSize = 2000000)//an experienced value
         : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false)
     {
         cache_.set_max_capacity(cacheSize);
