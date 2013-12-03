@@ -97,13 +97,13 @@ class KString
     void refer_()
     {
         CHECK_NULL(mem_);
-         __gnu_cxx::__atomic_add((volatile _Atomic_word*)(uint32_t*)mem_, 1);
+         __gnu_cxx::__atomic_add(( _Atomic_word*)(uint32_t*)mem_, 1);
     }
 
     void defer_()
     {
         CHECK_NULL(mem_);
-        if (__sync_add_and_fetch((volatile _Atomic_word*)(uint32_t*)mem_, -1) <= 0)
+        if (__sync_add_and_fetch(( _Atomic_word*)(uint32_t*)mem_, -1) <= 0)
         {
             free(mem_);
             mem_ = NULL;
