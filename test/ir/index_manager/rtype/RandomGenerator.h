@@ -12,7 +12,7 @@ public:
     static void Gen(const T& low, const T& high, T& value)
     {
         static boost::mt19937 gen;
-        boost::uniform_int<> dist(low, high);
+        boost::uniform_int<T> dist(low, high);
         value = dist(gen);
     }
     
@@ -34,7 +34,7 @@ public:
     static void Gen(const T& low, const T& high, T& value)
     {
         static boost::mt19937 gen;
-        boost::uniform_real<> dist(low, high);
+        boost::uniform_real<T> dist(low, high);
         value = dist(gen);
     }
     

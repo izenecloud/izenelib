@@ -32,6 +32,7 @@
 
 #include <algorithm>
 #include <string>
+#include <map>
 
 //#define CACHE_DEBUG
 //#define BT_DEBUG
@@ -61,21 +62,28 @@ public:
     typedef InMemoryBTreeCache<KeyType, docid_t, MutexType> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
 
+    typedef std::map<KeyType, ValueType> PreLoadCacheType;
+
     typedef BTTermEnum<KeyType, CacheValueType, typename CacheType::AMType> MemEnumType;
     typedef AMTermEnum<DbType> AMEnumType;
+    typedef PreLoadTermEnum<KeyType, ValueType, PreLoadCacheType> PreLoadTermEnumType;
 
     typedef TwoWayTermEnum<KeyType, CacheValueType, typename CacheType::AMType, DbType, ValueType> EnumType;
+    typedef TwoWayPreLoadTermEnum<KeyType, CacheValueType, typename CacheType::AMType, PreLoadCacheType, ValueType> TwoWayPreLoadEnumType;
+
     typedef TermEnum<KeyType, ValueType> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
     typedef izenelib::am::AMIterator<DbType> iterator;
     static const size_t MAX_VALUE_LEN = 1024*1024;
 
-    BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
+    BTreeIndexer(const std::string& path, const std::string& property_name,
+        bool pre_load = false, std::size_t cacheSize = 2000000)//an experienced value
         : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false)
     {
         cache_.set_max_capacity(cacheSize);
         func_ = &combineValue_;
+        pre_load_ = pre_load;
     }
 
     ~BTreeIndexer()
@@ -84,8 +92,22 @@ public:
 
     bool open()
     {
-        return db_.open(path_);
-//      return db_.open(path_, DbType::WRITER | DbType::CREAT | DbType::NOLCK);
+        if(!db_.open(path_))
+            return false;
+        if (pre_load_)
+        {
+            std::cerr << "begin preload btree filter for property: " << property_name_ << std::endl;
+
+            pre_loaded_data_.clear();
+            std::auto_ptr<BaseEnumType> term_enum(getAMEnum_());
+            std::pair<KeyType, ValueType> kvp;
+            while (term_enum->next(kvp))
+            {
+                pre_loaded_data_[kvp.first] = kvp.second;
+            }
+            std::cerr << "total preloaded : " << pre_loaded_data_.size();
+        }
+        return true;
     }
 
     void close()
@@ -376,11 +398,25 @@ private:
         BaseEnumType* term_enum = NULL;
         if (cacheEmpty_())
         {
-            term_enum = getAMEnum_(lowKey);
+            if (pre_load_)
+            {
+                term_enum = getPreLoadEnum_(lowKey);
+            }
+            else
+            {
+                term_enum = getAMEnum_(lowKey);
+            }
         }
         else
         {
-            term_enum = new EnumType(cache_.getAM(), db_, lowKey, func_);
+            if (pre_load_)
+            {
+                term_enum = new TwoWayPreLoadEnumType(cache_.getAM(), pre_loaded_data_, lowKey, func_);
+            }
+            else
+            {
+                term_enum = new EnumType(cache_.getAM(), db_, lowKey, func_);
+            }
         }
         return term_enum;
     }
@@ -390,11 +426,25 @@ private:
         BaseEnumType* term_enum = NULL;
         if (cacheEmpty_())
         {
-            term_enum = getAMEnum_();
+            if (pre_load_)
+            {
+                term_enum = getPreLoadEnum_();
+            }
+            else
+            {
+                term_enum = getAMEnum_();
+            }
         }
         else
         {
-            term_enum = new EnumType(cache_.getAM(), db_, func_);
+            if (pre_load_)
+            {
+                term_enum = new TwoWayPreLoadEnumType(cache_.getAM(), pre_loaded_data_, func_);
+            }
+            else
+            {
+                term_enum = new EnumType(cache_.getAM(), db_, func_);
+            }
         }
         return term_enum;
     }
@@ -408,6 +458,18 @@ private:
     MemEnumType* getMemEnum_()
     {
         MemEnumType* term_enum = new MemEnumType(cache_.getAM());
+        return term_enum;
+    }
+
+    PreLoadTermEnumType* getPreLoadEnum_(const KeyType& lowKey)
+    {
+        PreLoadTermEnumType* term_enum = new PreLoadTermEnumType(pre_loaded_data_, lowKey);
+        return term_enum;
+    }
+
+    PreLoadTermEnumType* getPreLoadEnum_()
+    {
+        PreLoadTermEnumType* term_enum = new PreLoadTermEnumType(pre_loaded_data_);
         return term_enum;
     }
 
@@ -530,10 +592,14 @@ private:
         if ((common_value.which() == 1) || value_size > 0)
         {
             db_.update(kvp.first, common_value);
+            if (pre_load_)
+                pre_loaded_data_[kvp.first] = common_value;
         }
         else
         {
             db_.del(kvp.first);
+            if (pre_load_)
+                pre_loaded_data_.erase(kvp.first);
         }
         cache_.clear_key(kvp.first);
 #ifdef CACHE_TIME_INFO
@@ -561,7 +627,28 @@ private:
 
     bool getDbValue_(const KeyType& key, ValueType& value)
     {
+        if (pre_load_)
+        {
+            typename PreLoadCacheType::const_iterator it = pre_loaded_data_.find(key);
+            if (it == pre_loaded_data_.end())
+                return false;
+            value = it->second;
+            return true;
+        }
         return db_.get(key, value);
+    }
+
+    bool getPreLoadDbValue_(const KeyType& key, const ValueType*& value)
+    {
+        if (pre_load_)
+        {
+            typename PreLoadCacheType::const_iterator it = pre_loaded_data_.find(key);
+            if (it == pre_loaded_data_.end())
+                return false;
+            value = &(it->second);
+            return true;
+        }
+        return false;
     }
 
     bool getCacheValue_(const KeyType& key, CacheValueType& value)
@@ -573,12 +660,14 @@ private:
 
     std::size_t getCount_()
     {
+        boost::shared_lock<MutexType> lock(mutex_);
         if (cache_.empty())
         {
+            if (pre_load_)
+                return pre_loaded_data_.size();
             return db_.size();
         }
         else {
-            boost::shared_lock<MutexType> lock(mutex_);
             std::size_t count = 0;
             std::auto_ptr<BaseEnumType> term_enum(getEnum_());
             std::pair<KeyType, ValueType> kvp;
@@ -595,12 +684,20 @@ private:
 
     bool getValue_(const KeyType& key, BitVector& value)
     {
-        ValueType compressed;
-        bool b_db = getDbValue_(key, compressed);
+        const ValueType* compressed = NULL;
+        ValueType tmp;
+        bool b_db = false;
+        if (pre_load_)
+            b_db = getPreLoadDbValue_(key, compressed);
+        else
+        {
+            b_db = getDbValue_(key, tmp);
+            compressed = &tmp;
+        }
         CacheValueType cache_value;
         bool b_cache = getCacheValue_(key, cache_value);
         if (!b_db && !b_cache) return false;
-        decompress_(compressed, value);
+        decompress_(*compressed, value);
         if (b_cache)
         {
             applyCacheValue_(value, cache_value);
@@ -799,6 +896,8 @@ private:
     bool count_has_modify_;
 #endif
     std::size_t cache_num_;
+    bool pre_load_;
+    PreLoadCacheType pre_loaded_data_;
 };
 
 }
