@@ -1,4 +1,3 @@
-
 #ifndef IZENELIB_IR_BTREETESTFRAMEWORK_H_
 #define IZENELIB_IR_BTREETESTFRAMEWORK_H_
 
@@ -19,10 +18,10 @@ typedef uint32_t docid_t;
 typedef std::vector<docid_t> RefValueType;
 typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
-    
+
 public:
-    
-    
+
+
     BTreeTestRunner(const std::string& test_path, int max_key = 1000)
     :indexer_(test_path, "this_is_test")
     , min_docid_(1), max_docid_(10000000)
@@ -31,17 +30,17 @@ public:
     , write_limit_(10000000), write_count_(0), end_(false)
     , read_wait_ms_(1), max_key_(max_key)
     {
-        
+
     }
-    
+
     void start()
     {
         if(!indexer_.open())
         {
             throw std::runtime_error("indexer open error");
         }
-        
-        boost::thread twrite(boost::bind( &BTreeTestRunner::write_thread, this)); 
+
+        boost::thread twrite(boost::bind( &BTreeTestRunner::write_thread, this));
         std::vector<boost::thread* > rthreads;
         for(uint32_t i=0;i<read_thread_count_;++i)
         {
@@ -55,12 +54,12 @@ public:
         }
         indexer_.close();
     }
-    
+
     void end()
     {
         end_ = true;
     }
-    
+
     void write_thread()
     {
         while(!end_)
@@ -100,14 +99,14 @@ public:
             {
                 end();
             }
-            
+
             if(write_count_%1000==0)
             {
                 LOG(ERROR)<<"[W]write count "<<write_count_<<std::endl;
             }
         }
     }
-    
+
     void read_thread()
     {
         while(!end_)
@@ -138,7 +137,7 @@ public:
             }
         }
     }
-    
+
 private:
     IndexerType indexer_;
     RefType ref_;
@@ -167,18 +166,18 @@ typedef uint32_t docid_t;
 typedef std::vector<docid_t> RefValueType;
 typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
-    
+
 public:
-    
-    
+
+
     BTreePerformanceRunner(const std::string& test_path, uint32_t init_docid, uint32_t min, uint32_t max, uint32_t search_thread_count)
     :indexer_(test_path, "this_is_test")
     , init_docid_(init_docid), min_(min), max_(max), search_thread_count_(search_thread_count)
     , end_(false)
     {
-        
+
     }
-    
+
     void start()
     {
         if(!indexer_.open())
@@ -192,8 +191,8 @@ public:
             indexer_.add(key, docid);
         }
         //indexer_.flush();
-        
-        boost::thread twrite(boost::bind( &BTreePerformanceRunner::write_thread, this)); 
+
+        boost::thread twrite(boost::bind( &BTreePerformanceRunner::write_thread, this));
         //{
             //int retcode;
             //int policy;
@@ -246,12 +245,12 @@ public:
         }
         indexer_.close();
     }
-    
+
     void end()
     {
         end_ = true;
     }
-    
+
     void write_thread()
     {
         izenelib::util::ClockTimer clocker;
@@ -289,7 +288,7 @@ public:
             }
         }
     }
-    
+
     void search_thread()
     {
         izenelib::util::ClockTimer clocker;
@@ -300,7 +299,7 @@ public:
         {
             KeyType key = min_;
             //RandomGenerator<KeyType>::Gen(min_, max_, key);
-            BitVector docs;
+            Bitset docs;
             clocker.restart();
             indexer_.getValueGreat(key, docs);
             double time = clocker.elapsed();
@@ -317,7 +316,7 @@ public:
             }
         }
     }
-    
+
 private:
     IndexerType indexer_;
     uint32_t init_docid_;
@@ -328,4 +327,3 @@ private:
 
 };
 #endif
-

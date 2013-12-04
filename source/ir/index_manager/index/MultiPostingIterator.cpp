@@ -1,7 +1,9 @@
 #include <ir/index_manager/index/MultiPostingIterator.h>
 
-using namespace izenelib::ir::indexmanager;
-using namespace std;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager
+{
 
 MultiPostingIterator::MultiPostingIterator(size_t nPosition)
     :nPos_(nPosition)
@@ -20,9 +22,9 @@ MultiPostingIterator::~MultiPostingIterator()
         delete positionsQueue_;
 }
 
-void MultiPostingIterator::addTermPosition(TermPositions* pPosition, BitVector* pDocFilter)
+void MultiPostingIterator::addTermPosition(TermPositions* pPosition, Bitset* pDocFilter)
 {
-    MultiPostingIterator::TermPositionEntry* pEntry = 
+    MultiPostingIterator::TermPositionEntry* pEntry =
                 new MultiPostingIterator::TermPositionEntry(pPosition, pDocFilter);
     positions_.push_back(pEntry);
 }
@@ -32,7 +34,7 @@ bool MultiPostingIterator::skipDocs(TermPositionEntry* pEntry)
     while(pEntry->pDocFilter_->test(pEntry->pPositions_->doc()))
         if(!pEntry->next())
             return false;
-    return true;    
+    return true;
 }
 
 void MultiPostingIterator::initQueue()
@@ -40,7 +42,7 @@ void MultiPostingIterator::initQueue()
     if (positionsQueue_ || positions_.size()==0)
         return;
     positionsQueue_ = new MultiPostingIterator::TermPositionQueue(nPos_);
-    for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin(); 
+    for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin();
                 iter != positions_.end(); ++iter)
     {
         MultiPostingIterator::TermPositionEntry* pEntry = *iter;
@@ -67,11 +69,11 @@ bool MultiPostingIterator::next()
         {
             return false;
         }
-		
+
         currDoc_ = top->pPositions_->doc();
         currEntry_ = top;
 
-        for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin(); 
+        for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin();
                 iter != positions_.end(); ++iter)
             if(currDoc_ == (*iter)->pPositions_->doc())
                 (*iter)->setCurrent(true);
@@ -94,7 +96,7 @@ bool MultiPostingIterator::next()
                   positionsQueue_->pop();
             else
                 positionsQueue_->adjustTop();
-        else 
+        else
             positionsQueue_->pop();
 
         top = positionsQueue_->top();
@@ -116,3 +118,6 @@ bool MultiPostingIterator::next()
     return true;
 }
 
+}
+
+NS_IZENELIB_IR_END

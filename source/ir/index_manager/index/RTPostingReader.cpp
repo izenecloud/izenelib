@@ -6,7 +6,7 @@
 #include <ir/index_manager/index/SkipListReader.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 #include <math.h>
 
@@ -622,7 +622,7 @@ docid_t RTDiskPostingReader::DecodeTo(
         else
             nSkipPCount += pDPostingInput->readVInt();
     }
-	
+
     ///update state
     ds_.lastDecodedDocID = nDocID;
     ds_.lastDecodedDocTF = nFreq;

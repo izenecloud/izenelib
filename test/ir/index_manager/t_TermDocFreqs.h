@@ -320,9 +320,9 @@ inline void removeDocAndOptimize(const IndexerTestConfig& config)
     VLOG(2) << "<= t_TermDocFreqs::removeDocAndOptimize";
 }
 /**
- * Create barrels, optimize barrels (it would clear BitVector),
- * and remove document (it would set BitVector),
- * then check BitVector
+ * Create barrels, optimize barrels (it would clear Bitset),
+ * and remove document (it would set Bitset),
+ * then check Bitset
  */
 inline void optimizeAndRemoveDoc(const IndexerTestConfig& config)
 {

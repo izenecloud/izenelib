@@ -67,7 +67,7 @@ PostingReader* VocIterator::termPosting()
         pInputDescriptor_->setDPostingInput(pInput);
         pInput = pTermReader_->getTermReaderImpl()->pInputDescriptor_->getPPostingInput()->clone();
         pInputDescriptor_->setPPostingInput(pInput);
-        pCurTermPosting_ = new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
+        pCurTermPosting_ = new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_, *pCurTermInfo_);
     }
     else
     {

@@ -3,7 +3,7 @@
 #include <ir/index_manager/index/rtype/BTreeIndexer.h>
 #include <ir/index_manager/index/rtype/InMemoryBTreeIndexer.h>
 
-#define TEST_DEBUG 
+#define TEST_DEBUG
 
 using namespace izenelib::ir::indexmanager;
 
@@ -17,21 +17,21 @@ typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
 
 public:
-    
+
     static bool SimpleTest(IndexerType& indexer, RefType& ref)
     {
         KeyType key;
         RandomGenerator<KeyType>::Gen(key);
         bool result = false;
-        BitVector docs1;
-        BitVector docs2;
+        Bitset docs1;
+        Bitset docs2;
 #ifdef TEST_DEBUG
         //LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
         indexer.getValueGreatEqual(key, docs1);
         ref.getValueGreatEqual(key, docs2);
         result = docs1.equal_ignore_size(docs2);
-        
+
 #ifdef TEST_DEBUG
         if(!result)
         {
@@ -61,9 +61,9 @@ public:
         uint32_t func_num = 0;
         RandomGenerator<uint32_t>::Gen(0, func_count-1, func_num);
         bool result = false;
-        BitVector docs1;
-        BitVector docs2;
-        switch (func_num) 
+        Bitset docs1;
+        Bitset docs2;
+        switch (func_num)
         {
             case 0:
 #ifdef TEST_DEBUG
@@ -168,7 +168,7 @@ public:
 
         return result;
     }
-    
+
 };
 
 
@@ -183,21 +183,21 @@ typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
 
 public:
-    
+
     static bool SimpleTest(IndexerType& indexer, RefType& ref)
     {
         KeyType key;
         RandomGenerator<KeyType>::Gen(key);
         bool result = false;
-        BitVector docs1;
-        BitVector docs2;
+        Bitset docs1;
+        Bitset docs2;
 #ifdef TEST_DEBUG
        // LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
         indexer.getValueGreatEqual(key, docs1);
         ref.getValueGreatEqual(key, docs2);
         result = docs1.equal_ignore_size(docs2);
-        
+
 #ifdef TEST_DEBUG
         if(!result)
         {
@@ -227,14 +227,14 @@ public:
         uint32_t func_num = 0;
         RandomGenerator<uint32_t>::Gen(0, func_count-1, func_num);
         bool result = false;
-        BitVector docs1;
-        BitVector docs2;
-        switch (func_num) 
+        Bitset docs1;
+        Bitset docs2;
+        switch (func_num)
         {
             case 0:
 #ifdef TEST_DEBUG
                 //LOG(ERROR)<<"seek "<<key<<std::endl;
-#endif                
+#endif
                 result = indexer.seek(key) == ref.seek(key);
 #ifdef TEST_DEBUG
                 if(!result)
@@ -246,7 +246,7 @@ public:
             case 1:
 #ifdef TEST_DEBUG
                 //LOG(ERROR)<<"getValue "<<key<<std::endl;
-#endif                
+#endif
                 indexer.getValue(key, docs1);
                 ref.getValue(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
@@ -314,7 +314,7 @@ public:
             case 9:
 #ifdef TEST_DEBUG
                 //LOG(ERROR)<<"getValueSubString "<<key<<std::endl;
-#endif                
+#endif
                 indexer.getValueSubString(key, docs1);
                 ref.getValueSubString(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
@@ -341,9 +341,7 @@ public:
         //LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
         return result;
     }
-    
+
 };
 
 #endif
-
-

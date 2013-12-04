@@ -10,7 +10,7 @@
 #include <ir/index_manager/index/rtype/TermEnum.h>
 #include <ir/index_manager/index/rtype/Compare.h>
 #include <ir/index_manager/index/IndexerDocument.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/store/Directory.h>
 #include <util/ClockTimer.h>
 #include <glog/logging.h>
@@ -54,8 +54,8 @@ class BTreeIndexer
 {
     typedef BTreeIndexer<KeyType> ThisType;
 public:
-    typedef std::vector<docid_t> VecValueType;
-    typedef boost::variant<VecValueType, BitVector> ValueType;
+    typedef std::vector<docid_t> DocListType;
+    typedef boost::variant<DocListType, Bitset> ValueType;
     typedef boost::mutex WriteOnlyMutex;
     typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
@@ -128,17 +128,17 @@ public:
     static size_t  getValueNum(const ValueType& val)
     {
         if (val.which() == 0)
-            return boost::get<VecValueType>(val).size();
+            return boost::get<DocListType>(val).size();
         else
-            return boost::get<BitVector>(val).count();
+            return boost::get<Bitset>(val).count();
     }
 
     static bool  isEmpltyValue(const ValueType& val)
     {
         if (val.which() == 0)
-            return boost::get<VecValueType>(val).empty();
+            return boost::get<DocListType>(val).empty();
         else
-            return !boost::get<BitVector>(val).any();
+            return !boost::get<Bitset>(val).any();
     }
 
     static docid_t getDocId(const ValueType& val, size_t index)
@@ -146,12 +146,12 @@ public:
         if (val.which() == 0)
         {
             // value is common docid vector.
-            return boost::get<VecValueType>(val)[index];
+            return boost::get<DocListType>(val)[index];
         }
         else
         {
             // value is bitvector
-            const BitVector& tmp = boost::get<BitVector>(val);
+            const Bitset& tmp = boost::get<Bitset>(val);
             size_t num = 0;
             for(std::size_t i = 0; i < tmp.size(); i++)
             {
@@ -206,18 +206,18 @@ public:
     bool seek(const KeyType& key)
     {
         boost::shared_lock<MutexType> lock(mutex_);
-        BitVector docs;
+        Bitset docs;
         getValue_(key, docs);
         return docs.any();
     }
 
-    void getNoneEmptyList(const KeyType& key, BitVector& docs)
+    void getNoneEmptyList(const KeyType& key, Bitset& docs)
     {
         boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
     }
 
-    void getValue(const KeyType& key, BitVector& docs)
+    void getValue(const KeyType& key, Bitset& docs)
     {
         boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
@@ -255,7 +255,7 @@ public:
     //    return result;
     //}
 
-    void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
+    void getValueBetween(const KeyType& key1, const KeyType& key2, Bitset& docs)
     {
         if (compare_(key1, key2) > 0) return;
         boost::shared_lock<MutexType> lock(mutex_);
@@ -269,7 +269,7 @@ public:
         }
     }
 
-    void getValueLess(const KeyType& key, BitVector& docs)
+    void getValueLess(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] "<< docs << std::endl;
@@ -284,7 +284,7 @@ public:
         }
     }
 
-    void getValueLessEqual(const KeyType& key, BitVector& docs)
+    void getValueLessEqual(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -299,7 +299,7 @@ public:
         }
     }
 
-    void getValueGreat(const KeyType& key, BitVector& docs)
+    void getValueGreat(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -314,7 +314,7 @@ public:
         }
     }
 
-    void getValueGreatEqual(const KeyType& key, BitVector& docs)
+    void getValueGreatEqual(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -329,7 +329,7 @@ public:
     }
 
 
-    void getValueStart(const KeyType& key, BitVector& docs)
+    void getValueStart(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -344,7 +344,7 @@ public:
         }
     }
 
-    void getValueEnd(const KeyType& key, BitVector& docs)
+    void getValueEnd(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -359,7 +359,7 @@ public:
         }
     }
 
-    void getValueSubString(const KeyType& key, BitVector& docs)
+    void getValueSubString(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -572,17 +572,17 @@ private:
         size_t value_size = 0;
         if (common_value.which() == 0)
         {
-            VecValueType& tmp = boost::get<VecValueType>(common_value);
+            DocListType& tmp = boost::get<DocListType>(common_value);
             value_size = tmp.size();
             if (value_size > MAX_VALUE_LEN)
             {
                 // too much value, convert it to bitvector to save space.
-                BitVector newvalue;
+                Bitset newvalue;
                 for(size_t i = 0; i < tmp.size(); ++i)
                 {
                     newvalue.set(tmp[i]);
                 }
-                std::cerr << "btree index value converted to BitVector since the list is too large."
+                std::cerr << "btree index value converted to Bitset since the list is too large."
                     << ", key: " << kvp.first << ", value num: " << tmp.size() << std::endl;
                 common_value = newvalue;
             }
@@ -682,7 +682,7 @@ private:
         }
     }
 
-    bool getValue_(const KeyType& key, BitVector& value)
+    bool getValue_(const KeyType& key, Bitset& value)
     {
         const ValueType* compressed = NULL;
         ValueType tmp;
@@ -705,7 +705,7 @@ private:
         return true;
     }
 
-    //bool getValue_(const KeyType& key, VecValueType& value)
+    //bool getValue_(const KeyType& key, DocListType& value)
     //{
     //    ValueType dbvalue;
     //    bool b_db = getDbValue_(key, dbvalue);
@@ -714,11 +714,11 @@ private:
     //    if (!b_db && !b_cache) return false;
     //    if (dbvalue.which() == 0)
     //    {
-    //        value = boost::get<VecValueType>(dbvalue);
+    //        value = boost::get<DocListType>(dbvalue);
     //    }
     //    else
     //    {
-    //        const BitVector& tmp = boost::get<BitVector>(dbvalue);
+    //        const Bitset& tmp = boost::get<Bitset>(dbvalue);
     //        value.reserve(MAX_VALUE_LEN);
     //        for(size_t i = 0; i < tmp.size(); ++i)
     //        {
@@ -733,7 +733,7 @@ private:
     //    if (value.size() > (size_t)MAX_VALUE_LEN)
     //    {
     //        std::cerr << "============= Waring: Btree value len is too large for vector!" <<
-    //           " you should get this value using BitVector instead. ========= " << std::endl;
+    //           " you should get this value using Bitset instead. ========= " << std::endl;
     //    }
     //    return true;
     //}
@@ -751,11 +751,11 @@ private:
         return true;
     }
 
-    static void decompress_(const ValueType& compressed, BitVector& value)
+    static void decompress_(const ValueType& compressed, Bitset& value)
     {
         if (compressed.which() == 0)
         {
-            const VecValueType& tmp = boost::get<VecValueType>(compressed);
+            const DocListType& tmp = boost::get<DocListType>(compressed);
             for (uint32_t i = 0; i < tmp.size(); i++)
             {
                 value.set(tmp[i]);
@@ -763,7 +763,7 @@ private:
         }
         else
         {
-            value |= boost::get<BitVector>(compressed);
+            value |= boost::get<Bitset>(compressed);
         }
     }
 
@@ -772,9 +772,9 @@ private:
         value.reset();
     }
 
-    inline static void reset_common_bv_(BitVector& value)
+    inline static void reset_common_bv_(Bitset& value)
     {
-        value.clear();
+        value.reset();
     }
 
 
@@ -804,11 +804,11 @@ private:
 
     /// called only in cacheIterator_, one thread, common_bv_ is safe.
     /// value was already sorted, also cacheValue was sorted
-    static void applyCacheValue_(VecValueType& value, const CacheValueType& cacheValue)
+    static void applyCacheValue_(DocListType& value, const CacheValueType& cacheValue)
     {
-        VecValueType new_value;
+        DocListType new_value;
         new_value.reserve(value.size()+cacheValue.size()/2);
-        VecValueType::const_iterator it1 = value.begin();
+        DocListType::const_iterator it1 = value.begin();
         typename CacheValueType::const_iterator it2 = cacheValue.begin();
         typename CacheValueType::const_iterator it2_end = cacheValue.end();
         while(it1!=value.end()&&it2!=it2_end)
@@ -854,15 +854,15 @@ private:
     {
         if (value.which() == 0)
         {
-            applyCacheValue_(boost::get<VecValueType>(value), cacheValue);
+            applyCacheValue_(boost::get<DocListType>(value), cacheValue);
         }
         else
         {
-            applyCacheValue_(boost::get<BitVector>(value), cacheValue);
+            applyCacheValue_(boost::get<Bitset>(value), cacheValue);
         }
     }
 
-    static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
+    static void applyCacheValue_(Bitset& value, const CacheValueType& cacheValue)
     {
         std::size_t count = cacheValue.count;
         for (std::size_t i = 0; i < count; i++)
@@ -873,7 +873,7 @@ private:
             }
             else
             {
-                value.clear(cacheValue.item[i].first);
+                value.reset(cacheValue.item[i].first);
             }
         }
     }
@@ -890,7 +890,7 @@ private:
     DynBitsetType common_bv_;
     ///
     boost::optional<std::size_t> count_in_cache_;
-#if BOOST_VERSION >= 105300	
+#if BOOST_VERSION >= 105300
     boost::atomic_bool count_has_modify_;
 #else
     bool count_has_modify_;

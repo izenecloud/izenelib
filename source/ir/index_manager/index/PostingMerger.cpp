@@ -151,7 +151,7 @@ void PostingMerger::setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
     pTmpPostingOutput_ = pOutputDescriptor_->getDirectory()->createOutput(tmpPostingName_);
 }
 
-void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter)
 {
     if(optimize_)
     {
@@ -365,7 +365,7 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
     chunkDesc_.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
 }
 
-void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
@@ -427,7 +427,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     {
         nDocID += pDInput->readVInt();
         nTF = pDInput->readVInt();
-		
+
         if(!pFilter->test((size_t)nDocID))///the document has not been deleted
         {
             pDocIndexOutput->writeVInt(nDocID - nLastDocID);
@@ -490,7 +490,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     chunkDesc_.lastdocid = nLastDocID;
 }
 
-void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
+void PostingMerger::mergeWith(BlockPostingReader* pPosting, Bitset* pFilter)
 {
     IndexInput* pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
 
@@ -629,7 +629,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     chunkDesc_.lastdocid = nLastDocID;
 }
 
-void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
+void PostingMerger::mergeWith(ChunkPostingReader* pPosting, Bitset* pFilter)
 {
     IndexInput*	pDInput = pPosting->inputDescriptorPtr_->getDPostingInput();
     IndexInput*	pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
@@ -755,13 +755,13 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
     chunkDesc_.lastdocid = nLastDocID;
 }
 
-void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter)
 {
     if(compressType_ == BLOCK) optimize_to_Block(pOnDiskPosting, pFilter);
     else optimize_to_Chunk(pOnDiskPosting, pFilter);
 }
 
-void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter)
 {
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
@@ -851,7 +851,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
     chunkDesc_.lastdocid = nDocID;
 }
 
-void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter)
 {
     IndexInput* pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();

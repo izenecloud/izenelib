@@ -15,7 +15,7 @@
 #include <string>
 #include <cstdlib>
 
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/store/FSDirectory.h>
 #include <util/ClockTimer.h>
 
@@ -24,134 +24,133 @@ using namespace boost;
 using namespace izenelib::ir::indexmanager;
 
 /**
- * check BitVector functions.
+ * check Bitset functions.
  * @param count bits size to test
  * @param isCheckEachBit whether check each bit in the loop,
  * when @p count is large, it would better to be false to avoid consuming lots of test time.
  */
-void checkBitVector(size_t count, bool isCheckEachBit = true)
+void checkBitset(size_t count, bool isCheckEachBit = true)
 {
-    BOOST_TEST_MESSAGE("checkBitVector, count: " << count);
+    BOOST_TEST_MESSAGE("checkBitset, count: " << count);
 
-    BitVector bitvector(count);
-    BOOST_CHECK_EQUAL(bitvector.size(), count);
+    Bitset bitset(count);
+    BOOST_CHECK_EQUAL(bitset.size(), count);
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        bitvector.set(i);
+        bitset.set(i);
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK(bitvector.test(i));
-    BOOST_CHECK(! bitvector.test(count));
-    BOOST_CHECK(! bitvector.test(2 * count + 1));
+        BOOST_CHECK(bitset.test(i));
+    BOOST_CHECK(!bitset.test(count));
+    BOOST_CHECK(!bitset.test(2 * count + 1));
 
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        bitvector.clear(i);
+        bitset.reset(i);
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK(! bitvector.test(i));
+        BOOST_CHECK(!bitset.test(i));
 
-    bitvector.setAll();
-    bitvector.clear();
+    bitset.set();
+    bitset.flip();
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK(! bitvector.test(i));
-    BOOST_CHECK(! bitvector.any());
+        BOOST_CHECK(!bitset.test(i));
+    BOOST_CHECK(!bitset.any());
 
-    bitvector.toggle();
+    bitset.flip();
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK(bitvector.test(i));
+        BOOST_CHECK(bitset.test(i));
 
-    bitvector.setAll();
-    BitVector bitvector2(count);
-    bitvector2 |= bitvector;
+    bitset.set();
+    Bitset bitvector2(count);
+    bitvector2 |= bitset;
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
         BOOST_CHECK(bitvector2.test(i));
 
-    bitvector2 &= bitvector;
+    bitvector2 &= bitset;
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
         BOOST_CHECK(bitvector2.test(i));
 
-    bitvector2 ^= bitvector;
+    bitvector2 ^= bitset;
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK(! bitvector2.test(i));
+        BOOST_CHECK(!bitvector2.test(i));
 
     // output & intput
-    bitvector.setAll();
-    const char* dirStr = "bitvector";
+    bitset.set();
+    const char* dirStr = "bitset";
     ostringstream ost;
     ost << count << ".bits";
     string fileName = ost.str();
     Directory* pDirectory = new FSDirectory(dirStr, true);
-    bitvector.write(pDirectory, fileName.c_str());
+    bitset.write(pDirectory, fileName.c_str());
 
-    BitVector bitvector3;
+    Bitset bitvector3;
     bitvector3.read(pDirectory, fileName.c_str());
     delete pDirectory;
-    BOOST_CHECK_EQUAL(bitvector.size(), count);
+    BOOST_CHECK_EQUAL(bitset.size(), count);
     for(size_t i = 0; i < count && isCheckEachBit; ++i)
-        BOOST_CHECK_EQUAL(bitvector3.test(i), bitvector.test(i));
-    BOOST_CHECK(! bitvector3.test(count));
-    BOOST_CHECK(! bitvector3.test(2 * count + 1));
+        BOOST_CHECK_EQUAL(bitvector3.test(i), bitset.test(i));
+    BOOST_CHECK(!bitvector3.test(count));
+    BOOST_CHECK(!bitvector3.test(2 * count + 1));
 
     // at middle
-    bitvector.clear();
-    BOOST_CHECK(! bitvector.hasSmallThan(count));
-    BOOST_CHECK(! bitvector.hasBetween(0, count - 1));
-    BOOST_CHECK(! bitvector.hasBetween(0, count * 2 + 1));
-    BOOST_CHECK(! bitvector.hasBetween(count, count * 2 + 1));
+    bitset.reset();
+    BOOST_CHECK(!bitset.any(0, count));
+    BOOST_CHECK(!bitset.any(0, count * 2 + 2));
+    BOOST_CHECK(!bitset.any(count, count * 2 + 2));
     size_t mid = count / 2;
-    bitvector.set(mid);
-    BOOST_CHECK(bitvector.any());
-    BOOST_CHECK(bitvector.hasSmallThan(count));
-    BOOST_CHECK(bitvector.hasSmallThan(mid));
-    BOOST_CHECK(bitvector.hasBetween(mid, mid));
-    BOOST_CHECK(bitvector.hasBetween(0, count * 2 + 1));
-    std::swap(bitvector, bitvector2);
-    std::swap(bitvector, bitvector2);
+    bitset.set(mid);
+    BOOST_CHECK(bitset.any());
+    BOOST_CHECK(bitset.any(0, count + 1));
+    BOOST_CHECK(bitset.any(0, mid + 1));
+    BOOST_CHECK(bitset.any(mid, mid + 1));
+    BOOST_CHECK(bitset.any(0, count * 2 + 2));
+    std::swap(bitset, bitvector2);
+    std::swap(bitset, bitvector2);
     if(mid > 0)
     {
-        BOOST_CHECK(! bitvector.hasSmallThan(mid - 1));
-        BOOST_CHECK(bitvector.hasBetween(0, count - 1));
-        BOOST_CHECK(! bitvector.hasBetween(0, mid - 1));
-        BOOST_CHECK(bitvector.hasBetween(mid, count - 1));
-        BOOST_CHECK(bitvector.hasBetween(mid - 1, mid + 1));
+        BOOST_CHECK(!bitset.any(0, mid - 1));
+        BOOST_CHECK(bitset.any(0, count));
+        BOOST_CHECK(!bitset.any(0, mid));
+        BOOST_CHECK(bitset.any(mid, count));
+        BOOST_CHECK(bitset.any(mid - 1, mid + 2));
         if(mid + 1 <= count - 1)
-            BOOST_CHECK(! bitvector.hasBetween(mid + 1, count - 1));
-        BOOST_CHECK(! bitvector.hasBetween(count, count * 2 + 1));
+            BOOST_CHECK(!bitset.any(mid + 1, count));
+        BOOST_CHECK(!bitset.any(count, count * 2 + 2));
     }
 
     // at boundary
-    bitvector.clear(count);
-    bitvector.setAll();
-    BOOST_CHECK_EQUAL(bitvector.size(), count + 1);
-    bitvector.set(count + 4);
-    BOOST_CHECK_EQUAL(bitvector.size(), count + 5);
-    BOOST_CHECK(bitvector.test(count));
-    BOOST_CHECK(! bitvector.test(count + 1));
-    BOOST_CHECK(! bitvector.test(count + 2));
-    BOOST_CHECK(! bitvector.test(count + 3));
-    BOOST_CHECK(bitvector.test(count + 4));
-    BOOST_CHECK(! bitvector.test(count + 5));
-    BOOST_CHECK(! bitvector.test(count + 6));
-    BOOST_CHECK(! bitvector.test(count + 7));
+    bitset.reset(count);
+    bitset.set();
+    BOOST_CHECK_EQUAL(bitset.size(), count + 1);
+    bitset.set(count + 4);
+    BOOST_CHECK_EQUAL(bitset.size(), count + 5);
+    BOOST_CHECK(bitset.test(count));
+    BOOST_CHECK(!bitset.test(count + 1));
+    BOOST_CHECK(!bitset.test(count + 2));
+    BOOST_CHECK(!bitset.test(count + 3));
+    BOOST_CHECK(bitset.test(count + 4));
+    BOOST_CHECK(!bitset.test(count + 5));
+    BOOST_CHECK(!bitset.test(count + 6));
+    BOOST_CHECK(!bitset.test(count + 7));
 }
 
-void setBitVector(BitVector& bitVector, std::size_t setBitNum)
+void setBitset(Bitset& bitset, std::size_t setBitNum)
 {
-    std::size_t bitNum = bitVector.size();
+    std::size_t bitNum = bitset.size();
     for (std::size_t i = 0; i < setBitNum; ++i)
     {
         int k = std::rand() % bitNum;
-        bitVector.set(k);
+        bitset.set(k);
     }
 }
 
 void testLogicalNotAnd(std::size_t bitNum)
 {
-    BitVector bitVector1(bitNum);
-    BitVector bitVector2(bitNum);
+    Bitset bitVector1(bitNum);
+    Bitset bitVector2(bitNum);
 
     const std::size_t setBitNum = bitNum / 2;
-    setBitVector(bitVector1, setBitNum);
-    setBitVector(bitVector2, setBitNum);
+    setBitset(bitVector1, setBitNum);
+    setBitset(bitVector2, setBitNum);
 
-    BitVector gold(bitNum);
+    Bitset gold(bitNum);
     for (std::size_t i = 0; i < bitNum; ++i)
     {
         if (bitVector1.test(i) && bitVector2.test(i) == false)
@@ -160,64 +159,64 @@ void testLogicalNotAnd(std::size_t bitNum)
         }
     }
 
-    bitVector1.logicalNotAnd(bitVector2);
+    bitVector1 -= bitVector2;
 
-    BOOST_CHECK_EQUAL(bitVector1, gold);
+    //BOOST_CHECK_EQUAL(bitVector1, gold);
 }
 
 void runLogicalNotAnd(std::size_t bitNum, std::size_t runNum)
 {
     const std::size_t setBitNum = bitNum / 2;
 
-    BitVector bitVector1(bitNum);
-    BitVector bitVector2(bitNum);
+    Bitset bitVector1(bitNum);
+    Bitset bitVector2(bitNum);
 
-    setBitVector(bitVector1, setBitNum);
-    setBitVector(bitVector2, setBitNum);
+    setBitset(bitVector1, setBitNum);
+    setBitset(bitVector2, setBitNum);
 
     izenelib::util::ClockTimer timer;
 
     for (std::size_t i = 0; i < runNum; ++i)
     {
-        bitVector1.logicalNotAnd(bitVector2);
+        bitVector1 -= bitVector2;
     }
 
     BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
-                       "BitVector::logicalNotAnd() of " << runNum << " times "
+                       "Bitset::operator-=() of " << runNum << " times "
                        "on " << bitNum << " bits");
 }
 
 void runToggle(std::size_t bitNum, std::size_t runNum)
 {
-    BitVector bitVector(bitNum);
+    Bitset bitset(bitNum);
     const std::size_t setBitNum = bitNum / 2;
-    setBitVector(bitVector, setBitNum);
+    setBitset(bitset, setBitNum);
 
     izenelib::util::ClockTimer timer;
 
     for (std::size_t i = 0; i < runNum; ++i)
     {
-        bitVector.toggle();
+        bitset.flip();
     }
 
     BOOST_TEST_MESSAGE("it costs " << timer.elapsed() << " seconds in running "
-                       "BitVector::toggle() of " << runNum << " times "
+                       "Bitset::flip() of " << runNum << " times "
                        "on " << bitNum << " bits");
 }
 
 BOOST_AUTO_TEST_SUITE(t_bitvector)
 
-BOOST_AUTO_TEST_CASE(bitvector)
+BOOST_AUTO_TEST_CASE(bitset)
 {
     for(size_t i=0; i<70; ++i)
-        checkBitVector(i);
+        checkBitset(i);
 
-    checkBitVector(100, false);
-    checkBitVector(1000, false);
-    checkBitVector(100000, false);
-    checkBitVector(10000000, false); // 10M
-    checkBitVector(134217728, false); // 128M
-    checkBitVector(1073741825, false); // 1G + 1
+    checkBitset(100, false);
+    checkBitset(1000, false);
+    checkBitset(100000, false);
+    checkBitset(10000000, false); // 10M
+    checkBitset(134217728, false); // 128M
+    checkBitset(1073741825, false); // 1G + 1
 }
 
 BOOST_AUTO_TEST_CASE(logicalNotAnd)

@@ -10,7 +10,6 @@
 
 #include <ir/index_manager/index/VariantDataPool.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/index/PostingWriter.h>
 #include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>

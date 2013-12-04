@@ -2,14 +2,14 @@
 * @file        MultiPostingIterator.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
-* @brief   
+* @brief
 */
 #ifndef MULTI_POSTINGITERATOR_H
 #define MULTI_POSTINGITERATOR_H
 
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/index/TermPositions.h>
 
 #include <vector>
@@ -26,7 +26,7 @@ class MultiPostingIterator
     class TermPositionEntry
     {
     public:
-    TermPositionEntry(TermPositions* pPositions, BitVector* pDocFiler = NULL)
+    TermPositionEntry(TermPositions* pPositions, Bitset* pDocFiler = NULL)
         :pPositions_(pPositions)
         ,pDocFilter_(pDocFiler)
     {}
@@ -51,7 +51,7 @@ class MultiPostingIterator
 
     public:
         TermPositions* pPositions_;
-        BitVector* pDocFilter_;
+        Bitset* pDocFilter_;
         bool current_;
     };
 
@@ -79,8 +79,8 @@ public:
 
     ~MultiPostingIterator();
 public:
-    void addTermPosition(TermPositions* pPosition, BitVector* pDocFilter = NULL);
-	
+    void addTermPosition(TermPositions* pPosition, Bitset* pDocFilter = NULL);
+
     bool next();
 
     docid_t doc() { return currDoc_; }
@@ -93,7 +93,7 @@ private:
     bool skipDocs(TermPositionEntry* pEntry);
 private:
     size_t nPos_;
-	
+
     docid_t currDoc_;
 
     MultiPostingIterator::TermPositionEntry* currEntry_;
