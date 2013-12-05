@@ -179,7 +179,10 @@ void AttrScoreInvertedIndex::processTermBuffer_(
             }
         }
 
-        headPointer = tailPointer = curPointer;
+        if (curPointer != UNDEFINED_POINTER)
+        {
+            headPointer = tailPointer = curPointer;
+        }
     }
     else
     {
