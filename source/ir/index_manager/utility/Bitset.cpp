@@ -237,7 +237,7 @@ size_t Bitset::find_prev(size_t pos) const
     return npos;
 }
 
-bool Bitset::operator!=(const Bitset& b) const
+bool Bitset::operator==(const Bitset& b) const
 {
     if (size_ != b.size_) return false;
     const size_t blk = block_num(size_);

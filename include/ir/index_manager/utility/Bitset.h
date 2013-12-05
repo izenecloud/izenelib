@@ -42,7 +42,7 @@ public:
     size_t find_last() const;
     size_t find_prev(size_t pos) const;
 
-    bool operator!=(const Bitset& b) const;
+    bool operator==(const Bitset& b) const;
     bool equal_ignore_size(const Bitset& b) const;
     Bitset& operator&=(const Bitset& b);
     Bitset& operator|=(const Bitset& b);
