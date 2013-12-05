@@ -99,7 +99,7 @@ uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
             return UNDEFINED_OFFSET;
         }
     }
-    while (docid_[pos].capacity() <= minLength);
+    while (docid_[pos].empty() || docid_[pos].capacity() <= minLength);
 
     return pos;
 }
