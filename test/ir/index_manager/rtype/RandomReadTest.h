@@ -26,7 +26,7 @@ public:
         BitVector docs1;
         BitVector docs2;
 #ifdef TEST_DEBUG
-        LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
+        //LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
         indexer.getValueGreatEqual(key, docs1);
         ref.getValueGreatEqual(key, docs2);
@@ -48,7 +48,7 @@ public:
             }
         }
 #endif
-        LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+        //LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
 
         return result;
     }
@@ -67,13 +67,13 @@ public:
         {
             case 0:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"seek "<<key<<std::endl;
+                //LOG(ERROR)<<"seek "<<key<<std::endl;
 #endif
                 result = indexer.seek(key) == ref.seek(key);
                 break;
             case 1:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValue "<<key<<std::endl;
+                //LOG(ERROR)<<"getValue "<<key<<std::endl;
 #endif
                 indexer.getValue(key, docs1);
                 ref.getValue(key, docs2);
@@ -81,7 +81,7 @@ public:
                 break;
             case 2:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueLess "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueLess "<<key<<std::endl;
 #endif
                 indexer.getValueLess(key, docs1);
                 ref.getValueLess(key, docs2);
@@ -89,7 +89,7 @@ public:
                 break;
             case 3:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueLessEqual "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueLessEqual "<<key<<std::endl;
 #endif
                 indexer.getValueLessEqual(key, docs1);
                 ref.getValueLessEqual(key, docs2);
@@ -97,7 +97,7 @@ public:
                 break;
             case 4:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueGreat "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueGreat "<<key<<std::endl;
 #endif
                 indexer.getValueGreat(key, docs1);
                 ref.getValueGreat(key, docs2);
@@ -116,7 +116,7 @@ public:
                 break;
             case 5:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
                 indexer.getValueGreatEqual(key, docs1);
                 ref.getValueGreatEqual(key, docs2);
@@ -138,7 +138,7 @@ public:
                 KeyType key2;
                 RandomGenerator<KeyType>::Gen(key2);
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueBetween "<<key<<","<<key2<<std::endl;
+                //LOG(ERROR)<<"getValueBetween "<<key<<","<<key2<<std::endl;
 #endif
                 indexer.getValueBetween(key, key2, docs1);
                 ref.getValueBetween(key, key2, docs2);
@@ -164,7 +164,7 @@ public:
             }
         }
 #endif
-        LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+        //LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
 
         return result;
     }
@@ -192,7 +192,7 @@ public:
         BitVector docs1;
         BitVector docs2;
 #ifdef TEST_DEBUG
-        LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
+       // LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
         indexer.getValueGreatEqual(key, docs1);
         ref.getValueGreatEqual(key, docs2);
@@ -214,7 +214,7 @@ public:
             }
         }
 #endif
-        LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+        //LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
 
         return result;
     }
@@ -233,7 +233,7 @@ public:
         {
             case 0:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"seek "<<key<<std::endl;
+                //LOG(ERROR)<<"seek "<<key<<std::endl;
 #endif                
                 result = indexer.seek(key) == ref.seek(key);
 #ifdef TEST_DEBUG
@@ -245,7 +245,7 @@ public:
                 break;
             case 1:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValue "<<key<<std::endl;
+                //LOG(ERROR)<<"getValue "<<key<<std::endl;
 #endif                
                 indexer.getValue(key, docs1);
                 ref.getValue(key, docs2);
@@ -253,7 +253,7 @@ public:
                 break;
             case 2:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueLess "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueLess "<<key<<std::endl;
 #endif
                 indexer.getValueLess(key, docs1);
                 ref.getValueLess(key, docs2);
@@ -261,7 +261,7 @@ public:
                 break;
             case 3:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueLessEqual "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueLessEqual "<<key<<std::endl;
 #endif
                 indexer.getValueLessEqual(key, docs1);
                 ref.getValueLessEqual(key, docs2);
@@ -269,7 +269,7 @@ public:
                 break;
             case 4:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueGreat "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueGreat "<<key<<std::endl;
 #endif
                 indexer.getValueGreat(key, docs1);
                 ref.getValueGreat(key, docs2);
@@ -277,7 +277,7 @@ public:
                 break;
             case 5:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueGreatEqual "<<key<<std::endl;
 #endif
                 indexer.getValueGreatEqual(key, docs1);
                 ref.getValueGreatEqual(key, docs2);
@@ -288,7 +288,7 @@ public:
                 KeyType key2;
                 RandomGenerator<KeyType>::Gen(key2);
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueBetween "<<key<<","<<key2<<std::endl;
+                //LOG(ERROR)<<"getValueBetween "<<key<<","<<key2<<std::endl;
 #endif
                 indexer.getValueBetween(key, key2, docs1);
                 ref.getValueBetween(key, key2, docs2);
@@ -297,7 +297,7 @@ public:
                 break;
             case 7:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueStart "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueStart "<<key<<std::endl;
 #endif
                 indexer.getValueStart(key, docs1);
                 ref.getValueStart(key, docs2);
@@ -305,7 +305,7 @@ public:
                 break;
             case 8:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueEnd "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueEnd "<<key<<std::endl;
 #endif
                 indexer.getValueEnd(key, docs1);
                 ref.getValueEnd(key, docs2);
@@ -313,7 +313,7 @@ public:
                 break;
             case 9:
 #ifdef TEST_DEBUG
-                LOG(ERROR)<<"getValueSubString "<<key<<std::endl;
+                //LOG(ERROR)<<"getValueSubString "<<key<<std::endl;
 #endif                
                 indexer.getValueSubString(key, docs1);
                 ref.getValueSubString(key, docs2);
@@ -338,7 +338,7 @@ public:
             }
         }
 #endif
-        LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+        //LOG(ERROR)<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
         return result;
     }
     

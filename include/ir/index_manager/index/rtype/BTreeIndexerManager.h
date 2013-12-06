@@ -33,7 +33,9 @@ namespace indexmanager
 class BTreeIndexerManager
 {
 public:
-    BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map);
+    BTreeIndexerManager(const std::string& dir, Directory* pDirectory,
+        const std::map<std::string, PropertyType>& type_map,
+        const std::set<std::string>& no_preload_props);
 
     ~BTreeIndexerManager();
 public:
@@ -50,7 +52,12 @@ public:
             boost::unique_lock<boost::shared_mutex> lock(mutex_);
             if(!instance_map_.contains(property_name))
             {
-                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
+                bool preload = (no_preload_props_.find(property_name) == no_preload_props_.end());
+                if (property_name == "uuid")
+                {
+                    preload = false;
+                }
+                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload);
                 result->open();
                 instance_map_.insert(std::make_pair( property_name, (void*)result) );
                 if(type_map_.find(property_name) == type_map_.end())
@@ -212,6 +219,7 @@ private:
     Directory* pDirectory_;
     ::concurrent::hashmap<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
+    std::set<std::string> no_preload_props_;
     boost::shared_ptr<BitVector> pFilter_;
     boost::shared_mutex mutex_;
 
