@@ -204,9 +204,10 @@ namespace Zambezi
         void buildIndex(const DocIDTermMapT& docTermMap)
         {
             int count = 1;
+            std::vector<uint32_t> tmpScore;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
             {
-                index_->insertDoc(i->first, i->second);
+                index_->insertDoc(i->first, i->second, tmpScore);
                 if (count%1000000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
@@ -219,11 +220,17 @@ namespace Zambezi
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list, Algorithm algorithm)
         {
             std::vector<float> score_list;
+            std::vector<std::pair<std::string, int> > term_list_1;
+            for (unsigned int i = 0; i < term_list.size(); ++i)
+            {
+                term_list_1.push_back(make_pair(term_list[i], 0));
+            }
             uint32_t hits = 10000000;
-            index_->retrieval(
+            index_->retrievalWithBuffer(
                 algorithm,
-                term_list,
+                term_list_1,
                 hits,
+                false,
                 docid_list,
                 score_list);
         }

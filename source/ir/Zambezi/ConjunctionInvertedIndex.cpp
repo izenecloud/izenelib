@@ -10,11 +10,12 @@ namespace Zambezi
 ConjunctionInvertedIndex::ConjunctionInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
+        uint32_t vocabSize,
         bool reverse)
-//  : buffer_(DEFAULT_VOCAB_SIZE)
+//  : buffer_(vocabSize)
     : pool_(maxPoolSize, numberOfPools, reverse)
-    , dictionary_(DEFAULT_VOCAB_SIZE)
-    , pointers_(DEFAULT_VOCAB_SIZE, 0)
+    , dictionary_(vocabSize)
+    , pointers_(vocabSize, 0)
 {
 }
 

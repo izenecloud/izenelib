@@ -221,11 +221,18 @@ namespace Zambezi
 
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list)
         {
-            std::vector<uint32_t> score_list;
+            std::vector<float> score_list;
+            std::vector<std::pair<std::string, int> > term_list_1;
+            for (unsigned int i = 0; i < term_list.size(); ++i)
+            {
+                term_list_1.push_back(make_pair(term_list[i], 0));
+            }
             uint32_t hits = 10000000;
-            index_->retrieval(
-                term_list,
+            index_->retrievalWithBuffer(
+                BWAND_AND,
+                term_list_1,
                 hits,
+                false,
                 docid_list,
                 score_list);
         }

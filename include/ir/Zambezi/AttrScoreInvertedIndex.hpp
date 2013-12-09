@@ -1,6 +1,7 @@
 #ifndef IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
 #define IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
 
+#include "ZambeziIndex.hpp"
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
@@ -12,6 +13,7 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <vector>
+#include <glog/logging.h>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -19,43 +21,50 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class AttrScoreInvertedIndex
+class AttrScoreInvertedIndex : public ZambeziIndex
 {
 public:
     AttrScoreInvertedIndex(
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
+            uint32_t vocabSize = DEFAULT_VOCAB_SIZE,
             bool reverse = true);
 
-    ~AttrScoreInvertedIndex();
+    virtual ~AttrScoreInvertedIndex();
 
-    void save(std::ostream& ostr) const;
-    void load(std::istream& istr);
+    virtual void save(std::ostream& ostr) const;
+    virtual void load(std::istream& istr);
 
-    void insertDoc(
+
+    /// @brief: interface to build AttrScore zambezi index;
+    /// @docid: must be used;
+    /// @term_list:
+    /// for example: if the title is:"aa bb cc dd aa cc";
+    /// then, the @term_list is {aa, bb, cc, dd}, each @term in @term_list should be unique;
+    /// @score_list: the score of its term;
+    virtual void insertDoc(
             uint32_t docid,
             const std::vector<std::string>& term_list,
             const std::vector<uint32_t>& score_list);
 
-    void flush();
+    virtual void flush();
 
-    uint32_t totalDocNum() const;
+    virtual uint32_t totalDocNum() const;
 
-    void retrieval(
-            const std::vector<std::string>& term_list,
-            uint32_t hits,
-            std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+    /// @algorithm, is not used here, just for unify interface;
+    /// @term_list, each pair includes: term and its score in the query;
+    /// @hits, the max number of hit number;
+    /// @search_buffer:to check if we need to search the data in buffer_map;
 
-    template <class FilterType>
-    void retrievalAndFiltering(
+    virtual void retrievalWithBuffer(
+            Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
-            const FilterType& filter,
             uint32_t hits,
             bool search_buffer,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const
+            std::vector<float>& score_list) const
     {
+        LOG(INFO) << "do retrievalWithBuffer ....";
         std::vector<std::pair<std::pair<uint32_t, int>, size_t> > queries;
 
         uint32_t minimumDf = 0xFFFFFFFF;
@@ -83,11 +92,8 @@ public:
                         score_list.clear();
                         for (uint32_t j = 0; j < docBuffer.size(); ++j)
                         {
-                            if (filter.test(docBuffer[j]))
-                            {
-                                docid_list.push_back(docBuffer[j]);
-                                score_list.push_back(scoreBuffer[j]);
-                            }
+                            docid_list.push_back(docBuffer[j]);
+                            score_list.push_back(scoreBuffer[j]);
                         }
                         hit_buffer = true;
                     }
@@ -123,7 +129,7 @@ public:
             }
         }
 
-        if (queries.empty()) return;
+        if (queries.empty() || queries.size() != term_list.size()) return;
 
         std::sort(queries.begin(), queries.end());
 
@@ -136,7 +142,7 @@ public:
             qHeadPointers[i] = queries[i].second;
         }
 
-        intersectSvS_(qHeadPointers, qScores, filter, minimumDf, hits, hit_buffer, docid_list, score_list);
+        intersectSvS_(qHeadPointers, qScores, minimumDf, hits, hit_buffer, docid_list, score_list);
     }
 
 private:
@@ -166,18 +172,16 @@ private:
             uint32_t minDf,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+            std::vector<float>& score_list) const;
 
-    template <class FilterType>
     void intersectSvS_(
             std::vector<size_t>& headPointers,
             const std::vector<int>& qScores,
-            const FilterType& filter,
             uint32_t minDf,
             uint32_t hits,
             bool hit_buffer,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const
+            std::vector<float>& score_list) const
     {
         FastPFor codec;
 
@@ -213,6 +217,8 @@ private:
                 {
                     docid_list.push_back(block[i]);
                     score_list.push_back(sblock[i]);
+                    if (docid_list.size() == length) break;
+
                     if ((next = filter.skipTo(block[i] + 1)) == INVALID_ID)
                         break;
                 }
@@ -229,7 +235,7 @@ private:
         docid_list.reserve(minDf);
         score_list.reserve(minDf);
 
-        intersectPostingsLists_(codec, headPointers[0], headPointers[1], qScores[0], qScores[1], filter, docid_list, score_list);
+        intersectPostingsLists_(codec, headPointers[0], headPointers[1], qScores[0], qScores[1], docid_list, score_list);
 
         for (uint32_t i = 2; i < headPointers.size(); ++i)
         {
@@ -258,18 +264,16 @@ private:
             size_t pointer0,
             size_t pointer1,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+            std::vector<float>& score_list) const;
 
-    template <class FilterType>
     void intersectPostingsLists_(
             FastPFor& codec,
             size_t pointer0,
             size_t pointer1,
             int weight0,
             int weight1,
-            const FilterType& filter,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const
+            std::vector<float>& score_list) const
     {
         uint32_t blockDocid0[BLOCK_SIZE];
         uint32_t blockDocid1[BLOCK_SIZE];
@@ -326,7 +330,7 @@ private:
             size_t pointer,
             int weight,
             std::vector<uint32_t>& docid_list,
-            std::vector<uint32_t>& score_list) const;
+            std::vector<float>& score_list) const;
 
 private:
     AttrScoreBufferMaps buffer_;

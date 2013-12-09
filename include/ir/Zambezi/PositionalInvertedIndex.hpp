@@ -1,6 +1,7 @@
 #ifndef IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 #define IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 
+#include "ZambeziIndex.hpp"
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
@@ -18,32 +19,51 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class PositionalInvertedIndex
+class PositionalInvertedIndex : public ZambeziIndex
 {
 public:
     PositionalInvertedIndex(
             IndexType type = NON_POSITIONAL,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
+            uint32_t vocabSize = DEFAULT_VOCAB_SIZE,
             bool reverse = true,
             bool bloomEnabled = true,
             uint32_t nbHash = 3,
             uint32_t bitsPerElement = 8);
 
-    ~PositionalInvertedIndex();
+    virtual ~PositionalInvertedIndex();
 
-    void save(std::ostream& ostr) const;
-    void load(std::istream& istr);
+    virtual void save(std::ostream& ostr) const;
+    virtual void load(std::istream& istr);
 
-    void insertDoc(uint32_t docid, const std::vector<std::string>& term_list);
-    void flush();
+    /// @brief: interface to build Positional zambezi index;
+    /// @docid: must be used; 
+    /// @term_list:
+    /// for example: if the title is:"aa bb cc dd aa cc";
+    /// then, the term_list is {aa, bb, cc, dd, aa, cc}; 
+    /// @score_list: not use here, just for unify insertDoc interface;
+    virtual void insertDoc(uint32_t docid,
+                     const std::vector<std::string>& term_list,
+                     const std::vector<uint32_t>& score_list);
 
-    void retrieval(
+    virtual void flush();
+
+    /// @algorithm, different search mode;
+    /// @term_list, in pair<std::string, int>, infact olny string is used in 
+    /// this function;
+    /// @hits, the max number of hit number; 
+    /// @search_buffer:is not used here, just for unify interface;
+    virtual void retrievalWithBuffer(
             Algorithm algorithm,
-            const std::vector<std::string>& term_list,
+            const std::vector<std::pair<std::string, int> >& term_list,
             uint32_t hits,
+            bool search_buffer,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
+
+    virtual uint32_t totalDocNum() const {return 0;}
+
 
 private:
     void processTermBuffer_(
