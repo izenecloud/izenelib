@@ -3,6 +3,7 @@
 
 #include "../Consts.hpp"
 
+#include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <vector>
 
@@ -45,15 +46,24 @@ public:
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
 public:
+    struct ElemType
+    {
+        uint32_t docid;
+        uint32_t score;
+
+        ElemType() : docid(), score() {}
+        ElemType(uint32_t id, uint32_t sc) : docid(id), score(sc) {}
+    };
+
+    typedef std::vector<ElemType> PostingType;
+
     // Current capacity (number of vocabulary terms)
-    uint32_t capacity_;
+    uint32_t capacity;
 
     // Docid buffer map
-    std::vector<std::vector<uint32_t> > docid_;
-    // Doc-term score buffer map
-    std::vector<std::vector<uint32_t> > score_;
+    std::vector<boost::shared_ptr<PostingType> > buffer;
     // Table of tail pointers for vocabulary terms
-    std::vector<size_t> tailPointer_;
+    std::vector<size_t> tailPointer;
 };
 
 }

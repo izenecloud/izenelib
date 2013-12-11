@@ -1,7 +1,7 @@
 #ifndef IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
 #define IZENELIB_IR_ZAMBEZI_ATTR_SCORE_INVERTED_INDEX_HPP
 
-#include "ZambeziIndex.hpp"
+#include "IndexBase.hpp"
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
@@ -10,7 +10,6 @@
 #include "Consts.hpp"
 #include <util/compression/int/fastpfor/fastpfor.h>
 
-#include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <vector>
 #include <glog/logging.h>
@@ -21,7 +20,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class AttrScoreInvertedIndex : public ZambeziIndex
+class AttrScoreInvertedIndex : public IndexBase
 {
 public:
     AttrScoreInvertedIndex(
@@ -54,15 +53,14 @@ public:
     void retrieval(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
-            const ZambeziFilter* filter,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
 private:
     void processTermBuffer_(
-            std::vector<uint32_t>& docBuffer,
-            std::vector<uint32_t>& scoreBuffer,
+            boost::shared_ptr<AttrScoreBufferMaps::PostingType>& posting,
             size_t& tailPointer,
             size_t& headPointer);
 
@@ -84,7 +82,7 @@ private:
     void intersectSvS_(
             std::vector<size_t>& headPointers,
             const std::vector<int>& qScores,
-            const ZambeziFilter* filter,
+            const FilterBase* filter,
             uint32_t minDf,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
@@ -101,7 +99,7 @@ private:
 
     void intersectPostingsLists_(
             FastPFor& codec,
-            const ZambeziFilter* filter,
+            const FilterBase* filter,
             size_t pointer0,
             size_t pointer1,
             int weight0,

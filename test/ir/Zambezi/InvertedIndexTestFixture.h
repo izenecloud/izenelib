@@ -226,7 +226,7 @@ namespace Zambezi
                 term_list_1.push_back(make_pair(term_list[i], 0));
             }
             uint32_t hits = 10000000;
-            ZambeziFilter* filter = new ZambeziFilter;
+            FilterBase* filter = new FilterBase;
             index_->retrieval(
                 algorithm,
                 term_list_1,

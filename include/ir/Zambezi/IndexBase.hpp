@@ -1,8 +1,7 @@
-#ifndef IZENELIB_IR_ZAMBEZI_INDEX_HPP
-#define IZENELIB_IR_ZAMBEZI_INDEX_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_INDEX_BASE_HPP
+#define IZENELIB_IR_ZAMBEZI_INDEX_BASE_HPP
 
-#include "Consts.hpp"
-#include "ZambeziFilter.hpp"
+#include "FilterBase.hpp"
 
 #include <iostream>
 #include <vector>
@@ -16,10 +15,10 @@ namespace Zambezi
 
 // Define the interface for all kindes of zambezi index;
 
-class ZambeziIndex
+class IndexBase
 {
 public:
-    virtual ~ZambeziIndex() {}
+    virtual ~IndexBase() {}
 
     virtual void save(std::ostream& ostr) const = 0;
     virtual void load(std::istream& istr) = 0;
@@ -34,7 +33,7 @@ public:
     virtual void retrieval(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
-            const ZambeziFilter* filter,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const = 0;

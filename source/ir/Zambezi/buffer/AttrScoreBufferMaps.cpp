@@ -6,10 +6,9 @@ namespace Zambezi
 {
 
 AttrScoreBufferMaps::AttrScoreBufferMaps(uint32_t initialSize)
-    : capacity_(initialSize)
-    , docid_(initialSize)
-    , score_(initialSize)
-    , tailPointer_(initialSize, UNDEFINED_POINTER)
+    : capacity(initialSize)
+    , buffer(initialSize)
+    , tailPointer(initialSize, UNDEFINED_POINTER)
 {
 }
 
@@ -19,87 +18,87 @@ AttrScoreBufferMaps::~AttrScoreBufferMaps()
 
 void AttrScoreBufferMaps::save(std::ostream& ostr) const
 {
-    ostr.write((const char*)&capacity_, sizeof(capacity_));
+    ostr.write((const char*)&capacity, sizeof(capacity));
 
     size_t termNum;
-    for (termNum = 0; termNum < capacity_; ++termNum)
+    for (termNum = 0; termNum < capacity; ++termNum)
     {
-        uint32_t capacity = docid_[termNum].capacity();
+        if (!buffer[termNum])
+        {
+            uint32_t capacity = 0;
+            ostr.write((const char*)&capacity, sizeof(uint32_t));
+            break;
+        }
+
+        uint32_t capacity = buffer[termNum]->capacity();
         ostr.write((const char*)&capacity, sizeof(uint32_t));
 
-        if (capacity == 0) break;
-
-        uint32_t size = docid_[termNum].size();
+        uint32_t size = buffer[termNum]->size();
         ostr.write((const char*)&size, sizeof(uint32_t));
 
-        ostr.write((const char*)&docid_[termNum][0], sizeof(uint32_t) * size);
-        ostr.write((const char*)&score_[termNum][0], sizeof(uint32_t) * size);
+        ostr.write((const char*)&(*buffer[termNum])[0], sizeof(ElemType) * size);
     }
 
-    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * termNum);
+    ostr.write((const char*)&tailPointer[0], sizeof(size_t) * termNum);
 }
 
 void AttrScoreBufferMaps::load(std::istream& istr)
 {
-    istr.read((char*)&capacity_, sizeof(capacity_));
-    docid_.resize(capacity_);
-    score_.resize(capacity_);
+    istr.read((char*)&capacity, sizeof(capacity));
+    buffer.resize(capacity);
 
     size_t termNum;
-    for (termNum = 0; termNum < capacity_; ++termNum)
+    for (termNum = 0; termNum < capacity; ++termNum)
     {
         uint32_t capacity = 0;
         istr.read((char*)&capacity, sizeof(uint32_t));
 
         if (capacity == 0) break;
 
-        docid_[termNum].reserve(capacity);
-        score_[termNum].reserve(capacity);
+        buffer[termNum].reset(new PostingType);
+        buffer[termNum]->reserve(capacity);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(uint32_t));
-        docid_[termNum].resize(size);
-        score_[termNum].resize(size);
+        buffer[termNum]->resize(size);
 
-        istr.read((char*)&docid_[termNum][0], sizeof(uint32_t) * size);
-        istr.read((char*)&score_[termNum][0], sizeof(uint32_t) * size);
+        istr.read((char*)&(*buffer[termNum])[0], sizeof(uint32_t) * size);
     }
 
-    tailPointer_.resize(capacity_, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer_[0], sizeof(size_t) * termNum);
+    tailPointer.resize(capacity, UNDEFINED_POINTER);
+    istr.read((char*)&tailPointer[0], sizeof(size_t) * termNum);
 }
 
 void AttrScoreBufferMaps::expand(uint32_t newSize)
 {
-    if (newSize <= capacity_) return;
+    if (newSize <= capacity) return;
 
-    if (capacity_ == 0)
+    if (capacity == 0)
     {
-        capacity_ = newSize;
+        capacity = newSize;
     }
     else
     {
-        while (newSize > capacity_)
+        while (newSize > capacity)
         {
-            capacity_ *= 2;
+            capacity *= 2;
         }
     }
 
-    docid_.resize(capacity_);
-    score_.resize(capacity_);
-    tailPointer_.resize(capacity_, UNDEFINED_POINTER);
+    buffer.resize(capacity);
+    tailPointer.resize(capacity, UNDEFINED_POINTER);
 }
 
 uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do
     {
-        if (++pos >= capacity_)
+        if (++pos >= capacity)
         {
             return UNDEFINED_OFFSET;
         }
     }
-    while (docid_[pos].empty() || docid_[pos].capacity() <= minLength);
+    while (buffer[pos]->empty() || buffer[pos]->capacity() <= minLength);
 
     return pos;
 }

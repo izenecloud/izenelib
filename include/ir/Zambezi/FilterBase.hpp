@@ -1,5 +1,5 @@
-#ifndef IZENELIB_IR_ZAMBEZI_FILTER_HPP
-#define IZENELIB_IR_ZAMBEZI_FILTER_HPP
+#ifndef IZENELIB_IR_ZAMBEZI_FILTER_BASE_HPP
+#define IZENELIB_IR_ZAMBEZI_FILTER_BASE_HPP
 
 #include "Consts.hpp"
 
@@ -9,11 +9,11 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class ZambeziFilter
+class FilterBase
 {
 public:
-    ZambeziFilter() : reverse_(false), iterable_(false) {}
-    virtual ~ZambeziFilter() {}
+    FilterBase() : reverse_(false), iterable_(false) {}
+    virtual ~FilterBase() {}
 
     virtual bool test(uint32_t id) const { return true; }
     virtual uint32_t find_first() const { return 1; }

@@ -1,7 +1,7 @@
 #ifndef IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 #define IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 
-#include "ZambeziIndex.hpp"
+#include "IndexBase.hpp"
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
@@ -19,7 +19,7 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class PositionalInvertedIndex : public ZambeziIndex
+class PositionalInvertedIndex : public IndexBase
 {
 public:
     PositionalInvertedIndex(
@@ -57,7 +57,7 @@ public:
     virtual void retrieval(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
-            const ZambeziFilter* filter,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;

@@ -492,7 +492,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
 void PositionalInvertedIndex::retrieval(
         Algorithm algorithm,
         const std::vector<std::pair<std::string, int> >& term_list_pair,
-        const ZambeziFilter* filter,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
