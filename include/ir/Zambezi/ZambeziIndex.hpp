@@ -1,7 +1,8 @@
-#ifndef SF1V5_ZAMBEZI_BASE_INDEX_H
-#define SF1V5_ZAMBEZI_BASE_INDEX_H
+#ifndef IZENELIB_IR_ZAMBEZI_INDEX_HPP
+#define IZENELIB_IR_ZAMBEZI_INDEX_HPP
 
 #include "Consts.hpp"
+#include "ZambeziFilter.hpp"
 
 #include <iostream>
 #include <vector>
@@ -25,26 +26,24 @@ public:
 
     virtual void flush() = 0;
 
-    /// @brief For different zambezi index, the usage is different;
     virtual void insertDoc(
             uint32_t docid,
             const std::vector<std::string>& term_list,
             const std::vector<uint32_t>& score_list) = 0;
 
-    /// @brief For different zambezi index, not all the parameters need to be used;
-    virtual void retrievalWithBuffer(
+    virtual void retrieval(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
+            const ZambeziFilter* filter,
             uint32_t hits,
-            bool search_buffer,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const = 0;
 
     virtual uint32_t totalDocNum() const = 0;
-
 };
 
 }
 
 NS_IZENELIB_IR_END
+
 #endif

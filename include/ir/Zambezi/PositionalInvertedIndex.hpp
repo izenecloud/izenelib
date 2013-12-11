@@ -38,10 +38,10 @@ public:
     virtual void load(std::istream& istr);
 
     /// @brief: interface to build Positional zambezi index;
-    /// @docid: must be used; 
+    /// @docid: must be used;
     /// @term_list:
     /// for example: if the title is:"aa bb cc dd aa cc";
-    /// then, the term_list is {aa, bb, cc, dd, aa, cc}; 
+    /// then, the term_list is {aa, bb, cc, dd, aa, cc};
     /// @score_list: not use here, just for unify insertDoc interface;
     virtual void insertDoc(uint32_t docid,
                      const std::vector<std::string>& term_list,
@@ -50,15 +50,15 @@ public:
     virtual void flush();
 
     /// @algorithm, different search mode;
-    /// @term_list, in pair<std::string, int>, infact olny string is used in 
+    /// @term_list, in pair<std::string, int>, infact olny string is used in
     /// this function;
-    /// @hits, the max number of hit number; 
+    /// @hits, the max number of hit number;
     /// @search_buffer:is not used here, just for unify interface;
-    virtual void retrievalWithBuffer(
+    virtual void retrieval(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
+            const ZambeziFilter* filter,
             uint32_t hits,
-            bool search_buffer,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 

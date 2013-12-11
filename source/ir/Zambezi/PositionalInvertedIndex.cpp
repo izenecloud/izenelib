@@ -489,11 +489,11 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     return pool_.appendSegment(segment_, maxDocId, reqspace, lastPointer, nextPointer);
 }
 
-void PositionalInvertedIndex::retrievalWithBuffer(
+void PositionalInvertedIndex::retrieval(
         Algorithm algorithm,
         const std::vector<std::pair<std::string, int> >& term_list_pair,
+        const ZambeziFilter* filter,
         uint32_t hits,
-        bool search_buffer,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
