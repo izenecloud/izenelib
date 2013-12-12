@@ -13,10 +13,10 @@ namespace Zambezi
 {
 
 // Operators defined based on whether or not the postings are backwards
-#define LESS_THAN(X,Y,R) (R == 0 ? (X < Y) : (X > Y))
-#define LESS_THAN_EQUAL(X,Y,R) (R == 0 ? (X <= Y) : (X >= Y))
-#define GREATER_THAN(X,Y,R) (R == 0 ? (X > Y) : (X < Y))
-#define GREATER_THAN_EQUAL(X,Y,R) (R == 0 ? (X >= Y) : (X <= Y))
+#define LESS_THAN(X, Y, R) ((R) ? (X > Y) : (X < Y))
+#define LESS_THAN_EQUAL(X, Y, R) ((R) ? (X >= Y) : (X <= Y))
+#define GREATER_THAN(X, Y, R) ((R) ? (X < Y) : (X > Y))
+#define GREATER_THAN_EQUAL(X, Y, R) ((R) ? (X <= Y) : (X >= Y))
 
 // Functions to encode/decode segment and offset values
 #define DECODE_SEGMENT(P) (uint32_t((P) >> 32))

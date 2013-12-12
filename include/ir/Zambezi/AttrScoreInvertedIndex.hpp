@@ -80,7 +80,7 @@ private:
             uint32_t* outBlock, size_t pointer) const;
 
     void intersectSvS_(
-            std::vector<size_t>& headPointers,
+            const std::vector<uint32_t>& qTerms,
             const std::vector<int>& qScores,
             const FilterBase* filter,
             uint32_t minDf,
@@ -100,8 +100,8 @@ private:
     void intersectPostingsLists_(
             FastPFor& codec,
             const FilterBase* filter,
-            size_t pointer0,
-            size_t pointer1,
+            uint32_t term0,
+            uint32_t term1,
             int weight0,
             int weight1,
             std::vector<uint32_t>& docid_list,
@@ -109,7 +109,7 @@ private:
 
     void intersectSetPostingsList_(
             FastPFor& codec,
-            size_t pointer,
+            uint32_t term,
             int weight,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;

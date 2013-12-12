@@ -294,38 +294,32 @@ void AttrScoreInvertedIndex::retrieval(
         std::vector<float>& score_list) const
 {
     LOG(INFO) << "do retrievalWithBuffer ....";
-    std::vector<std::pair<std::pair<uint32_t, int>, size_t> > queries;
+    std::vector<std::pair<std::pair<uint32_t, uint32_t>, int> > queries;
 
     uint32_t minimumDf = 0xFFFFFFFF;
 
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t termid = dictionary_.getTermId(term_list[i].first);
-        if (termid != INVALID_ID)
-        {
-            size_t pointer = pointers_.headPointers_.get(termid);
-            if (pointer != UNDEFINED_POINTER)
-            {
-                queries.push_back(std::make_pair(std::make_pair(pointers_.df_.get(termid), term_list[i].second), pointer));
-                minimumDf = std::min(queries.back().first.first, minimumDf);
-            }
-        }
-    }
+        if (termid == INVALID_ID) return;
 
-    if (queries.empty() || queries.size() != term_list.size()) return;
+        uint32_t df = pointers_.df_.get(termid);
+        queries.push_back(std::make_pair(std::make_pair(df, termid), term_list[i].second));
+        minimumDf = std::min(df, minimumDf);
+    }
 
     std::sort(queries.begin(), queries.end());
 
+    std::vector<uint32_t> qTerms(queries.size());
     std::vector<int> qScores(queries.size());
-    std::vector<size_t> qHeadPointers(queries.size());
 
     for (uint32_t i = 0; i < queries.size(); ++i)
     {
-        qScores[i] = queries[i].first.second;
-        qHeadPointers[i] = queries[i].second;
+        qTerms[i] = queries[i].first.second;
+        qScores[i] = queries[i].second;
     }
 
-    intersectSvS_(qHeadPointers, qScores, filter, minimumDf, hits, docid_list, score_list);
+    intersectSvS_(qTerms, qScores, filter, minimumDf, hits, docid_list, score_list);
 }
 
 uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
@@ -461,8 +455,8 @@ bool AttrScoreInvertedIndex::gallopSearch_(
 void AttrScoreInvertedIndex::intersectPostingsLists_(
         FastPFor& codec,
         const FilterBase* filter,
-        size_t pointer0,
-        size_t pointer1,
+        uint32_t term0,
+        uint32_t term1,
         int weight0,
         int weight1,
         std::vector<uint32_t>& docid_list,
@@ -473,63 +467,158 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     uint32_t blockScore0[BLOCK_SIZE];
     uint32_t blockScore1[BLOCK_SIZE];
 
+    size_t pointer0 = pointers_.headPointers_.get(term0);
+    size_t pointer1 = pointers_.headPointers_.get(term1);
     uint32_t c0 = decompressDocidBlock_(codec, &blockDocid0[0], pointer0), i0 = 0;
     uint32_t c1 = decompressDocidBlock_(codec, &blockDocid1[0], pointer1), i1 = 0;
     decompressScoreBlock_(codec, &blockScore0[0], pointer0);
     decompressScoreBlock_(codec, &blockScore1[0], pointer1);
 
-    uint32_t next = filter->find_first();
-
-    while (true)
+    if (pool_.reverse_)
     {
-        if (blockDocid0[i0] == blockDocid1[i1])
+        uint32_t eligible = filter->find_last();
+
+        if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, i0, pointer0, eligible))
+            return;
+
+        if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, i1, pointer1, eligible))
+            return;
+
+        while (true)
         {
-            if (filter->test(blockDocid0[i0]))
+            if (blockDocid0[i0] == blockDocid1[i1])
             {
-                docid_list.push_back(blockDocid0[i0]);
-                score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
+                if (filter->test(blockDocid0[i0]))
+                {
+                    docid_list.push_back(blockDocid0[i0]);
+                    score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
+                }
+
+                if ((eligible = filter->find_prev(blockDocid0[i0])) == INVALID_ID)
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, eligible))
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, eligible))
+                    break;
             }
+            else if (blockDocid0[i0] > blockDocid1[i1])
+            {
+                if ((eligible = filter->find_prev(blockDocid0[i1 + 1])) == INVALID_ID)
+                    break;
 
-            if ((next = filter->find_next(blockDocid0[i0])) == INVALID_ID)
-                break;
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, eligible))
+                    break;
+            }
+            else
+            {
+                if ((eligible = filter->find_prev(blockDocid1[i0 + 1])) == INVALID_ID)
+                    break;
 
-            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
-                break;
-
-            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, next))
-                break;
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, eligible))
+                    break;
+            }
         }
-        else if (LESS_THAN(blockDocid0[i0], blockDocid1[i1], pool_.reverse_))
-        {
-            if ((next = filter->find_next(blockDocid0[i1 - 1])) == INVALID_ID)
-                break;
+    }
+    else
+    {
+        uint32_t eligible = filter->find_first();
 
-            if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, next))
-                break;
-        }
-        else
-        {
-            if ((next = filter->find_next(blockDocid1[i0 - 1])) == INVALID_ID)
-                break;
+        if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, i0, pointer0, eligible))
+            return;
 
-            if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, next))
-                break;
+        if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, i1, pointer1, eligible))
+            return;
+
+        while (true)
+        {
+            if (blockDocid0[i0] == blockDocid1[i1])
+            {
+                if (filter->test(blockDocid0[i0]))
+                {
+                    docid_list.push_back(blockDocid0[i0]);
+                    score_list.push_back(blockScore0[i0] * weight0 + blockScore1[i1] * weight1);
+                }
+
+                if ((eligible = filter->find_next(blockDocid0[i0])) == INVALID_ID)
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, eligible))
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, eligible))
+                    break;
+            }
+            else if (blockDocid0[i0] < blockDocid1[i1])
+            {
+                if ((eligible = filter->find_next(blockDocid0[i1 - 1])) == INVALID_ID)
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid0, blockScore0, c0, ++i0, pointer0, eligible))
+                    break;
+            }
+            else
+            {
+                if ((eligible = filter->find_next(blockDocid1[i0 - 1])) == INVALID_ID)
+                    break;
+
+                if (!gallopSearch_(codec, blockDocid1, blockScore1, c1, ++i1, pointer1, eligible))
+                    break;
+            }
         }
     }
 }
 
 void AttrScoreInvertedIndex::intersectSetPostingsList_(
         FastPFor& codec,
-        size_t pointer,
+        uint32_t term,
         int weight,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
+    uint32_t iSet = 0, iCurrent = 0;
+
+    if (pool_.reverse_)
+    {
+        boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer = buffer_.buffer[term];
+        AttrScoreBufferMaps::PostingType::const_reverse_iterator it = buffer->rbegin();
+        while (iCurrent < docid_list.size() && it != buffer->rend())
+        {
+            if (it->docid == docid_list[iCurrent])
+            {
+                docid_list[iSet] = docid_list[iCurrent];
+                score_list[iSet++] = score_list[iCurrent] + it->score * weight;
+
+                if (++iCurrent == docid_list.size() || ++it == buffer->rend())
+                    break;
+            }
+            else if (it->docid > docid_list[iCurrent])
+            {
+                do
+                {
+                    if (++it == buffer->rend())
+                        break;
+                }
+                while (it->docid > docid_list[iCurrent]);
+            }
+            else
+            {
+                do
+                {
+                    if (++iCurrent == docid_list.size())
+                        break;
+                }
+                while (docid_list[iCurrent] > it->docid);
+            }
+        }
+    }
+
+    size_t pointer = pointers_.headPointers_.get(term);
     uint32_t blockDocid[BLOCK_SIZE];
     uint32_t blockScore[BLOCK_SIZE];
-    uint32_t c = decompressDocidBlock_(codec, &blockDocid[0], pointer);
+    uint32_t c = decompressDocidBlock_(codec, &blockDocid[0], pointer), i = 0;
     decompressScoreBlock_(codec, &blockScore[0], pointer);
-    uint32_t iSet = 0, iCurrent = 0, i = 0;
 
     while (iCurrent < docid_list.size())
     {
@@ -567,12 +656,47 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         }
     }
 
+    if (!pool_.reverse_)
+    {
+        boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer = buffer_.buffer[term];
+        AttrScoreBufferMaps::PostingType::const_iterator it = buffer->begin();
+        while (iCurrent < docid_list.size() && it != buffer->end())
+        {
+            if (it->docid == docid_list[iCurrent])
+            {
+                docid_list[iSet] = docid_list[iCurrent];
+                score_list[iSet++] = score_list[iCurrent] + it->score * weight;
+
+                if (++iCurrent == docid_list.size() || ++it == buffer->end())
+                    break;
+            }
+            else if (it->docid < docid_list[iCurrent])
+            {
+                do
+                {
+                    if (++it == buffer->end())
+                        break;
+                }
+                while (it->docid < docid_list[iCurrent]);
+            }
+            else
+            {
+                do
+                {
+                    if (++iCurrent == docid_list.size())
+                        break;
+                }
+                while (docid_list[iCurrent] < it->docid);
+            }
+        }
+    }
+
     docid_list.resize(iSet);
     score_list.resize(iSet);
 }
 
 void AttrScoreInvertedIndex::intersectSvS_(
-        std::vector<size_t>& headPointers,
+        const std::vector<uint32_t>& qTerms,
         const std::vector<int>& qScores,
         const FilterBase* filter,
         uint32_t minDf,
@@ -582,7 +706,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
 {
     FastPFor codec;
 
-    if (headPointers.size() < 2)
+    if (qTerms.size() < 2)
     {
         uint32_t block[BLOCK_SIZE];
         uint32_t sblock[BLOCK_SIZE];
@@ -591,27 +715,146 @@ void AttrScoreInvertedIndex::intersectSvS_(
         docid_list.reserve(length);
         score_list.reserve(length);
 
-        size_t t = headPointers[0];
-        uint32_t next = filter->find_first();
+        boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer = buffer_.buffer[qTerms[0]];
+        size_t t = pointers_.headPointers_.get(qTerms[0]);
         uint32_t c = decompressDocidBlock_(codec, &block[0], t);
         uint32_t i = 0;
         decompressScoreBlock_(codec, &sblock[0], t);
 
-        while (gallopSearch_(codec, block, sblock, c, i, t, next))
+        if (pool_.reverse_)
         {
-            if (block[i] == next)
+            uint32_t eligible = filter->find_last();
+            AttrScoreBufferMaps::PostingType::const_reverse_iterator it = buffer->rbegin();
+            while (eligible != INVALID_ID && it != buffer->rend())
             {
-                docid_list.push_back(block[i]);
-                score_list.push_back(sblock[i]);
-                if (docid_list.size() == length) break;
+                if (it->docid == eligible)
+                {
+                    docid_list.push_back(it->docid);
+                    score_list.push_back(it->score);
 
-                if ((next = filter->find_next(block[i])) == INVALID_ID)
-                    break;
+                    if (docid_list.size() == length)
+                        return;
+
+                    if (++it == buffer->rend())
+                        break;
+
+                    if ((eligible = filter->find_prev(eligible)) == INVALID_ID)
+                        break;
+                }
+                else if (it->docid > eligible)
+                {
+                    do
+                    {
+                        if (++it == buffer->rend())
+                            break;
+                    }
+                    while (it->docid > eligible);
+                }
+                else
+                {
+                    do
+                    {
+                        if ((eligible = filter->find_prev(eligible)) == INVALID_ID)
+                            break;
+                    }
+                    while (eligible > it->docid);
+                }
             }
-            else
+
+            while (true)
             {
-                if ((next = filter->find_next(block[i] - 1)) == INVALID_ID)
-                    break;
+                if (block[i] == eligible)
+                {
+                    docid_list.push_back(block[i]);
+                    score_list.push_back(sblock[i]);
+
+                    if (docid_list.size() == length)
+                        return;
+
+                    if ((eligible = filter->find_prev(eligible)) == INVALID_ID)
+                        break;
+
+                    if (!gallopSearch_(codec, block, sblock, c, ++i, t, eligible))
+                        break;
+                }
+                else if (block[i] > eligible)
+                {
+                    if (!gallopSearch_(codec, block, sblock, c, ++i, t, eligible))
+                        break;
+                }
+                else
+                {
+                    if ((eligible = filter->find_prev(block[i] + 1)) == INVALID_ID)
+                        break;
+                }
+            }
+        }
+        else
+        {
+            uint32_t eligible = filter->find_first();
+            while (true)
+            {
+                if (block[i] == eligible)
+                {
+                    docid_list.push_back(block[i]);
+                    score_list.push_back(sblock[i]);
+
+                    if (docid_list.size() == length)
+                        return;
+
+                    if ((eligible = filter->find_next(block[i])) == INVALID_ID)
+                        break;
+
+                    if (!gallopSearch_(codec, block, sblock, c, ++i, t, eligible))
+                        break;
+                }
+                else if (block[i] < eligible)
+                {
+                    if (!gallopSearch_(codec, block, sblock, c, ++i, t, eligible))
+                        break;
+                }
+                else
+                {
+                    if ((eligible = filter->find_next(block[i] - 1)) == INVALID_ID)
+                        break;
+                }
+            }
+
+            AttrScoreBufferMaps::PostingType::const_iterator it = buffer->begin();
+            while (eligible != INVALID_ID && it != buffer->end())
+            {
+                if (it->docid == eligible)
+                {
+                    docid_list.push_back(it->docid);
+                    score_list.push_back(it->score);
+
+                    if (docid_list.size() == length)
+                        return;
+
+                    if (++it == buffer->end())
+                        break;
+
+                    if ((eligible = filter->find_next(eligible)) == INVALID_ID)
+                        break;
+                }
+                else if (it->docid < eligible)
+                {
+                    do
+                    {
+                        if (++it == buffer->end())
+                            break;
+                    }
+                    while (it->docid < eligible);
+                }
+                else
+                {
+                    do
+                    {
+                        if ((eligible = filter->find_next(eligible)) == INVALID_ID)
+                            break;
+                    }
+                    while (eligible < it->docid);
+                }
             }
         }
 
@@ -621,12 +864,12 @@ void AttrScoreInvertedIndex::intersectSvS_(
     docid_list.reserve(minDf);
     score_list.reserve(minDf);
 
-    intersectPostingsLists_(codec, filter, headPointers[0], headPointers[1], qScores[0], qScores[1], docid_list, score_list);
+    intersectPostingsLists_(codec, filter, qTerms[0], qTerms[1], qScores[0], qScores[1], docid_list, score_list);
 
-    for (uint32_t i = 2; i < headPointers.size(); ++i)
+    for (uint32_t i = 2; i < qTerms.size(); ++i)
     {
         if (docid_list.empty()) return;
-        intersectSetPostingsList_(codec, headPointers[i], qScores[i], docid_list, score_list);
+        intersectSetPostingsList_(codec, qTerms[i], qScores[i], docid_list, score_list);
     }
 
     if (hits < docid_list.size())
