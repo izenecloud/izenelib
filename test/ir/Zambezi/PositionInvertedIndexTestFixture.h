@@ -1,5 +1,5 @@
 /**
-* @file       InvertedIndexTestFixture.h
+* @file       PositionInvertedIndexTestFixture.h
 * @author     Hongliang
 * @version    1.0
 * @brief Fixture to test Inverted Index module.
@@ -23,20 +23,20 @@ namespace Zambezi
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
     const unsigned int DefullNum = 5000000;
-    class InvertedIndexTestFixture
+    class PositionInvertedIndexTestFixture
     {
     public:
-        InvertedIndexTestFixture()
+        PositionInvertedIndexTestFixture()
             :index_(NULL)
         {
         }
 
         void initIndex(bool isReverse)
         {
-            index_ = new PositionalInvertedIndex(NON_POSITIONAL, 1 << 28, 4, isReverse);
+            index_ = new PositionalInvertedIndex(NON_POSITIONAL, 1 << 28, 4, 4194304, isReverse);
         }
 
-        ~InvertedIndexTestFixture()
+        ~PositionInvertedIndexTestFixture()
         {
             delete index_;
         }
@@ -126,7 +126,7 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 100;
+            int termNumber = 200;
             //build word;
             srand( (unsigned int)time(0) );
             for (int i = 0; i < termNumber; ++i)
@@ -233,6 +233,23 @@ namespace Zambezi
                 false,
                 docid_list,
                 score_list);
+        }
+
+        void saveIndex(const std::string& path)
+        {
+            fstream fileIndex;
+            fileIndex.open(path.c_str(), ios::binary|ios::out);
+            index_->save(fileIndex);
+        }
+        void loadIndex(const std::string& path)
+        {
+            fstream fileIndex;
+            fileIndex.open(path.c_str(), ios::binary|ios::in);
+
+            if (fileIndex.is_open())
+            {
+                index_->load(fileIndex);
+            }
         }
 
         std::vector<std::string>& getWordList()

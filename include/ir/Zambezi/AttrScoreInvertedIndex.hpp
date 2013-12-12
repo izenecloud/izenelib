@@ -64,7 +64,6 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const
     {
-        LOG(INFO) << "do retrievalWithBuffer ....";
         std::vector<std::pair<std::pair<uint32_t, int>, size_t> > queries;
 
         uint32_t minimumDf = 0xFFFFFFFF;

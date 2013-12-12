@@ -36,7 +36,7 @@ namespace Zambezi
 
         void initIndex(bool isReverse)
         {
-            index_ = new AttrScoreInvertedIndex(1 << 28, 4, isReverse);
+            index_ = new AttrScoreInvertedIndex(1 << 28, 4, 4194304, isReverse);
         }
 
         ~AttrScoreInvertedIndexTestFixture()
