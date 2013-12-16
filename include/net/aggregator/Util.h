@@ -21,6 +21,14 @@ public:
         return izenelib::util::IdUtil::Get32(id);
     }
 
+    static bool IsNewerDocId(wdocid_t left, wdocid_t right)
+    {
+        std::pair<workerid_t, docid_t> left_pair = GetWorkerAndDocId(left);
+        std::pair<workerid_t, docid_t> right_pair = GetWorkerAndDocId(right);
+        if (left_pair.second == right_pair.second)
+            return left_pair.first > right_pair.first;
+        return left_pair.second > right_pair.second;
+    }
 };
 
 
