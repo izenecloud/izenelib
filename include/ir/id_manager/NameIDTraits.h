@@ -12,6 +12,7 @@
 
 #include <limits.h>
 #include <types.h>
+#include <stdint.h>
 
 #include <util/hashFunction.h>
 
@@ -24,6 +25,25 @@ namespace idmanager {
   * Four kinds of NameID are supported: int32, uint32, int64, uint64.
   */
 template <typename NameID> class NameIDTraits;
+
+template <>
+class NameIDTraits<uint16_t>
+{
+public:
+  enum{MinValue = 1, MaxValue = USHRT_MAX};
+
+  template<typename NameString>
+  static uint16_t hash(const typename NameString::value_type * buffer, const size_t length)
+  {
+    return (uint16_t)izenelib::util::HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+  }
+
+  template<typename NameString>
+  static uint16_t hash(const NameString& key)
+  {
+    return (uint16_t)izenelib::util::HashFunction<NameString>::generateHash32(key);
+  }
+};
 
 template <>
 class NameIDTraits<int32_t>
