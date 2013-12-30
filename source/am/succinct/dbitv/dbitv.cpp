@@ -94,7 +94,7 @@ void DBitV::clear()
     len_ = 0;
     one_count_ = 0;
 
-    HPArray<SuperBlock>().swap(super_blocks_);
+    std::vector<SuperBlock>().swap(super_blocks_);
 
     if (support_select_)
     {
@@ -243,7 +243,7 @@ void DBitV::save(std::ostream &os) const
     os.write((const char *)&len_, sizeof(len_));
     os.write((const char *)&one_count_, sizeof(one_count_));
 
-    super_blocks_.save(os);
+    SuccinctUtils::saveVec(os, super_blocks_);
 
     if (support_select_)
     {
@@ -258,7 +258,7 @@ void DBitV::load(std::istream &is)
     is.read((char *)&len_, sizeof(len_));
     is.read((char *)&one_count_, sizeof(one_count_));
 
-    super_blocks_.load(is);
+    SuccinctUtils::loadVec(is, super_blocks_);
 
     if (support_select_)
     {
@@ -270,7 +270,7 @@ void DBitV::load(std::istream &is)
 size_t DBitV::allocSize() const
 {
     return sizeof(DBitV)
-        + sizeof(super_blocks_[0]) * (len_ / kSuperBlockSize + 1)
+        + sizeof(super_blocks_[0]) * super_blocks_.size()
         + sizeof(select_one_inds_[0]) * select_one_inds_.size()
         + sizeof(select_zero_inds_[0]) * select_zero_inds_.size();
 }

@@ -2,7 +2,6 @@
 #define _IZENELIB_AM_SUCCINCT_DBITV_DBITV_HPP
 
 #include <am/succinct/constants.hpp>
-#include <am/succinct/hp_array.hpp>
 
 #include <vector>
 #include <iostream>
@@ -69,7 +68,7 @@ private:
     size_t len_;
     size_t one_count_;
 
-    HPArray<SuperBlock> super_blocks_;
+    std::vector<SuperBlock> super_blocks_;
 
     std::vector<size_t> select_one_inds_;
     std::vector<size_t> select_zero_inds_;
