@@ -38,6 +38,11 @@ public:
     void save(std::ostream &os) const;
     void load(std::istream &is);
 
+    inline size_t length() const
+    {
+        return len_;
+    }
+
     inline size_t one_count() const
     {
         return one_count_;
@@ -46,11 +51,6 @@ public:
     inline size_t zero_count() const
     {
         return len_ - one_count_;
-    }
-
-    inline size_t length() const
-    {
-        return len_;
     }
 
     size_t allocSize() const;

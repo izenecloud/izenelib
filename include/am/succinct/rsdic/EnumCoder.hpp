@@ -45,9 +45,6 @@ public:
         return kEnumCodeLength_[rank_sb];
     }
 
-    static size_t Select0(uint64_t code, size_t rank_sb, size_t num);
-    static size_t Select1(uint64_t code, size_t rank_sb, size_t num);
-
 private:
     static size_t Select0Enum_(uint64_t code, size_t rank_sb, size_t num);
     static size_t Select1Enum_(uint64_t code, size_t rank_sb, size_t num);

@@ -22,6 +22,7 @@
 
 #include <am/succinct/constants.hpp>
 
+#include <boost/shared_array.hpp>
 #include <vector>
 #include <iostream>
 
@@ -89,14 +90,14 @@ private:
         RankBlock() : pointer_(), large_block_(), small_blocks_() {}
     };
 
-    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
+    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset);
 
     bool support_select_;
     rsdic_uint num_;
     rsdic_uint one_num_;
 
     std::vector<uint64_t> bits_;
-    std::vector<RankBlock> rank_blocks_;
+    boost::shared_array<RankBlock> rank_blocks_;
 
     std::vector<rsdic_uint> select_one_inds_;
     std::vector<rsdic_uint> select_zero_inds_;

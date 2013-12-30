@@ -113,7 +113,7 @@ bool DBitV::lookup(size_t pos) const
     size_t index = pos / kSuperBlockSize;
     size_t offset = pos % kSuperBlockSize;
 
-    return super_blocks_[index].bits_[offset / kBlockSize] & (uint64_t(1) << (offset % kBlockSize));
+    return super_blocks_[index].bits_[offset / kBlockSize] & (1LLU << (offset % kBlockSize));
 }
 
 bool DBitV::lookup(size_t pos, size_t &r) const
@@ -127,12 +127,16 @@ bool DBitV::lookup(size_t pos, size_t &r) const
 
     const SuperBlock &sb = super_blocks_[index];
 
-    bool bit = sb.bits_[sb_index] & (uint64_t(1) << sb_offset);
-    r = bit
-        ? sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & ((uint64_t(1) << sb_offset) - 1))
-        : pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & ((uint64_t(1) << sb_offset) - 1));
-
-    return bit;
+    if (sb.bits_[sb_index] & (1LLU << sb_offset))
+    {
+        r = sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << sb_offset) - 1));
+        return true;
+    }
+    else
+    {
+        r = pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << sb_offset) - 1));
+        return false;
+    }
 }
 
 size_t DBitV::rank0(size_t pos) const
@@ -151,13 +155,12 @@ size_t DBitV::rank1(size_t pos) const
     const SuperBlock &sb = super_blocks_[index];
 
     return sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511)
-        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((uint64_t(1) << (pos % kBlockSize)) - 1));
+        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << (pos % kBlockSize)) - 1));
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const
 {
-    if (bit) return rank1(pos);
-    else return pos - rank1(pos);
+    return bit ? rank1(pos) : rank0(pos);
 }
 
 size_t DBitV::select0(size_t rank) const
@@ -236,8 +239,7 @@ size_t DBitV::select1(size_t rank) const
 
 size_t DBitV::select(size_t rank, bool bit) const
 {
-    if (bit) return select1(rank);
-    else return select0(rank);
+    return bit ? select1(rank) : select0(rank);
 }
 
 void DBitV::save(std::ostream &os) const
