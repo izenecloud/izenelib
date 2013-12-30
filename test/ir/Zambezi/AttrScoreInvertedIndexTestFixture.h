@@ -223,9 +223,7 @@ namespace Zambezi
         {
             std::vector<uint32_t> score_list;
             uint32_t hits = 10000000;
-            Algorithm algorithm = SVS;
             index_->retrieval(
-                algorithm,
                 term_list,
                 hits,
                 docid_list,

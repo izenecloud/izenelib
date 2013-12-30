@@ -6,6 +6,7 @@
 #include <boost/function.hpp>
 #include <3rdparty/am/stx/btree_map.h>
 #include "InMemoryBTreeCache.h"
+#include <util/ClockTimer.h>
 
 // #define TE_DEBUG
 
@@ -24,54 +25,16 @@ class TermEnum
     {
         return false;
     }
-    
-    
+    // use this interface, you should not modify the content of value returned outside.
+    virtual bool get(KeyType& key, const ValueType*& value)
+    {
+        return false;
+    }
+    void move()
+    {
+    }
 };
 
-
-//template <class K, class V>
-//class BTTermEnum : public TermEnum<K, V>
-//{
-    
-//public:
-    //typedef K KeyType;
-    //typedef V ValueType;
-    //typedef std::map<KeyType, ValueType> AMType;
-    //typedef typename AMType::iterator iterator;
-    
-    
-    //BTTermEnum(AMType& am)
-    //:it_(am.begin()), it_end_(am.end())
-    //{
-    //}
-    
-    //BTTermEnum(AMType& am, const KeyType& key)
-    //:it_(am.lower_bound(key)), it_end_(am.end())
-    //{
-    //}
-    
-    //bool next(std::pair<KeyType, ValueType>& kvp)
-    //{
-//#ifdef TE_DEBUG
-////         std::cout<<"BTTermEnum next"<<std::endl;
-//#endif
-        //if(it_==it_end_) return false;
-        //else
-        //{
-            //kvp = *it_;
-            //++it_;
-//#ifdef TE_DEBUG
-////             std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
-//#endif
-            //return true;
-        //}
-    //}
-  
-  
-//private:
-    //iterator it_;
-    //iterator it_end_;
-//};
 
 template <class K, class V, class AMType>
 class BTTermEnum : public TermEnum<K, V>
@@ -93,7 +56,7 @@ public:
     :it_(am.lower_bound(key)), it_end_(am.end())
     {
     }
-    
+
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
@@ -114,6 +77,57 @@ public:
     }
   
   
+private:
+    iterator it_;
+    iterator it_end_;
+};
+
+template <class K, class V, class AMType>
+class PreLoadTermEnum : public TermEnum<K, V>
+{
+public:
+    typedef K KeyType;
+    typedef V ValueType;
+    typedef typename AMType::iterator iterator;
+    
+    PreLoadTermEnum(AMType& am)
+    :it_(am.begin()), it_end_(am.end())
+    {
+    }
+    
+    PreLoadTermEnum(AMType& am, const KeyType& key)
+    :it_(am.lower_bound(key)), it_end_(am.end())
+    {
+    }
+
+    bool get(KeyType& key, const ValueType*& value)
+    {
+        if(it_==it_end_) return false;
+        else
+        {
+            key = it_->first;
+            value = &(it_->second);
+            return true;
+        }
+    }
+
+    void move()
+    {
+        if(it_==it_end_) return;
+        ++it_;
+    }
+
+    bool next(std::pair<KeyType, ValueType>& kvp)
+    {
+        if(it_==it_end_) return false;
+        else
+        {
+            kvp = *it_;
+            ++it_;
+            return true;
+        }
+    }
+
 private:
     iterator it_;
     iterator it_end_;
@@ -143,6 +157,28 @@ public:
     {
     }
     
+    bool get(KeyType& key, const ValueType*& value)
+    {
+#ifdef TE_DEBUG
+//         std::cout<<"AMTermEnum next"<<std::endl;
+#endif
+        if(it_==it_end_) return false;
+        else
+        {
+            key = it_->first;
+            value = &(it_->second);
+#ifdef TE_DEBUG
+//             std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
+#endif
+            return true;
+        }
+    }
+    void move()
+    {
+        if(it_==it_end_) return;
+        ++it_;
+    }
+
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
@@ -314,34 +350,36 @@ private:
 // };
 
 
-template <class KeyType, class ValueType1, class AMType1, class AMType2, class ValueType>
-class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
+template <class KeyType, class ValueType1, class AMType1, class AMType2, class EnumType2, class ValueType>
+class TwoWayTermEnumBase : public TermEnum<KeyType, ValueType>
 {
     typedef BTTermEnum<KeyType, ValueType1, AMType1> EnumType1;
-    typedef AMTermEnum<AMType2> EnumType2;
+    //typedef AMTermEnum<AMType2> EnumType2;
     //typedef typename EnumType1::AMType AMType1;
     typedef typename EnumType2::ValueType ValueType2;
     typedef std::pair<KeyType, ValueType1> DataType1;
     typedef std::pair<KeyType, ValueType2> DataType2;
     typedef std::pair<KeyType, ValueType> DataType;
-    typedef boost::function<void (const ValueType1&,const ValueType2&, ValueType&) > FuncType;
     
-    public:
-        TwoWayTermEnum(AMType1& am1, AMType2& am2, const FuncType& func)
+public:
+    typedef boost::function<void (const ValueType1&,const ValueType2&, ValueType&) > FuncType;
+
+        TwoWayTermEnumBase(AMType1& am1, AMType2& am2, const FuncType& func)
         : enum1_(am1), enum2_(am2), func_(func)
         {
         }
         
-        TwoWayTermEnum(AMType1& am1, AMType2& am2, const KeyType& key, const FuncType& func)
+        TwoWayTermEnumBase(AMType1& am1, AMType2& am2, const KeyType& key, const FuncType& func)
         : enum1_(am1, key), enum2_(am2, key), func_(func)
         {
         }
         
-        
         bool next(DataType& kvp)
         {
+            //izenelib::util::ClockTimer timer;
+            //timer.restart();
             //kvp.second.clear();
-            kvp.second.resize(0);
+            //ValueType().swap(kvp.second);
 #ifdef TE_DEBUG
             std::cout<<"[TE] next ";
 #endif
@@ -371,12 +409,18 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
                 std::cout<<"exist key1 : "<<data1_.get().first<<",";
 #endif                
             }
+            //double t1 = timer.elapsed();
+            //double t2 = t1;
             if(!data2_)
             {
                 DataType2 rdata2;
-                if(enum2_.next(rdata2))
+                const ValueType2* tmp = NULL;
+                if(enum2_.get(rdata2.first, tmp))
                 {
+                    //t2 = timer.elapsed();
                     data2_ = rdata2;
+                    data2_.get().second = *tmp;
+                    enum2_.move();
 #ifdef TE_DEBUG
                     std::cout<<"get key2 : {"<<data2_.get().first<<"} :"<<data2_.get().second<<",";
 #endif
@@ -399,6 +443,7 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
 #endif             
             
             
+            //double t3 = timer.elapsed();
             KeyType key;
             bool select[2];
             select[0] = false;
@@ -438,7 +483,8 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             
             if(!select[0] && !select[1] ) return false;
             ValueType1 value1;
-            ValueType2 value2;
+            static const ValueType2 emptyvalue;
+            const ValueType2* value2 = &emptyvalue;
             if(select[0])
             {
                 value1 = data1_.get().second;
@@ -446,11 +492,21 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             }
             if(select[1])
             {
-                value2 = data2_.get().second;
-                data2_.reset();
+                value2 = &data2_.get().second;
             }
             kvp.first = key;
-            func_(value1, value2, kvp.second);
+
+            //double t4 = timer.elapsed();
+            //if (t4 > 0.04)
+            //    std::cerr << "next cost: " << t1 << "," << t2 << "," << t3 << "," << t4 << std::endl;
+            func_(value1, *value2, kvp.second);
+
+            //double t5 = timer.elapsed();
+            //if (t5 > 0.08)
+            //    std::cerr << "combine cost: " << t5 << std::endl;
+
+            if(select[1])
+                data2_.reset();
             return true;
             
         }
@@ -462,6 +518,42 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         boost::optional<DataType1> data1_;
         boost::optional<DataType2> data2_;
 };
+
+template <class KeyType, class ValueType1, class AMType1, class AMType2, class ValueType>
+class TwoWayTermEnum: public TwoWayTermEnumBase<KeyType, ValueType1, AMType1, AMType2, AMTermEnum<AMType2>, ValueType> 
+{
+    typedef TwoWayTermEnumBase<KeyType, ValueType1, AMType1, AMType2, AMTermEnum<AMType2>, ValueType> BaseType;
+public:
+    TwoWayTermEnum(AMType1& am1, AMType2& am2, const typename BaseType::FuncType& func)
+        : BaseType(am1, am2, func)
+    {
+    }
+
+    TwoWayTermEnum(AMType1& am1, AMType2& am2, const KeyType& key, const typename BaseType::FuncType& func)
+        : BaseType(am1, am2, key, func)
+    {
+    }
+
+};
+
+template <class KeyType, class ValueType1, class AMType1, class AMType2, class ValueType>
+class TwoWayPreLoadTermEnum: public TwoWayTermEnumBase<KeyType, ValueType1, AMType1, AMType2, PreLoadTermEnum<KeyType, ValueType, AMType2>, ValueType>
+{
+    typedef TwoWayTermEnumBase<KeyType, ValueType1, AMType1, AMType2, PreLoadTermEnum<KeyType, ValueType, AMType2>, ValueType> BaseType;
+public:
+    TwoWayPreLoadTermEnum(AMType1& am1, AMType2& am2, const typename BaseType::FuncType& func)
+        : BaseType(am1, am2, func)
+    {
+    }
+
+    TwoWayPreLoadTermEnum(AMType1& am1, AMType2& am2, const KeyType& key, const typename BaseType::FuncType& func)
+        : BaseType(am1, am2, key, func)
+    {
+    }
+
+};
+
+
 }
 NS_IZENELIB_IR_END
 

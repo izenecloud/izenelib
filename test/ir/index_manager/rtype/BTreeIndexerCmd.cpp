@@ -10,8 +10,22 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
     std::vector<uint32_t> docid_list;
+    BTreeIndexer<UString>::ValueType data;
     UString key(argv[2], UString::UTF_8);
-    indexer.getValue(key, docid_list);
+    indexer.getValue(key, data);
+    if (data.which() == 0)
+    {
+        docid_list = boost::get<BTreeIndexer<UString>::VecValueType>(data);
+    }
+    else
+    {
+        const BitVector& bits = boost::get<BitVector>(data);
+        for(size_t i = 0; i < bits.size(); ++i)
+        {
+            if (bits.test(i))
+                docid_list.push_back(i);
+        }
+    }
     for(uint32_t i=0;i<docid_list.size();i++)
     {
         std::cout<<docid_list[i]<<std::endl;

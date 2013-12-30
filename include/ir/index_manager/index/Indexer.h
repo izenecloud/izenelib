@@ -111,7 +111,7 @@ public:
 
     bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs);
 
-    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList);
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BTreeIndexerManager::ValueType& docList);
 
     template <typename word_t>
     bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<word_t>& docs);

@@ -4,7 +4,7 @@
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
-//#include "buffer/BufferMaps.hpp"
+//#include "buffer/PredicateBufferMaps.hpp"
 #include "Consts.hpp"
 #include <util/compression/int/fastpfor/fastpfor.h>
 
@@ -40,7 +40,7 @@ public:
 //  void retrieval() const;
 
 private:
-//  BufferMaps buffer_;
+//  PredicateBufferMaps buffer_;
     SegmentPool pool_;
     Dictionary<std::string> dictionary_;
     Pointers pointers_;

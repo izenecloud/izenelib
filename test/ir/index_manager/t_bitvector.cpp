@@ -102,6 +102,8 @@ void checkBitVector(size_t count, bool isCheckEachBit = true)
     BOOST_CHECK(bitvector.hasSmallThan(mid));
     BOOST_CHECK(bitvector.hasBetween(mid, mid));
     BOOST_CHECK(bitvector.hasBetween(0, count * 2 + 1));
+    std::swap(bitvector, bitvector2);
+    std::swap(bitvector, bitvector2);
     if(mid > 0)
     {
         BOOST_CHECK(! bitvector.hasSmallThan(mid - 1));

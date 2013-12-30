@@ -81,6 +81,8 @@ void Indexer::setIndexManagerConfig(
     collectionid_t colID;
     std::map<std::string, PropertyType> type_map;//used for Btreeindexer
 
+    std::set<std::string> no_preload_props;
+
     for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionList.begin(); iter != collectionList.end(); ++iter)
     {
         colID = iter->second.getColId();
@@ -117,7 +119,8 @@ void Indexer::setIndexManagerConfig(
     if(pConfigurationManager_->indexStrategy_.isIndexBTree_)
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
       {
-          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_, pDirectory_, type_map);
+          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_,
+              pDirectory_, type_map, no_preload_props);
 //           pBTreeIndexer_ = new BTreeIndexer(pDirectory_, pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
           if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
           {
@@ -583,7 +586,7 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& pr
     return true;
 }
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, std::vector<docid_t>& docList)
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BTreeIndexerManager::ValueType& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
     pBTreeIndexer_->getValue(property, value, docList);

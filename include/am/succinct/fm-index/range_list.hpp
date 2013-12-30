@@ -50,7 +50,7 @@ static double getSynonymPatternScore(const range_list_type &patterns, const head
     return score;
 }
 
-static double getFilterScore(const range_list_type &filters)
+/*static double getFilterScore(const range_list_type &filters)
 {
     double score = 0.0;
 
@@ -61,7 +61,7 @@ static double getFilterScore(const range_list_type &filters)
     }
 
     return score;
-}
+}*/
 
 static bool range_compare(const range_type &p1, const range_type &p2)
 {

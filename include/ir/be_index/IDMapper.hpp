@@ -5,8 +5,11 @@
 #include <utility>
 #include <string>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <boost/unordered_map.hpp>
 #include <3rdparty/json/json.h>
+#include "SimpleSerialization.hpp"
 
 namespace izenelib { namespace ir { namespace be_index {
 
@@ -46,6 +49,11 @@ public:
         }
     }
 
+    uint32_t size()
+    {
+        return dict.size();
+    }
+
     void toJson(Json::Value & root)
     {
         dictToJson(root["dict"]);
@@ -67,6 +75,32 @@ public:
     {
         for (Json::ValueIterator i = root.begin(); i != root.end(); ++i) {
             dict[i.key().asString()] = (*i).asUInt();
+        }
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(dict.size(), os);
+        std::vector<std::pair<std::string, uint32_t> > temp(dict.begin(), dict.end());
+        std::sort(temp.begin(), temp.end());
+        for (std::size_t i = 0; i != temp.size(); ++i) {
+            serialize(temp[i].first, os);
+            serialize(temp[i].second, os);
+        }
+    }
+
+    void load_binary(std::istream & is)
+    {
+        dict.clear();
+
+        std::size_t size;
+        deserialize(is, size);
+        for (std::size_t i = 0; i != size; ++i) {
+            std::string s;
+            deserialize(is, s);
+            uint32_t id;
+            deserialize(is, id);
+            dict[s] = id;
         }
     }
 
