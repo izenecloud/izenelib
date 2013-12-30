@@ -102,13 +102,16 @@ public:
 #endif
 
 #ifdef __USE_POSIX_MEMALIGN__
-    static uint64_t *cachealign_alloc(size_t size)
+    template <class T>
+    static T *cachealign_alloc(size_t alignment, size_t size)
     {
         __assert(size != 0);
-        uint64_t *p;
+        T *p;
         /* NOTE: *lev2 is 64B-aligned so as to avoid cache-misses */
-        int ret = posix_memalign((void **)&p, CACHELINE_SZ, size);
-        return ret == 0 ? p : NULL;
+        int ret = posix_memalign((void **)&p, alignment, size * sizeof(T));
+        if (ret) p = (T*)malloc(size * sizeof(T));
+        memset(p, 0, size * sizeof(T));
+        return p;
     }
 
     static void cachealign_free(uint64_t *p)
@@ -116,11 +119,13 @@ public:
         if (p) free(p);
     }
 #else
-    static uint64_t *cachealign_alloc(size_t size)
+    template <class T>
+    static T *cachealign_alloc(size_t alignment, size_t size)
     {
         __assert(size != 0);
         /* FIXME: *lev2 NEEDS to be 64B-aligned. */
-        uint64_t *p = new uint64_t[size + CACHELINE_SZ];
+        T *p = new T[size];
+        memset(p, 0, size * sizeof(T));
         return p;
     }
 
