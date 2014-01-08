@@ -481,19 +481,21 @@ void WaveletMatrix<CharT>::topKUnion(
         }
 
         const range_list_type &patterns = top_ranges->patterns_;
+        range_list_type::const_iterator pit = patterns.begin();
+        range_list_type::const_iterator pitEnd = pit + thres;
 
-        for (size_t i = 0; i < thres; ++i)
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -507,18 +509,19 @@ void WaveletMatrix<CharT>::topKUnion(
             continue;
         }
 
-        for (size_t i = thres; i < patterns.size(); ++i)
+        pitEnd = patterns.end();
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>()));
             }
         }
 
@@ -728,19 +731,21 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
         }
 
         const range_list_type &patterns = top_ranges->patterns_;
+        range_list_type::const_iterator pit = patterns.begin();
+        range_list_type::const_iterator pitEnd = pit + thres;
 
-        for (size_t i = 0; i < thres; ++i)
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -754,18 +759,19 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
             continue;
         }
 
-        for (size_t i = thres; i < patterns.size(); ++i)
+        pitEnd = patterns.end();
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>()));
             }
         }
 
@@ -1010,19 +1016,21 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
         node = top_ranges->node_;
 
         const range_list_type &patterns = top_ranges->patterns_;
+        range_list_type::const_iterator pit = patterns.begin();
+        range_list_type::const_iterator pitEnd = pit + thres;
 
-        for (size_t i = 0; i < thres; ++i)
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>())))
+            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>())))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>())))
+            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>())))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -1036,18 +1044,19 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             continue;
         }
 
-        for (size_t i = thres; i < patterns.size(); ++i)
+        pitEnd = patterns.end();
+        for (; pit != pitEnd; ++pit)
         {
-            rank_start = node->rank1(patterns[i].get<0>());
-            rank_end = node->rank1(patterns[i].get<1>());
+            rank_start = node->rank1(pit->get<0>());
+            rank_end = node->rank1(pit->get<1>());
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(patterns[i].get<0>() - rank_start, patterns[i].get<1>() - rank_end, patterns[i].get<2>()));
+                zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>()));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[i].get<2>()));
+                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>()));
             }
         }
 
