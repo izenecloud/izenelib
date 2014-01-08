@@ -91,7 +91,7 @@ public:
         return iterator();
     }
 
-    ElementType elem(KeyType x, KeyType y)
+    ElementType elem(const KeyType& x, const KeyType& y)
     {
         boost::shared_ptr<const RowType> row_data = row(x);
         typename RowType::const_iterator it = row_data->find(y);
@@ -102,7 +102,7 @@ public:
         return it->second;
     }
 
-    void update_elem(KeyType x, KeyType y, ElementType d)
+    void update_elem(const KeyType& x, const KeyType& y, const ElementType& d)
     {
         if (_cache.update_elem(x, y, d))
         {
@@ -116,7 +116,7 @@ public:
         update_row(x, row);
     }
 
-    boost::shared_ptr<const RowType> row(KeyType x)
+    boost::shared_ptr<const RowType> row(const KeyType& x)
     {
         boost::shared_ptr<RowType> row = _cache.get(x);
         if (! row)
@@ -132,7 +132,7 @@ public:
         return row;
     }
 
-    void update_row(KeyType x, boost::shared_ptr<RowType> row)
+    void update_row(const KeyType& x, boost::shared_ptr<RowType> row)
     {
         _evict();
         _cache.update(x, row);
@@ -144,7 +144,7 @@ public:
      * @param func the function @c func(const RowType&) would be called with the row as argument
      */
     template <class Func>
-    void read_row_with_func(KeyType x, Func func)
+    void read_row_with_func(const KeyType& x, Func func)
     {
         if (! _cache.read_with_func(x, func))
         {
@@ -165,7 +165,7 @@ public:
      * @param func the function @c func(RowType&) would be called with the row as argument
      */
     template <class Func>
-    void update_row_with_func(KeyType x, Func func)
+    void update_row_with_func(const KeyType& x, Func func)
     {
         _evict();
         if (! _cache.update_with_func(x, func))
