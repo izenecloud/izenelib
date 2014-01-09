@@ -7,6 +7,7 @@ namespace Zambezi
 
 AttrScoreBufferMaps::AttrScoreBufferMaps(uint32_t initialSize)
     : capacity(initialSize)
+    , flags(new boost::atomic_flag[initialSize])
     , buffer(initialSize)
     , tailPointer(initialSize, UNDEFINED_POINTER)
 {
@@ -45,6 +46,7 @@ void AttrScoreBufferMaps::save(std::ostream& ostr) const
 void AttrScoreBufferMaps::load(std::istream& istr)
 {
     istr.read((char*)&capacity, sizeof(capacity));
+    flags.reset(new boost::atomic_flag[capacity]);
     buffer.resize(capacity);
 
     size_t termNum;
