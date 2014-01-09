@@ -128,7 +128,7 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    do
+    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_))
     {
         uint32_t oldSegment = pSegment;
         uint32_t oldOffset = pOffset;
@@ -137,7 +137,6 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 
         pOffset = pool_[oldSegment][oldOffset + 2];
     }
-    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_));
 
     return ENCODE_POINTER(pSegment, pOffset);
 }

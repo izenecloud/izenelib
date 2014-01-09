@@ -489,7 +489,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     return pool_.appendSegment(segment_, maxDocId, reqspace, lastPointer, nextPointer);
 }
 
-void PositionalInvertedIndex::retrieval(
+void PositionalInvertedIndex::retrieve(
         Algorithm algorithm,
         const std::vector<std::pair<std::string, int> >& term_list_pair,
         const FilterBase* filter,

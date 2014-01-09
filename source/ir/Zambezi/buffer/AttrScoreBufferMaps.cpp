@@ -55,8 +55,7 @@ void AttrScoreBufferMaps::load(std::istream& istr)
 
         if (capacity == 0) break;
 
-        buffer[termNum].reset(new PostingType);
-        buffer[termNum]->reserve(capacity);
+        resizePosting(termNum, capacity);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(uint32_t));
@@ -101,6 +100,29 @@ uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
     while (buffer[pos]->empty() || buffer[pos]->capacity() <= minLength);
 
     return pos;
+}
+
+boost::shared_ptr<AttrScoreBufferMaps::PostingType> AttrScoreBufferMaps::getPosting(uint32_t id) const
+{
+    boost::atomic_flag& flag = flags[id];
+    while (flag.test_and_set());
+    boost::shared_ptr<PostingType> res(buffer[id]);
+    flag.clear();
+
+    return res;
+}
+
+void AttrScoreBufferMaps::resizePosting(uint32_t id, size_t new_size)
+{
+    boost::shared_ptr<PostingType>& old_buffer = buffer[id];
+    boost::shared_ptr<PostingType> new_buffer(new PostingType);
+    new_buffer->reserve(new_size);
+    new_buffer->assign(old_buffer->begin(), old_buffer->end());
+
+    boost::atomic_flag& flag = flags[id];
+    while (flag.test_and_set());
+    old_buffer.swap(new_buffer);
+    flag.clear();
 }
 
 }

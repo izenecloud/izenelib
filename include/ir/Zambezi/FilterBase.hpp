@@ -12,19 +12,19 @@ namespace Zambezi
 class FilterBase
 {
 public:
-    FilterBase() : iterable_(false) {}
+    FilterBase() : iterable_(false), reverse_(false) {}
     virtual ~FilterBase() {}
 
     virtual bool test(uint32_t id) const { return true; }
-    virtual uint32_t find_first() const { return 1; }
-    virtual uint32_t find_last() const { return INVALID_ID; }
-    virtual uint32_t find_next(uint32_t id) const { return id + 1; }
-    virtual uint32_t find_prev(uint32_t id) const { return id - 1; }
+    virtual uint32_t find_first() const { return reverse_ ? INVALID_ID : 1; }
+    virtual uint32_t find_next(uint32_t id) const { return reverse_ ? id - 1 : id + 1; }
 
-    inline bool iterable() const { return iterable_; }
+    bool iterable() const { return iterable_; }
+    bool reverse() const { return reverse_; }
 
 protected:
     bool iterable_;
+    bool reverse_;
 };
 
 }

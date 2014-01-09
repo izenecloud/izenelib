@@ -50,7 +50,7 @@ public:
 
     uint32_t totalDocNum() const;
 
-    void retrieval(
+    void retrieve(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
             const FilterBase* filter,
@@ -60,7 +60,7 @@ public:
 
 private:
     void processTermBuffer_(
-            boost::shared_ptr<AttrScoreBufferMaps::PostingType>& posting,
+            AttrScoreBufferMaps::PostingType& posting,
             size_t& tailPointer,
             size_t& headPointer);
 
@@ -88,14 +88,77 @@ private:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
-    bool gallopSearch_(
+    bool unionIterate_(
             FastPFor& codec,
-            uint32_t* blockDocid,
-            uint32_t* blockScore,
-            uint32_t& count,
-            uint32_t& index,
-            size_t& pointer,
+            bool in_buffer,
+            const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
+            uint32_t segment[],
+            uint32_t count,
+            uint32_t index,
+            size_t pointer,
             uint32_t pivot) const;
+
+    template <class BlockType>
+    uint32_t gallopSearch_(
+            FastPFor& codec,
+            const BlockType& block,
+            uint32_t count,
+            uint32_t index,
+            uint32_t pivot) const
+    {
+        if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, pool_.reverse_))
+            return index;
+
+        if ((uint32_t)block[count - 1] == pivot)
+            return count - 1;
+
+        int beginIndex = index;
+        int hop = 1;
+        int tempIndex = beginIndex + 1;
+        while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL((uint32_t)block[tempIndex], pivot, pool_.reverse_))
+        {
+            beginIndex = tempIndex;
+            tempIndex += hop;
+            hop *= 2;
+        }
+
+        if ((uint32_t)block[beginIndex] == pivot)
+            return beginIndex;
+
+        int endIndex = count - 1;
+        hop = 1;
+        tempIndex = endIndex - 1;
+        while (tempIndex >= 0 && GREATER_THAN((uint32_t)block[tempIndex], pivot, pool_.reverse_))
+        {
+            endIndex = tempIndex;
+            tempIndex -= hop;
+            hop *= 2;
+        }
+
+        if ((uint32_t)block[endIndex] == pivot)
+            return endIndex;
+
+        // Binary search between begin and end indexes
+        while (beginIndex < endIndex)
+        {
+            uint32_t mid = beginIndex + (endIndex - beginIndex) / 2;
+
+            if (GREATER_THAN((uint32_t)block[mid], pivot, pool_.reverse_))
+            {
+                endIndex = mid;
+            }
+            else if (LESS_THAN((uint32_t)block[mid], pivot, pool_.reverse_))
+            {
+                beginIndex = mid + 1;
+            }
+            else
+            {
+                return mid;
+            }
+        }
+
+        return endIndex;
+    }
 
     void intersectPostingsLists_(
             FastPFor& codec,

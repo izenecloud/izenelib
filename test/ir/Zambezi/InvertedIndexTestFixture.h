@@ -227,7 +227,7 @@ namespace Zambezi
             }
             uint32_t hits = 10000000;
             FilterBase* filter = new FilterBase;
-            index_->retrieval(
+            index_->retrieve(
                 algorithm,
                 term_list_1,
                 filter,

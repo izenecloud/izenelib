@@ -30,7 +30,7 @@ public:
             const std::vector<std::string>& term_list,
             const std::vector<uint32_t>& score_list) = 0;
 
-    virtual void retrieval(
+    virtual void retrieve(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
             const FilterBase* filter,

@@ -54,7 +54,7 @@ public:
     /// this function;
     /// @hits, the max number of hit number;
     /// @search_buffer:is not used here, just for unify interface;
-    virtual void retrieval(
+    virtual void retrieve(
             Algorithm algorithm,
             const std::vector<std::pair<std::string, int> >& term_list,
             const FilterBase* filter,
