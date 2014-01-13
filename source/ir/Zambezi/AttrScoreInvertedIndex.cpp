@@ -466,12 +466,12 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     uint32_t sc0 = 0, sc1 = 0;
 
     bool in_buffer0 = pool_.reverse_, in_buffer1 = pool_.reverse_;
-    uint32_t eligible = filter->find_first();
+    uint32_t eligible = filter->find_first(pool_.reverse_);
 
     if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
         return;
 
-    if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0)) == INVALID_ID)
+    if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
         return;
 
     if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
@@ -484,13 +484,13 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
             docid_list.push_back(id0);
             score_list.push_back(sc0 * weight0 + sc1 * weight1);
 
-            if ((eligible = filter->find_next(id0)) == INVALID_ID)
+            if ((eligible = filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 break;
 
             if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
                 return;
 
-            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0)) == INVALID_ID)
+            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 return;
 
             if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
@@ -498,7 +498,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         }
         else if (LESS_THAN(id0, id1, pool_.reverse_))
         {
-            if ((eligible = filter->test(id1) ? id1 : filter->find_next(id1)) == INVALID_ID)
+            if ((eligible = filter->test(id1) ? id1 : filter->find_next(id1, pool_.reverse_)) == INVALID_ID)
                 break;
 
             if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
@@ -506,7 +506,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         }
         else
         {
-            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0)) == INVALID_ID)
+            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 break;
 
             if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
@@ -593,7 +593,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         uint32_t id = 0, sc = 0;
 
         bool in_buffer = pool_.reverse_;
-        uint32_t eligible = filter->find_first();
+        uint32_t eligible = filter->find_first(pool_.reverse_);
 
         if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
             return;
@@ -608,7 +608,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
                 if (docid_list.size() == length)
                     break;
 
-                if ((eligible = filter->find_next(eligible)) == INVALID_ID)
+                if ((eligible = filter->find_next(eligible, pool_.reverse_)) == INVALID_ID)
                     break;
 
                 if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
@@ -621,7 +621,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
             }
             else
             {
-                if ((eligible = filter->test(id) ? id : filter->find_next(id)) == INVALID_ID)
+                if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
                     break;
             }
         }
