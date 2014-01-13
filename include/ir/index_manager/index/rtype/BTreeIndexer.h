@@ -658,9 +658,9 @@ private:
         return b;
     }
 
+    // lock should be outside !
     std::size_t getCount_()
     {
-        boost::shared_lock<MutexType> lock(mutex_);
         if (cache_.empty())
         {
             if (pre_load_)
