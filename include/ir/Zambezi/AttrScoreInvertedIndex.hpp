@@ -90,17 +90,19 @@ private:
 
     bool unionIterate_(
             FastPFor& codec,
-            bool in_buffer,
+            bool& in_buffer,
             const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
-            uint32_t segment[],
-            uint32_t count,
-            uint32_t index,
-            size_t pointer,
-            uint32_t pivot) const;
+            uint32_t docid_seg[],
+            uint32_t score_seg[],
+            uint32_t pivot,
+            uint32_t& count,
+            uint32_t& index,
+            size_t& pointer,
+            uint32_t& docid,
+            uint32_t& score) const;
 
     template <class BlockType>
     uint32_t gallopSearch_(
-            FastPFor& codec,
             const BlockType& block,
             uint32_t count,
             uint32_t index,
