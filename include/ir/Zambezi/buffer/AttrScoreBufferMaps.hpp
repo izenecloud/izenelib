@@ -60,9 +60,9 @@ public:
 
     typedef std::vector<ElemType> PostingType;
 
-    boost::shared_ptr<PostingType> getPosting(uint32_t id) const;
+    boost::shared_ptr<PostingType> getBuffer(uint32_t id) const;
 
-    void resizePosting(uint32_t id, size_t new_size);
+    void resetBuffer(uint32_t id, size_t new_size, bool copy = true);
 
 public:
     // Current capacity (number of vocabulary terms)

@@ -93,7 +93,7 @@ void AttrScoreInvertedIndex::insertDoc(
         {
             if (!posting)
             {
-                buffer_.resizePosting(id, DF_CUTOFF);
+                buffer_.resetBuffer(id, DF_CUTOFF);
             }
             posting->push_back(AttrScoreBufferMaps::ElemType(docid, score_list[i]));
             pointers_.df_.increment(id);
@@ -104,7 +104,7 @@ void AttrScoreInvertedIndex::insertDoc(
 
         if (posting->capacity() < BLOCK_SIZE)
         {
-            buffer_.resizePosting(id, BLOCK_SIZE);
+            buffer_.resetBuffer(id, BLOCK_SIZE);
         }
 
         posting->push_back(AttrScoreBufferMaps::ElemType(docid, score_list[i]));
@@ -119,11 +119,8 @@ void AttrScoreInvertedIndex::insertDoc(
                     buffer_.tailPointer[id],
                     pointers_.headPointers_.get(id));
 
-            if (posting->capacity() < MAX_BLOCK_SIZE)
-            {
-                uint32_t newLen = posting->capacity() * EXPANSION_RATE;
-                buffer_.resizePosting(id, newLen);
-            }
+            uint32_t newLen = posting->capacity() * (posting->capacity() < MAX_BLOCK_SIZE ? EXPANSION_RATE : 1);
+            buffer_.resetBuffer(id, newLen, false);
         }
     }
     ++pointers_.totalDocs_;
@@ -138,6 +135,8 @@ void AttrScoreInvertedIndex::flush()
                 *buffer_.buffer[term],
                 buffer_.tailPointer[term],
                 pointers_.headPointers_.get(term));
+
+        buffer_.resetBuffer(term, buffer_.buffer[term]->capacity(), false);
     }
 }
 
@@ -234,8 +233,6 @@ void AttrScoreInvertedIndex::processTermBuffer_(
             }
         }
     }
-
-    posting.clear();
 }
 
 size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
@@ -367,8 +364,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
         FastPFor& codec,
         bool& in_buffer,
         const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
-        uint32_t docid_seg[],
-        uint32_t score_seg[],
+        uint32_t* docid_seg,
+        uint32_t* score_seg,
         uint32_t pivot,
         uint32_t& count,
         uint32_t& index,
@@ -459,8 +456,8 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     uint32_t c0 = 0, i0 = 0;
     uint32_t c1 = 0, i1 = 0;
 
-    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer0(buffer_.getPosting(term0));
-    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer1(buffer_.getPosting(term1));
+    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer0(buffer_.getBuffer(term0));
+    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer1(buffer_.getBuffer(term1));
 
     uint32_t id0 = 0, id1 = 0;
     uint32_t sc0 = 0, sc1 = 0;
@@ -529,7 +526,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     uint32_t blockScore[BLOCK_SIZE];
     uint32_t c = 0, i = 0;
 
-    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getPosting(term));
+    boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(term));
 
     uint32_t id = 0, sc = 0;
 
@@ -587,7 +584,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         docid_list.reserve(length);
         score_list.reserve(length);
 
-        boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getPosting(qTerms[0]));
+        boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(qTerms[0]));
         size_t pointer = pointers_.headPointers_.get(qTerms[0]);
         uint32_t c = 0, i = 0;
         uint32_t id = 0, sc = 0;

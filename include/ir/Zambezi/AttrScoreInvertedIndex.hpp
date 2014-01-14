@@ -92,8 +92,8 @@ private:
             FastPFor& codec,
             bool& in_buffer,
             const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
-            uint32_t docid_seg[],
-            uint32_t score_seg[],
+            uint32_t* docid_seg,
+            uint32_t* score_seg,
             uint32_t pivot,
             uint32_t& count,
             uint32_t& index,
@@ -108,6 +108,8 @@ private:
             uint32_t index,
             uint32_t pivot) const
     {
+        if (index >= count) return INVALID_ID;
+
         if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, pool_.reverse_))
             return index;
 
