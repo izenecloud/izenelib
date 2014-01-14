@@ -153,11 +153,8 @@ private:
         ar & bits_;
     }
 
-private:
+public:
     static const size_t npos = (size_t)-1;
-
-    size_t size_; ///< the number of bits
-    std::vector<uint64_t> bits_;
 
     enum
     {
@@ -173,6 +170,10 @@ private:
          */
         INIT_SIZE = 10 * 1024 * 1024,
     };
+
+private:
+    size_t size_; ///< the number of bits
+    std::vector<uint64_t> bits_;
 };
 
 }
