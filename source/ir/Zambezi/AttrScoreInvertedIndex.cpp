@@ -310,7 +310,10 @@ void AttrScoreInvertedIndex::retrieve(
         qScores[i] = queries[i].second;
     }
 
-    intersectSvS_(qTerms, qScores, filter, minimumDf, hits, docid_list, score_list);
+    if (algorithm == SVS)
+    {
+        intersectSvS_(qTerms, qScores, filter, minimumDf, hits, docid_list, score_list);
+    }
 }
 
 uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
