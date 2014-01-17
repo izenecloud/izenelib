@@ -108,7 +108,8 @@ private:
             uint32_t index,
             uint32_t pivot) const
     {
-        if (index >= count) return INVALID_ID;
+        if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, pool_.reverse_))
+            return INVALID_ID;
 
         if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, pool_.reverse_))
             return index;
@@ -141,11 +142,6 @@ private:
 
         if ((uint32_t)block[endIndex] == pivot)
             return endIndex;
-
-        if (beginIndex == endIndex)
-        {
-            return INVALID_ID;
-        }
 
         // Binary search between begin and end indexes
         while (beginIndex < endIndex)

@@ -379,8 +379,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
     if (in_buffer)
     {
         index = pool_.reverse_
-            ? gallopSearch_(buffer->rbegin(), buffer->size(), index, pivot)
-            : gallopSearch_(buffer->begin(), buffer->size(), index, pivot);
+            ? gallopSearch_(buffer->rend() - count, count, index, pivot)
+            : gallopSearch_(buffer->begin(), count, index, pivot);
         if (index == INVALID_ID)
         {
             in_buffer = false;
@@ -398,8 +398,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
         {
             if (pool_.reverse_)
             {
-                docid = (*buffer)[buffer->size() - 1 - index].docid;
-                score = (*buffer)[buffer->size() - 1 - index].score;
+                docid = (*buffer)[count - 1 - index].docid;
+                score = (*buffer)[count - 1 - index].score;
             }
             else
             {
@@ -415,21 +415,25 @@ bool AttrScoreInvertedIndex::unionIterate_(
             if ((pointer = pool_.nextPointer(pointer, pivot)) == UNDEFINED_POINTER)
             {
                 in_buffer = true;
+                count = buffer->size();
                 index = pool_.reverse_
-                    ? gallopSearch_(buffer->rbegin(), buffer->size(), 0, pivot)
-                    : gallopSearch_(buffer->begin(), buffer->size(), 0, pivot);
+                    ? gallopSearch_(buffer->rend() - count, count, 0, pivot)
+                    : gallopSearch_(buffer->begin(), count, 0, pivot);
 
-                if (index == INVALID_ID)
+                if (index == INVALID_ID) return false;
+
+                if (pool_.reverse_)
                 {
-                    return false;
+                    docid = (*buffer)[count - 1 - index].docid;
+                    score = (*buffer)[count - 1 - index].score;
                 }
                 else
                 {
                     docid = (*buffer)[index].docid;
                     score = (*buffer)[index].score;
-
-                    return true;
                 }
+
+                return true;
             }
 
             count = decompressDocidBlock_(codec, docid_seg, pointer);
@@ -463,11 +467,12 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
 
     size_t pointer0 = pointers_.headPointers_.get(term0);
     size_t pointer1 = pointers_.headPointers_.get(term1);
-    uint32_t c0 = 0, i0 = 0;
-    uint32_t c1 = 0, i1 = 0;
 
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer0(buffer_.getBuffer(term0));
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer1(buffer_.getBuffer(term1));
+
+    uint32_t c0 = pool_.reverse_ ? buffer0->size() : 0, c1 = pool_.reverse_ ? buffer1->size() : 0;
+    uint32_t i0 = 0, i1 = 0;
 
     uint32_t id0 = 0, id1 = 0;
     uint32_t sc0 = 0, sc1 = 0;
@@ -534,10 +539,10 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     size_t pointer = pointers_.headPointers_.get(term);
     uint32_t blockDocid[BLOCK_SIZE];
     uint32_t blockScore[BLOCK_SIZE];
-    uint32_t c = 0, i = 0;
 
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(term));
 
+    uint32_t c = pool_.reverse_ ? buffer->size() : 0, i = 0;
     uint32_t id = 0, sc = 0;
 
     bool in_buffer = pool_.reverse_;
@@ -596,7 +601,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
 
         boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(qTerms[0]));
         size_t pointer = pointers_.headPointers_.get(qTerms[0]);
-        uint32_t c = 0, i = 0;
+        uint32_t c = pool_.reverse_ ? buffer->size() : 0, i = 0;
         uint32_t id = 0, sc = 0;
 
         bool in_buffer = pool_.reverse_;
