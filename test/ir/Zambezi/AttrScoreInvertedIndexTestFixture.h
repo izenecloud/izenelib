@@ -191,7 +191,7 @@ namespace Zambezi
             docTermMap.clear();
         }
 
-        void initIndexer(uint32_t docNumber, bool reverse)
+        void initIndexer(uint32_t docNumber, bool reverse, bool search_buffer = false)
         {
             DocIDTermMapT docTermMap;
 
@@ -199,10 +199,10 @@ namespace Zambezi
 
             initIndex(reverse);
 
-            buildIndex(docTermMap);
+            buildIndex(docTermMap, search_buffer);
         }
 
-        void buildIndex(const DocIDTermMapT& docTermMap)
+        void buildIndex(const DocIDTermMapT& docTermMap, bool search_buffer = false)
         {
             int count = 1;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
@@ -212,11 +212,12 @@ namespace Zambezi
                 index_->insertDoc(i->first, i->second, score_list);
                 if (count % 100000 == 0)
                 {
-                    std::cout << "insert document:" << count << std::endl;
+                    //std::cout << "insert document:" << count << std::endl;
                 }
                 count++;
             }
-            index_->flush();
+            if (!search_buffer)
+                index_->flush();
         }
 
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list)

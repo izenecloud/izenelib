@@ -378,7 +378,6 @@ bool AttrScoreInvertedIndex::unionIterate_(
         index = pool_.reverse_
             ? gallopSearch_(buffer->rbegin(), buffer->size(), index, pivot)
             : gallopSearch_(buffer->begin(), buffer->size(), index, pivot);
-
         if (index == INVALID_ID)
         {
             in_buffer = false;
@@ -394,8 +393,16 @@ bool AttrScoreInvertedIndex::unionIterate_(
         }
         else
         {
-            docid = (*buffer)[index].docid;
-            score = (*buffer)[index].score;
+            if (pool_.reverse_)
+            {
+                docid = (*buffer)[buffer->size() - 1 - index].docid;
+                score = (*buffer)[buffer->size() - 1 - index].score;
+            }
+            else
+            {
+                docid = (*buffer)[index].docid;
+                score = (*buffer)[index].score;
+            }
         }
     }
     else

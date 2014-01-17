@@ -142,6 +142,11 @@ private:
         if ((uint32_t)block[endIndex] == pivot)
             return endIndex;
 
+        if (beginIndex == endIndex)
+        {
+            return INVALID_ID;
+        }
+
         // Binary search between begin and end indexes
         while (beginIndex < endIndex)
         {
