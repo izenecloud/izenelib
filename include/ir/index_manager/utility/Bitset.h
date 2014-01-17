@@ -4,6 +4,7 @@
 #include <ir/index_manager/store/Directory.h>
 #include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>
+#include <boost/shared_array.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -20,9 +21,11 @@ class Bitset
 {
 public:
     Bitset();
-    Bitset(const Bitset& other);
     Bitset(size_t len);
     ~Bitset();
+
+    Bitset(const Bitset& other);
+    Bitset& operator=(const Bitset& other);
 
     bool test(size_t pos) const;
     bool any() const;
@@ -35,6 +38,7 @@ public:
     void set();
     void reset(size_t pos);
     void reset();
+    void flip(size_t pos);
     void flip();
 
     size_t find_first() const;
@@ -145,13 +149,44 @@ private:
      */
     void grow(size_t size);
 
+    template <class T>
+    inline T* getAlignedArray(size_t size)
+    {
+        T* block;
+        if (posix_memalign((void**)&block, 64, size * sizeof(T)))
+            block = (T*)malloc(size * sizeof(T));
+        memset(block, 0, size * sizeof(T));
+        return block;
+    }
+
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void save(Archive & ar, const unsigned int version)  const
     {
         ar & size_;
-        ar & bits_;
+        ar & capacity_;
+        if (bits_)
+        {
+            ar.save_binary(bits_.get(), block_num(size_) * sizeof(uint64_t));
+        }
     }
+
+    template<class Archive>
+    void load(Archive & ar, const unsigned int version)
+    {
+        ar & size_;
+        size_t capacity = 0;
+        ar & capacity;
+        if (capacity != capacity_)
+        {
+            uint64_t* newBits = getAlignedArray<uint64_t>(capacity);
+            memset(newBits, 0, capacity);
+            bits_.reset(newBits);
+            capacity_ = capacity;
+        }
+        ar.load_binary(bits_.get(), block_num(size_) * sizeof(uint64_t));
+    }
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 public:
     static const size_t npos = (size_t)-1;
@@ -173,7 +208,8 @@ public:
 
 private:
     size_t size_; ///< the number of bits
-    std::vector<uint64_t> bits_;
+    size_t capacity_;
+    boost::shared_array<uint64_t> bits_;
 };
 
 }

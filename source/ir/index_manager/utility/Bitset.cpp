@@ -13,24 +13,54 @@ namespace indexmanager
 
 Bitset::Bitset()
     : size_(0)
-    , bits_(INIT_SIZE / sizeof(uint64_t))
-{
-}
-
-Bitset::Bitset(const Bitset& other)
-    : size_(other.size_)
-    , bits_(other.bits_)
+    , capacity_(INIT_SIZE / sizeof(uint64_t))
+    , bits_(getAlignedArray<uint64_t>(capacity_))
 {
 }
 
 Bitset::Bitset(size_t len)
     : size_(len)
-    , bits_(block_num(size_))
+    , capacity_(block_num(size_))
+    , bits_(getAlignedArray<uint64_t>(capacity_))
 {
 }
 
 Bitset::~Bitset()
 {
+}
+
+Bitset::Bitset(const Bitset& other)
+    : size_(other.size_)
+    , capacity_(other.capacity_)
+    , bits_(getAlignedArray<uint64_t>(capacity_))
+{
+    memcpy(bits_.get(), other.bits_.get(), (size_ + 7) / 8);
+}
+
+Bitset& Bitset::operator=(const Bitset& other)
+{
+    if (this != &other)
+    {
+        size_ = other.size_;
+        if (!other.bits_)
+        {
+            capacity_ = other.capacity_;
+            bits_.reset();
+        }
+        else if (other.capacity_ != capacity_ || !bits_)
+        {
+            uint64_t* new_data = getAlignedArray<uint64_t>(other.capacity_);
+            memcpy(new_data, other.bits_.get(), (other.size_ + 7) / 8);
+            bits_.reset(new_data);
+            capacity_ = other.capacity_;
+        }
+        else
+        {
+            memcpy(bits_.get(), other.bits_.get(), (other.size_ + 7) / 8);
+        }
+    }
+
+    return *this;
 }
 
 bool Bitset::test(size_t pos) const
@@ -41,10 +71,12 @@ bool Bitset::test(size_t pos) const
 
 bool Bitset::any() const
 {
-    const size_t blk = block_num(size_);
-    for (size_t i = 0; i < blk; ++i)
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + block_num(size_);
+
+    for (; first != last; ++first)
     {
-        if (bits_[i]) return true;
+        if (*first) return true;
     }
 
     return false;
@@ -67,9 +99,12 @@ bool Bitset::any(size_t start, size_t end) const
 
     if (bits_[start_blk] & startMask) return true;
 
-    for (size_t i = start_blk + 1; i < end_blk; ++i)
+    const uint64_t* first = bits_.get() + start_blk + 1;
+    const uint64_t* last = bits_.get() + end_blk;
+
+    for (; first != last; ++first)
     {
-        if (bits_[i]) return true;
+        if (*first) return true;
     }
 
     if (endMask && bits_[end_blk] & endMask) return true;
@@ -86,10 +121,12 @@ size_t Bitset::count() const
 {
     size_t count = 0;
 
-    const size_t blk = block_num(size_);
-    for (size_t i = 0; i < blk; ++i)
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + block_num(size_);
+
+    for (; first != last; ++first)
     {
-        count += __builtin_popcountll(bits_[i]);
+        count += __builtin_popcountll(*first);
     }
 
     return count;
@@ -112,9 +149,12 @@ size_t Bitset::count(size_t start, size_t end) const
 
     size_t count = __builtin_popcountll(bits_[start_blk] & startMask);
 
-    for (size_t i = start_blk + 1; i < end_blk; ++i)
+    const uint64_t* first = bits_.get() + start_blk + 1;
+    const uint64_t* last = bits_.get() + end_blk;
+
+    for (; first != last; ++first)
     {
-        count += __builtin_popcountll(bits_[i]);
+        count += __builtin_popcountll(*first);
     }
 
     if (endMask)
@@ -134,7 +174,7 @@ void Bitset::set(size_t pos)
 void Bitset::set()
 {
     if (size_ == 0) return;
-    memset(&bits_[0], 0xFF, block_num(size_) * sizeof(uint64_t));
+    memset(bits_.get(), 0xFF, block_num(size_) * sizeof(uint64_t));
     clear_dirty_bits();
 }
 
@@ -147,17 +187,25 @@ void Bitset::reset(size_t pos)
 void Bitset::reset()
 {
     if (size_ == 0) return;
-    memset(&bits_[0], 0, block_num(size_) * sizeof(uint64_t));
+    memset(bits_.get(), 0, block_num(size_) * sizeof(uint64_t));
+}
+
+void Bitset::flip(size_t pos)
+{
+    grow(pos + 1);
+    bits_[pos / 64] ^= uint64_t(1) << (pos % 64);
 }
 
 void Bitset::flip()
 {
     if (size_ == 0) return;
 
-    const size_t blk = block_num(size_);
-    for (size_t i = 0; i < blk; ++i)
+    uint64_t* first = bits_.get();
+    uint64_t* last = bits_.get() + block_num(size_);
+
+    for (; first != last; ++first)
     {
-        bits_[i] = ~bits_[i];
+        *first = ~*first;
     }
 
     clear_dirty_bits();
@@ -165,18 +213,19 @@ void Bitset::flip()
 
 size_t Bitset::find_first() const
 {
-    const size_t blk = block_num(size_);
-    for (size_t i = 0; i < blk; ++i)
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + block_num(size_);
+
+    for (; first != last; ++first)
     {
-        if (bits_[i])
+        if (*first)
         {
-            return i * 64 + __builtin_ctzll(bits_[i]);
+            return (first - bits_.get()) * 64 + __builtin_ctzll(*first);
         }
     }
 
     return npos;
 }
-
 
 size_t Bitset::find_next(size_t pos) const
 {
@@ -188,12 +237,14 @@ size_t Bitset::find_next(size_t pos) const
 
     if (fore) return pos + __builtin_ctzll(fore);
 
-    const size_t blk = block_num(size_);
-    for (++i; i < blk; ++i)
+    const uint64_t* first = bits_.get() + i + 1;
+    const uint64_t* last = bits_.get() + block_num(size_);
+
+    for (; first != last; ++first)
     {
-        if (bits_[i])
+        if (*first)
         {
-            return i * 64 + __builtin_ctzll(bits_[i]);
+            return (first - bits_.get()) * 64 + __builtin_ctzll(*first);
         }
     }
 
@@ -202,18 +253,19 @@ size_t Bitset::find_next(size_t pos) const
 
 size_t Bitset::find_last() const
 {
-    const size_t blk = block_num(size_);
-    for (size_t i = blk; i > 0; --i)
+    const uint64_t* first = bits_.get() + block_num(size_) - 1;
+    const uint64_t* last = bits_.get() - 1;
+
+    for (; first != last; --first)
     {
-        if (bits_[i - 1])
+        if (*first)
         {
-            return i * 64 - 1 - __builtin_clzll(bits_[i - 1]);
+            return (first - bits_.get()) * 64 - 1 - __builtin_clzll(*first);
         }
     }
 
     return npos;
 }
-
 
 size_t Bitset::find_prev(size_t pos) const
 {
@@ -226,11 +278,14 @@ size_t Bitset::find_prev(size_t pos) const
 
     if (fore) return pos - __builtin_clzll(fore);
 
-    for (; i > 0; --i)
+    const uint64_t* first = bits_.get() + i - 1;
+    const uint64_t* last = bits_.get() - 1;
+
+    for (; first != last; --first)
     {
-        if (bits_[i - 1])
+        if (*first)
         {
-            return i * 64 - 1 - __builtin_clzll(bits_[i - 1]);
+            return (first - bits_.get()) * 64 - 1 - __builtin_clzll(*first);
         }
     }
 
@@ -240,30 +295,44 @@ size_t Bitset::find_prev(size_t pos) const
 bool Bitset::operator==(const Bitset& b) const
 {
     if (size_ != b.size_) return false;
-    const size_t blk = block_num(size_);
-    for (size_t i = 0; i < blk; ++i)
-        if (bits_[i] != b.bits_[i]) return false;
+
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + block_num(size_);
+    const uint64_t* first1 = b.bits_.get();
+
+    while (first != last)
+    {
+        if (*first++ != *first1++) return false;
+    }
 
     return true;
 }
 
 bool Bitset::equal_ignore_size(const Bitset& b) const
 {
-    const size_t blk = block_num(std::min(size_, b.size_));
-    for (size_t i = 0; i < blk; ++i)
-        if (bits_[i] != b.bits_[i]) return false;
+    const size_t blk = block_num(size_);
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + blk;
 
-    if (size_ > b.size_)
+    const size_t blk1 = block_num(b.size_);
+    const uint64_t* first1 = b.bits_.get();
+    const uint64_t* last1 = b.bits_.get() + blk1;
+
+    const size_t min_blk = std::min(blk, blk1);
+
+    for (size_t i = 0; i < min_blk; ++i)
     {
-        const size_t max_blk = block_num(size_);
-        for (size_t i = blk + 1; i < max_blk; ++i)
-            if (bits_[i]) return false;
+        if (*first++ != *first1++) return false;
     }
-    else
+
+    while (first != last)
     {
-        const size_t max_blk = block_num(b.size_);
-        for (size_t i = blk + 1; i < max_blk; ++i)
-            if (b.bits_[i]) return false;
+        if (*first++) return false;
+    }
+
+    while (first1 != last1)
+    {
+        if (*first1++) return false;
     }
 
     return true;
@@ -273,10 +342,19 @@ Bitset& Bitset::operator&=(const Bitset& b)
 {
     grow(b.size_);
 
-    const size_t blk = block_num(b.size_);
-    for (size_t i = 0; i < blk; ++i)
+    uint64_t* first = bits_.get();
+    uint64_t* last = bits_.get() + block_num(b.size_);
+    const uint64_t* first1 = b.bits_.get();
+
+    while (first != last)
     {
-        bits_[i] &= b.bits_[i];
+        *first++ &= *first1++;
+    }
+
+    last = bits_.get() + block_num(size_);
+    while (first != last)
+    {
+        *first++ = 0;
     }
 
     return *this;
@@ -286,10 +364,13 @@ Bitset& Bitset::operator|=(const Bitset& b)
 {
     grow(b.size_);
 
-    const size_t blk = block_num(b.size_);
-    for (size_t i = 0; i < blk; ++i)
+    uint64_t* first = bits_.get();
+    uint64_t* last = bits_.get() + block_num(b.size_);
+    const uint64_t* first1 = b.bits_.get();
+
+    while (first != last)
     {
-        bits_[i] |= b.bits_[i];
+        *first++ |= *first1++;
     }
 
     return *this;
@@ -299,10 +380,13 @@ Bitset& Bitset::operator^=(const Bitset& b)
 {
     grow(b.size_);
 
-    const size_t blk = block_num(b.size_);
-    for (size_t i = 0; i < blk; ++i)
+    uint64_t* first = bits_.get();
+    uint64_t* last = bits_.get() + block_num(b.size_);
+    const uint64_t* first1 = b.bits_.get();
+
+    while (first != last)
     {
-        bits_[i] ^= b.bits_[i];
+        *first++ ^= *first1++;
     }
 
     return *this;
@@ -310,12 +394,13 @@ Bitset& Bitset::operator^=(const Bitset& b)
 
 Bitset& Bitset::operator-=(const Bitset& b)
 {
-    size_t min_size = std::min(size_, b.size_);
+    uint64_t* first = bits_.get();
+    uint64_t* last = bits_.get() + block_num(std::min(size_, b.size_));
+    const uint64_t* first1 = b.bits_.get();
 
-    const size_t blk = block_num(min_size);
-    for (size_t i = 0; i < blk; ++i)
+    while (first != last)
     {
-        bits_[i] &= ~b.bits_[i];
+        *first++ &= ~*first1++;
     }
 
     return *this;
@@ -329,6 +414,7 @@ size_t Bitset::size() const
 void Bitset::swap(Bitset& b)
 {
     std::swap(size_, b.size_);
+    std::swap(capacity_, b.capacity_);
     bits_.swap(b.bits_);
 }
 
@@ -336,8 +422,7 @@ void Bitset::read(Directory* pDirectory, const char* name)
 {
     IndexInput* pInput = pDirectory->openInput(name);
     grow((size_t)pInput->readInt());
-    memset(&bits_[0], 0 , bits_.size() * sizeof(uint64_t));
-    pInput->read((char*)&bits_[0], block_num(size_) * sizeof(uint64_t));
+    pInput->read((char*)bits_.get(), block_num(size_) * sizeof(uint64_t));
     delete pInput;
 }
 
@@ -345,7 +430,7 @@ void Bitset::write(Directory* pDirectory, const char* name) const
 {
     IndexOutput* pOutput = pDirectory->createOutput(name);
     pOutput->writeInt((int32_t)size_);
-    pOutput->write((const char*)&bits_[0], block_num(size_) * sizeof(uint64_t));
+    pOutput->write((const char*)bits_.get(), block_num(size_) * sizeof(uint64_t));
     delete pOutput;
 }
 
@@ -359,14 +444,17 @@ void Bitset::grow(size_t size)
 {
     if (size <= size_) return;
     const size_t newBlockNum = block_num(size);
-    if (newBlockNum <= bits_.size()) return;
+    if (newBlockNum <= capacity_) return;
 
-    size_t capacity = bits_.size();
+    size_t capacity = capacity_;
     while (capacity < newBlockNum)
-        capacity <<= 1;
+        capacity *= 2;
 
-    bits_.resize(capacity);
+    uint64_t* new_data = getAlignedArray<uint64_t>(capacity);
+    memcpy(new_data, bits_.get(), (size + 7) / 8);
+    bits_.reset(new_data);
     size_ = size;
+    capacity_ = capacity;
 }
 
 }
