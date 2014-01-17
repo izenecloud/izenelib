@@ -231,7 +231,7 @@ namespace Zambezi
             uint32_t hits = 10000000;
             FilterBase* filter = new FilterBase;
             index_->retrieve(
-                BWAND_AND,
+                SVS,
                 term_list_1,
                 filter,
                 hits,

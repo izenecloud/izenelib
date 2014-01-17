@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE(do_search_reverse_searchBuffer_one_term)
     uint32_t DocNum = 30;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(do_search_forward_searchBuffer_one_term)
     uint32_t DocNum = 30;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(do_search_reverse_searchBuffer_terms)
     uint32_t DocNum = 30;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(do_search_forward_searchBuffer_terms)
     uint32_t DocNum = 30;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(do_search_reverse_searchBuffer_terms_1)
     uint32_t DocNum = 300;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -184,14 +184,13 @@ BOOST_AUTO_TEST_CASE(do_search_reverse_searchBuffer_terms_1)
     BOOST_CHECK_EQUAL(docid_list[239], 4);
 }
 
-
 BOOST_AUTO_TEST_CASE(do_search_reverse)
 {
     std::cout << std::endl <<"test case 6: [do_search_reverse] ..." << std::endl;
     uint32_t DocNum = 300000;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = true;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
@@ -240,7 +239,7 @@ BOOST_AUTO_TEST_CASE(do_search_forward)
     uint32_t DocNum = 300000;
     AttrScoreInvertedIndexTestFixture indexTestFixture;
     bool reverse = false;
-    bool search_buffer = false;
+    bool search_buffer = true;
     indexTestFixture.initIndexer(DocNum, reverse, search_buffer);
 
     std::vector<std::string> term_list;
