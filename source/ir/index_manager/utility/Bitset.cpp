@@ -443,6 +443,7 @@ void Bitset::clear_dirty_bits()
 void Bitset::grow(size_t size)
 {
     if (size <= size_) return;
+    size_ = size;
     const size_t newBlockNum = block_num(size);
     if (newBlockNum <= capacity_) return;
 
@@ -453,7 +454,6 @@ void Bitset::grow(size_t size)
     uint64_t* new_data = getAlignedArray<uint64_t>(capacity);
     memcpy(new_data, bits_.get(), (size + 7) / 8);
     bits_.reset(new_data);
-    size_ = size;
     capacity_ = capacity;
 }
 
