@@ -4,6 +4,7 @@
 #include <ir/index_manager/store/IndexOutput.h>
 
 #include <am/bitmap/ewah.h>
+#include <am/succinct/utils.hpp>
 #include <boost/detail/endian.hpp>
 
 NS_IZENELIB_IR_BEGIN
@@ -18,50 +19,48 @@ Bitset::Bitset()
 {
 }
 
-Bitset::Bitset(size_t len)
-    : size_(len)
+Bitset::Bitset(size_t size)
+    : size_(size)
     , capacity_(block_num(size_))
     , bits_(getAlignedArray<uint64_t>(capacity_))
 {
+}
+
+Bitset::Bitset(size_t size, size_t capacity, const boost::shared_array<uint64_t>& bits)
+    : size_(size)
+    , capacity_(capacity)
+    , bits_(bits)
+{
+}
+
+Bitset::Bitset(const Bitset& other, bool dup)
+    : size_(other.size_)
+    , capacity_(other.capacity_)
+{
+    if (dup)
+    {
+        bits_.reset(getAlignedArray<uint64_t>(capacity_));
+        memcpy(bits_.get(), bits_.get(), (size_ + 7) / 8);
+    }
+    else
+    {
+        bits_ = other.bits_;
+    }
 }
 
 Bitset::~Bitset()
 {
 }
 
-Bitset::Bitset(const Bitset& other)
-    : size_(other.size_)
-    , capacity_(other.capacity_)
-    , bits_(getAlignedArray<uint64_t>(capacity_))
+const Bitset& Bitset::dup()
 {
-    memcpy(bits_.get(), other.bits_.get(), (size_ + 7) / 8);
-}
-
-Bitset& Bitset::operator=(const Bitset& other)
-{
-    if (this != &other)
-    {
-        size_ = other.size_;
-        if (!other.bits_)
-        {
-            capacity_ = other.capacity_;
-            bits_.reset();
-        }
-        else if (other.capacity_ != capacity_ || !bits_)
-        {
-            uint64_t* new_data = getAlignedArray<uint64_t>(other.capacity_);
-            memcpy(new_data, other.bits_.get(), (other.size_ + 7) / 8);
-            bits_.reset(new_data);
-            capacity_ = other.capacity_;
-        }
-        else
-        {
-            memcpy(bits_.get(), other.bits_.get(), (other.size_ + 7) / 8);
-        }
-    }
+    uint64_t* new_bits = getAlignedArray<uint64_t>(capacity_);
+    memcpy(new_bits, bits_.get(), (size_ + 7) / 8);
+    bits_.reset(new_bits);
 
     return *this;
 }
+
 
 bool Bitset::test(size_t pos) const
 {
@@ -74,9 +73,9 @@ bool Bitset::any() const
     const uint64_t* first = bits_.get();
     const uint64_t* last = bits_.get() + block_num(size_);
 
-    for (; first != last; ++first)
+    while (first != last)
     {
-        if (*first) return true;
+        if (*first++) return true;
     }
 
     return false;
@@ -92,24 +91,22 @@ bool Bitset::any(size_t start, size_t end) const
     size_t start_blk = start / 64;
     size_t end_blk = end / 64;
 
-    if (start_blk == end_blk)
-    {
-        return bits_[start_blk] & startMask & endMask;
-    }
-
-    if (bits_[start_blk] & startMask) return true;
-
-    const uint64_t* first = bits_.get() + start_blk + 1;
+    const uint64_t* first = bits_.get() + start_blk;
     const uint64_t* last = bits_.get() + end_blk;
 
-    for (; first != last; ++first)
+    if (start_blk == end_blk)
     {
-        if (*first) return true;
+        return *first & startMask & endMask;
     }
 
-    if (endMask && bits_[end_blk] & endMask) return true;
+    if (*first++ & startMask) return true;
 
-    return false;
+    while (first != last)
+    {
+        if (*first++) return true;
+    }
+
+    return endMask && *last & endMask;
 }
 
 bool Bitset::none() const
@@ -124,9 +121,9 @@ size_t Bitset::count() const
     const uint64_t* first = bits_.get();
     const uint64_t* last = bits_.get() + block_num(size_);
 
-    for (; first != last; ++first)
+    while (first != last)
     {
-        count += __builtin_popcountll(*first);
+        count += __builtin_popcountll(*first++);
     }
 
     return count;
@@ -142,27 +139,22 @@ size_t Bitset::count(size_t start, size_t end) const
     size_t start_blk = start / 64;
     size_t end_blk = end / 64;
 
-    if (start_blk == end_blk)
-    {
-        return __builtin_popcountll(bits_[start_blk] & startMask & endMask);
-    }
-
-    size_t count = __builtin_popcountll(bits_[start_blk] & startMask);
-
-    const uint64_t* first = bits_.get() + start_blk + 1;
+    const uint64_t* first = bits_.get() + start_blk;
     const uint64_t* last = bits_.get() + end_blk;
 
-    for (; first != last; ++first)
+    if (start_blk == end_blk)
     {
-        count += __builtin_popcountll(*first);
+        return __builtin_popcountll(*first & startMask & endMask);
     }
 
-    if (endMask)
+    size_t count = __builtin_popcountll(*first++ & startMask);
+
+    while (first != last)
     {
-        count += __builtin_popcountll(bits_[end_blk] & endMask);
+        count += __builtin_popcountll(*first++);
     }
 
-    return count;
+    return count + (endMask ? __builtin_popcountll(*last & endMask) : 0);
 }
 
 void Bitset::set(size_t pos)
@@ -229,7 +221,6 @@ size_t Bitset::find_first() const
 
 size_t Bitset::find_next(size_t pos) const
 {
-
     if (++pos >= size_) return npos;
 
     size_t i = pos / 64;
@@ -269,7 +260,6 @@ size_t Bitset::find_last() const
 
 size_t Bitset::find_prev(size_t pos) const
 {
-
     if (pos == 0) return npos;
     if (--pos >= size_) return find_last();
 
@@ -287,6 +277,27 @@ size_t Bitset::find_prev(size_t pos) const
         {
             return (first - bits_.get()) * 64 - 1 - __builtin_clzll(*first);
         }
+    }
+
+    return npos;
+}
+
+size_t Bitset::select(size_t ind) const
+{
+    using izenelib::am::succinct::SuccinctUtils;
+
+    const uint64_t* first = bits_.get();
+    const uint64_t* last = bits_.get() + block_num(size_);
+
+    size_t bcount = 0;
+
+    for (; first != last; ++first)
+    {
+        if ((bcount = __builtin_popcountll(*first)) > ind)
+        {
+            return (first - bits_.get()) * 64 + SuccinctUtils::selectBlock(*first, ind);
+        }
+        ind -= bcount;
     }
 
     return npos;

@@ -129,7 +129,7 @@ public:
     bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& docList);
 
     template <typename word_t>
-    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitVector, EWAHBoolArray<word_t>& docsList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitset, EWAHBoolArray<word_t>& docsList);
 
     bool getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& docList);
 
@@ -251,10 +251,10 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& pr
 }
 
 template <typename word_t>
-bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitVector, EWAHBoolArray<word_t>& docList)
+bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitset, EWAHBoolArray<word_t>& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-    pBTreeIndexer_->getValueIn(property, values, bitVector, docList);
+    pBTreeIndexer_->getValueIn(property, values, bitset, docList);
     return true;
 }
 

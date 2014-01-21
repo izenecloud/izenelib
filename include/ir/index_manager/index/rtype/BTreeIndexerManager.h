@@ -107,11 +107,11 @@ public:
     void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& docs, bool needFilter = true);
 
     /**
-     * @param bitVector used as temp storage for performance consideration, it might not store the output docids.
+     * @param bitset used as temp storage for performance consideration, it might not store the output docids.
      * @param docs store the output docids
      */
     template <typename word_t>
-    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitVector, EWAHBoolArray<word_t>& docs);
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitset, EWAHBoolArray<word_t>& docs);
 
     void getValueNotIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& docs);
 
@@ -513,7 +513,7 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
 }
 
 template <typename word_t>
-void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitVector, EWAHBoolArray<word_t>& docs)
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitset, EWAHBoolArray<word_t>& docs)
 {
     for (std::size_t i = 0; i < keys.size(); ++i)
     {
@@ -525,41 +525,11 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
     {
         Bitset tempDocList;
         izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
-        bitVector |= tempDocList;
+        bitset |= tempDocList;
     }
 
-    doFilter_(bitVector);
-    bitVector.compress(docs);
-
-    //if (docList.size() < kDocIdNumSortLimit)
-    //{
-    //    std::sort(docList.begin(), docList.end());
-
-    //    docid_t lastDocId = 0;
-    //    for (std::vector<docid_t>::const_iterator it = docList.begin();
-    //         it != docList.end(); ++it)
-    //    {
-    //        // skip duplicated docid, required by EWAHBoolArray::set()
-    //        if (*it == lastDocId)
-    //            continue;
-
-    //        if (!pFilter_ || !pFilter_->test(*it))
-    //        {
-    //            docs.set(*it);
-    //        }
-
-    //        lastDocId = *it;
-    //    }
-    //}
-    //else
-    //{
-    //    for (std::size_t i = 0; i < docList.size(); ++i)
-    //    {
-    //        bitVector.set(docList[i]);
-    //    }
-    //    doFilter_(bitVector);
-    //    bitVector.compressed(docs);
-    //}
+    doFilter_(bitset);
+    bitset.compress(docs);
 }
 
 }

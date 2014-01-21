@@ -21,11 +21,12 @@ class Bitset
 {
 public:
     Bitset();
-    Bitset(size_t len);
+    Bitset(size_t size);
+    Bitset(size_t size, size_t capacity, const boost::shared_array<uint64_t>& bits);
+    Bitset(const Bitset& other, bool dup);
     ~Bitset();
 
-    Bitset(const Bitset& other);
-    Bitset& operator=(const Bitset& other);
+    const Bitset& dup();
 
     bool test(size_t pos) const;
     bool any() const;
@@ -45,6 +46,7 @@ public:
     size_t find_next(size_t pos) const;
     size_t find_last() const;
     size_t find_prev(size_t pos) const;
+    size_t select(size_t ind) const;
 
     bool operator==(const Bitset& b) const;
     bool equal_ignore_size(const Bitset& b) const;
@@ -150,7 +152,7 @@ private:
     void grow(size_t size);
 
     template <class T>
-    inline T* getAlignedArray(size_t size)
+    static inline T* getAlignedArray(size_t size)
     {
         T* block;
         if (posix_memalign((void**)&block, 64, size * sizeof(T)))
