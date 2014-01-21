@@ -799,7 +799,7 @@ private:
     {
         DocListType new_value;
         new_value.reserve(value.size() + cacheValue.size() / 2);
-        DocListType::const_iterator it1 = value.begin();
+        DocListType::iterator it1 = value.begin();
         typename CacheValueType::const_iterator it2 = cacheValue.begin();
         typename CacheValueType::const_iterator it2_end = cacheValue.end();
         while (it1 != value.end() && it2 != it2_end)
