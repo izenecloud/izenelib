@@ -29,52 +29,52 @@ Pointers::~Pointers()
 void Pointers::save(std::ostream& ostr) const
 {
     uint32_t size = df_.size();
-    ostr.write((const char*)&size, sizeof(uint32_t));
+    ostr.write((const char*)&size, sizeof(size));
 
-    ostr.write((const char*)&df_.get(0), sizeof(uint32_t) * size);
-    ostr.write((const char*)&cf_.get(0), sizeof(size_t) * size);
-    ostr.write((const char*)&headPointers_.get(0), sizeof(size_t) * size);
+    ostr.write((const char*)&df_.get(0), sizeof(df_.get(0)) * size);
+    ostr.write((const char*)&cf_.get(0), sizeof(cf_.get(0)) * size);
+    ostr.write((const char*)&headPointers_.get(0), sizeof(headPointers_.get(0)) * size);
 
     size = maxTf_.size();
-    ostr.write((const char*)&size, sizeof(uint32_t));
+    ostr.write((const char*)&size, sizeof(size));
 
-    ostr.write((const char*)&maxTf_.get(0), sizeof(uint32_t) * size);
-    ostr.write((const char*)&maxTfDocLen_.get(0), sizeof(uint32_t) * size);
+    ostr.write((const char*)&maxTf_.get(0), sizeof(maxTf_.get(0)) * size);
+    ostr.write((const char*)&maxTfDocLen_.get(0), sizeof(maxTfDocLen_.get(0)) * size);
 
     size = docLen_.size();
-    ostr.write((const char*)&size, sizeof(uint32_t));
+    ostr.write((const char*)&size, sizeof(size));
 
-    ostr.write((const char*)&docLen_.get(0), sizeof(uint32_t) * size);
+    ostr.write((const char*)&docLen_.get(0), sizeof(docLen_.get(0)) * size);
 
-    ostr.write((const char*)&totalDocs_, sizeof(uint32_t));
-    ostr.write((const char*)&totalDocLen_, sizeof(size_t));
+    ostr.write((const char*)&totalDocs_, sizeof(totalDocs_));
+    ostr.write((const char*)&totalDocLen_, sizeof(totalDocLen_));
 }
 
 void Pointers::load(std::istream& istr)
 {
     uint32_t size = 0;
-    istr.read((char*)&size, sizeof(uint32_t));
+    istr.read((char*)&size, sizeof(size));
     assert(size <= df_.getCounter().size());
 
-    istr.read((char*)&df_.get(0), sizeof(uint32_t) * size);
-    istr.read((char*)&cf_.get(0), sizeof(size_t) * size);
-    istr.read((char*)&headPointers_.get(0), sizeof(size_t) * size);
+    istr.read((char*)&df_.get(0), sizeof(df_.get(0)) * size);
+    istr.read((char*)&cf_.get(0), sizeof(cf_.get(0)) * size);
+    istr.read((char*)&headPointers_.get(0), sizeof(headPointers_.get(0)) * size);
 
     size = 0;
-    istr.read((char*)&size, sizeof(uint32_t));
+    istr.read((char*)&size, sizeof(size));
     assert(size <= maxTf_.getCounter().size());
 
-    istr.read((char*)&maxTf_.get(0), sizeof(uint32_t) * size);
-    istr.read((char*)&maxTfDocLen_.get(0), sizeof(uint32_t) * size);
+    istr.read((char*)&maxTf_.get(0), sizeof(maxTf_.get(0)) * size);
+    istr.read((char*)&maxTfDocLen_.get(0), sizeof(maxTfDocLen_.get(0)) * size);
 
     size = 0;
-    istr.read((char*)&size, sizeof(uint32_t));
+    istr.read((char*)&size, sizeof(size));
     assert(size <= docLen_.getCounter().size());
 
-    istr.read((char*)&docLen_.get(0), sizeof(uint32_t) * size);
+    istr.read((char*)&docLen_.get(0), sizeof(docLen_.get(0)) * size);
 
-    istr.read((char*)&totalDocs_, sizeof(uint32_t));
-    istr.read((char*)&totalDocLen_, sizeof(size_t));
+    istr.read((char*)&totalDocs_, sizeof(totalDocs_));
+    istr.read((char*)&totalDocLen_, sizeof(totalDocLen_));
 
     updateDefaultValues_();
 }

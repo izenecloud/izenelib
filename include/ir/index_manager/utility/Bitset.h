@@ -182,7 +182,6 @@ private:
         if (capacity != capacity_)
         {
             uint64_t* newBits = getAlignedArray<uint64_t>(capacity);
-            memset(newBits, 0, capacity);
             bits_.reset(newBits);
             capacity_ = capacity;
         }

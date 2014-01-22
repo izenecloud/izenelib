@@ -55,7 +55,7 @@ public:
     void save(std::ostream& ostr) const
     {
         uint32_t vocabSize = dict_.size();
-        ostr.write((const char*)&vocabSize, sizeof(uint32_t));
+        ostr.write((const char*)&vocabSize, sizeof(vocabSize));
         std::vector<std::pair<WordType, uint32_t> > seq(dict_.begin(), dict_.end());
         std::sort(seq.begin(), seq.end());
         for (typename std::vector<std::pair<WordType, uint32_t> >::const_iterator it = seq.begin();
@@ -68,14 +68,14 @@ public:
             uint32_t slen = len;
             ostr.write((const char*)(&slen), sizeof(slen));
             ostr.write(buf, len);
-            ostr.write((const char*)&it->second, sizeof(uint32_t));
+            ostr.write((const char*)&it->second, sizeof(it->second));
         }
     }
 
     void load(std::istream& istr)
     {
         uint32_t vocabSize = 0;
-        istr.read((char*)&vocabSize, sizeof(uint32_t));
+        istr.read((char*)&vocabSize, sizeof(vocabSize));
         for (uint32_t i = 0; i < vocabSize; ++i)
         {
             uint32_t slen = 0;
@@ -86,7 +86,7 @@ public:
             izenelib::util::izene_deserialization<WordType> izsKey(buf, len);
             WordType word;
             izsKey.read_image(word);
-            istr.read((char*)&dict_[word], sizeof(uint32_t));
+            istr.read((char*)&dict_[word], sizeof(dict_[0]));
         }
     }
 

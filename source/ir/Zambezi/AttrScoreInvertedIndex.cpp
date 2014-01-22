@@ -257,19 +257,19 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
-        memset(&scoreBlock[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
+        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(docBlock[0]));
+        memset(&scoreBlock[len], 0, (BLOCK_SIZE - len) * sizeof(scoreBlock[0]));
     }
 
     segment_[0] = len;
 
     size_t csize = BLOCK_SIZE * 2;
-    memset(&segment_[2], 0, csize * sizeof(uint32_t));
+    memset(&segment_[2], 0, csize * sizeof(segment_[0]));
     codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[2], csize);
     segment_[1] = csize;
 
     size_t scsize = BLOCK_SIZE * 2;
-    memset(&segment_[csize + 3], 0, csize * sizeof(uint32_t));
+    memset(&segment_[csize + 3], 0, csize * sizeof(segment_[0]));
     codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 3], scsize);
     segment_[csize + 2] = scsize;
 

@@ -27,20 +27,20 @@ void AttrScoreBufferMaps::save(std::ostream& ostr) const
         if (!buffer[termNum])
         {
             uint32_t buffer_cap = 0;
-            ostr.write((const char*)&buffer_cap, sizeof(uint32_t));
+            ostr.write((const char*)&buffer_cap, sizeof(buffer_cap));
             break;
         }
 
         uint32_t buffer_cap = buffer[termNum]->capacity();
-        ostr.write((const char*)&buffer_cap, sizeof(uint32_t));
+        ostr.write((const char*)&buffer_cap, sizeof(buffer_cap));
 
         uint32_t size = buffer[termNum]->size();
-        ostr.write((const char*)&size, sizeof(uint32_t));
+        ostr.write((const char*)&size, sizeof(size));
 
-        ostr.write((const char*)&(*buffer[termNum])[0], sizeof(ElemType) * size);
+        ostr.write((const char*)&(*buffer[termNum])[0], sizeof((*buffer[0])[0]) * size);
     }
 
-    ostr.write((const char*)&tailPointer[0], sizeof(size_t) * termNum);
+    ostr.write((const char*)&tailPointer[0], sizeof(tailPointer[0]) * termNum);
 }
 
 void AttrScoreBufferMaps::load(std::istream& istr)
@@ -53,21 +53,21 @@ void AttrScoreBufferMaps::load(std::istream& istr)
     for (termNum = 0; termNum < capacity; ++termNum)
     {
         uint32_t buffer_cap = 0;
-        istr.read((char*)&buffer_cap, sizeof(uint32_t));
+        istr.read((char*)&buffer_cap, sizeof(buffer_cap));
 
         if (buffer_cap == 0) break;
 
         resetBuffer(termNum, buffer_cap, false);
 
         uint32_t size = 0;
-        istr.read((char*)&size, sizeof(uint32_t));
+        istr.read((char*)&size, sizeof(size));
         buffer[termNum]->resize(size);
 
-        istr.read((char*)&(*buffer[termNum])[0], sizeof(uint32_t) * size);
+        istr.read((char*)&(*buffer[termNum])[0], sizeof((*buffer[0])[0]) * size);
     }
 
     tailPointer.resize(capacity, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer[0], sizeof(size_t) * termNum);
+    istr.read((char*)&tailPointer[0], sizeof(tailPointer) * termNum);
 }
 
 void AttrScoreBufferMaps::expand(uint32_t newSize)

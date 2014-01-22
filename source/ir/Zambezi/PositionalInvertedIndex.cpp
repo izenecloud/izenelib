@@ -394,7 +394,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (bloomEnabled_)
     {
         filterSize = BloomFilter::computeLength(len, bitsPerElement_);
-        memset(&segment_[BUFFER_SIZE - filterSize], 0, filterSize * sizeof(uint32_t));
+        memset(&segment_[BUFFER_SIZE - filterSize], 0, filterSize * sizeof(segment_[0]));
         for (uint32_t i = 0; i < len; ++i)
         {
             BloomFilter::insert(&segment_[BUFFER_SIZE - filterSize], filterSize, nbHash_, docBlock[i]);
@@ -416,18 +416,18 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         for (uint32_t i = 0; i < tflen; ++i)
         {
             curPos -= tfBlock[i];
-            memcpy(&rpositions[newPos], &posBlock[curPos], tfBlock[i] * sizeof(uint32_t));
+            memcpy(&rpositions[newPos], &posBlock[curPos], tfBlock[i] * sizeof(rpositions[0]));
             newPos += tfBlock[i];
         }
-        memcpy(posBlock, &rpositions[0], plen * sizeof(uint32_t));
+        memcpy(posBlock, &rpositions[0], plen * sizeof(posBlock[0]));
     }
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
+        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(docBlock[0]));
         if (tflen == len)
         {
-            memset(&tfBlock[tflen], 0, (BLOCK_SIZE - tflen) * sizeof(uint32_t));
+            memset(&tfBlock[tflen], 0, (BLOCK_SIZE - tflen) * sizeof(tfBlock[0]));
         }
     }
 
@@ -436,7 +436,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     segment_[reqspace++] = len;
 
     size_t csize = BLOCK_SIZE * 2;
-    memset(&segment_[reqspace + 1], 0, csize * sizeof(uint32_t));
+    memset(&segment_[reqspace + 1], 0, csize * sizeof(segment_[0]));
     codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[reqspace + 1], csize);
     segment_[reqspace] = csize;
     reqspace += csize + 1;
@@ -444,7 +444,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (tflen > 0)
     {
         size_t tfcsize = BLOCK_SIZE * 2;
-        memset(&segment_[reqspace + 1], 0, tfcsize * sizeof(uint32_t));
+        memset(&segment_[reqspace + 1], 0, tfcsize * sizeof(segment_[0]));
         codec_.encodeArray(tfBlock, BLOCK_SIZE, &segment_[reqspace + 1], tfcsize);
         segment_[reqspace] = tfcsize;
         reqspace += tfcsize + 1;
@@ -459,7 +459,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
             for (uint32_t i = 0; i < nb; ++i)
             {
                 size_t tempPcsize = BLOCK_SIZE * 2;
-                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(uint32_t));
+                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(segment_[0]));
                 codec.encodeArray(&posBlock[i * BLOCK_SIZE], BLOCK_SIZE, &segment_[reqspace + 1], tempPcsize);
                 segment_[reqspace] = tempPcsize;
                 reqspace += tempPcsize + 1;
@@ -468,8 +468,8 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
             if (res > 0)
             {
                 size_t tempPcsize = BLOCK_SIZE * 2;
-                memset(&posBlock[plen], 0, (BLOCK_SIZE - res) * sizeof(uint32_t));
-                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(uint32_t));
+                memset(&posBlock[plen], 0, (BLOCK_SIZE - res) * sizeof(posBlock[0]));
+                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(segment_[0]));
                 codec.encodeArray(&posBlock[nb * BLOCK_SIZE], BLOCK_SIZE, &segment_[reqspace + 1], tempPcsize);
                 segment_[reqspace] = tempPcsize;
                 reqspace += tempPcsize + 1;
@@ -482,7 +482,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (bloomEnabled_)
     {
         segment_[reqspace] = filterSize;
-        memcpy(&segment_[reqspace + 1], &segment_[BUFFER_SIZE - filterSize], filterSize * sizeof(uint32_t));
+        memcpy(&segment_[reqspace + 1], &segment_[BUFFER_SIZE - filterSize], filterSize * sizeof(segment_[0]));
         reqspace += filterSize + 1;
     }
 
@@ -606,7 +606,7 @@ uint32_t PositionalInvertedIndex::decompressDocidBlock_(
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + 7];
     size_t csize = pool_.pool_[pSegment][pOffset + 6];
     size_t nvalue = BLOCK_SIZE;
-    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(outBlock[0]));
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_.pool_[pSegment][pOffset + 5];
@@ -643,7 +643,7 @@ uint32_t PositionalInvertedIndex::decompressTfBlock_(
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 8];
     size_t tfcsize = pool_.pool_[pSegment][pOffset + csize + 7];
     size_t nvalue = BLOCK_SIZE;
-    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(outBlock[0]));
     codec.decodeArray(block, tfcsize, outBlock, nvalue);
 
     return pool_.pool_[pSegment][pOffset + 5];
@@ -719,7 +719,7 @@ void PositionalInvertedIndex::decompressPositions_(
         std::vector<uint32_t> temp(BLOCK_SIZE);
         size_t nvalue = BLOCK_SIZE;
         codec.decodeArray(&pool_.pool_[pSegment][pos + 1], sb, &temp[0], nvalue);
-        memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(uint32_t));
+        memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(out[0]));
         pos += sb + 1;
 
         cindex += tocopy;
@@ -1259,7 +1259,7 @@ void PositionalInvertedIndex::intersectSvS_(
         {
             uint32_t c = decompressDocidBlock_(codec, &block[0], t);
             uint32_t r = iSet + c <= length ? c : length - iSet;
-            memcpy(&docid_list[iSet], &block[0], r * sizeof(uint32_t));
+            memcpy(&docid_list[iSet], &block[0], r * sizeof(docid_list[0]));
             iSet += r;
             t = pool_.nextPointer(t);
         }

@@ -35,9 +35,9 @@ void SegmentPool::save(std::ostream& ostr) const
 
     for (size_t i = 0; i < segment_; ++i)
     {
-        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
+        ostr.write((const char*)&pool_[i][0], sizeof(pool_[0][0]) * maxPoolSize_);
     }
-    ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
+    ostr.write((const char*)&pool_[segment_][0], sizeof(pool_[0][0]) * offset_);
 }
 
 void SegmentPool::load(std::istream& istr)
@@ -55,13 +55,13 @@ void SegmentPool::load(std::istream& istr)
         {
             pool_[i].reset(getAlignedIntArray(maxPoolSize_));
         }
-        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
+        istr.read((char *)&pool_[i][0], sizeof(pool_[0][0]) * maxPoolSize_);
     }
     if (!pool_[segment_])
     {
         pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
     }
-    istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
+    istr.read((char*)&pool_[segment_][0], sizeof(pool_[0][0]) * offset_);
 }
 
 size_t SegmentPool::appendSegment(
@@ -74,7 +74,7 @@ size_t SegmentPool::appendSegment(
     uint32_t reqspace = len + 4;
     if (reqspace > maxPoolSize_ - offset_)
     {
-        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(pool_[0][0]));
         ++segment_;
         offset_ = 0;
     }
@@ -89,7 +89,7 @@ size_t SegmentPool::appendSegment(
     pool_[segment_][offset_ + 2] = DECODE_OFFSET(nextPointer);
     pool_[segment_][offset_ + 3] = maxDocId;
 
-    memcpy(&pool_[segment_][offset_ + 4], &dataSegment[0], len * sizeof(uint32_t));
+    memcpy(&pool_[segment_][offset_ + 4], &dataSegment[0], len * sizeof(pool_[0][0]));
 
     if (lastPointer != UNDEFINED_POINTER)
     {
