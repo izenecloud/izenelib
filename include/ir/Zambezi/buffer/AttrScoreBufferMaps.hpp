@@ -41,7 +41,6 @@ public:
      * and return the index of the next buffer whose length is more
      * than a given threshold.
      *
-     * @param buffer Buffer map
      * @param pos Current index
      * @param minLength Minimum length to consider
      */

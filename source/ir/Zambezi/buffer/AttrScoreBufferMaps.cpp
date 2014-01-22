@@ -26,13 +26,13 @@ void AttrScoreBufferMaps::save(std::ostream& ostr) const
     {
         if (!buffer[termNum])
         {
-            uint32_t capacity = 0;
-            ostr.write((const char*)&capacity, sizeof(uint32_t));
+            uint32_t buffer_cap = 0;
+            ostr.write((const char*)&buffer_cap, sizeof(uint32_t));
             break;
         }
 
-        uint32_t capacity = buffer[termNum]->capacity();
-        ostr.write((const char*)&capacity, sizeof(uint32_t));
+        uint32_t buffer_cap = buffer[termNum]->capacity();
+        ostr.write((const char*)&buffer_cap, sizeof(uint32_t));
 
         uint32_t size = buffer[termNum]->size();
         ostr.write((const char*)&size, sizeof(uint32_t));
@@ -52,12 +52,12 @@ void AttrScoreBufferMaps::load(std::istream& istr)
     size_t termNum;
     for (termNum = 0; termNum < capacity; ++termNum)
     {
-        uint32_t capacity = 0;
-        istr.read((char*)&capacity, sizeof(uint32_t));
+        uint32_t buffer_cap = 0;
+        istr.read((char*)&buffer_cap, sizeof(uint32_t));
 
-        if (capacity == 0) break;
+        if (buffer_cap == 0) break;
 
-        resetBuffer(termNum, capacity, false);
+        resetBuffer(termNum, buffer_cap, false);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(uint32_t));
