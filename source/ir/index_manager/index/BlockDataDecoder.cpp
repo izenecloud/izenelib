@@ -87,7 +87,7 @@ void ChunkDecoder::post_process(Bitset* pDocFilter)
 {
     assert(num_docs_ > 0);
 
-    if (!pDocFilter->any(doc_ids_[0], doc_ids_[num_docs_ - 1]) + 1)
+    if (!pDocFilter->any(doc_ids_[0], doc_ids_[num_docs_ - 1] + 1))
         return;
 
     uint32_t srcFreq = 0;
@@ -96,7 +96,7 @@ void ChunkDecoder::post_process(Bitset* pDocFilter)
     int dest = 0; // copy to the destination
     for (int i = 0; i < num_docs_; ++i)
     {
-        if (! pDocFilter->test(doc_ids_[i]))
+        if (!pDocFilter->test(doc_ids_[i]))
         {
             // avoid copy if destination is the same to source
             if (dest != i)

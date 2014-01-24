@@ -24,7 +24,7 @@ public:
     Bitset(size_t size);
     Bitset(size_t size, size_t capacity, const boost::shared_array<uint64_t>& bits);
     Bitset(const Bitset& other, bool dup);
-    ~Bitset();
+    virtual ~Bitset();
 
     const Bitset& dup();
 
