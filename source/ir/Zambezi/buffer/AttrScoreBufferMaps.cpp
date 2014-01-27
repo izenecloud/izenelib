@@ -67,7 +67,7 @@ void AttrScoreBufferMaps::load(std::istream& istr)
     }
 
     tailPointer.resize(capacity, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer[0], sizeof(tailPointer) * termNum);
+    istr.read((char*)&tailPointer[0], sizeof(tailPointer[0]) * termNum);
 }
 
 void AttrScoreBufferMaps::expand(uint32_t newSize)
