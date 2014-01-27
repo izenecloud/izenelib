@@ -144,7 +144,7 @@ class KString
         return encode;
     }
     public:
-    explicit KString(const std::string& str, const std::string& encode="utf-8")
+    explicit KString(const std::string& str, const std::string& encode="utf-8//IGNORE")
         :mem_(NULL)
     {
         if (str.length() == 0)
@@ -153,7 +153,6 @@ class KString
         std::size_t inlen = str.length();
         std::size_t outlen = capacity_()*2;
         char* out = (char*)unicodes_();
-        encode += "//IGNORE";
         char* in = const_cast <char *> (str.c_str());
 
         iconv_t hdl = iconv_open("ucs-2", encode.c_str());//encoding_name_(encode).c_str()) ;
