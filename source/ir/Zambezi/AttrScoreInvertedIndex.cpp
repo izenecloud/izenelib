@@ -555,9 +555,9 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         if (id == docid_list[iCurrent])
         {
             docid_list[iSet] = docid_list[iCurrent];
-            score_list[iSet++] = score_list[iCurrent] + sc * weight;
+            score_list[iSet++] = score_list[iCurrent++] + sc * weight;
 
-            if (++iCurrent == docid_list.size())
+            if (iCurrent == docid_list.size())
                 break;
 
             if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
@@ -610,6 +610,9 @@ void AttrScoreInvertedIndex::intersectSvS_(
         if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
             return;
 
+        if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
+            return;
+
         while (true)
         {
             if (id == eligible)
@@ -622,20 +625,13 @@ void AttrScoreInvertedIndex::intersectSvS_(
 
                 if ((eligible = filter->find_next(eligible, pool_.reverse_)) == INVALID_ID)
                     break;
+            }
 
-                if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
-                    break;
-            }
-            else if (LESS_THAN(id, eligible, pool_.reverse_))
-            {
-                if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
-                    break;
-            }
-            else
-            {
-                if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
-                    break;
-            }
+            if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
+                break;
+
+            if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
+                break;
         }
 
         return;
