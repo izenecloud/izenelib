@@ -153,6 +153,7 @@ class KString
         std::size_t inlen = str.length();
         std::size_t outlen = capacity_()*2;
         char* out = (char*)unicodes_();
+        encode += "//IGNORE";
         char* in = const_cast <char *> (str.c_str());
 
         iconv_t hdl = iconv_open("ucs-2", encode.c_str());//encoding_name_(encode).c_str()) ;
