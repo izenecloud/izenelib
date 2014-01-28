@@ -161,7 +161,7 @@ void testLogicalNotAnd(std::size_t bitNum)
 
     bitVector1 -= bitVector2;
 
-    //BOOST_CHECK_EQUAL(bitVector1, gold);
+    BOOST_CHECK_EQUAL(bitVector1, gold);
 }
 
 void runLogicalNotAnd(std::size_t bitNum, std::size_t runNum)

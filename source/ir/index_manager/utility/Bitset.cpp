@@ -40,7 +40,7 @@ Bitset::Bitset(const Bitset& other, bool dup)
     if (dup)
     {
         bits_.reset(getAlignedArray<uint64_t>(capacity_));
-        memcpy(bits_.get(), bits_.get(), (size_ + 7) / 8);
+        memcpy(bits_.get(), other.bits_.get(), (size_ + 7) / 8);
     }
     else
     {
@@ -65,7 +65,7 @@ const Bitset& Bitset::dup()
 bool Bitset::test(size_t pos) const
 {
     if (pos >= size_) return false;
-    return bits_[pos / 64] & (1 << pos % 64);
+    return bits_[pos / 64] & (uint64_t(1) << pos % 64);
 }
 
 bool Bitset::any() const
@@ -454,18 +454,25 @@ void Bitset::clear_dirty_bits()
 void Bitset::grow(size_t size)
 {
     if (size <= size_) return;
-    size_ = size;
+
     const size_t newBlockNum = block_num(size);
-    if (newBlockNum <= capacity_) return;
+    if (newBlockNum <= capacity_)
+    {
+        size_ = size;
+        return;
+    }
 
     size_t capacity = capacity_;
+    if (capacity == 0) ++capacity;
+
     while (capacity < newBlockNum)
         capacity *= 2;
 
     uint64_t* new_data = getAlignedArray<uint64_t>(capacity);
-    memcpy(new_data, bits_.get(), (size + 7) / 8);
+    memcpy(new_data, bits_.get(), (size_ + 7) / 8);
     bits_.reset(new_data);
     capacity_ = capacity;
+    size_ = size;
 }
 
 }
