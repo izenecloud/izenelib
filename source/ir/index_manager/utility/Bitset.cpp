@@ -251,7 +251,7 @@ size_t Bitset::find_last() const
     {
         if (*first)
         {
-            return (first - bits_.get()) * 64 - 1 - __builtin_clzll(*first);
+            return (first - bits_.get() + 1) * 64 - 1 - __builtin_clzll(*first);
         }
     }
 
@@ -275,7 +275,7 @@ size_t Bitset::find_prev(size_t pos) const
     {
         if (*first)
         {
-            return (first - bits_.get()) * 64 - 1 - __builtin_clzll(*first);
+            return (first - bits_.get() + 1) * 64 - 1 - __builtin_clzll(*first);
         }
     }
 

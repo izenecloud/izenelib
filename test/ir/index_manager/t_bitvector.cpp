@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <cstdlib>
@@ -131,6 +132,40 @@ void checkBitset(size_t count, bool isCheckEachBit = true)
     BOOST_CHECK(!bitset.test(count + 7));
 }
 
+void testIterate(std::size_t maxBitNum, std::size_t setBitNum)
+{
+    Bitset bitset(maxBitNum);
+    std::set<size_t> goldSet;
+
+    // init
+    for (std::size_t i = 0; i < setBitNum; ++i)
+    {
+        int k = std::rand() % maxBitNum;
+        bitset.set(k);
+        goldSet.insert(k);
+    }
+
+    // forward iterate
+    size_t pos = bitset.find_first();
+    for (std::set<size_t>::const_iterator it = goldSet.begin();
+         it != goldSet.end(); ++it)
+    {
+        BOOST_CHECK_EQUAL(pos, *it);
+        pos = bitset.find_next(pos);
+    }
+    BOOST_CHECK_EQUAL(pos, -1);
+
+    // backward iterate
+    pos = bitset.find_last();
+    for (std::set<size_t>::const_reverse_iterator it = goldSet.rbegin();
+         it != goldSet.rend(); ++it)
+    {
+        BOOST_CHECK_EQUAL(pos, *it);
+        pos = bitset.find_prev(pos);
+    }
+    BOOST_CHECK_EQUAL(pos, -1);
+}
+
 void setBitset(Bitset& bitset, std::size_t setBitNum)
 {
     std::size_t bitNum = bitset.size();
@@ -217,6 +252,16 @@ BOOST_AUTO_TEST_CASE(bitset)
     checkBitset(10000000, false); // 10M
     checkBitset(134217728, false); // 128M
     checkBitset(1073741825, false); // 1G + 1
+}
+
+BOOST_AUTO_TEST_CASE(iterate)
+{
+    testIterate(10, 0);
+    testIterate(10, 10);
+    testIterate(100, 10);
+    testIterate(1000, 10);
+    testIterate(1000, 500);
+    testIterate(10000, 1000);
 }
 
 BOOST_AUTO_TEST_CASE(logicalNotAnd)
