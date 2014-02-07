@@ -458,7 +458,8 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         int weight0,
         int weight1,
         std::vector<uint32_t>& docid_list,
-        std::vector<float>& score_list) const
+        std::vector<float>& score_list,
+        uint32_t hits) const
 {
     uint32_t blockDocid0[BLOCK_SIZE];
     uint32_t blockDocid1[BLOCK_SIZE];
@@ -495,6 +496,8 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         {
             docid_list.push_back(id0);
             score_list.push_back(sc0 * weight0 + sc1 * weight1);
+            if (score_list.size() == hits)
+                break;
 
             if ((eligible = filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 break;
@@ -640,7 +643,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
     docid_list.reserve(minDf);
     score_list.reserve(minDf);
 
-    intersectPostingsLists_(codec, filter, qTerms[0], qTerms[1], qScores[0], qScores[1], docid_list, score_list);
+    intersectPostingsLists_(codec, filter, qTerms[0], qTerms[1], qScores[0], qScores[1], docid_list, score_list, hits);
 
     for (uint32_t i = 2; i < qTerms.size(); ++i)
     {
