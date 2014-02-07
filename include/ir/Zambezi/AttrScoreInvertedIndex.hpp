@@ -173,7 +173,8 @@ private:
             int weight0,
             int weight1,
             std::vector<uint32_t>& docid_list,
-            std::vector<float>& score_list) const;
+            std::vector<float>& score_list,
+            uint32_t hits) const;
 
     void intersectSetPostingsList_(
             FastPFor& codec,
