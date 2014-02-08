@@ -544,10 +544,6 @@ void PositionalInvertedIndex::retrieve(
             UB[i] = idf(pointers_.totalDocs_, qdf[i]);
         }
         bwandOr_(qHeadPointers, UB, hits, docid_list, score_list);
-        if (docid_list.size() != score_list.size())
-        {
-            score_list.resize(docid_list.size(), 0);
-        }
     }
     else if (algorithm == BWAND_AND)
     {
@@ -556,7 +552,6 @@ void PositionalInvertedIndex::retrieve(
             hits = minimumDf;
         }
         bwandAnd_(qHeadPointers, hits, docid_list);
-        score_list.resize(docid_list.size(), 0);
     }
     else if (algorithm == WAND || algorithm == MBWAND)
     {
@@ -588,17 +583,14 @@ void PositionalInvertedIndex::retrieve(
                 algorithm == WAND,
                 docid_list,
                 score_list);
-        
-        if (docid_list.size() != score_list.size())
-        {
-            score_list.resize(docid_list.size(), 0);
-        }
     }
     else if (algorithm == SVS)
     {
         intersectSvS_(qHeadPointers, minimumDf, hits, docid_list);
-        score_list.resize(docid_list.size(), 0);
     }
+
+    if (docid_list.size() != score_list.size())
+        score_list.resize(docid_list.size(), 0);
 }
 
 uint32_t PositionalInvertedIndex::decompressDocidBlock_(
