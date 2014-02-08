@@ -163,7 +163,7 @@ uint32_t PositionalBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
             return -1;
         }
     }
-    while (docid_[pos].capacity() <= minLength);
+    while (docid_[pos].empty() || docid_[pos].capacity() <= minLength);
 
     return pos;
 }
