@@ -112,11 +112,11 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid,
 
         bool added = uniqueTerms.insert(id).second;
 
-        pointers_.cf_.increment(id);
+        pointers_.cf.increment(id);
 
         if (type_ == TF_ONLY)
         {
-            std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
+            std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
             if (tfBuffer.capacity() == 0)
             {
                 tfBuffer.reserve(DF_CUTOFF + 1);
@@ -132,8 +132,8 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid,
         }
         else if (type_ == POSITIONAL)
         {
-            std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
-            std::vector<uint32_t>& posBuffer = buffer_.position_[id];
+            std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
+            std::vector<uint32_t>& posBuffer = buffer_.position[id];
 
             if (posBuffer.capacity() == 0)
             {
@@ -154,38 +154,38 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid,
         }
     }
 
-    pointers_.docLen_.set(docid, term_list.size());
-    ++pointers_.totalDocs_;
+    pointers_.docLen.set(docid, term_list.size());
+    ++pointers_.totalDocs;
 
     for (std::set<uint32_t>::const_iterator it = uniqueTerms.begin();
             it != uniqueTerms.end(); ++it)
     {
         uint32_t id = *it;
-        std::vector<uint32_t>& docBuffer = buffer_.docid_[id];
-        std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
-        std::vector<uint32_t>& posBuffer = buffer_.position_[id];
+        std::vector<uint32_t>& docBuffer = buffer_.docid[id];
+        std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
+        std::vector<uint32_t>& posBuffer = buffer_.position[id];
 
         if (type_ != NON_POSITIONAL)
         {
             uint32_t tf = tfBuffer.back();
-            uint32_t dl = pointers_.docLen_.get(docid);
+            uint32_t dl = pointers_.docLen.get(docid);
             float bm25TfScore = default_bm25tf(
                     tf, dl,
-                    pointers_.totalDocLen_ /
-                    (float)pointers_.totalDocs_);
+                    pointers_.totalDocLen /
+                    (float)pointers_.totalDocs);
             float maxBm25TfScore = default_bm25tf(
-                    pointers_.maxTf_.get(id),
-                    pointers_.maxTfDocLen_.get(id),
-                    pointers_.totalDocLen_ /
-                    (float)pointers_.totalDocs_);
+                    pointers_.maxTf.get(id),
+                    pointers_.maxTfDocLen.get(id),
+                    pointers_.totalDocLen /
+                    (float)pointers_.totalDocs);
             if (bm25TfScore > maxBm25TfScore)
             {
                 pointers_.setMaxTf(id, tf, dl);
             }
         }
 
-        pointers_.df_.increment(id);
-        if (pointers_.df_.get(id) <= DF_CUTOFF)
+        pointers_.df.increment(id);
+        if (pointers_.df.get(id) <= DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {
@@ -215,19 +215,19 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid,
 
         if (type_ == POSITIONAL && docBuffer.size() % BLOCK_SIZE == 0)
         {
-            buffer_.posBlockCount_[id].push_back(posBuffer.size());
+            buffer_.posBlockCount[id].push_back(posBuffer.size());
             posBuffer.resize((posBuffer.size() + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE);
         }
 
         if (docBuffer.size() == docBuffer.capacity())
         {
             processTermBuffer_(
-                    buffer_.docid_[id],
-                    buffer_.tf_[id],
-                    buffer_.position_[id],
-                    buffer_.posBlockCount_[id],
-                    buffer_.tailPointer_[id],
-                    pointers_.headPointers_.get(id));
+                    buffer_.docid[id],
+                    buffer_.tf[id],
+                    buffer_.position[id],
+                    buffer_.posBlockCount[id],
+                    buffer_.tailPointer[id],
+                    pointers_.headPointers.get(id));
 
             if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
@@ -249,12 +249,12 @@ void PositionalInvertedIndex::flush()
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != INVALID_ID)
     {
         processTermBuffer_(
-                buffer_.docid_[term],
-                buffer_.tf_[term],
-                buffer_.position_[term],
-                buffer_.posBlockCount_[term],
-                buffer_.tailPointer_[term],
-                pointers_.headPointers_.get(term));
+                buffer_.docid[term],
+                buffer_.tf[term],
+                buffer_.position[term],
+                buffer_.posBlockCount[term],
+                buffer_.tailPointer[term],
+                pointers_.headPointers.get(term));
     }
 }
 
@@ -515,10 +515,10 @@ void PositionalInvertedIndex::retrieve(
         uint32_t termid = dictionary_.getTermId(term_list[i]);
         if (termid != INVALID_ID)
         {
-            size_t pointer = pointers_.headPointers_.get(termid);
+            size_t pointer = pointers_.headPointers.get(termid);
             if (pointer != UNDEFINED_POINTER)
             {
-                queries.push_back(boost::make_tuple(pointers_.df_.get(termid), termid, pointer));
+                queries.push_back(boost::make_tuple(pointers_.df.get(termid), termid, pointer));
                 minimumDf = std::min(queries.back().get<0>(), minimumDf);
             }
         }
@@ -544,7 +544,7 @@ void PositionalInvertedIndex::retrieve(
         std::vector<float> UB(queries.size());
         for (uint32_t i = 0; i < queries.size(); ++i)
         {
-            UB[i] = idf(pointers_.totalDocs_, qdf[i]);
+            UB[i] = idf(pointers_.totalDocs, qdf[i]);
         }
         bwandOr_(qHeadPointers, UB, hits, docid_list, score_list);
     }
@@ -564,24 +564,24 @@ void PositionalInvertedIndex::retrieve(
             if (algorithm == WAND)
             {
                 UB[i] = default_bm25(
-                        pointers_.maxTf_.get(queries[i].get<1>()),
+                        pointers_.maxTf.get(queries[i].get<1>()),
                         qdf[i],
-                        pointers_.totalDocs_,
-                        pointers_.maxTfDocLen_.get(queries[i].get<1>()),
-                        pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
+                        pointers_.totalDocs,
+                        pointers_.maxTfDocLen.get(queries[i].get<1>()),
+                        pointers_.totalDocLen / (float)pointers_.totalDocs);
             }
             else
             {
-                UB[i] = idf(pointers_.totalDocs_, qdf[i]);
+                UB[i] = idf(pointers_.totalDocs, qdf[i]);
             }
         }
         wand_(
                 qHeadPointers,
                 qdf,
                 UB,
-                pointers_.docLen_.getCounter(),
-                pointers_.totalDocs_,
-                pointers_.totalDocLen_ / (float)pointers_.totalDocs_,
+                pointers_.docLen.getCounter(),
+                pointers_.totalDocs,
+                pointers_.totalDocLen / (float)pointers_.totalDocs,
                 hits,
                 algorithm == WAND,
                 docid_list,
@@ -592,8 +592,7 @@ void PositionalInvertedIndex::retrieve(
         intersectSvS_(qHeadPointers, minimumDf, hits, docid_list);
     }
 
-    if (docid_list.size() != score_list.size())
-        score_list.resize(docid_list.size(), 0);
+    score_list.resize(docid_list.size());
 }
 
 uint32_t PositionalInvertedIndex::decompressDocidBlock_(

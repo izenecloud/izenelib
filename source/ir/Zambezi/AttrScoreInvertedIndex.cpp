@@ -67,7 +67,7 @@ void AttrScoreInvertedIndex::load(std::istream& istr)
 
 uint32_t AttrScoreInvertedIndex::totalDocNum() const
 {
-    return pointers_.totalDocs_;
+    return pointers_.totalDocs;
 }
 
 void AttrScoreInvertedIndex::insertDoc(
@@ -89,15 +89,15 @@ void AttrScoreInvertedIndex::insertDoc(
 
         boost::shared_ptr<AttrScoreBufferMaps::PostingType>& posting = buffer_.buffer[id];
 
-        if (pointers_.df_.get(id) <= DF_CUTOFF)
+        if (pointers_.df.get(id) <= DF_CUTOFF)
         {
             if (!posting)
             {
                 buffer_.resetBuffer(id, DF_CUTOFF);
             }
             posting->push_back(AttrScoreBufferMaps::ElemType(docid, score_list[i]));
-            pointers_.df_.increment(id);
-            pointers_.cf_.increment(id);
+            pointers_.df.increment(id);
+            pointers_.cf.increment(id);
 
             continue;
         }
@@ -109,21 +109,21 @@ void AttrScoreInvertedIndex::insertDoc(
 
         posting->push_back(AttrScoreBufferMaps::ElemType(docid, score_list[i]));
 
-        pointers_.df_.increment(id);
-        pointers_.cf_.increment(id);
+        pointers_.df.increment(id);
+        pointers_.cf.increment(id);
 
         if (posting->size() == posting->capacity())
         {
             processTermBuffer_(
                     *posting,
                     buffer_.tailPointer[id],
-                    pointers_.headPointers_.get(id));
+                    pointers_.headPointers.get(id));
 
             uint32_t newLen = posting->capacity() * (posting->capacity() < MAX_BLOCK_SIZE ? EXPANSION_RATE : 1);
             buffer_.resetBuffer(id, newLen, false);
         }
     }
-    ++pointers_.totalDocs_;
+    ++pointers_.totalDocs;
 }
 
 void AttrScoreInvertedIndex::flush()
@@ -134,7 +134,7 @@ void AttrScoreInvertedIndex::flush()
         processTermBuffer_(
                 *buffer_.buffer[term],
                 buffer_.tailPointer[term],
-                pointers_.headPointers_.get(term));
+                pointers_.headPointers.get(term));
 
         buffer_.resetBuffer(term, buffer_.buffer[term]->capacity(), false);
     }
@@ -294,7 +294,7 @@ void AttrScoreInvertedIndex::retrieve(
         uint32_t termid = dictionary_.getTermId(term_list[i].first);
         if (termid == INVALID_ID) return;
 
-        uint32_t df = pointers_.df_.get(termid);
+        uint32_t df = pointers_.df.get(termid);
         queries.push_back(std::make_pair(std::make_pair(df, termid), term_list[i].second));
         minimumDf = std::min(df, minimumDf);
     }
@@ -466,8 +466,8 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     uint32_t blockScore0[BLOCK_SIZE];
     uint32_t blockScore1[BLOCK_SIZE];
 
-    size_t pointer0 = pointers_.headPointers_.get(term0);
-    size_t pointer1 = pointers_.headPointers_.get(term1);
+    size_t pointer0 = pointers_.headPointers.get(term0);
+    size_t pointer1 = pointers_.headPointers.get(term1);
 
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer0(buffer_.getBuffer(term0));
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer1(buffer_.getBuffer(term1));
@@ -539,7 +539,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
 {
     uint32_t iSet = 0, iCurrent = 0;
 
-    size_t pointer = pointers_.headPointers_.get(term);
+    size_t pointer = pointers_.headPointers.get(term);
     uint32_t blockDocid[BLOCK_SIZE];
     uint32_t blockScore[BLOCK_SIZE];
 
@@ -603,7 +603,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         score_list.reserve(length);
 
         boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(qTerms[0]));
-        size_t pointer = pointers_.headPointers_.get(qTerms[0]);
+        size_t pointer = pointers_.headPointers.get(qTerms[0]);
         uint32_t c = pool_.reverse_ ? buffer->size() : 0, i = 0;
         uint32_t id = 0, sc = 0;
 

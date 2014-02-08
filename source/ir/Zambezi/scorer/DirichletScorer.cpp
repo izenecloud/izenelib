@@ -40,8 +40,8 @@ float DirichletScorer::computeTermScore(
         uint32_t query, uint32_t docid, uint32_t tf) const
 {
     return details::dirichlet(
-            tf, pointers.docLen_.get(docid),
-            pointers.cf_.get(query), pointers.totalDocLen_,
+            tf, pointers.docLen.get(docid),
+            pointers.cf.get(query), pointers.totalDocLen,
             MU_);
 }
 
@@ -50,8 +50,8 @@ float DirichletScorer::computePhraseScore(
         uint32_t docid, uint32_t tf) const
 {
     return details::dirichlet(
-            tf, pointers.docLen_.get(docid),
-            pointers.defaultCf_, pointers.totalDocLen_,
+            tf, pointers.docLen.get(docid),
+            pointers.defaultCf, pointers.totalDocLen,
             MU_);
 }
 

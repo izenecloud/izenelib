@@ -68,10 +68,11 @@ public:
         const size_t wordByteNum = sizeof(word_t);
 
         const size_t wordNum = byteNum / wordByteNum;
-        const word_t* pWord = reinterpret_cast<const word_t*>(&bits_[0]);
-        for (std::size_t i = 0; i < wordNum; ++i)
+        const word_t* pWord = reinterpret_cast<const word_t*>(bits_.get());
+        const word_t* pWordEnd = pWord + wordNum;
+        while (pWord != pWordEnd)
         {
-            compressedBitMap.add(pWord[i]);
+            compressedBitMap.add(*pWord++);
         }
     }
 
