@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <limits>
 #include <stdlib.h>
+#include <string.h> // memcpy
 #include <float.h>
 #if defined(_WIN32) && !defined(__GNUC__)
 	#include <intrin.h>
