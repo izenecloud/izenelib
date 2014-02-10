@@ -2,7 +2,9 @@
 #include <ir/Zambezi/Utils.hpp>
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 
+#include <algorithm>
 #include <boost/tuple/tuple.hpp>
+#include <boost/function.hpp>
 #include <glog/logging.h>
 
 
@@ -17,6 +19,18 @@ namespace
 inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, const boost::tuple<uint32_t, uint32_t, size_t>& t2)
 {
     return t1.get<0>() < t2.get<0>();
+}
+
+typedef std::pair<float, uint32_t> ScoreDocId;
+
+inline bool compareDocIdLess(const ScoreDocId& x, const ScoreDocId& y)
+{
+    return x.second < y.second;
+}
+
+inline bool compareDocIdGreater(const ScoreDocId& x, const ScoreDocId& y)
+{
+    return x.second > y.second;
 }
 
 }
@@ -873,7 +887,11 @@ void PositionalInvertedIndex::bwandOr_(
         headPointers[0] = pool_.nextPointer(headPointers[0]);
     }
 
-    std::sort_heap(result_list.begin(), result_list.end(), comparator);
+    boost::function<bool (const ScoreDocId&, const ScoreDocId&)> docIdComparator =
+            pool_.reverse_ ? compareDocIdGreater : compareDocIdLess;
+
+    std::sort(result_list.begin(), result_list.end(), docIdComparator);
+
     for (uint32_t i = 0; i < result_list.size(); ++i)
     {
         score_list.push_back(result_list[i].first);
