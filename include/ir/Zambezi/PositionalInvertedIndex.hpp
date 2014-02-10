@@ -106,12 +106,14 @@ private:
 
     void bwandAnd_(
             std::vector<size_t>& headPointers,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list) const;
 
     void bwandOr_(
             std::vector<size_t>& headPointers,
             const std::vector<float>& UB,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
@@ -121,6 +123,7 @@ private:
             const std::vector<uint32_t>& df,
             const std::vector<float>& UB,
             const std::vector<uint32_t>& docLen,
+            const FilterBase* filter,
             uint32_t totalDocs,
             float avgDocLen,
             uint32_t hits,

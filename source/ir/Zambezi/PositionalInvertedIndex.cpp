@@ -564,7 +564,7 @@ void PositionalInvertedIndex::retrieve(
         {
             UB[i] = idf(pointers_.totalDocs, qdf[i]);
         }
-        bwandOr_(qHeadPointers, UB, hits, docid_list, score_list);
+        bwandOr_(qHeadPointers, UB, filter, hits, docid_list, score_list);
     }
     else if (algorithm == BWAND_AND)
     {
@@ -572,7 +572,7 @@ void PositionalInvertedIndex::retrieve(
         {
             hits = minimumDf;
         }
-        bwandAnd_(qHeadPointers, hits, docid_list);
+        bwandAnd_(qHeadPointers, filter, hits, docid_list);
     }
     else if (algorithm == WAND || algorithm == MBWAND)
     {
@@ -598,6 +598,7 @@ void PositionalInvertedIndex::retrieve(
                 qdf,
                 UB,
                 pointers_.docLen.getCounter(),
+                filter,
                 pointers_.totalDocs,
                 pointers_.totalDocLen / (float)pointers_.totalDocs,
                 hits,
@@ -788,26 +789,32 @@ bool PositionalInvertedIndex::containsDocid_(uint32_t docid, size_t& pointer) co
 
 void PositionalInvertedIndex::bwandAnd_(
         std::vector<size_t>& headPointers,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list) const
 {
     docid_list.reserve(hits);
     FastPFor codec;
-    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
+    uint32_t block[BLOCK_SIZE];
 
-    while (headPointers[0] != UNDEFINED_POINTER)
+    uint32_t c = 0, i = 0;
+
+    uint32_t eligible = filter->find_first(pool_.reverse_);
+
+    if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+        return;
+
+    if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], pool_.reverse_)) == INVALID_ID)
+        return;
+
+    while (true)
     {
-        uint32_t count = decompressDocidBlock_(codec, &docid_block[0], headPointers[0]);
-        for (uint32_t i = 0; i < count; ++i)
+        if (block[i] == eligible)
         {
-            uint32_t pivot = docid_block[i];
             bool found = true;
             for (uint32_t j = 1; j < headPointers.size(); ++j)
             {
-                if (headPointers[j] == UNDEFINED_POINTER)
-                    return;
-
-                if (!containsDocid_(pivot, headPointers[j]))
+                if (!containsDocid_(eligible, headPointers[j]))
                 {
                     found = false;
                     break;
@@ -816,18 +823,27 @@ void PositionalInvertedIndex::bwandAnd_(
 
             if (found)
             {
-                docid_list.push_back(pivot);
+                docid_list.push_back(eligible);
                 if (docid_list.size() >= hits)
                     return;
             }
+
+            if ((eligible = filter->find_next(eligible, pool_.reverse_)) == INVALID_ID)
+                break;
         }
-        headPointers[0] = pool_.nextPointer(headPointers[0]);
+
+        if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+            break;
+
+        if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], pool_.reverse_)) == INVALID_ID)
+            break;
     }
 }
 
 void PositionalInvertedIndex::bwandOr_(
         std::vector<size_t>& headPointers,
         const std::vector<float>& UB,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
@@ -847,18 +863,26 @@ void PositionalInvertedIndex::bwandOr_(
     }
 
     FastPFor codec;
-    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
-    while (headPointers[0] != UNDEFINED_POINTER)
-    {
-        uint32_t count = decompressDocidBlock_(codec, &docid_block[0], headPointers[0]);
+    uint32_t block[BLOCK_SIZE];
 
-        for (uint32_t i = 0; i < count; ++i)
+    uint32_t c = 0, i = 0;
+
+    uint32_t eligible = filter->find_first(pool_.reverse_);
+
+    if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+        return;
+
+    if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], pool_.reverse_)) == INVALID_ID)
+        return;
+
+    while (true)
+    {
+        if (block[i] == eligible)
         {
-            uint32_t pivot = docid_block[i];
             float score = UB[0];
             for (uint32_t j = 1; j < headPointers.size(); ++j)
             {
-                if (containsDocid_(pivot, headPointers[j]))
+                if (containsDocid_(eligible, headPointers[j]))
                 {
                     score += UB[j];
                 }
@@ -866,25 +890,29 @@ void PositionalInvertedIndex::bwandOr_(
 
             if (result_list.size() < hits)
             {
-                result_list.push_back(std::make_pair(score, pivot));
+                result_list.push_back(std::make_pair(score, eligible));
                 std::push_heap(result_list.begin(), result_list.end(), comparator);
-                if (result_list.size() == hits && (threshold = result_list[0].first) == sumOfUB)
-                    break;
             }
             else if (score > threshold)
             {
                 std::pop_heap(result_list.begin(), result_list.end(), comparator);
-                result_list.back() = std::make_pair(score, pivot);
+                result_list.back() = std::make_pair(score, eligible);
                 std::push_heap(result_list.begin(), result_list.end(), comparator);
-                if ((threshold = result_list[0].first) == sumOfUB)
-                    break;
             }
+
+            threshold = result_list[0].first;
+            if (result_list.size() == hits && threshold == sumOfUB)
+                break;
+
+            if ((eligible = filter->find_next(eligible, pool_.reverse_)) == INVALID_ID)
+                break;
         }
 
-        if (result_list.size() == hits && threshold == sumOfUB)
+        if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
             break;
 
-        headPointers[0] = pool_.nextPointer(headPointers[0]);
+        if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], pool_.reverse_)) == INVALID_ID)
+            break;
     }
 
     boost::function<bool (const ScoreDocId&, const ScoreDocId&)> docIdComparator =
@@ -994,6 +1022,7 @@ void PositionalInvertedIndex::wand_(
         const std::vector<uint32_t>& df,
         const std::vector<float>& UB,
         const std::vector<uint32_t>& docLen,
+        const FilterBase* filter,
         uint32_t totalDocs,
         float avgDocLen,
         uint32_t hits,
@@ -1245,19 +1274,19 @@ void PositionalInvertedIndex::intersectSetPostingsList_(
         size_t pointer,
         std::vector<uint32_t>& docid_list) const
 {
-    uint32_t blockDocid[BLOCK_SIZE];
+    uint32_t block[BLOCK_SIZE];
     uint32_t c = 0, i = 0;
     uint32_t iSet = 0, iCurrent = 0;
 
-    if (!iterateSegment_(codec, blockDocid, c, i, pointer, docid_list[iCurrent]))
+    if (!iterateSegment_(codec, block, c, i, pointer, docid_list[iCurrent]))
         return;
 
-    if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, blockDocid[i]))
+    if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, block[i]))
         return;
 
     while (true)
     {
-        if (blockDocid[i] == docid_list[iCurrent])
+        if (block[i] == docid_list[iCurrent])
         {
             docid_list[iSet++] = docid_list[iCurrent++];
 
@@ -1265,10 +1294,10 @@ void PositionalInvertedIndex::intersectSetPostingsList_(
                 break;
         }
 
-        if (!iterateSegment_(codec, blockDocid, c, i, pointer, docid_list[iCurrent]))
+        if (!iterateSegment_(codec, block, c, i, pointer, docid_list[iCurrent]))
             break;
 
-        if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, blockDocid[i]))
+        if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, block[i]))
             break;
     }
 
