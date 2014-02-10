@@ -553,6 +553,9 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
         return;
 
+    if ((iCurrent = gallopSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+        return;
+
     while (true)
     {
         if (id == docid_list[iCurrent])
@@ -562,20 +565,13 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
 
             if (iCurrent == docid_list.size())
                 break;
+        }
 
-            if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
-                break;
-        }
-        else if (LESS_THAN(id, docid_list[iCurrent], pool_.reverse_))
-        {
-            if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
-                break;
-        }
-        else
-        {
-            if ((iCurrent = gallopSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
-                break;
-        }
+        if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
+            break;
+
+        if ((iCurrent = gallopSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+            break;
     }
 
     docid_list.resize(iSet);
@@ -593,7 +589,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
 {
     FastPFor codec;
 
-    if (qTerms.size() < 2)
+    if (qTerms.size() == 1)
     {
         uint32_t blockDocid[BLOCK_SIZE];
         uint32_t blockScore[BLOCK_SIZE];

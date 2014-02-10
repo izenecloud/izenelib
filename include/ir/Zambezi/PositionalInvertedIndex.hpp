@@ -62,8 +62,7 @@ public:
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
 
-    virtual uint32_t totalDocNum() const {return 0;}
-
+    virtual uint32_t totalDocNum() const;
 
 private:
     void processTermBuffer_(
@@ -131,18 +130,26 @@ private:
 
     void intersectSvS_(
             std::vector<size_t>& headPointers,
+            const FilterBase* filter,
             uint32_t minDf,
             uint32_t hits,
             std::vector<uint32_t>& docid_list) const;
 
-    bool gallopSearch_(
+    bool iterateSegment_(
             FastPFor& codec,
-            std::vector<uint32_t>& blockDocid,
+            uint32_t* block,
             uint32_t& count, uint32_t& index, size_t& pointer,
+            uint32_t pivot) const;
+
+    bool gallopSearch_(
+            const uint32_t* block,
+            uint32_t count,
+            uint32_t& index,
             uint32_t pivot) const;
 
     void intersectPostingsLists_(
             FastPFor& codec,
+            const FilterBase* filter,
             size_t pointer0, size_t pointer1,
             std::vector<uint32_t>& docid_list) const;
 

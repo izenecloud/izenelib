@@ -34,7 +34,6 @@ public:
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
 
-
     /// @brief: interface to build AttrScore zambezi index;
     /// @docid: must be used;
     /// @term_list:
