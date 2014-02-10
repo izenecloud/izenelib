@@ -869,6 +869,7 @@ void PositionalInvertedIndex::bwandOr_(
         headPointers[0] = pool_.nextPointer(headPointers[0]);
     }
 
+    std::sort_heap(result_list.begin(), result_list.end(), comparator);
     for (uint32_t i = 0; i < result_list.size(); ++i)
     {
         score_list.push_back(result_list[i].first);
