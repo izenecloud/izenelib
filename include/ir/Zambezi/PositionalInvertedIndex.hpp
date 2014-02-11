@@ -30,7 +30,7 @@ public:
             bool reverse = true,
             bool bloomEnabled = true,
             uint32_t nbHash = 3,
-            uint32_t bitsPerElement = 8);
+            uint32_t bitsPerElement = 16);
 
     virtual ~PositionalInvertedIndex();
 
