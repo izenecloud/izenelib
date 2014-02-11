@@ -1039,10 +1039,19 @@ void PositionalInvertedIndex::wand_(
     float threshold = .0f;
 
     FastPFor codec;
+
+    uint32_t eligible = filter->find_first(pool_.reverse_);
+
     for (uint32_t i = 0; i < len; ++i)
     {
         blockDocid[i].resize(BLOCK_SIZE);
-        counts[i] = decompressDocidBlock_(codec, &blockDocid[i][0], headPointers[i]);
+
+        if (!iterateSegment_(codec, &blockDocid[i][0], counts[i], posting[i], headPointers[i], eligible))
+        {
+            mapping[i] = INVALID_ID;
+            continue;
+        }
+
         if (hasTf)
         {
             blockTf[i].resize(BLOCK_SIZE);
@@ -1054,6 +1063,9 @@ void PositionalInvertedIndex::wand_(
             threshold = UB[i] - 1;
         }
     }
+
+    mapping.erase(std::remove(mapping.begin(), mapping.end(), INVALID_ID), mapping.end());
+    len = mapping.size();
 
     for (uint32_t i = 0; i < len - 1; ++i)
     {
@@ -1099,7 +1111,7 @@ void PositionalInvertedIndex::wand_(
         uint32_t pTerm = mapping[pTermIdx];
         uint32_t pivot = blockDocid[pTerm][posting[pTerm]];
 
-        if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot)
+        if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot && filter->test(pivot))
         {
             float score = 0;
             if (hasTf)
@@ -1121,70 +1133,47 @@ void PositionalInvertedIndex::wand_(
                 {
                     result_list.push_back(std::make_pair(score, pivot));
                     std::push_heap(result_list.begin(), result_list.end(), comparator);
-                    if (result_list.size() == hits)
-                    {
-                        if (!hasTf && len == 1) break;
-                        threshold = result_list[0].first;
-                    }
                 }
                 else if (score > result_list[0].first)
                 {
                     std::pop_heap(result_list.begin(), result_list.end(), comparator);
                     result_list.back() = std::make_pair(score, pivot);
                     std::push_heap(result_list.begin(), result_list.end(), comparator);
+                }
+
+                if (result_list.size() == hits)
+                {
                     if (!hasTf && len == 1) break;
                     threshold = result_list[0].first;
                 }
             }
-
-            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
-            {
-                uint32_t aterm = mapping[atermIdx];
-
-                if (posting[aterm] == counts[aterm] - 1)
-                {
-                    if ((headPointers[aterm] = pool_.nextPointer(headPointers[aterm])) == UNDEFINED_POINTER)
-                    {
-                        mapping.erase(mapping.begin() + atermIdx);
-                        --len;
-                        --atermIdx;
-                        continue;
-                    }
-                    else
-                    {
-                        counts[aterm] = decompressDocidBlock_(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                        if (hasTf)
-                        {
-                            decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
-                        }
-                        posting[aterm] = 0;
-                    }
-                }
-            }
         }
-        else
+
+        eligible = (blockDocid[mapping[0]][posting[mapping[0]]] != pivot && filter->test(pivot)) ? pivot : filter->find_next(pivot, pool_.reverse_);
+
+        for (uint32_t i = 0; i < mapping.size(); ++i)
         {
-            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
-            {
-                if (blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]] == pivot)
-                    break;
+            uint32_t aterm = mapping[i];
+            if (blockDocid[aterm][posting[aterm]] >= eligible)
+                break;
 
-                uint32_t aterm = mapping[atermIdx];
-                size_t tmpHead = headPointers[aterm];
-                if (!iterateSegment_(codec, &blockDocid[aterm][0], counts[aterm], posting[aterm], headPointers[aterm], pivot))
-                {
-                    mapping.erase(mapping.begin() + atermIdx);
-                    --len;
-                    --atermIdx;
-                }
-                else if (hasTf && tmpHead != headPointers[aterm])
-                {
-                    decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
-                }
+            size_t pointer = headPointers[aterm];
+            if (!iterateSegment_(codec, &blockDocid[aterm][0], counts[aterm], posting[aterm], headPointers[aterm], eligible))
+            {
+                mapping[i] = INVALID_ID;
+                continue;
+            }
+
+            if (hasTf && pointer != headPointers[aterm])
+            {
+                decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
             }
         }
 
-        for (uint32_t i = 0; i <= pTermIdx; ++i)
+        mapping.erase(std::remove(mapping.begin(), mapping.end(), INVALID_ID), mapping.end());
+        len = mapping.size();
+
+        for (uint32_t i = 0; i < len; ++i)
         {
             bool unchanged = true;
             for (uint32_t j = i + 1; j < len; ++j)
