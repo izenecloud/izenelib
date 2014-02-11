@@ -29,7 +29,7 @@ public:
             uint32_t vocabSize = DEFAULT_VOCAB_SIZE,
             bool reverse = true,
             bool bloomEnabled = true,
-            uint32_t nbHash = 3,
+            uint32_t nbHash = 6,
             uint32_t bitsPerElement = 16);
 
     virtual ~PositionalInvertedIndex();
