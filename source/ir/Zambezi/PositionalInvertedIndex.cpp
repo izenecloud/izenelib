@@ -577,9 +577,9 @@ void PositionalInvertedIndex::retrieve(
     else if (algorithm == WAND || algorithm == MBWAND)
     {
         std::vector<float> UB(queries.size());
-        for (uint32_t i = 0; i < queries.size(); ++i)
+        if (algorithm == WAND && type_ != NON_POSITIONAL)
         {
-            if (algorithm == WAND)
+            for (uint32_t i = 0; i < queries.size(); ++i)
             {
                 UB[i] = default_bm25(
                         pointers_.maxTf.get(queries[i].get<1>()),
@@ -588,11 +588,15 @@ void PositionalInvertedIndex::retrieve(
                         pointers_.maxTfDocLen.get(queries[i].get<1>()),
                         pointers_.totalDocLen / (float)pointers_.totalDocs);
             }
-            else
+        }
+        else
+        {
+            for (uint32_t i = 0; i < queries.size(); ++i)
             {
                 UB[i] = idf(pointers_.totalDocs, qdf[i]);
             }
         }
+
         wand_(
                 qHeadPointers,
                 qdf,
@@ -602,7 +606,7 @@ void PositionalInvertedIndex::retrieve(
                 pointers_.totalDocs,
                 pointers_.totalDocLen / (float)pointers_.totalDocs,
                 hits,
-                algorithm == WAND,
+                algorithm == WAND && type_ != NON_POSITIONAL,
                 docid_list,
                 score_list);
     }
