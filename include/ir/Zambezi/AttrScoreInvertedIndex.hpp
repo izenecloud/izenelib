@@ -101,6 +101,22 @@ private:
             uint32_t& score) const;
 
     template <class BlockType>
+    uint32_t linearSearch_(
+            const BlockType& block,
+            uint32_t count,
+            uint32_t index,
+            uint32_t pivot) const
+    {
+        for (uint32_t i = index; i < count; ++i)
+        {
+            if (GREATER_THAN_EQUAL((uint32_t)block[i], pivot, pool_.reverse_))
+                return i;
+        }
+
+        return INVALID_ID;
+    }
+
+    template <class BlockType>
     uint32_t gallopSearch_(
             const BlockType& block,
             uint32_t count,

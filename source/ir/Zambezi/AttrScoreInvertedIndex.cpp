@@ -379,8 +379,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
     if (in_buffer)
     {
         index = pool_.reverse_
-            ? gallopSearch_(buffer->rend() - count, count, index, pivot)
-            : gallopSearch_(buffer->begin(), count, index, pivot);
+            ? linearSearch_(buffer->rend() - count, count, index, pivot)
+            : linearSearch_(buffer->begin(), count, index, pivot);
         if (index == INVALID_ID)
         {
             in_buffer = false;
@@ -389,7 +389,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 
             count = decompressDocidBlock_(codec, docid_seg, pointer);
             decompressScoreBlock_(codec, score_seg, pointer);
-            index = gallopSearch_(docid_seg, count, 0, pivot);
+            index = linearSearch_(docid_seg, count, 0, pivot);
 
             docid = docid_seg[index];
             score = score_seg[index];
@@ -417,8 +417,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
                 in_buffer = true;
                 count = buffer->size();
                 index = pool_.reverse_
-                    ? gallopSearch_(buffer->rend() - count, count, 0, pivot)
-                    : gallopSearch_(buffer->begin(), count, 0, pivot);
+                    ? linearSearch_(buffer->rend() - count, count, 0, pivot)
+                    : linearSearch_(buffer->begin(), count, 0, pivot);
 
                 if (index == INVALID_ID) return false;
 
@@ -441,7 +441,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
             index = 0;
         }
 
-        index = gallopSearch_(docid_seg, count, index, pivot);
+        index = linearSearch_(docid_seg, count, index, pivot);
 
         docid = docid_seg[index];
         score = score_seg[index];
@@ -553,7 +553,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
         return;
 
-    if ((iCurrent = gallopSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+    if ((iCurrent = linearSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
         return;
 
     while (true)
@@ -570,7 +570,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
             break;
 
-        if ((iCurrent = gallopSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+        if ((iCurrent = linearSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
             break;
     }
 
