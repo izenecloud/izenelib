@@ -107,12 +107,18 @@ private:
             uint32_t index,
             uint32_t pivot) const
     {
-        for (uint32_t i = index; i < count; ++i)
+        if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, pool_.reverse_))
+            return INVALID_ID;
+
+        for (;;)
         {
-            if (GREATER_THAN_EQUAL((uint32_t)block[i], pivot, pool_.reverse_))
-                return i;
+            if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, pool_.reverse_))
+                return index;
+
+            ++index;
         }
 
+        assert(false);
         return INVALID_ID;
     }
 
