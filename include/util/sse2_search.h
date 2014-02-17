@@ -1,12 +1,13 @@
-#ifndef HAVE_SSE2_DEFINES
-#define HAVE_SSE2_DEFINES
+#ifndef HAVE_SSE2_DEFINES_SEARCH_H
+#define HAVE_SSE2_DEFINES_SEARCH_H
+
 typedef int v4si __attribute__ ((vector_size (16)));
 typedef short v8hi __attribute__ ((vector_size (16)));
 typedef char v16qi __attribute__ ((vector_size (16)));
 
 
 // arr is ASC
-unsigned int simd_liner_search_Nobranch(
+inline unsigned int simd_liner_search_Nobranch(
                     const unsigned int *arr,
                     unsigned int n,
                     unsigned int key,
@@ -39,7 +40,7 @@ unsigned int simd_liner_search_Nobranch(
 }
 
 //arr is DESC
-unsigned int simd_liner_search_Nobranch_rev(
+inline unsigned int simd_liner_search_Nobranch_rev(
                     const unsigned int *arr,
                     unsigned int n,
                     unsigned int key,
