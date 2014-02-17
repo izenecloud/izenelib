@@ -9,11 +9,11 @@
 #include "Utils.hpp"
 #include "Consts.hpp"
 #include <util/compression/int/fastpfor/fastpfor.h>
-
+#include <util/sse2_search.h>
+#include <util/ClockTimer.h>
 #include <iostream>
 #include <vector>
 #include <glog/logging.h>
-
 
 NS_IZENELIB_IR_BEGIN
 
@@ -98,7 +98,8 @@ private:
             uint32_t& index,
             size_t& pointer,
             uint32_t& docid,
-            uint32_t& score) const;
+            uint32_t& score,
+            bool useSIMD = false) const;
 
     template <class BlockType>
     uint32_t linearSearch_(
@@ -119,6 +120,33 @@ private:
         }
 
         assert(false);
+        return INVALID_ID;
+    }
+
+    template <class BlockType>
+    unsigned int linearSearch4_(
+        const BlockType &arr,
+        unsigned int count,
+        unsigned int index,
+        unsigned int pivot) const
+    {
+        if (index >= count || LESS_THAN((uint32_t)arr[count - 1], pivot, pool_.reverse_))
+            return INVALID_ID;
+        
+        unsigned int i = index;
+        for (; i+3 < count; i+=4)
+        {
+            if (GREATER_THAN_EQUAL(arr[i], pivot, pool_.reverse_)) return i;
+            if (GREATER_THAN_EQUAL(arr[i+1], pivot, pool_.reverse_)) return i + 1;
+            if (GREATER_THAN_EQUAL(arr[i+2], pivot, pool_.reverse_)) return i + 2;
+            if (GREATER_THAN_EQUAL(arr[i+3], pivot, pool_.reverse_)) return i + 3;
+        }
+        while (i < count) 
+        {
+            if (GREATER_THAN_EQUAL(arr[i], pivot, pool_.reverse_))
+                    return i;
+                ++i;
+        }
         return INVALID_ID;
     }
 

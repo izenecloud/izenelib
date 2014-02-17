@@ -374,7 +374,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
         uint32_t& index,
         size_t& pointer,
         uint32_t& docid,
-        uint32_t& score) const
+        uint32_t& score,
+        bool useSIMD) const
 {
     if (in_buffer)
     {
@@ -440,8 +441,13 @@ bool AttrScoreInvertedIndex::unionIterate_(
             decompressScoreBlock_(codec, score_seg, pointer);
             index = 0;
         }
-
-        index = linearSearch_(docid_seg, count, index, pivot);
+        index = linearSearch4_(docid_seg, count, index, pivot);
+        // if (!useSIMD)
+        //     index = linearSearch4_(docid_seg, count, index, pivot);
+        // else if (pool_.reverse_)
+        //     index = simd_liner_search_Nobranch_rev(docid_seg, count, pivot, index);
+        // else
+        //     index = simd_liner_search_Nobranch(docid_seg, count, pivot, index);
 
         docid = docid_seg[index];
         score = score_seg[index];
