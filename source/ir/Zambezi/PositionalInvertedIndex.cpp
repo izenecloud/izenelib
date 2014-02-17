@@ -1039,36 +1039,39 @@ void PositionalInvertedIndex::wand_(
     std::vector<std::vector<uint32_t> > blockTf(len);
     std::vector<uint32_t> counts(len);
     std::vector<uint32_t> posting(len);
-    std::vector<uint32_t> mapping(len);
+    std::vector<uint32_t> mapping;
     float threshold = .0f;
 
     FastPFor codec;
 
     uint32_t eligible = filter->find_first(pool_.reverse_);
 
+    if (eligible == INVALID_ID) return;
+
+    mapping.reserve(len);
+
     for (uint32_t i = 0; i < len; ++i)
     {
         blockDocid[i].resize(BLOCK_SIZE);
 
         if (!iterateSegment_(codec, &blockDocid[i][0], counts[i], posting[i], headPointers[i], eligible))
-        {
-            mapping[i] = INVALID_ID;
             continue;
-        }
 
         if (hasTf)
         {
             blockTf[i].resize(BLOCK_SIZE);
             decompressTfBlock_(codec, &blockTf[i][0], headPointers[i]);
         }
-        mapping[i] = i;
+
+        mapping.push_back(i);
+
         if (UB[i] <= threshold)
         {
             threshold = UB[i] - 1;
         }
     }
 
-    mapping.erase(std::remove(mapping.begin(), mapping.end(), INVALID_ID), mapping.end());
+    if (mapping.empty()) return;
     len = mapping.size();
 
     for (uint32_t i = 0; i < len - 1; ++i)
@@ -1096,21 +1099,14 @@ void PositionalInvertedIndex::wand_(
         uint32_t pTermIdx = INVALID_ID;
         for (uint32_t i = 0; i < len; ++i)
         {
-            if ((sum += UB[mapping[i]]) > threshold)
+            if ((sum += UB[mapping[i]]) > threshold && (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] != blockDocid[mapping[i + 1]][posting[mapping[i + 1]]]))
             {
                 pTermIdx = i;
-                if (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] !=
-                        blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
-                {
-                    break;
-                }
+                break;
             }
         }
 
-        if (sum == 0 || pTermIdx == INVALID_ID)
-        {
-            break;
-        }
+        if (sum == 0 || pTermIdx == INVALID_ID) break;
 
         uint32_t pTerm = mapping[pTermIdx];
         uint32_t pivot = blockDocid[pTerm][posting[pTerm]];
@@ -1154,6 +1150,8 @@ void PositionalInvertedIndex::wand_(
         }
 
         eligible = (blockDocid[mapping[0]][posting[mapping[0]]] != pivot && filter->test(pivot)) ? pivot : filter->find_next(pivot, pool_.reverse_);
+
+        if (eligible == INVALID_ID) break;
 
         for (uint32_t i = 0; i < mapping.size(); ++i)
         {

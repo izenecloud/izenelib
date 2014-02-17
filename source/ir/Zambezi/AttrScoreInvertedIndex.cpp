@@ -9,6 +9,120 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
+namespace
+{
+
+template <class BlockType>
+uint32_t linearSearch_(
+        const BlockType& block,
+        bool reverse,
+        uint32_t count,
+        uint32_t index,
+        uint32_t pivot)
+{
+    if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, reverse))
+        return INVALID_ID;
+
+    for (;; ++index)
+    {
+        if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, reverse))
+            return index;
+    }
+
+    assert(false);
+    return INVALID_ID;
+}
+
+template <class BlockType>
+uint32_t unrolledLinearSearch_(
+        const BlockType &block,
+        bool reverse,
+        uint32_t count,
+        uint32_t index,
+        uint32_t pivot)
+{
+    if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, reverse))
+        return INVALID_ID;
+
+    for (;; index += 4)
+    {
+        if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, reverse)) return index;
+        if (GREATER_THAN_EQUAL((uint32_t)block[index + 1], pivot, reverse)) return index + 1;
+        if (GREATER_THAN_EQUAL((uint32_t)block[index + 2], pivot, reverse)) return index + 2;
+        if (GREATER_THAN_EQUAL((uint32_t)block[index + 3], pivot, reverse)) return index + 3;
+    }
+
+    assert(false);
+    return INVALID_ID;
+}
+
+template <class BlockType>
+uint32_t gallopSearch_(
+        const BlockType& block,
+        bool reverse,
+        uint32_t count,
+        uint32_t index,
+        uint32_t pivot)
+{
+    if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, reverse))
+        return INVALID_ID;
+
+    if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, reverse))
+        return index;
+
+    if ((uint32_t)block[count - 1] == pivot)
+        return count - 1;
+
+    int beginIndex = index;
+    int hop = 1;
+    int tempIndex = beginIndex + 1;
+    while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL((uint32_t)block[tempIndex], pivot, reverse))
+    {
+        beginIndex = tempIndex;
+        tempIndex += hop;
+        hop *= 2;
+    }
+
+    if ((uint32_t)block[beginIndex] == pivot)
+        return beginIndex;
+
+    int endIndex = count - 1;
+    hop = 1;
+    tempIndex = endIndex - 1;
+    while (tempIndex >= 0 && GREATER_THAN((uint32_t)block[tempIndex], pivot, reverse))
+    {
+        endIndex = tempIndex;
+        tempIndex -= hop;
+        hop *= 2;
+    }
+
+    if ((uint32_t)block[endIndex] == pivot)
+        return endIndex;
+
+    // Binary search between begin and end indexes
+    while (beginIndex < endIndex)
+    {
+        uint32_t mid = beginIndex + (endIndex - beginIndex) / 2;
+
+        if (GREATER_THAN((uint32_t)block[mid], pivot, reverse))
+        {
+            endIndex = mid;
+        }
+        else if (LESS_THAN((uint32_t)block[mid], pivot, reverse))
+        {
+            beginIndex = mid + 1;
+        }
+        else
+        {
+            return mid;
+        }
+    }
+
+    return endIndex;
+}
+
+}
+
 AttrScoreInvertedIndex::AttrScoreInvertedIndex(
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
@@ -380,8 +494,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
     if (in_buffer)
     {
         index = pool_.reverse_
-            ? linearSearch_(buffer->rend() - count, count, index, pivot)
-            : linearSearch_(buffer->begin(), count, index, pivot);
+            ? unrolledLinearSearch_(buffer->rend() - count, pool_.reverse_, count, index, pivot)
+            : unrolledLinearSearch_(buffer->begin(), pool_.reverse_, count, index, pivot);
         if (index == INVALID_ID)
         {
             in_buffer = false;
@@ -390,7 +504,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 
             count = decompressDocidBlock_(codec, docid_seg, pointer);
             decompressScoreBlock_(codec, score_seg, pointer);
-            index = linearSearch_(docid_seg, count, 0, pivot);
+            index = unrolledLinearSearch_(docid_seg, pool_.reverse_, count, 0, pivot);
 
             docid = docid_seg[index];
             score = score_seg[index];
@@ -418,8 +532,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
                 in_buffer = true;
                 count = buffer->size();
                 index = pool_.reverse_
-                    ? linearSearch_(buffer->rend() - count, count, 0, pivot)
-                    : linearSearch_(buffer->begin(), count, 0, pivot);
+                    ? unrolledLinearSearch_(buffer->rend() - count, pool_.reverse_, count, 0, pivot)
+                    : unrolledLinearSearch_(buffer->begin(), pool_.reverse_, count, 0, pivot);
 
                 if (index == INVALID_ID) return false;
 
@@ -441,9 +555,10 @@ bool AttrScoreInvertedIndex::unionIterate_(
             decompressScoreBlock_(codec, score_seg, pointer);
             index = 0;
         }
-        index = linearSearch4_(docid_seg, count, index, pivot);
+
+        index = unrolledLinearSearch_(docid_seg, pool_.reverse_, count, index, pivot);
         // if (!useSIMD)
-        //     index = linearSearch4_(docid_seg, count, index, pivot);
+        //     index = unrolledLinearSearch_(docid_seg, count, index, pivot);
         // else if (pool_.reverse_)
         //     index = simd_liner_search_Nobranch_rev(docid_seg, count, pivot, index);
         // else
@@ -559,7 +674,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
         return;
 
-    if ((iCurrent = linearSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+    if ((iCurrent = unrolledLinearSearch_(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
         return;
 
     while (true)
@@ -576,7 +691,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
             break;
 
-        if ((iCurrent = linearSearch_(docid_list, docid_list.size(), iCurrent, id)) == INVALID_ID)
+        if ((iCurrent = unrolledLinearSearch_(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
             break;
     }
 
