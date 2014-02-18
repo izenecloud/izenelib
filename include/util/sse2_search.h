@@ -17,7 +17,7 @@ inline unsigned int simd_liner_search_Nobranch(
     unsigned int i = index;
     i >>= 2;
     unsigned int res;
-    v4si key4 = { key, key, key, key };
+    v4si key4 = { (int)key, (int)key, (int)key, (int)key };
     for (;;) {
         v4si cmp0 = __builtin_ia32_pcmpgtd128 (key4, in_data [i + 0]);
         v4si cmp1 = __builtin_ia32_pcmpgtd128 (key4, in_data [i + 1]);
@@ -50,7 +50,7 @@ inline unsigned int simd_liner_search_Nobranch_rev(
     unsigned int i = index;
     i >>= 2;
     unsigned int res;
-    v4si key4 = { key, key, key, key };
+    v4si key4 = { (int)key, (int)key, (int)key, (int)key };
     for (;;) {
         v4si cmp0 = __builtin_ia32_pcmpgtd128 (in_data [i + 0], key4);
         v4si cmp1 = __builtin_ia32_pcmpgtd128 (in_data [i + 1], key4);
