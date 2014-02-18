@@ -13,28 +13,7 @@ namespace
 {
 
 template <class BlockType>
-uint32_t linearSearch_(
-        const BlockType& block,
-        bool reverse,
-        uint32_t count,
-        uint32_t index,
-        uint32_t pivot)
-{
-    if (index >= count || LESS_THAN((uint32_t)block[count - 1], pivot, reverse))
-        return INVALID_ID;
-
-    for (;; ++index)
-    {
-        if (GREATER_THAN_EQUAL((uint32_t)block[index], pivot, reverse))
-            return index;
-    }
-
-    assert(false);
-    return INVALID_ID;
-}
-
-template <class BlockType>
-uint32_t unrolledLinearSearch_(
+uint32_t linearSearch(
         const BlockType &block,
         bool reverse,
         uint32_t count,
@@ -57,7 +36,7 @@ uint32_t unrolledLinearSearch_(
 }
 
 template <class BlockType>
-uint32_t gallopSearch_(
+uint32_t gallopSearch(
         const BlockType& block,
         bool reverse,
         uint32_t count,
@@ -381,13 +360,13 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
     memset(&segment_[4], 0, csize * sizeof(segment_[0]));
     codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[4], csize);
     segment_[1] = csize;
-    segment_[2] = csize = (4 - csize%4) + csize;
+    segment_[2] = csize += (4 - csize % 4);
 
     size_t scsize = BLOCK_SIZE * 2;
     memset(&segment_[csize + 4], 0, BLOCK_SIZE * sizeof(segment_[0]));
     codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 4], scsize);
     segment_[3] = scsize;
-    scsize += (4 - scsize%4);
+    scsize += (4 - scsize % 4);
 
     return pool_.appendSegment(segment_, maxDocId, csize + scsize + 4, lastPointer, nextPointer);
 }
@@ -496,8 +475,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
     if (in_buffer)
     {
         index = pool_.reverse_
-            ? unrolledLinearSearch_(buffer->rend() - count, pool_.reverse_, count, index, pivot)
-            : unrolledLinearSearch_(buffer->begin(), pool_.reverse_, count, index, pivot);
+            ? linearSearch(buffer->rend() - count, pool_.reverse_, count, index, pivot)
+            : linearSearch(buffer->begin(), pool_.reverse_, count, index, pivot);
         if (index == INVALID_ID)
         {
             in_buffer = false;
@@ -506,7 +485,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 
             count = decompressDocidBlock_(codec, docid_seg, pointer);
             decompressScoreBlock_(codec, score_seg, pointer);
-            index = unrolledLinearSearch_(docid_seg, pool_.reverse_, count, 0, pivot);
+            index = linearSearch(docid_seg, pool_.reverse_, count, 0, pivot);
 
             docid = docid_seg[index];
             score = score_seg[index];
@@ -534,8 +513,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
                 in_buffer = true;
                 count = buffer->size();
                 index = pool_.reverse_
-                    ? unrolledLinearSearch_(buffer->rend() - count, pool_.reverse_, count, 0, pivot)
-                    : unrolledLinearSearch_(buffer->begin(), pool_.reverse_, count, 0, pivot);
+                    ? linearSearch(buffer->rend() - count, pool_.reverse_, count, 0, pivot)
+                    : linearSearch(buffer->begin(), pool_.reverse_, count, 0, pivot);
 
                 if (index == INVALID_ID) return false;
 
@@ -558,9 +537,9 @@ bool AttrScoreInvertedIndex::unionIterate_(
             index = 0;
         }
 
-        index = unrolledLinearSearch_(docid_seg, pool_.reverse_, count, index, pivot);
+        index = linearSearch(docid_seg, pool_.reverse_, count, index, pivot);
         // if (!useSIMD)
-        //     index = unrolledLinearSearch_(docid_seg, count, index, pivot);
+        //     index = linearSearch(docid_seg, count, index, pivot);
         // else if (pool_.reverse_)
         //     index = simd_liner_search_Nobranch_rev(docid_seg, count, pivot, index);
         // else
@@ -676,7 +655,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
         return;
 
-    if ((iCurrent = unrolledLinearSearch_(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
+    if ((iCurrent = linearSearch(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
         return;
 
     while (true)
@@ -693,7 +672,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
         if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
             break;
 
-        if ((iCurrent = unrolledLinearSearch_(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
+        if ((iCurrent = linearSearch(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
             break;
     }
 
