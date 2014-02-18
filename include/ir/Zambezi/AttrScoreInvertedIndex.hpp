@@ -9,6 +9,7 @@
 #include "Utils.hpp"
 #include "Consts.hpp"
 #include <util/compression/int/fastpfor/fastpfor.h>
+#include <util/compression/int/fastpfor/simdfastpfor.h>
 #include <util/sse2_search.h>
 #include <util/ClockTimer.h>
 #include <iostream>
@@ -71,11 +72,11 @@ private:
             size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressScoreBlock_(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void intersectSvS_(
@@ -88,7 +89,7 @@ private:
             std::vector<float>& score_list) const;
 
     bool unionIterate_(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             bool& in_buffer,
             const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
             uint32_t* docid_seg,
@@ -215,7 +216,7 @@ private:
     }
 
     void intersectPostingsLists_(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             const FilterBase* filter,
             uint32_t term0,
             uint32_t term1,
@@ -226,7 +227,7 @@ private:
             uint32_t hits) const;
 
     void intersectSetPostingsList_(
-            FastPFor& codec,
+            SIMDFastPFor& codec,
             uint32_t term,
             int weight,
             std::vector<uint32_t>& docid_list,
@@ -238,7 +239,7 @@ private:
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
-    FastPFor codec_;
+    SIMDFastPFor codec_;
 
     static const size_t BUFFER_SIZE = 1024;
     uint32_t segment_[BUFFER_SIZE];

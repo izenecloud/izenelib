@@ -264,16 +264,65 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
     segment_[0] = len;
 
     size_t csize = BLOCK_SIZE * 2;
-    memset(&segment_[2], 0, csize * sizeof(segment_[0]));
-    codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[2], csize);
+    memset(&segment_[4], 0, csize * sizeof(segment_[0]));
+    codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[4], csize);
     segment_[1] = csize;
+    segment_[2] = csize = (4 - csize%4) + csize;
 
     size_t scsize = BLOCK_SIZE * 2;
-    memset(&segment_[csize + 3], 0, csize * sizeof(segment_[0]));
-    codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 3], scsize);
-    segment_[csize + 2] = scsize;
+    memset(&segment_[csize + 4], 0, BLOCK_SIZE * sizeof(segment_[0]));
+    codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 4], scsize);
+    segment_[3] = scsize;
+    scsize += (4 - scsize%4);
 
-    return pool_.appendSegment(segment_, maxDocId, csize + scsize + 3, lastPointer, nextPointer);
+    return pool_.appendSegment(segment_, maxDocId, csize + scsize + 4, lastPointer, nextPointer);
+}
+
+uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
+        SIMDFastPFor& codec,
+        uint32_t* outBlock, size_t pointer) const
+{
+    uint32_t pSegment = DECODE_SEGMENT(pointer);
+    uint32_t pOffset = DECODE_OFFSET(pointer);
+
+    const uint32_t* block = &pool_.pool_[pSegment][pOffset + 8];
+    size_t csize = pool_.pool_[pSegment][pOffset + 5];
+    size_t nvalue = BLOCK_SIZE;
+    codec.decodeArray(block, csize, outBlock, nvalue);
+
+    uint32_t len = pool_.pool_[pSegment][pOffset + 4];
+    if (pool_.reverse_)
+    {
+        for (uint32_t i = len - 1; i > 0; --i)
+        {
+            outBlock[i - 1] += outBlock[i];
+        }
+    }
+    else
+    {
+        for (uint32_t i = 1; i < len; ++i)
+        {
+            outBlock[i] += outBlock[i - 1];
+        }
+    }
+
+    return len;
+}
+
+uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
+        SIMDFastPFor& codec,
+        uint32_t* outBlock, size_t pointer) const
+{
+    uint32_t pSegment = DECODE_SEGMENT(pointer);
+    uint32_t pOffset = DECODE_OFFSET(pointer);
+
+    uint32_t csize = pool_.pool_[pSegment][pOffset + 6];
+    const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 8];
+    size_t scsize = pool_.pool_[pSegment][pOffset + 7];
+    size_t nvalue = BLOCK_SIZE;
+    codec.decodeArray(block, scsize, outBlock, nvalue);
+
+    return pool_.pool_[pSegment][pOffset + 4];
 }
 
 void AttrScoreInvertedIndex::retrieve(
@@ -316,55 +365,8 @@ void AttrScoreInvertedIndex::retrieve(
     }
 }
 
-uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
-        FastPFor& codec,
-        uint32_t* outBlock, size_t pointer) const
-{
-    uint32_t pSegment = DECODE_SEGMENT(pointer);
-    uint32_t pOffset = DECODE_OFFSET(pointer);
-
-    const uint32_t* block = &pool_.pool_[pSegment][pOffset + 6];
-    size_t csize = pool_.pool_[pSegment][pOffset + 5];
-    size_t nvalue = BLOCK_SIZE;
-    codec.decodeArray(block, csize, outBlock, nvalue);
-
-    uint32_t len = pool_.pool_[pSegment][pOffset + 4];
-    if (pool_.reverse_)
-    {
-        for (uint32_t i = len - 1; i > 0; --i)
-        {
-            outBlock[i - 1] += outBlock[i];
-        }
-    }
-    else
-    {
-        for (uint32_t i = 1; i < len; ++i)
-        {
-            outBlock[i] += outBlock[i - 1];
-        }
-    }
-
-    return len;
-}
-
-uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
-        FastPFor& codec,
-        uint32_t* outBlock, size_t pointer) const
-{
-    uint32_t pSegment = DECODE_SEGMENT(pointer);
-    uint32_t pOffset = DECODE_OFFSET(pointer);
-
-    uint32_t csize = pool_.pool_[pSegment][pOffset + 5];
-    const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 7];
-    size_t scsize = pool_.pool_[pSegment][pOffset + csize + 6];
-    size_t nvalue = BLOCK_SIZE;
-    codec.decodeArray(block, scsize, outBlock, nvalue);
-
-    return pool_.pool_[pSegment][pOffset + 4];
-}
-
 bool AttrScoreInvertedIndex::unionIterate_(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         bool& in_buffer,
         const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
         uint32_t* docid_seg,
@@ -457,7 +459,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 }
 
 void AttrScoreInvertedIndex::intersectPostingsLists_(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         const FilterBase* filter,
         uint32_t term0,
         uint32_t term1,
@@ -537,7 +539,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
 }
 
 void AttrScoreInvertedIndex::intersectSetPostingsList_(
-        FastPFor& codec,
+        SIMDFastPFor& codec,
         uint32_t term,
         int weight,
         std::vector<uint32_t>& docid_list,
@@ -593,7 +595,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-    FastPFor codec;
+    SIMDFastPFor codec;
 
     if (qTerms.size() == 1)
     {
