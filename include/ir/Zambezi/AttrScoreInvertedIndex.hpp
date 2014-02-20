@@ -67,15 +67,16 @@ private:
             uint32_t* docBlock,
             uint32_t* scoreBlock,
             uint32_t len,
+            uint32_t capacity,
             size_t lastPointer,
             size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
-            SIMDGlobalBinaryPacking& codec,
+            SIMDBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressScoreBlock_(
-            SIMDGlobalBinaryPacking& codec,
+            SIMDBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void intersectSvS_(
@@ -88,7 +89,7 @@ private:
             std::vector<float>& score_list) const;
 
     bool unionIterate_(
-            SIMDGlobalBinaryPacking& codec,
+            SIMDBinaryPacking& codec,
             bool& in_buffer,
             const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
             uint32_t* docid_seg,
@@ -101,7 +102,7 @@ private:
             uint32_t& score) const;
 
     void intersectPostingsLists_(
-            SIMDGlobalBinaryPacking& codec,
+            SIMDBinaryPacking& codec,
             const FilterBase* filter,
             uint32_t term0,
             uint32_t term1,
@@ -112,7 +113,7 @@ private:
             uint32_t hits) const;
 
     void intersectSetPostingsList_(
-            SIMDGlobalBinaryPacking& codec,
+            SIMDBinaryPacking& codec,
             uint32_t term,
             int weight,
             std::vector<uint32_t>& docid_list,
@@ -124,7 +125,7 @@ private:
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
-    SIMDGlobalBinaryPacking codec_;
+    SIMDBinaryPacking codec_;
 
     static const size_t BUFFER_SIZE = 8192;
     boost::shared_array<uint32_t> segment_;

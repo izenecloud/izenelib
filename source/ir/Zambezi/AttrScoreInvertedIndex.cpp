@@ -239,10 +239,7 @@ void AttrScoreInvertedIndex::processTermBuffer_(
         size_t& tailPointer,
         size_t& headPointer)
 {
-    uint32_t nb = posting.size() / BLOCK_SIZE;
-    uint32_t res = posting.size() % BLOCK_SIZE;
-
-    size_t capacity = BLOCK_SIZE * (nb + (res ? 1 : 0));
+    uint32_t capacity = (posting.size() + BP_BLOCK_SIZE - 1) / BP_BLOCK_SIZE * BP_BLOCK_SIZE;
 
     boost::shared_array<uint32_t> docBuffer(getAlignedIntArray(capacity, 16));
     boost::shared_array<uint32_t> scoreBuffer(getAlignedIntArray(capacity, 16));
@@ -259,6 +256,7 @@ void AttrScoreInvertedIndex::processTermBuffer_(
                 &docBuffer[0],
                 &scoreBuffer[0],
                 posting.size(),
+                capacity,
                 UNDEFINED_POINTER,
                 tailPointer);
 
@@ -270,6 +268,7 @@ void AttrScoreInvertedIndex::processTermBuffer_(
                 &docBuffer[0],
                 &scoreBuffer[0],
                 posting.size(),
+                capacity,
                 tailPointer,
                 UNDEFINED_POINTER);
 
@@ -284,6 +283,7 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         uint32_t* docBlock,
         uint32_t* scoreBlock,
         uint32_t len,
+        uint32_t capacity,
         size_t lastPointer,
         size_t nextPointer)
 {
@@ -300,13 +300,11 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         std::reverse(scoreBlock, scoreBlock + len);
     }
 
-    if (len % BLOCK_SIZE)
+    if (len % BP_BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BLOCK_SIZE - len % BLOCK_SIZE) * sizeof(docBlock[0]));
-        memset(&scoreBlock[len], 0, (BLOCK_SIZE - len % BLOCK_SIZE) * sizeof(scoreBlock[0]));
+        memset(&docBlock[len], 0, (BP_BLOCK_SIZE - len % BP_BLOCK_SIZE) * sizeof(docBlock[0]));
+        memset(&scoreBlock[len], 0, (BP_BLOCK_SIZE - len % BP_BLOCK_SIZE) * sizeof(scoreBlock[0]));
     }
-
-    uint32_t capacity = (len + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
 
     segment_[0] = len;
 
@@ -326,7 +324,7 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
 }
 
 uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
-        SIMDGlobalBinaryPacking& codec,
+        SIMDBinaryPacking& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -334,7 +332,7 @@ uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
 
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + 8];
     size_t csize = pool_.pool_[pSegment][pOffset + 5];
-    size_t nvalue = BLOCK_SIZE;
+    size_t nvalue = MAX_BLOCK_SIZE;
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_.pool_[pSegment][pOffset + 4];
@@ -357,7 +355,7 @@ uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
 }
 
 uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
-        SIMDGlobalBinaryPacking& codec,
+        SIMDBinaryPacking& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -366,7 +364,7 @@ uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
     uint32_t csize = pool_.pool_[pSegment][pOffset + 6];
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 8];
     size_t scsize = pool_.pool_[pSegment][pOffset + 7];
-    size_t nvalue = BLOCK_SIZE;
+    size_t nvalue = MAX_BLOCK_SIZE;
     codec.decodeArray(block, scsize, outBlock, nvalue);
 
     return pool_.pool_[pSegment][pOffset + 4];
@@ -413,7 +411,7 @@ void AttrScoreInvertedIndex::retrieve(
 }
 
 bool AttrScoreInvertedIndex::unionIterate_(
-        SIMDGlobalBinaryPacking& codec,
+        SIMDBinaryPacking& codec,
         bool& in_buffer,
         const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
         uint32_t* docid_seg,
@@ -500,7 +498,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 }
 
 void AttrScoreInvertedIndex::intersectPostingsLists_(
-        SIMDGlobalBinaryPacking& codec,
+        SIMDBinaryPacking& codec,
         const FilterBase* filter,
         uint32_t term0,
         uint32_t term1,
@@ -580,7 +578,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
 }
 
 void AttrScoreInvertedIndex::intersectSetPostingsList_(
-        SIMDGlobalBinaryPacking& codec,
+        SIMDBinaryPacking& codec,
         uint32_t term,
         int weight,
         std::vector<uint32_t>& docid_list,
@@ -636,7 +634,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-    SIMDGlobalBinaryPacking codec;
+    SIMDBinaryPacking codec;
 
     if (qTerms.size() == 1)
     {

@@ -10,6 +10,7 @@ namespace Zambezi
 {
 
 static const uint32_t BLOCK_SIZE = 128;
+static const uint32_t BP_BLOCK_SIZE = 16 * BLOCK_SIZE;
 
 // Pool size
 static const size_t MAX_POOL_SIZE = 1UL << 30; // 4GiB memory in default
