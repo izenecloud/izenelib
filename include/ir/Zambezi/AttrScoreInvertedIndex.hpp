@@ -8,8 +8,7 @@
 #include "buffer/AttrScoreBufferMaps.hpp"
 #include "Utils.hpp"
 #include "Consts.hpp"
-#include <util/compression/int/fastpfor/fastpfor.h>
-#include <util/compression/int/fastpfor/simdfastpfor.h>
+#include <util/compression/int/fastpfor/simdbinarypacking.h>
 #include <util/sse2_search.h>
 #include <util/ClockTimer.h>
 #include <iostream>
@@ -72,11 +71,11 @@ private:
             size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
-            SIMDFastPFor& codec,
+            SIMDGlobalBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressScoreBlock_(
-            SIMDFastPFor& codec,
+            SIMDGlobalBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void intersectSvS_(
@@ -89,7 +88,7 @@ private:
             std::vector<float>& score_list) const;
 
     bool unionIterate_(
-            SIMDFastPFor& codec,
+            SIMDGlobalBinaryPacking& codec,
             bool& in_buffer,
             const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
             uint32_t* docid_seg,
@@ -99,11 +98,10 @@ private:
             uint32_t& index,
             size_t& pointer,
             uint32_t& docid,
-            uint32_t& score,
-            bool useSIMD = false) const;
+            uint32_t& score) const;
 
     void intersectPostingsLists_(
-            SIMDFastPFor& codec,
+            SIMDGlobalBinaryPacking& codec,
             const FilterBase* filter,
             uint32_t term0,
             uint32_t term1,
@@ -114,7 +112,7 @@ private:
             uint32_t hits) const;
 
     void intersectSetPostingsList_(
-            SIMDFastPFor& codec,
+            SIMDGlobalBinaryPacking& codec,
             uint32_t term,
             int weight,
             std::vector<uint32_t>& docid_list,
@@ -126,10 +124,10 @@ private:
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
-    SIMDFastPFor codec_;
+    SIMDGlobalBinaryPacking codec_;
 
-    static const size_t BUFFER_SIZE = 1024;
-    uint32_t segment_[BUFFER_SIZE];
+    static const size_t BUFFER_SIZE = 8192;
+    boost::shared_array<uint32_t> segment_;
 };
 
 }

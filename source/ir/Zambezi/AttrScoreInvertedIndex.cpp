@@ -111,6 +111,7 @@ AttrScoreInvertedIndex::AttrScoreInvertedIndex(
     , pool_(maxPoolSize, numberOfPools, reverse)
     , dictionary_(vocabSize)
     , pointers_(vocabSize, 0)
+    , segment_(getAlignedIntArray(BUFFER_SIZE, 16))
 {
 }
 
@@ -241,89 +242,40 @@ void AttrScoreInvertedIndex::processTermBuffer_(
     uint32_t nb = posting.size() / BLOCK_SIZE;
     uint32_t res = posting.size() % BLOCK_SIZE;
 
-    std::vector<uint32_t> docBuffer;
-    std::vector<uint32_t> scoreBuffer;
-
     size_t capacity = BLOCK_SIZE * (nb + (res ? 1 : 0));
-    docBuffer.reserve(capacity);
-    scoreBuffer.reserve(capacity);
+
+    boost::shared_array<uint32_t> docBuffer(getAlignedIntArray(capacity, 16));
+    boost::shared_array<uint32_t> scoreBuffer(getAlignedIntArray(capacity, 16));
 
     for (size_t i = 0; i < posting.size(); ++i)
     {
-        docBuffer.push_back(posting[i].docid);
-        scoreBuffer.push_back(posting[i].score);
+        docBuffer[i] = posting[i].docid;
+        scoreBuffer[i] = posting[i].score;
     }
 
     if (pool_.reverse_)
     {
-        size_t curPointer = UNDEFINED_POINTER;
-        size_t lastPointer = UNDEFINED_POINTER;
+        tailPointer = compressAndAppendBlock_(
+                &docBuffer[0],
+                &scoreBuffer[0],
+                posting.size(),
+                UNDEFINED_POINTER,
+                tailPointer);
 
-        if (res > 0)
-        {
-            lastPointer = compressAndAppendBlock_(
-                    &docBuffer[nb * BLOCK_SIZE],
-                    &scoreBuffer[nb * BLOCK_SIZE],
-                    res,
-                    lastPointer,
-                    tailPointer);
-
-            if (curPointer == UNDEFINED_POINTER)
-            {
-                curPointer = lastPointer;
-            }
-        }
-
-        for (int i = nb - 1; i >= 0; --i)
-        {
-            lastPointer = compressAndAppendBlock_(
-                    &docBuffer[i * BLOCK_SIZE],
-                    &scoreBuffer[i * BLOCK_SIZE],
-                    BLOCK_SIZE,
-                    lastPointer,
-                    tailPointer);
-
-            if (curPointer == UNDEFINED_POINTER)
-            {
-                curPointer = lastPointer;
-            }
-        }
-
-        if (curPointer != UNDEFINED_POINTER)
-        {
-            headPointer = tailPointer = curPointer;
-        }
+        headPointer = tailPointer;
     }
     else
     {
-        for (uint32_t i = 0; i < nb; ++i)
+        tailPointer = compressAndAppendBlock_(
+                &docBuffer[0],
+                &scoreBuffer[0],
+                posting.size(),
+                tailPointer,
+                UNDEFINED_POINTER);
+
+        if (headPointer == UNDEFINED_POINTER)
         {
-            tailPointer = compressAndAppendBlock_(
-                    &docBuffer[i * BLOCK_SIZE],
-                    &scoreBuffer[i * BLOCK_SIZE],
-                    BLOCK_SIZE,
-                    tailPointer,
-                    UNDEFINED_POINTER);
-
-            if (headPointer == UNDEFINED_POINTER)
-            {
-                headPointer = tailPointer;
-            }
-        }
-
-        if (res > 0)
-        {
-            tailPointer = compressAndAppendBlock_(
-                    &docBuffer[nb * BLOCK_SIZE],
-                    &scoreBuffer[nb * BLOCK_SIZE],
-                    res,
-                    tailPointer,
-                    UNDEFINED_POINTER);
-
-            if (headPointer == UNDEFINED_POINTER)
-            {
-                headPointer = tailPointer;
-            }
+            headPointer = tailPointer;
         }
     }
 }
@@ -348,31 +300,33 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         std::reverse(scoreBlock, scoreBlock + len);
     }
 
-    if (len < BLOCK_SIZE)
+    if (len % BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(docBlock[0]));
-        memset(&scoreBlock[len], 0, (BLOCK_SIZE - len) * sizeof(scoreBlock[0]));
+        memset(&docBlock[len], 0, (BLOCK_SIZE - len % BLOCK_SIZE) * sizeof(docBlock[0]));
+        memset(&scoreBlock[len], 0, (BLOCK_SIZE - len % BLOCK_SIZE) * sizeof(scoreBlock[0]));
     }
+
+    uint32_t capacity = (len + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
 
     segment_[0] = len;
 
-    size_t csize = BLOCK_SIZE * 2;
+    size_t csize = len;
     memset(&segment_[4], 0, csize * sizeof(segment_[0]));
-    codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[4], csize);
+    codec_.encodeArray(docBlock, capacity, &segment_[4], csize);
     segment_[1] = csize;
     segment_[2] = csize += (4 - csize % 4);
 
-    size_t scsize = BLOCK_SIZE * 2;
-    memset(&segment_[csize + 4], 0, BLOCK_SIZE * sizeof(segment_[0]));
-    codec_.encodeArray(scoreBlock, BLOCK_SIZE, &segment_[csize + 4], scsize);
+    size_t scsize = len;
+    memset(&segment_[csize + 4], 0, scsize * sizeof(segment_[0]));
+    codec_.encodeArray(scoreBlock, capacity, &segment_[csize + 4], scsize);
     segment_[3] = scsize;
     scsize += (4 - scsize % 4);
 
-    return pool_.appendSegment(segment_, maxDocId, csize + scsize + 4, lastPointer, nextPointer);
+    return pool_.appendSegment(&segment_[0], maxDocId, csize + scsize + 4, lastPointer, nextPointer);
 }
 
 uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
-        SIMDFastPFor& codec,
+        SIMDGlobalBinaryPacking& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -403,7 +357,7 @@ uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
 }
 
 uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
-        SIMDFastPFor& codec,
+        SIMDGlobalBinaryPacking& codec,
         uint32_t* outBlock, size_t pointer) const
 {
     uint32_t pSegment = DECODE_SEGMENT(pointer);
@@ -459,7 +413,7 @@ void AttrScoreInvertedIndex::retrieve(
 }
 
 bool AttrScoreInvertedIndex::unionIterate_(
-        SIMDFastPFor& codec,
+        SIMDGlobalBinaryPacking& codec,
         bool& in_buffer,
         const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
         uint32_t* docid_seg,
@@ -469,8 +423,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
         uint32_t& index,
         size_t& pointer,
         uint32_t& docid,
-        uint32_t& score,
-        bool useSIMD) const
+        uint32_t& score) const
 {
     if (in_buffer)
     {
@@ -538,12 +491,6 @@ bool AttrScoreInvertedIndex::unionIterate_(
         }
 
         index = linearSearch(docid_seg, pool_.reverse_, count, index, pivot);
-        // if (!useSIMD)
-        //     index = linearSearch(docid_seg, count, index, pivot);
-        // else if (pool_.reverse_)
-        //     index = simd_liner_search_Nobranch_rev(docid_seg, count, pivot, index);
-        // else
-        //     index = simd_liner_search_Nobranch(docid_seg, count, pivot, index);
 
         docid = docid_seg[index];
         score = score_seg[index];
@@ -553,7 +500,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
 }
 
 void AttrScoreInvertedIndex::intersectPostingsLists_(
-        SIMDFastPFor& codec,
+        SIMDGlobalBinaryPacking& codec,
         const FilterBase* filter,
         uint32_t term0,
         uint32_t term1,
@@ -563,10 +510,10 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         std::vector<float>& score_list,
         uint32_t hits) const
 {
-    uint32_t blockDocid0[BLOCK_SIZE];
-    uint32_t blockDocid1[BLOCK_SIZE];
-    uint32_t blockScore0[BLOCK_SIZE];
-    uint32_t blockScore1[BLOCK_SIZE];
+    boost::shared_array<uint32_t> blockDocid0(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockDocid1(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore0(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore1(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
 
     size_t pointer0 = pointers_.headPointers.get(term0);
     size_t pointer1 = pointers_.headPointers.get(term1);
@@ -583,13 +530,13 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     bool in_buffer0 = pool_.reverse_, in_buffer1 = pool_.reverse_;
     uint32_t eligible = filter->find_first(pool_.reverse_);
 
-    if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+    if (!unionIterate_(codec, in_buffer0, buffer0, &blockDocid0[0], &blockScore0[0], eligible, c0, i0, pointer0, id0, sc0))
         return;
 
     if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
         return;
 
-    if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+    if (!unionIterate_(codec, in_buffer1, buffer1, &blockDocid1[0], &blockScore1[0], eligible, c1, i1, pointer1, id1, sc1))
         return;
 
     while (true)
@@ -604,13 +551,13 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
             if ((eligible = filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 break;
 
-            if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+            if (!unionIterate_(codec, in_buffer0, buffer0, &blockDocid0[0], &blockScore0[0], eligible, c0, i0, pointer0, id0, sc0))
                 return;
 
             if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 return;
 
-            if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+            if (!unionIterate_(codec, in_buffer1, buffer1, &blockDocid1[0], &blockScore1[0], eligible, c1, i1, pointer1, id1, sc1))
                 return;
         }
         else if (LESS_THAN(id0, id1, pool_.reverse_))
@@ -618,7 +565,7 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
             if ((eligible = filter->test(id1) ? id1 : filter->find_next(id1, pool_.reverse_)) == INVALID_ID)
                 break;
 
-            if (!unionIterate_(codec, in_buffer0, buffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+            if (!unionIterate_(codec, in_buffer0, buffer0, &blockDocid0[0], &blockScore0[0], eligible, c0, i0, pointer0, id0, sc0))
                 return;
         }
         else
@@ -626,14 +573,14 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
             if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, pool_.reverse_)) == INVALID_ID)
                 break;
 
-            if (!unionIterate_(codec, in_buffer1, buffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+            if (!unionIterate_(codec, in_buffer1, buffer1, &blockDocid1[0], &blockScore1[0], eligible, c1, i1, pointer1, id1, sc1))
                 return;
         }
     }
 }
 
 void AttrScoreInvertedIndex::intersectSetPostingsList_(
-        SIMDFastPFor& codec,
+        SIMDGlobalBinaryPacking& codec,
         uint32_t term,
         int weight,
         std::vector<uint32_t>& docid_list,
@@ -642,8 +589,8 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     uint32_t iSet = 0, iCurrent = 0;
 
     size_t pointer = pointers_.headPointers.get(term);
-    uint32_t blockDocid[BLOCK_SIZE];
-    uint32_t blockScore[BLOCK_SIZE];
+    boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
 
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(term));
 
@@ -652,7 +599,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
 
     bool in_buffer = pool_.reverse_;
 
-    if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
+    if (!unionIterate_(codec, in_buffer, buffer, &blockDocid[0], &blockScore[0], docid_list[iCurrent], c, i, pointer, id, sc))
         return;
 
     if ((iCurrent = linearSearch(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
@@ -669,7 +616,7 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
                 break;
         }
 
-        if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
+        if (!unionIterate_(codec, in_buffer, buffer, &blockDocid[0], &blockScore[0], docid_list[iCurrent], c, i, pointer, id, sc))
             break;
 
         if ((iCurrent = linearSearch(docid_list, pool_.reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
@@ -689,12 +636,12 @@ void AttrScoreInvertedIndex::intersectSvS_(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-    SIMDFastPFor codec;
+    SIMDGlobalBinaryPacking codec;
 
     if (qTerms.size() == 1)
     {
-        uint32_t blockDocid[BLOCK_SIZE];
-        uint32_t blockScore[BLOCK_SIZE];
+        boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+        boost::shared_array<uint32_t> blockScore(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
         uint32_t length = std::min(minDf, hits);
 
         docid_list.reserve(length);
@@ -708,7 +655,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         bool in_buffer = pool_.reverse_;
         uint32_t eligible = filter->find_first(pool_.reverse_);
 
-        if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
+        if (!unionIterate_(codec, in_buffer, buffer, &blockDocid[0], &blockScore[0], eligible, c, i, pointer, id, sc))
             return;
 
         if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
@@ -728,7 +675,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
                     break;
             }
 
-            if (!unionIterate_(codec, in_buffer, buffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
+            if (!unionIterate_(codec, in_buffer, buffer, &blockDocid[0], &blockScore[0], eligible, c, i, pointer, id, sc))
                 break;
 
             if ((eligible = filter->test(id) ? id : filter->find_next(id, pool_.reverse_)) == INVALID_ID)
