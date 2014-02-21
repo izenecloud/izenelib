@@ -67,7 +67,6 @@ private:
             uint32_t* docBlock,
             uint32_t* scoreBlock,
             uint32_t len,
-            uint32_t capacity,
             size_t lastPointer,
             size_t nextPointer);
 
@@ -127,7 +126,7 @@ private:
 
     SIMDBinaryPacking codec_;
 
-    static const size_t BUFFER_SIZE = 8192;
+    static const size_t BUFFER_SIZE = 4096;
     boost::shared_array<uint32_t> segment_;
 };
 

@@ -239,7 +239,10 @@ void AttrScoreInvertedIndex::processTermBuffer_(
         size_t& tailPointer,
         size_t& headPointer)
 {
-    uint32_t capacity = (posting.size() + BP_BLOCK_SIZE - 1) / BP_BLOCK_SIZE * BP_BLOCK_SIZE;
+    uint32_t nb = posting.size() / BP_BLOCK_SIZE;
+    uint32_t res = posting.size() % BP_BLOCK_SIZE;
+
+    size_t capacity = BP_BLOCK_SIZE * (nb + (res ? 1 : 0));
 
     boost::shared_array<uint32_t> docBuffer(getAlignedIntArray(capacity, 16));
     boost::shared_array<uint32_t> scoreBuffer(getAlignedIntArray(capacity, 16));
@@ -252,29 +255,69 @@ void AttrScoreInvertedIndex::processTermBuffer_(
 
     if (pool_.reverse_)
     {
-        tailPointer = compressAndAppendBlock_(
-                &docBuffer[0],
-                &scoreBuffer[0],
-                posting.size(),
-                capacity,
-                UNDEFINED_POINTER,
-                tailPointer);
+        size_t curPointer = UNDEFINED_POINTER;
+        size_t lastPointer = UNDEFINED_POINTER;
 
-        headPointer = tailPointer;
+        if (res > 0)
+        {
+            lastPointer = compressAndAppendBlock_(
+                    &docBuffer[nb * BP_BLOCK_SIZE],
+                    &scoreBuffer[nb * BP_BLOCK_SIZE],
+                    res,
+                    lastPointer,
+                    tailPointer);
+
+            curPointer = lastPointer;
+        }
+
+        for (int i = nb - 1; i >= 0; --i)
+        {
+            lastPointer = compressAndAppendBlock_(
+                    &docBuffer[i * BP_BLOCK_SIZE],
+                    &scoreBuffer[i * BP_BLOCK_SIZE],
+                    BP_BLOCK_SIZE,
+                    lastPointer,
+                    tailPointer);
+
+            if (curPointer == UNDEFINED_POINTER)
+            {
+                curPointer = lastPointer;
+            }
+        }
+
+        headPointer = tailPointer = curPointer;
     }
     else
     {
-        tailPointer = compressAndAppendBlock_(
-                &docBuffer[0],
-                &scoreBuffer[0],
-                posting.size(),
-                capacity,
-                tailPointer,
-                UNDEFINED_POINTER);
-
-        if (headPointer == UNDEFINED_POINTER)
+        for (uint32_t i = 0; i < nb; ++i)
         {
-            headPointer = tailPointer;
+            tailPointer = compressAndAppendBlock_(
+                    &docBuffer[i * BP_BLOCK_SIZE],
+                    &scoreBuffer[i * BP_BLOCK_SIZE],
+                    BP_BLOCK_SIZE,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
+        }
+
+        if (res > 0)
+        {
+            tailPointer = compressAndAppendBlock_(
+                    &docBuffer[nb * BP_BLOCK_SIZE],
+                    &scoreBuffer[nb * BP_BLOCK_SIZE],
+                    res,
+                    tailPointer,
+                    UNDEFINED_POINTER);
+
+
+            if (headPointer == UNDEFINED_POINTER)
+            {
+                headPointer = tailPointer;
+            }
         }
     }
 }
@@ -283,7 +326,6 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         uint32_t* docBlock,
         uint32_t* scoreBlock,
         uint32_t len,
-        uint32_t capacity,
         size_t lastPointer,
         size_t nextPointer)
 {
@@ -300,25 +342,25 @@ size_t AttrScoreInvertedIndex::compressAndAppendBlock_(
         std::reverse(scoreBlock, scoreBlock + len);
     }
 
-    if (len % BP_BLOCK_SIZE)
+    if (len < BP_BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BP_BLOCK_SIZE - len % BP_BLOCK_SIZE) * sizeof(docBlock[0]));
-        memset(&scoreBlock[len], 0, (BP_BLOCK_SIZE - len % BP_BLOCK_SIZE) * sizeof(scoreBlock[0]));
+        memset(&docBlock[len], 0, (BP_BLOCK_SIZE - len) * sizeof(docBlock[0]));
+        memset(&scoreBlock[len], 0, (BP_BLOCK_SIZE - len) * sizeof(scoreBlock[0]));
     }
 
     segment_[0] = len;
 
     size_t csize = len;
-    memset(&segment_[4], 0, csize * sizeof(segment_[0]));
-    codec_.encodeArray(docBlock, capacity, &segment_[4], csize);
+    memset(&segment_[4], 0, BP_BLOCK_SIZE * sizeof(segment_[0]));
+    codec_.encodeArray(docBlock, BP_BLOCK_SIZE, &segment_[4], csize);
     segment_[1] = csize;
-    segment_[2] = csize += (4 - csize % 4);
+    segment_[2] = csize = (csize + 3) / 4 * 4;
 
     size_t scsize = len;
-    memset(&segment_[csize + 4], 0, scsize * sizeof(segment_[0]));
-    codec_.encodeArray(scoreBlock, capacity, &segment_[csize + 4], scsize);
+    memset(&segment_[csize + 4], 0, BP_BLOCK_SIZE * sizeof(segment_[0]));
+    codec_.encodeArray(scoreBlock, BP_BLOCK_SIZE, &segment_[csize + 4], scsize);
     segment_[3] = scsize;
-    scsize += (4 - scsize % 4);
+    scsize = (scsize + 3) / 4 * 4;
 
     return pool_.appendSegment(&segment_[0], maxDocId, csize + scsize + 4, lastPointer, nextPointer);
 }
@@ -332,7 +374,7 @@ uint32_t AttrScoreInvertedIndex::decompressDocidBlock_(
 
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + 8];
     size_t csize = pool_.pool_[pSegment][pOffset + 5];
-    size_t nvalue = MAX_BLOCK_SIZE;
+    size_t nvalue = BP_BLOCK_SIZE;
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_.pool_[pSegment][pOffset + 4];
@@ -364,7 +406,7 @@ uint32_t AttrScoreInvertedIndex::decompressScoreBlock_(
     uint32_t csize = pool_.pool_[pSegment][pOffset + 6];
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 8];
     size_t scsize = pool_.pool_[pSegment][pOffset + 7];
-    size_t nvalue = MAX_BLOCK_SIZE;
+    size_t nvalue = BP_BLOCK_SIZE;
     codec.decodeArray(block, scsize, outBlock, nvalue);
 
     return pool_.pool_[pSegment][pOffset + 4];
@@ -378,7 +420,6 @@ void AttrScoreInvertedIndex::retrieve(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
-    LOG(INFO) << "processing retrieval....";
     std::vector<std::pair<std::pair<uint32_t, uint32_t>, int> > queries;
 
     uint32_t minimumDf = 0xFFFFFFFF;
@@ -508,10 +549,10 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         std::vector<float>& score_list,
         uint32_t hits) const
 {
-    boost::shared_array<uint32_t> blockDocid0(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
-    boost::shared_array<uint32_t> blockDocid1(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
-    boost::shared_array<uint32_t> blockScore0(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
-    boost::shared_array<uint32_t> blockScore1(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockDocid0(getAlignedIntArray(BP_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockDocid1(getAlignedIntArray(BP_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore0(getAlignedIntArray(BP_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore1(getAlignedIntArray(BP_BLOCK_SIZE, 16));
 
     size_t pointer0 = pointers_.headPointers.get(term0);
     size_t pointer1 = pointers_.headPointers.get(term1);
@@ -587,8 +628,8 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     uint32_t iSet = 0, iCurrent = 0;
 
     size_t pointer = pointers_.headPointers.get(term);
-    boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
-    boost::shared_array<uint32_t> blockScore(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(BP_BLOCK_SIZE, 16));
+    boost::shared_array<uint32_t> blockScore(getAlignedIntArray(BP_BLOCK_SIZE, 16));
 
     boost::shared_ptr<AttrScoreBufferMaps::PostingType> buffer(buffer_.getBuffer(term));
 
@@ -638,8 +679,8 @@ void AttrScoreInvertedIndex::intersectSvS_(
 
     if (qTerms.size() == 1)
     {
-        boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
-        boost::shared_array<uint32_t> blockScore(getAlignedIntArray(MAX_BLOCK_SIZE, 16));
+        boost::shared_array<uint32_t> blockDocid(getAlignedIntArray(BP_BLOCK_SIZE, 16));
+        boost::shared_array<uint32_t> blockScore(getAlignedIntArray(BP_BLOCK_SIZE, 16));
         uint32_t length = std::min(minDf, hits);
 
         docid_list.reserve(length);
