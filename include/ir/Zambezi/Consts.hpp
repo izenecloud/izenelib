@@ -3,6 +3,8 @@
 
 #include <types.h>
 
+#include <limits>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -19,15 +21,15 @@ static const size_t MAX_POOL_SIZE = 1UL << 30; // 4GiB memory in default
 static const uint32_t NUMBER_OF_POOLS = 16;
 
 // Document Frequency cutoff
-static const uint32_t DF_CUTOFF = 9;
+static const uint32_t DF_CUTOFF = 16;
 // Buffer expansion rate for buffer maps
 static const uint32_t EXPANSION_RATE = 2;
 
 // Null pointers to determine the end of a postings list
-static const size_t UNDEFINED_POINTER = -1l;
-static const uint32_t UNDEFINED_SEGMENT = -1;
-static const uint32_t UNDEFINED_OFFSET = -1;
-static const uint32_t INVALID_ID = -1;
+static const size_t UNDEFINED_POINTER = std::numeric_limits<size_t>::max();
+static const uint32_t UNDEFINED_SEGMENT = std::numeric_limits<uint32_t>::max();
+static const uint32_t UNDEFINED_OFFSET = std::numeric_limits<uint32_t>::max();
+static const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 
 static const uint32_t BLOOM_FILTER_UNIT_SIZE = sizeof(uint32_t) * 8;
 static const uint32_t DEFAULT_HASH_SEED = 0x7ed55d16;

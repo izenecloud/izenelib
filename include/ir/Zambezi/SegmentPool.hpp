@@ -16,7 +16,7 @@ namespace Zambezi
 class SegmentPool
 {
 public:
-    SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse);
+    SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools);
 
     ~SegmentPool();
 
@@ -33,15 +33,13 @@ public:
 
     size_t nextPointer(size_t pointer) const;
 
-    size_t nextPointer(size_t pointer, uint32_t pivot) const;
+    size_t nextPointer(size_t pointer, uint32_t pivot, uint32_t reverse) const;
 
 public:
     uint32_t maxPoolSize_;
     uint32_t numberOfPools_;
     uint32_t segment_;
     uint32_t offset_;
-
-    bool reverse_;
 
     std::vector<boost::shared_array<uint32_t> > pool_;
 };

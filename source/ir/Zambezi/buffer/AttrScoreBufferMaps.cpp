@@ -1,4 +1,5 @@
 #include <ir/Zambezi/buffer/AttrScoreBufferMaps.hpp>
+#include <ir/Zambezi/Utils.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -17,7 +18,7 @@ AttrScoreBufferMaps::~AttrScoreBufferMaps()
 {
 }
 
-void AttrScoreBufferMaps::save(std::ostream& ostr) const
+void AttrScoreBufferMaps::save(std::ostream& ostr, bool reverse) const
 {
     ostr.write((const char*)&capacity, sizeof(capacity));
 
@@ -31,19 +32,28 @@ void AttrScoreBufferMaps::save(std::ostream& ostr) const
             break;
         }
 
-        uint32_t buffer_cap = buffer[termNum]->capacity();
+        uint32_t buffer_cap = buffer[termNum][0];
         ostr.write((const char*)&buffer_cap, sizeof(buffer_cap));
 
-        uint32_t size = buffer[termNum]->size();
+        uint32_t size = buffer[termNum][1];
         ostr.write((const char*)&size, sizeof(size));
 
-        ostr.write((const char*)&(*buffer[termNum])[0], sizeof((*buffer[0])[0]) * size);
+        if (reverse)
+        {
+            ostr.write((const char*)&buffer[termNum][4 + buffer_cap - size], sizeof(buffer[0][0]) * size);
+            ostr.write((const char*)&buffer[termNum][4 + buffer_cap * 2 - size], sizeof(buffer[0][0]) * size);
+        }
+        else
+        {
+            ostr.write((const char*)&buffer[termNum][4], sizeof(buffer[0][0]) * size);
+            ostr.write((const char*)&buffer[termNum][4 + buffer_cap], sizeof(buffer[0][0]) * size);
+        }
     }
 
     ostr.write((const char*)&tailPointer[0], sizeof(tailPointer[0]) * termNum);
 }
 
-void AttrScoreBufferMaps::load(std::istream& istr)
+void AttrScoreBufferMaps::load(std::istream& istr, bool reverse)
 {
     istr.read((char*)&capacity, sizeof(capacity));
     flags.reset(new boost::atomic_flag[capacity]);
@@ -57,13 +67,23 @@ void AttrScoreBufferMaps::load(std::istream& istr)
 
         if (buffer_cap == 0) break;
 
-        resetBuffer(termNum, buffer_cap, false);
+        resetBuffer(termNum, buffer_cap, reverse, false);
 
         uint32_t size = 0;
         istr.read((char*)&size, sizeof(size));
-        buffer[termNum]->resize(size);
 
-        istr.read((char*)&(*buffer[termNum])[0], sizeof((*buffer[0])[0]) * size);
+        if (reverse)
+        {
+            istr.read((char*)&buffer[termNum][4 + buffer_cap - size], sizeof(buffer[0][0]) * size);
+            istr.read((char*)&buffer[termNum][4 + buffer_cap * 2 - size], sizeof(buffer[0][0]) * size);
+        }
+        else
+        {
+            istr.read((char*)&buffer[termNum][4], sizeof(buffer[0][0]) * size);
+            istr.read((char*)&buffer[termNum][4 + buffer_cap], sizeof(buffer[0][0]) * size);
+        }
+
+        buffer[termNum][1] = size;
     }
 
     tailPointer.resize(capacity, UNDEFINED_POINTER);
@@ -99,27 +119,46 @@ uint32_t AttrScoreBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
             return UNDEFINED_OFFSET;
         }
     }
-    while (!buffer[pos] || buffer[pos]->empty() || buffer[pos]->capacity() <= minLength);
+    while (!buffer[pos] || buffer[pos][1] == 0 || buffer[pos][0] <= minLength);
 
     return pos;
 }
 
-boost::shared_ptr<AttrScoreBufferMaps::PostingType> AttrScoreBufferMaps::getBuffer(uint32_t id) const
+boost::shared_array<uint32_t> AttrScoreBufferMaps::getBuffer(uint32_t id) const
 {
     boost::atomic_flag& flag = flags[id];
     while (flag.test_and_set());
-    boost::shared_ptr<PostingType> res(buffer[id]);
+    boost::shared_array<uint32_t> res(buffer[id]);
     flag.clear();
 
     return res;
 }
 
-void AttrScoreBufferMaps::resetBuffer(uint32_t id, size_t new_size, bool copy)
+void AttrScoreBufferMaps::resetBuffer(uint32_t id, uint32_t new_cap, bool reverse, bool copy)
 {
-    boost::shared_ptr<PostingType>& old_buffer = buffer[id];
-    boost::shared_ptr<PostingType> new_buffer(new PostingType);
-    new_buffer->reserve(new_size);
-    if (copy && old_buffer) new_buffer->assign(old_buffer->begin(), old_buffer->end());
+    boost::shared_array<uint32_t> new_buffer(getAlignedIntArray(new_cap * 2 + 4, 16));
+    memset(&new_buffer[1], 0, sizeof(new_buffer[0]) * (new_cap * 2 + 3));
+    new_buffer[0] = new_cap;
+
+    boost::shared_array<uint32_t>& old_buffer = buffer[id];
+    if (copy && old_buffer && old_buffer[1] > 0)
+    {
+        uint32_t old_cap = old_buffer[0];
+        uint32_t old_size = old_buffer[1];
+
+        new_buffer[1] = old_size;
+
+        if (reverse)
+        {
+            memcpy(&new_buffer[4 + new_cap - old_size], &old_buffer[4 + old_cap - old_size], sizeof(new_buffer[0]) * old_size);
+            memcpy(&new_buffer[4 + new_cap * 2 - old_size], &old_buffer[4 + old_cap * 2 - old_size], sizeof(new_buffer[0]) * old_size);
+        }
+        else
+        {
+            memcpy(&new_buffer[4], &old_buffer[4], sizeof(new_buffer[0]) * old_size);
+            memcpy(&new_buffer[4 + new_cap], &old_buffer[4 + old_cap], sizeof(new_buffer[0]) * old_size);
+        }
+    }
 
     boost::atomic_flag& flag = flags[id];
     while (flag.test_and_set());

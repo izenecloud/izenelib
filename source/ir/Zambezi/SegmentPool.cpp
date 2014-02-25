@@ -11,12 +11,11 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-SegmentPool::SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
+SegmentPool::SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools)
     : maxPoolSize_(maxPoolSize)
     , numberOfPools_(numberOfPools)
     , segment_(0)
     , offset_(0)
-    , reverse_(reverse)
     , pool_(numberOfPools)
 {
 }
@@ -31,7 +30,6 @@ void SegmentPool::save(std::ostream& ostr) const
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
     ostr.write((const char*)&segment_, sizeof(segment_));
     ostr.write((const char*)&offset_, sizeof(offset_));
-    ostr.write((const char*)&reverse_, sizeof(reverse_));
 
     for (size_t i = 0; i < segment_; ++i)
     {
@@ -46,7 +44,6 @@ void SegmentPool::load(std::istream& istr)
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
     istr.read((char*)&segment_, sizeof(segment_));
     istr.read((char*)&offset_, sizeof(offset_));
-    istr.read((char*)&reverse_, sizeof(reverse_));
 
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
@@ -120,7 +117,7 @@ size_t SegmentPool::nextPointer(size_t pointer) const
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
 
-size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
+size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot, uint32_t reverse) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -128,7 +125,7 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_))
+    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse))
     {
         uint32_t oldSegment = pSegment;
         uint32_t oldOffset = pOffset;

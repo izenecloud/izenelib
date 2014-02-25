@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <immintrin.h>
 
 
 NS_IZENELIB_IR_BEGIN

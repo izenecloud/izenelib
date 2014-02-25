@@ -6,14 +6,10 @@
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
 #include "buffer/AttrScoreBufferMaps.hpp"
-#include "Utils.hpp"
 #include "Consts.hpp"
-#include <util/compression/int/fastpfor/simdbinarypacking.h>
-#include <util/sse2_search.h>
-#include <util/ClockTimer.h>
+
 #include <iostream>
 #include <vector>
-#include <glog/logging.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -59,7 +55,7 @@ public:
 
 private:
     void processTermBuffer_(
-            AttrScoreBufferMaps::PostingType& posting,
+            boost::shared_array<uint32_t>& posting,
             size_t& tailPointer,
             size_t& headPointer);
 
@@ -71,11 +67,9 @@ private:
             size_t nextPointer);
 
     uint32_t decompressDocidBlock_(
-            SIMDBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     uint32_t decompressScoreBlock_(
-            SIMDBinaryPacking& codec,
             uint32_t* outBlock, size_t pointer) const;
 
     void intersectSvS_(
@@ -88,9 +82,8 @@ private:
             std::vector<float>& score_list) const;
 
     bool unionIterate_(
-            SIMDBinaryPacking& codec,
             bool& in_buffer,
-            const boost::shared_ptr<AttrScoreBufferMaps::PostingType>& buffer,
+            const uint32_t* buffer,
             uint32_t* docid_seg,
             uint32_t* score_seg,
             uint32_t pivot,
@@ -101,7 +94,6 @@ private:
             uint32_t& score) const;
 
     void intersectPostingsLists_(
-            SIMDBinaryPacking& codec,
             const FilterBase* filter,
             uint32_t term0,
             uint32_t term1,
@@ -112,7 +104,6 @@ private:
             uint32_t hits) const;
 
     void intersectSetPostingsList_(
-            SIMDBinaryPacking& codec,
             uint32_t term,
             int weight,
             std::vector<uint32_t>& docid_list,
@@ -124,10 +115,10 @@ private:
     Dictionary<std::string> dictionary_;
     Pointers pointers_;
 
-    SIMDBinaryPacking codec_;
+    bool reverse_;
 
     static const size_t BUFFER_SIZE = 4096;
-    boost::shared_array<uint32_t> segment_;
+    uint32_t segment_[BUFFER_SIZE] __attribute__((aligned(16)));
 };
 
 }

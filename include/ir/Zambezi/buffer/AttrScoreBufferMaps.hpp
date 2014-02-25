@@ -26,8 +26,8 @@ public:
     AttrScoreBufferMaps(uint32_t initialSize);
     ~AttrScoreBufferMaps();
 
-    void save(std::ostream& ostr) const;
-    void load(std::istream& istr);
+    void save(std::ostream& ostr, bool reverse) const;
+    void load(std::istream& istr, bool reverse);
 
     /**
      * Expand buffer maps' capacities by a factor of 2
@@ -46,22 +46,9 @@ public:
      */
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
-    struct ElemType
-    {
-        uint32_t docid;
-        uint32_t score;
+    boost::shared_array<uint32_t> getBuffer(uint32_t id) const;
 
-        ElemType() : docid(), score() {}
-        ElemType(uint32_t id, uint32_t sc) : docid(id), score(sc) {}
-
-        operator uint32_t() const { return docid; }
-    };
-
-    typedef std::vector<ElemType> PostingType;
-
-    boost::shared_ptr<PostingType> getBuffer(uint32_t id) const;
-
-    void resetBuffer(uint32_t id, size_t new_size, bool copy = true);
+    void resetBuffer(uint32_t id, uint32_t new_cap, bool reverse, bool copy);
 
 public:
     // Current capacity (number of vocabulary terms)
@@ -69,7 +56,7 @@ public:
 
     boost::shared_array<boost::atomic_flag> flags;
     // Docid buffer map
-    std::vector<boost::shared_ptr<PostingType> > buffer;
+    std::vector<boost::shared_array<uint32_t> > buffer;
     // Table of tail pointers for vocabulary terms
     std::vector<size_t> tailPointer;
 };

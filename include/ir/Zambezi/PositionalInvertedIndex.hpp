@@ -173,6 +173,8 @@ private:
     uint32_t nbHash_;
     uint32_t bitsPerElement_;
 
+    bool reverse_;
+
     FastPFor codec_;
 
     static const size_t BUFFER_SIZE = 4096;
