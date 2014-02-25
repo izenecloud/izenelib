@@ -697,7 +697,11 @@ private:
         CacheValueType cache_value;
         bool b_cache = getCacheValue_(key, cache_value);
         if (!b_db && !b_cache) return false;
-        decompress_(*compressed, value);
+
+        if (compressed != NULL)
+        {
+            decompress_(*compressed, value);
+        }
         if (b_cache)
         {
             applyCacheValue_(value, cache_value);
