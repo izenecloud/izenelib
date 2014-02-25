@@ -78,6 +78,15 @@ ADD_EXECUTABLE(t_EWAHTermDocFreqs ${t_EWAHTermDocFreqs_SRC})
 
 TARGET_LINK_LIBRARIES(t_EWAHTermDocFreqs ${libs})
 
+SET(t_BitsetTermDocFreqs_SRC
+  t_BitsetTermDocFreqs.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_BitsetTermDocFreqs ${t_BitsetTermDocFreqs_SRC})
+
+TARGET_LINK_LIBRARIES(t_BitsetTermDocFreqs ${libs})
+
 SET(t_indexsort_SRC
   t_indexsort.cpp
   t_master_suite.cpp

@@ -1,6 +1,7 @@
 #ifndef IZENELIB_IR_BITSET_H
 #define IZENELIB_IR_BITSET_H
 
+#include <types.h>
 #include <ir/index_manager/store/Directory.h>
 #include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>

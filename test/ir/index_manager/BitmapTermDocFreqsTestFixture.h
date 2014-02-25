@@ -1,21 +1,19 @@
-#ifndef EWAH_TERM_DOC_FREQS_TEST_FIXTURE_H
-#define EWAH_TERM_DOC_FREQS_TEST_FIXTURE_H
+#ifndef BITMAP_TERM_DOC_FREQS_TEST_FIXTURE_H
+#define BITMAP_TERM_DOC_FREQS_TEST_FIXTURE_H
 
-#include <am/bitmap/ewah.h>
-#include <ir/index_manager/utility/EWAHTermDocFreqs.h>
+#include <ir/index_manager/utility/system.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <boost/test/unit_test.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <vector>
 
-template <typename word_t>
-class EWAHTermDocFreqsTestFixture
+template <class bitmap_t, class iter_t>
+class BitmapTermDocFreqsTestFixture
 {
 public:
-    typedef izenelib::am::EWAHBoolArray<word_t> bitmap_t;
-    typedef izenelib::ir::indexmanager::EWAHTermDocFreqs<word_t> iter_t;
     typedef izenelib::ir::indexmanager::docid_t docid_t;
 
-    EWAHTermDocFreqsTestFixture();
+    BitmapTermDocFreqsTestFixture();
 
     void testDocFreq();
 
@@ -28,8 +26,8 @@ private:
     boost::scoped_ptr<iter_t> iter_;
 };
 
-template <typename word_t>
-EWAHTermDocFreqsTestFixture<word_t>::EWAHTermDocFreqsTestFixture()
+template <class bitmap_t, class iter_t>
+BitmapTermDocFreqsTestFixture<bitmap_t, iter_t>::BitmapTermDocFreqsTestFixture()
 {
     docid_t docids[] = {1, 3, 4, 10, 15, 200, 355, 489, 678, 1234};
     int num = sizeof(docids) / sizeof(docids[0]);
@@ -46,14 +44,14 @@ EWAHTermDocFreqsTestFixture<word_t>::EWAHTermDocFreqsTestFixture()
     iter_.reset(new iter_t(pBitMap));
 }
 
-template <typename word_t>
-void EWAHTermDocFreqsTestFixture<word_t>::testDocFreq()
+template <class bitmap_t, class iter_t>
+void BitmapTermDocFreqsTestFixture<bitmap_t, iter_t>::testDocFreq()
 {
     BOOST_CHECK_EQUAL(iter_->docFreq(), docids_.size());
 }
 
-template <typename word_t>
-void EWAHTermDocFreqsTestFixture<word_t>::testNext()
+template <class bitmap_t, class iter_t>
+void BitmapTermDocFreqsTestFixture<bitmap_t, iter_t>::testNext()
 {
     for (std::vector<docid_t>::const_iterator it = docids_.begin();
          it != docids_.end(); ++it)
@@ -66,8 +64,8 @@ void EWAHTermDocFreqsTestFixture<word_t>::testNext()
     BOOST_CHECK_EQUAL(iter_->doc(), BAD_DOCID);
 }
 
-template <typename word_t>
-void EWAHTermDocFreqsTestFixture<word_t>::testSkipTo()
+template <class bitmap_t, class iter_t>
+void BitmapTermDocFreqsTestFixture<bitmap_t, iter_t>::testSkipTo()
 {
     docid_t skipTestData[][2] = {
         {1, 1},       // hit
@@ -99,4 +97,4 @@ void EWAHTermDocFreqsTestFixture<word_t>::testSkipTo()
     BOOST_CHECK_EQUAL(iter_->doc(), BAD_DOCID);
 }
 
-#endif // EWAH_TERM_DOC_FREQS_TEST_FIXTURE_H
+#endif // BITMAP_TERM_DOC_FREQS_TEST_FIXTURE_H
