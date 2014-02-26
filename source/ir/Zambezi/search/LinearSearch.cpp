@@ -14,8 +14,8 @@ uint32_t linearSearch(
         uint32_t index,
         uint32_t pivot)
 {
-    if (index >= count || LESS_THAN(block[count - 1], pivot, reverse))
-        return INVALID_ID;
+//  if (index >= count || LESS_THAN(block[count - 1], pivot, reverse))
+//      return INVALID_ID;
 
     __m128i pivot4 = _mm_set1_epi32(pivot);
     const uint32_t* tmp = block + index;

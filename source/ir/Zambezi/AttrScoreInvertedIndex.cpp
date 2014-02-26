@@ -110,26 +110,25 @@ void AttrScoreInvertedIndex::insertDoc(
 
         boost::shared_array<uint32_t>& posting = buffer_.buffer[id];
 
-            if (!posting)
-            {
-                buffer_.resetBuffer(id, DF_CUTOFF, reverse_, false);
-            }
+        if (!posting)
+        {
+            buffer_.resetBuffer(id, DF_CUTOFF, reverse_, false);
+        }
 
-            if (reverse_)
-            {
-                posting[3 + posting[0] - posting[1]] = docid;
-                posting[3 + 2 * posting[0] - posting[1]] = score_list[i];
-            }
-            else
-            {
-                posting[4 + posting[1]] = docid;
-                posting[4 + posting[0] + posting[1]] = score_list[i];
-            }
-            ++posting[1];
+        if (reverse_)
+        {
+            posting[3 + posting[0] - posting[1]] = docid;
+            posting[3 + 2 * posting[0] - posting[1]] = score_list[i];
+        }
+        else
+        {
+            posting[4 + posting[1]] = docid;
+            posting[4 + posting[0] + posting[1]] = score_list[i];
+        }
+        ++posting[1];
 
-            pointers_.df.increment(id);
-            pointers_.cf.increment(id);
-
+        pointers_.df.increment(id);
+        pointers_.cf.increment(id);
 
         if (posting[0] == posting[1])
         {
@@ -353,6 +352,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
         uint32_t* score_seg,
         uint32_t pivot,
         uint32_t& count,
+        uint32_t& tail,
         uint32_t& index,
         size_t& pointer,
         uint32_t& docid,
@@ -360,7 +360,8 @@ bool AttrScoreInvertedIndex::unionIterate_(
 {
     if (in_buffer)
     {
-        if ((index = linearSearch(buffer, reverse_, count, index, pivot)) == INVALID_ID)
+        if (index >= count || LESS_THAN(tail, pivot, reverse_)
+                || (index = linearSearch(buffer, reverse_, count, index, pivot)) == INVALID_ID)
         {
             if (!reverse_) return false;
 
@@ -370,6 +371,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
             in_buffer = false;
 
             count = decompressDocidBlock_(docid_seg, pointer);
+            tail = docid_seg[count - 1];
             decompressScoreBlock_(score_seg, pointer);
             index = linearSearch(docid_seg, reverse_, count, 0, pivot);
 
@@ -384,15 +386,18 @@ bool AttrScoreInvertedIndex::unionIterate_(
     }
     else
     {
-        if ((index = linearSearch(docid_seg, reverse_, count, index, pivot)) == INVALID_ID)
+        if (index >= count || LESS_THAN(tail, pivot, reverse_)
+                || (index = linearSearch(docid_seg, reverse_, count, index, pivot)) == INVALID_ID)
         {
             if ((pointer = pool_.nextPointer(pointer, pivot, reverse_)) == UNDEFINED_POINTER)
             {
                 if (reverse_) return false;
 
                 count = buffer[-3];
+                tail = buffer[count - 1];
 
-                if ((index = linearSearch(buffer, reverse_, count, 0, pivot)) == INVALID_ID)
+                if (count == 0 || LESS_THAN(tail, pivot, reverse_)
+                        || (index = linearSearch(buffer, reverse_, count, 0, pivot)) == INVALID_ID)
                     return false;
 
                 in_buffer = true;
@@ -404,6 +409,7 @@ bool AttrScoreInvertedIndex::unionIterate_(
             }
 
             count = decompressDocidBlock_(docid_seg, pointer);
+            tail = docid_seg[count - 1];
             decompressScoreBlock_(score_seg, pointer);
             index = linearSearch(docid_seg, reverse_, count, 0, pivot);
         }
@@ -440,58 +446,50 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     const uint32_t* docBuffer1 = &buffer1[4];
 
     uint32_t c0 = reverse_ ? buffer0[0] : 0, c1 = reverse_ ? buffer1[0] : 0;
+    uint32_t t0 = reverse_ ? buffer0[c0 + 3] : 0, t1 = reverse_ ? buffer1[c1 + 3] : 0;
     uint32_t i0 = reverse_ ? buffer0[0] - buffer0[1] : 0, i1 = reverse_ ? buffer1[0] - buffer1[1] : 0;
 
     uint32_t id0 = 0, id1 = 0;
     uint32_t sc0 = 0, sc1 = 0;
 
     bool in_buffer0 = reverse_, in_buffer1 = reverse_;
-    uint32_t eligible = filter->find_first(reverse_);
+    id1 = filter->find_first(reverse_);
 
-    if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+    if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, id1, c0, t0, i0, pointer0, id0, sc0))
         return;
 
-    if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, reverse_)) == INVALID_ID)
-        return;
-
-    if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+    if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, id0, c1, t1, i1, pointer1, id1, sc1))
         return;
 
     while (true)
     {
         if (id0 == id1)
         {
-            docid_list.push_back(id0);
-            score_list.push_back(sc0 * weight0 + sc1 * weight1);
-            if (score_list.size() == hits)
+            if (filter->test(id0))
+            {
+                docid_list.push_back(id0);
+                score_list.push_back(sc0 * weight0 + sc1 * weight1);
+
+                if (docid_list.size() == hits) break;
+            }
+
+            if ((id1 = filter->find_next(id0, reverse_)) == INVALID_ID)
                 break;
 
-            if ((eligible = filter->find_next(id0, reverse_)) == INVALID_ID)
-                break;
-
-            if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+            if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, id1, c0, t0, i0, pointer0, id0, sc0))
                 return;
 
-            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, reverse_)) == INVALID_ID)
-                return;
-
-            if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+            if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, id0, c1, t1, i1, pointer1, id1, sc1))
                 return;
         }
         else if (LESS_THAN(id0, id1, reverse_))
         {
-            if ((eligible = filter->test(id1) ? id1 : filter->find_next(id1, reverse_)) == INVALID_ID)
-                break;
-
-            if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, eligible, c0, i0, pointer0, id0, sc0))
+            if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, id1, c0, t0, i0, pointer0, id0, sc0))
                 return;
         }
         else
         {
-            if ((eligible = filter->test(id0) ? id0 : filter->find_next(id0, reverse_)) == INVALID_ID)
-                break;
-
-            if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, eligible, c1, i1, pointer1, id1, sc1))
+            if (!unionIterate_(in_buffer1, docBuffer1, blockDocid1, blockScore1, id0, c1, t1, i1, pointer1, id1, sc1))
                 return;
         }
     }
@@ -512,15 +510,20 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     boost::shared_array<uint32_t> buffer(buffer_.getBuffer(term));
     const uint32_t* docBuffer = &buffer[4];
 
-    uint32_t c = reverse_ ? buffer[0] : 0, i = reverse_ ? buffer[0] - buffer[1] : 0;
+    uint32_t c = reverse_ ? buffer[0] : 0;
+    uint32_t t = reverse_ ? buffer[c + 3] : 0;
+    uint32_t i = reverse_ ? buffer[0] - buffer[1] : 0;
     uint32_t id = 0, sc = 0;
+    uint32_t iCount = docid_list.size();
+    uint32_t tail = docid_list.back();
 
     bool in_buffer = reverse_;
 
-    if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
+    if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, docid_list[iCurrent], c, t, i, pointer, id, sc))
         return;
 
-    if ((iCurrent = linearSearch(&docid_list[0], reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
+    if (iCurrent >= iCount || LESS_THAN(tail, id, reverse_)
+            || (iCurrent = linearSearch(&docid_list[0], reverse_, iCount, iCurrent, id)) == INVALID_ID)
         return;
 
     while (true)
@@ -534,11 +537,12 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
                 break;
         }
 
-        if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, docid_list[iCurrent], c, i, pointer, id, sc))
+        if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, docid_list[iCurrent], c, t, i, pointer, id, sc))
             break;
 
-        if ((iCurrent = linearSearch(&docid_list[0], reverse_, docid_list.size(), iCurrent, id)) == INVALID_ID)
-            return;
+        if (iCurrent >= iCount || LESS_THAN(tail, id, reverse_)
+                || (iCurrent = linearSearch(&docid_list[0], reverse_, iCount, iCurrent, id)) == INVALID_ID)
+            break;
     }
 
     docid_list.resize(iSet);
@@ -566,13 +570,15 @@ void AttrScoreInvertedIndex::intersectSvS_(
         boost::shared_array<uint32_t> buffer(buffer_.getBuffer(qTerms[0]));
         const uint32_t* docBuffer = &buffer[4];
         size_t pointer = pointers_.headPointers.get(qTerms[0]);
-        uint32_t c = reverse_ ? buffer[0] : 0, i = reverse_ ? buffer[0] - buffer[1] : 0;
+        uint32_t c = reverse_ ? buffer[0] : 0;
+        uint32_t t = reverse_ ? buffer[c + 3] : 0;
+        uint32_t i = reverse_ ? buffer[0] - buffer[1] : 0;
         uint32_t id = 0, sc = 0;
 
         bool in_buffer = reverse_;
         uint32_t eligible = filter->find_first(reverse_);
 
-        if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
+        if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, eligible, c, t, i, pointer, id, sc))
             return;
 
         if ((eligible = filter->test(id) ? id : filter->find_next(id, reverse_)) == INVALID_ID)
@@ -592,7 +598,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
                     break;
             }
 
-            if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, eligible, c, i, pointer, id, sc))
+            if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, eligible, c, t, i, pointer, id, sc))
                 break;
 
             if ((eligible = filter->test(id) ? id : filter->find_next(id, reverse_)) == INVALID_ID)
