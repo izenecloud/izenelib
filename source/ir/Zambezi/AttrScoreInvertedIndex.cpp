@@ -431,10 +431,10 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
         std::vector<float>& score_list,
         uint32_t hits) const
 {
-    uint32_t blockDocid0[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
-    uint32_t blockDocid1[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
-    uint32_t blockScore0[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
-    uint32_t blockScore1[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
+    uint32_t blockDocid0[BP_BLOCK_SIZE + 15] __attribute__((aligned(16)));
+    uint32_t blockDocid1[BP_BLOCK_SIZE + 15] __attribute__((aligned(16)));
+    uint32_t blockScore0[BP_BLOCK_SIZE] __attribute__((aligned(16)));
+    uint32_t blockScore1[BP_BLOCK_SIZE] __attribute__((aligned(16)));
 
     size_t pointer0 = pointers_.headPointers.get(term0);
     size_t pointer1 = pointers_.headPointers.get(term1);
@@ -504,8 +504,8 @@ void AttrScoreInvertedIndex::intersectSetPostingsList_(
     uint32_t iSet = 0, iCurrent = 0;
 
     size_t pointer = pointers_.headPointers.get(term);
-    uint32_t blockDocid[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
-    uint32_t blockScore[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
+    uint32_t blockDocid[BP_BLOCK_SIZE + 15] __attribute__((aligned(16)));
+    uint32_t blockScore[BP_BLOCK_SIZE] __attribute__((aligned(16)));
 
     boost::shared_array<uint32_t> buffer(buffer_.getBuffer(term));
     const uint32_t* docBuffer = &buffer[4];
@@ -560,11 +560,11 @@ void AttrScoreInvertedIndex::intersectSvS_(
 {
     if (qTerms.size() == 1)
     {
-        uint32_t blockDocid[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
-        uint32_t blockScore[BP_BLOCK_SIZE + 16] __attribute__((aligned(16)));
+        uint32_t blockDocid[BP_BLOCK_SIZE + 15] __attribute__((aligned(16)));
+        uint32_t blockScore[BP_BLOCK_SIZE] __attribute__((aligned(16)));
         uint32_t length = std::min(minDf, hits);
 
-        docid_list.reserve(length);
+        docid_list.reserve(length + 15);
         score_list.reserve(length);
 
         boost::shared_array<uint32_t> buffer(buffer_.getBuffer(qTerms[0]));
@@ -608,7 +608,7 @@ void AttrScoreInvertedIndex::intersectSvS_(
         return;
     }
 
-    docid_list.reserve(minDf);
+    docid_list.reserve(minDf + 15);
     score_list.reserve(minDf);
 
     intersectPostingsLists_(filter, qTerms[0], qTerms[1], qScores[0], qScores[1], docid_list, score_list, hits);
