@@ -2,14 +2,11 @@
 #define _FM_INDEX_RANGE_LIST_HPP
 
 #include "wavelet_tree_node.hpp"
+#include <util/mem_utils.h>
+
 #include <boost/memory.hpp>
-
 #include <boost/tuple/tuple.hpp>
-#include <stdlib.h>
-#include <memory>
 
-
-#define CACHELINE_SIZE 64
 
 NS_IZENELIB_AM_BEGIN
 

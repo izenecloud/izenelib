@@ -2,6 +2,7 @@
 #define IZENELIB_IR_BITSET_H
 
 #include <types.h>
+#include <util/mem_utils.h>
 #include <ir/index_manager/store/Directory.h>
 #include <am/bitmap/ewah.h>
 #include <boost/detail/endian.hpp>
@@ -153,16 +154,6 @@ private:
      */
     void grow(size_t size);
 
-    template <class T>
-    static inline T* getAlignedArray(size_t size)
-    {
-        T* block;
-        if (posix_memalign((void**)&block, 64, size * sizeof(T)))
-            block = (T*)malloc(size * sizeof(T));
-        memset(block, 0, size * sizeof(T));
-        return block;
-    }
-
     friend class boost::serialization::access;
     template<class Archive>
     void save(Archive & ar, const unsigned int version)  const
@@ -183,8 +174,9 @@ private:
         ar & capacity;
         if (capacity != capacity_)
         {
-            uint64_t* newBits = getAlignedArray<uint64_t>(capacity);
-            bits_.reset(newBits);
+            uint64_t* newBits = cachealign_alloc<uint64_t>(capacity);
+            memset(newBits, 0, capacity * sizeof(uint64_t));
+            bits_.reset(newBits, cachealign_deleter());
             capacity_ = capacity;
         }
         ar.load_binary(bits_.get(), block_num(size_) * sizeof(uint64_t));

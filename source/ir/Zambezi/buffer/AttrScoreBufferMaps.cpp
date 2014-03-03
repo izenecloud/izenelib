@@ -1,6 +1,8 @@
 #include <ir/Zambezi/buffer/AttrScoreBufferMaps.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <util/mem_utils.h>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace Zambezi
@@ -136,7 +138,7 @@ boost::shared_array<uint32_t> AttrScoreBufferMaps::getBuffer(uint32_t id) const
 
 void AttrScoreBufferMaps::resetBuffer(uint32_t id, uint32_t new_cap, bool reverse, bool copy)
 {
-    boost::shared_array<uint32_t> new_buffer(getAlignedIntArray(new_cap * 2 + 4, 16));
+    boost::shared_array<uint32_t> new_buffer(cachealign_alloc<uint32_t>(new_cap * 2 + 4, 16), cachealign_deleter());
     memset(&new_buffer[1], 0, sizeof(new_buffer[0]) * (new_cap * 2 + 3));
     new_buffer[0] = new_cap;
 

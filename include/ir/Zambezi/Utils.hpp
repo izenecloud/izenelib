@@ -4,7 +4,6 @@
 #include "Consts.hpp"
 
 #include <cmath>
-#include <cstdlib>
 #include <immintrin.h>
 
 
@@ -48,14 +47,6 @@ inline float default_bm25tf(uint32_t tf, uint32_t docLen, float avgDocLen)
 inline float default_bm25(uint32_t tf, uint32_t df, uint32_t numDocs, uint32_t docLen, float avgDocLen)
 {
     return default_bm25tf(tf, docLen, avgDocLen) * idf(numDocs, df);
-}
-
-inline uint32_t* getAlignedIntArray(size_t size, size_t alignment = 0x200000LU)
-{
-    uint32_t* block;
-    if (posix_memalign((void**)&block, alignment, size * sizeof(uint32_t)))
-        block = (uint32_t*)malloc(size * sizeof(uint32_t));
-    return block;
 }
 
 }

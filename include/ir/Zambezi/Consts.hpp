@@ -16,9 +16,10 @@ static const uint32_t BP_BLOCK_SIZE = 16 * BLOCK_SIZE;
 static const uint32_t MAX_BLOCK_SIZE = 32 * BLOCK_SIZE;
 
 // Pool size
-static const size_t MAX_POOL_SIZE = 1UL << 30; // 4GiB memory in default
+static const size_t MAX_POOL_SIZE = 1ULL << 30; // 4GiB memory in default
 // Number of pools in segment pool
 static const uint32_t NUMBER_OF_POOLS = 16;
+static const size_t HUGEPAGE_SIZE = 1ULL << 21; // 2MiB
 
 // Document Frequency cutoff
 static const uint32_t DF_CUTOFF = 16;

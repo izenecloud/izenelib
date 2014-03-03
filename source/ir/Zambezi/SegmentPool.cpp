@@ -2,6 +2,8 @@
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <util/mem_utils.h>
+
 #include <algorithm>
 #include <cstring>
 
@@ -50,13 +52,13 @@ void SegmentPool::load(std::istream& istr)
     {
         if (!pool_[i])
         {
-            pool_[i].reset(getAlignedIntArray(maxPoolSize_));
+            pool_[i].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
         }
         istr.read((char *)&pool_[i][0], sizeof(pool_[0][0]) * maxPoolSize_);
     }
     if (!pool_[segment_])
     {
-        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+        pool_[segment_].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
     }
     istr.read((char*)&pool_[segment_][0], sizeof(pool_[0][0]) * offset_);
 }
@@ -78,7 +80,7 @@ size_t SegmentPool::appendSegment(
 
     if (!pool_[segment_])
     {
-        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+        pool_[segment_].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
     }
 
     pool_[segment_][offset_] = reqspace;
