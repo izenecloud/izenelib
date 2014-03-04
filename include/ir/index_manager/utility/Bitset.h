@@ -38,11 +38,16 @@ public:
     size_t count(size_t start, size_t end) const;
 
     void set(size_t pos);
+    void set(size_t start, size_t end);
     void set();
     void reset(size_t pos);
+    void reset(size_t start, size_t end);
     void reset();
     void flip(size_t pos);
+    void flip(size_t start, size_t end);
     void flip();
+
+    void copy_segment(const void* src, size_t start, size_t len);
 
     size_t find_first() const;
     size_t find_next(size_t pos) const;
@@ -79,10 +84,10 @@ public:
     }
 
     template <typename word_t>
-    void importFromEWAH(const EWAHBoolArray<word_t>& ewahBitmap)
+    void decompress(const EWAHBoolArray<word_t>& ewahBitmap)
     {
-        size_t pointer(0);
-        size_t pos(0);
+        size_t pointer = 0;
+        size_t pos = 0;
         const size_t wordBitNum = sizeof(word_t) << 3;
         const std::vector<word_t>& buffer = ewahBitmap.getBuffer();
 
@@ -91,31 +96,16 @@ public:
             ConstRunningLengthWord<word_t> rlw(buffer[pointer]);
             const size_t rlen = rlw.getRunningLength() * wordBitNum;
 
-            if (rlw.getRunningBit())
-            {
-                for (size_t bi = 0; bi < rlen; ++bi)
-                {
-                    set(pos + bi);
-                }
-            }
+            if (rlw.getRunningBit()) set(pos, pos + rlen);
 
             pos += rlen;
             ++pointer;
 
             const size_t literalWordNum = rlw.getNumberOfLiteralWords();
-            for (size_t wi = 0; wi < literalWordNum; ++wi, ++pointer)
-            {
-                const word_t currentWord = buffer[pointer];
-                word_t mask = 1;
-                for (size_t bi = 0; bi < wordBitNum; ++bi, ++pos)
-                {
-                    if (currentWord & mask)
-                    {
-                        set(pos);
-                    }
-                    mask <<= 1;
-                }
-            }
+            copy_segment(&buffer[pointer], pos, literalWordNum * wordBitNum);
+
+            pos += literalWordNum * wordBitNum;
+            pointer += literalWordNum;
         }
     }
 
@@ -148,6 +138,8 @@ private:
      */
     void clear_dirty_bits();
 
+    uint64_t tail_bits(const void* data, size_t len) const;
+
     /**
      * Grow @p bits_ to contain @p size bits.
      * @param size the number of bits
@@ -156,7 +148,7 @@ private:
 
     friend class boost::serialization::access;
     template<class Archive>
-    void save(Archive & ar, const unsigned int version)  const
+    void save(Archive & ar, const unsigned int version) const
     {
         ar & size_;
         ar & capacity_;
