@@ -97,44 +97,6 @@ public:
         is.read((char*)&vs[0], sizeof(vs[0]) * size);
     }
 
-#if defined(__GNUC__) && __GNUC_PREREQ(2, 2)
-#define __USE_POSIX_MEMALIGN__
-#endif
-
-#ifdef __USE_POSIX_MEMALIGN__
-    template <class T>
-    static T *cachealign_alloc(size_t alignment, size_t size)
-    {
-        __assert(size != 0);
-        T *p;
-        /* NOTE: *lev2 is 64B-aligned so as to avoid cache-misses */
-        int ret = posix_memalign((void **)&p, alignment, size * sizeof(T));
-        if (ret) p = (T*)malloc(size * sizeof(T));
-        memset(p, 0, size * sizeof(T));
-        return p;
-    }
-
-    static void cachealign_free(uint64_t *p)
-    {
-        if (p) free(p);
-    }
-#else
-    template <class T>
-    static T *cachealign_alloc(size_t alignment, size_t size)
-    {
-        __assert(size != 0);
-        /* FIXME: *lev2 NEEDS to be 64B-aligned. */
-        T *p = new T[size];
-        memset(p, 0, size * sizeof(T));
-        return p;
-    }
-
-    static void cachealign_free(uint64_t *p)
-    {
-        if (p) delete[] p;
-    }
-#endif /* __USE_POSIX_MEMALIGN__ */
-
 private:
     static const uint8_t kSelectPos_[8][256];
 };

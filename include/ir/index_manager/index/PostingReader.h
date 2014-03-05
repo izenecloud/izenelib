@@ -14,8 +14,10 @@
 
 NS_IZENELIB_IR_BEGIN
 
-namespace indexmanager{
-class BitVector;
+namespace indexmanager
+{
+
+class Bitset;
 struct PostingReader
 {
 public:
@@ -33,8 +35,8 @@ public:
      * @post return value <= @p nMaxDocs
      */
     virtual int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
+        uint32_t* pPosting,
+        int32_t length,
         int32_t nMaxDocs) = 0;
 
     /**
@@ -52,35 +54,35 @@ public:
      * @post return value <= @p nMaxDocs
      */
     virtual int32_t DecodeNext(
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        uint32_t* &pPPosting, 
-        int32_t& posBufLength, 
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        uint32_t* &pPPosting,
+        int32_t& posBufLength,
         int32_t& posLength) = 0;
 
     virtual bool DecodeNextPositions(
-        uint32_t* pPosting, 
+        uint32_t* pPosting,
         int32_t length) = 0;
 
     virtual bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
-        int32_t decodeLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
+        int32_t decodeLength,
         int32_t& nCurrentPPosting) = 0;
 
     virtual bool DecodeNextPositions(
-        uint32_t* &pPosting, 
-        int32_t& posBufLength, 
+        uint32_t* &pPosting,
+        int32_t& posBufLength,
         uint32_t* pFreqs,
-        int32_t nFreqs, 
+        int32_t nFreqs,
         int32_t& nCurrentPPosting) = 0;
 
     virtual void ResetPosition() = 0;
 
     /**
      * Decode the posting of doc and freq to @p target docID
-     * @param target target docID 
+     * @param target target docID
      * @param pPosting the address to store the decoded doc and freq
      * @param length the length of @p pPosting
      * @param nMaxDocs the maximum doc count allowed to decode
@@ -93,18 +95,18 @@ public:
      * @post @p decodedCount <= @p nMaxDocs
      */
     virtual docid_t DecodeTo(
-        docid_t target, 
-        uint32_t* pPosting, 
-        int32_t length, 
-        int32_t nMaxDocs, 
-        int32_t& decodedCount, 
+        docid_t target,
+        uint32_t* pPosting,
+        int32_t length,
+        int32_t nMaxDocs,
+        int32_t& decodedCount,
         int32_t& nCurrentPosting) = 0;
 
     virtual count_t docFreq()const = 0;
 
     virtual int64_t getCTF()const = 0;
 
-    virtual void setFilter(BitVector* pFilter) = 0;
+    virtual void setFilter(Bitset* pFilter) = 0;
 
 protected:
     /**
@@ -114,8 +116,8 @@ protected:
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than this value on return
      */
     static void GrowPosBuffer(
-        uint32_t* &pPPosting, 
-        int32_t& posBufLength, 
+        uint32_t* &pPPosting,
+        int32_t& posBufLength,
         int32_t minBufLength)
     {
         assert(posBufLength < minBufLength);
@@ -138,8 +140,8 @@ protected:
      * @note the upper bound is met as S9 and S16 decoding need at least 28 extra bytes for decompression.
      */
     static void EnsurePosBufferUpperBound(
-        uint32_t* &pPPosting, 
-        int32_t& posBufLength, 
+        uint32_t* &pPPosting,
+        int32_t& posBufLength,
         int32_t minBufLength);
 };
 
@@ -149,4 +151,3 @@ NS_IZENELIB_IR_END
 
 
 #endif
-

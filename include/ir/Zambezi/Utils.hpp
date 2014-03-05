@@ -4,7 +4,7 @@
 #include "Consts.hpp"
 
 #include <cmath>
-#include <cstdlib>
+#include <immintrin.h>
 
 
 NS_IZENELIB_IR_BEGIN
@@ -13,10 +13,10 @@ namespace Zambezi
 {
 
 // Operators defined based on whether or not the postings are backwards
-#define LESS_THAN(X,Y,R) (R == 0 ? (X < Y) : (X > Y))
-#define LESS_THAN_EQUAL(X,Y,R) (R == 0 ? (X <= Y) : (X >= Y))
-#define GREATER_THAN(X,Y,R) (R == 0 ? (X > Y) : (X < Y))
-#define GREATER_THAN_EQUAL(X,Y,R) (R == 0 ? (X >= Y) : (X <= Y))
+#define LESS_THAN(X, Y, R) ((R) ? (X > Y) : (X < Y))
+#define LESS_THAN_EQUAL(X, Y, R) ((R) ? (X >= Y) : (X <= Y))
+#define GREATER_THAN(X, Y, R) ((R) ? (X < Y) : (X > Y))
+#define GREATER_THAN_EQUAL(X, Y, R) ((R) ? (X <= Y) : (X >= Y))
 
 // Functions to encode/decode segment and offset values
 #define DECODE_SEGMENT(P) (uint32_t((P) >> 32))
@@ -47,14 +47,6 @@ inline float default_bm25tf(uint32_t tf, uint32_t docLen, float avgDocLen)
 inline float default_bm25(uint32_t tf, uint32_t df, uint32_t numDocs, uint32_t docLen, float avgDocLen)
 {
     return default_bm25tf(tf, docLen, avgDocLen) * idf(numDocs, df);
-}
-
-inline uint32_t* getAlignedIntArray(size_t size)
-{
-    uint32_t* block;
-    if (posix_memalign((void**)&block, 0x200000LU, size * sizeof(uint32_t)))
-        block = (uint32_t*)malloc(size * sizeof(uint32_t));
-    return block;
 }
 
 }

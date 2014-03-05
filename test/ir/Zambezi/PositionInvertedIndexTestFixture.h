@@ -1,5 +1,5 @@
 /**
-* @file       InvertedIndexTestFixture.h
+* @file       PositionInvertedIndexTestFixture.h
 * @author     Hongliang
 * @version    1.0
 * @brief Fixture to test Inverted Index module.
@@ -23,20 +23,20 @@ namespace Zambezi
     typedef std::map<uint32_t, DocIdListT> DocIDTermMapT;
 
     const unsigned int DefullNum = 5000000;
-    class InvertedIndexTestFixture
+    class PositionInvertedIndexTestFixture
     {
     public:
-        InvertedIndexTestFixture()
+        PositionInvertedIndexTestFixture()
             :index_(NULL)
         {
         }
 
         void initIndex(bool isReverse)
         {
-            index_ = new PositionalInvertedIndex(NON_POSITIONAL, 1 << 28, 4, isReverse);
+            index_ = new PositionalInvertedIndex(NON_POSITIONAL, 1 << 28, 4, 4194304, isReverse);
         }
 
-        ~InvertedIndexTestFixture()
+        ~PositionInvertedIndexTestFixture()
         {
             delete index_;
         }
@@ -126,7 +126,7 @@ namespace Zambezi
             charString.push_back("裤");
             charString.push_back("运");
             charString.push_back("动");
-            int termNumber = 100;
+            int termNumber = 200;
             //build word;
             srand( (unsigned int)time(0) );
             for (int i = 0; i < termNumber; ++i)
@@ -204,9 +204,10 @@ namespace Zambezi
         void buildIndex(const DocIDTermMapT& docTermMap)
         {
             int count = 1;
+            std::vector<uint32_t> tmpScore;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
             {
-                index_->insertDoc(i->first, i->second);
+                index_->insertDoc(i->first, i->second, tmpScore);
                 if (count%1000000 == 0)
                 {
                     std::cout << "insert document:" << count << std::endl;
@@ -219,13 +220,37 @@ namespace Zambezi
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list, Algorithm algorithm)
         {
             std::vector<float> score_list;
+            std::vector<std::pair<std::string, int> > term_list_1;
+            for (unsigned int i = 0; i < term_list.size(); ++i)
+            {
+                term_list_1.push_back(make_pair(term_list[i], 0));
+            }
             uint32_t hits = 10000000;
-            index_->retrieval(
+            FilterBase* filter = new FilterBase;
+            index_->retrieve(
                 algorithm,
-                term_list,
+                term_list_1,
+                filter,
                 hits,
                 docid_list,
                 score_list);
+        }
+
+        void saveIndex(const std::string& path)
+        {
+            fstream fileIndex;
+            fileIndex.open(path.c_str(), ios::binary|ios::out);
+            index_->save(fileIndex);
+        }
+        void loadIndex(const std::string& path)
+        {
+            fstream fileIndex;
+            fileIndex.open(path.c_str(), ios::binary|ios::in);
+
+            if (fileIndex.is_open())
+            {
+                index_->load(fileIndex);
+            }
         }
 
         std::vector<std::string>& getWordList()

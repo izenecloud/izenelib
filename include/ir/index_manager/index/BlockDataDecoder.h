@@ -14,7 +14,7 @@
 #include <ir/index_manager/index/CompressParameters.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -40,7 +40,7 @@ public:
     int decodePositions(const uint32_t* compressed_positions);
 
     void set_doc_freq_buffer(uint32_t* doc_buffer, uint32_t* freq_buffer);
-	
+
     void set_pos_buffer(uint32_t* pos_buffer);
 
     void updatePositionOffset();
@@ -154,19 +154,19 @@ public:
     uint32_t move_to(uint32_t target, int32_t& currentBufferPointer, bool computePos = false);
 
     /// deal with deleted documents
-    void post_process(BitVector* pDocFilter);
+    void post_process(Bitset* pDocFilter);
 
 private:
     void post_process_chunk(uint32_t* block, int size)
     {
         block[0] += prev_decoded_doc_id_;
-    
+
         for(int i=1; i<size; ++i)
         {
             block[i] = block[i] + block[i-1];
         }
         prev_decoded_doc_id_ = block[size - 1];
-    }	
+    }
 
 private:
     int num_docs_;  // The number of documents in this chunk.
@@ -287,9 +287,8 @@ private:
     friend class PostingMerger;
 };
 
-
 }
+
 NS_IZENELIB_IR_END
 
 #endif
-

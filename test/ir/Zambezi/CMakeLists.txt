@@ -24,8 +24,8 @@ INCLUDE_DIRECTORIES(
   ${Glog_INCLUDE_DIRS}
  )
 
-SET(t_index_SRC
-  t_index_search.cpp
+SET(t_position_index_SRC
+  t_position_inverted_index.cpp
   t_master_suite.cpp
 )
 
@@ -34,9 +34,9 @@ SET(t_attr_score_index_SRC
   t_master_suite.cpp
 )
 
-ADD_EXECUTABLE(t_ZambeziSearch ${t_index_SRC})
+ADD_EXECUTABLE(t_PositionZambeziSearch ${t_position_index_SRC})
 
-TARGET_LINK_LIBRARIES(t_ZambeziSearch ${libs})
+TARGET_LINK_LIBRARIES(t_PositionZambeziSearch ${libs})
 
 
 ADD_EXECUTABLE(t_AttrScoreZambeziSearch ${t_attr_score_index_SRC})

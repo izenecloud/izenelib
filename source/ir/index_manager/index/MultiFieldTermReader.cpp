@@ -4,7 +4,10 @@
 
 #include <memory> // auto_ptr
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager
+{
 
 MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo, IndexLevel indexLevel)
         : TermReader()
@@ -70,7 +73,7 @@ void MultiFieldTermReader::setMaxSkipLevel(int maxSkipLevel)
         iter->second->setMaxSkipLevel(maxSkipLevel);
 }
 
-void MultiFieldTermReader::setDocFilter(BitVector* pFilter) 
+void MultiFieldTermReader::setDocFilter(Bitset* pFilter)
 {
     for(map<string,TermReader*>::iterator iter = fieldsTermReaders_.begin();
         iter != fieldsTermReaders_.end(); ++iter)
@@ -82,7 +85,7 @@ void MultiFieldTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,Fi
 
 void MultiFieldTermReader::reopen()
 {
-    for(reader_map::iterator iter = fieldsTermReaders_.begin(); 
+    for(reader_map::iterator iter = fieldsTermReaders_.begin();
             iter != fieldsTermReaders_.end(); ++iter)
         iter->second->reopen();
 }
@@ -182,3 +185,6 @@ void MultiFieldTermReader::addTermReader(const char* field,TermReader* pTermRead
     fieldsTermReaders_.insert(make_pair(sf,pTermReader));
 }
 
+}
+
+NS_IZENELIB_IR_END

@@ -2,6 +2,8 @@
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 #include <ir/Zambezi/Utils.hpp>
 
+#include <util/mem_utils.h>
+
 #include <algorithm>
 #include <cstring>
 
@@ -11,12 +13,11 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-SegmentPool::SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools, bool reverse)
+SegmentPool::SegmentPool(uint32_t maxPoolSize, uint32_t numberOfPools)
     : maxPoolSize_(maxPoolSize)
     , numberOfPools_(numberOfPools)
     , segment_(0)
     , offset_(0)
-    , reverse_(reverse)
     , pool_(numberOfPools)
 {
 }
@@ -31,13 +32,12 @@ void SegmentPool::save(std::ostream& ostr) const
     ostr.write((const char*)&numberOfPools_, sizeof(numberOfPools_));
     ostr.write((const char*)&segment_, sizeof(segment_));
     ostr.write((const char*)&offset_, sizeof(offset_));
-    ostr.write((const char*)&reverse_, sizeof(reverse_));
 
     for (size_t i = 0; i < segment_; ++i)
     {
-        ostr.write((const char*)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
+        ostr.write((const char*)&pool_[i][0], sizeof(pool_[0][0]) * maxPoolSize_);
     }
-    ostr.write((const char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
+    ostr.write((const char*)&pool_[segment_][0], sizeof(pool_[0][0]) * offset_);
 }
 
 void SegmentPool::load(std::istream& istr)
@@ -46,22 +46,21 @@ void SegmentPool::load(std::istream& istr)
     istr.read((char*)&numberOfPools_, sizeof(numberOfPools_));
     istr.read((char*)&segment_, sizeof(segment_));
     istr.read((char*)&offset_, sizeof(offset_));
-    istr.read((char*)&reverse_, sizeof(reverse_));
 
     pool_.resize(segment_ + 1);
     for (size_t i = 0; i < segment_; ++i)
     {
         if (!pool_[i])
         {
-            pool_[i].reset(getAlignedIntArray(maxPoolSize_));
+            pool_[i].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
         }
-        istr.read((char *)&pool_[i][0], sizeof(uint32_t) * maxPoolSize_);
+        istr.read((char *)&pool_[i][0], sizeof(pool_[0][0]) * maxPoolSize_);
     }
     if (!pool_[segment_])
     {
-        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+        pool_[segment_].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
     }
-    istr.read((char*)&pool_[segment_][0], sizeof(uint32_t) * offset_);
+    istr.read((char*)&pool_[segment_][0], sizeof(pool_[0][0]) * offset_);
 }
 
 size_t SegmentPool::appendSegment(
@@ -74,14 +73,14 @@ size_t SegmentPool::appendSegment(
     uint32_t reqspace = len + 4;
     if (reqspace > maxPoolSize_ - offset_)
     {
-        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(uint32_t));
+        memset(&pool_[segment_][offset_], 0, (maxPoolSize_ - offset_) * sizeof(pool_[0][0]));
         ++segment_;
         offset_ = 0;
     }
 
     if (!pool_[segment_])
     {
-        pool_[segment_].reset(getAlignedIntArray(maxPoolSize_));
+        pool_[segment_].reset(cachealign_alloc<uint32_t>(maxPoolSize_, HUGEPAGE_SIZE), cachealign_deleter());
     }
 
     pool_[segment_][offset_] = reqspace;
@@ -89,7 +88,7 @@ size_t SegmentPool::appendSegment(
     pool_[segment_][offset_ + 2] = DECODE_OFFSET(nextPointer);
     pool_[segment_][offset_ + 3] = maxDocId;
 
-    memcpy(&pool_[segment_][offset_ + 4], &dataSegment[0], len * sizeof(uint32_t));
+    memcpy(&pool_[segment_][offset_ + 4], &dataSegment[0], len * sizeof(pool_[0][0]));
 
     if (lastPointer != UNDEFINED_POINTER)
     {
@@ -120,7 +119,7 @@ size_t SegmentPool::nextPointer(size_t pointer) const
     return ENCODE_POINTER(pool_[pSegment][pOffset + 1], pool_[pSegment][pOffset + 2]);
 }
 
-size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
+size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot, uint32_t reverse) const
 {
     if (pointer == UNDEFINED_POINTER)
         return UNDEFINED_POINTER;
@@ -128,7 +127,7 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    do
+    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse))
     {
         uint32_t oldSegment = pSegment;
         uint32_t oldOffset = pOffset;
@@ -137,7 +136,6 @@ size_t SegmentPool::nextPointer(size_t pointer, uint32_t pivot) const
 
         pOffset = pool_[oldSegment][oldOffset + 2];
     }
-    while (LESS_THAN(pool_[pSegment][pOffset + 3], pivot, reverse_));
 
     return ENCODE_POINTER(pSegment, pOffset);
 }

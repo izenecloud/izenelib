@@ -90,7 +90,7 @@ void IndexWriter::close()
     /*for realtime index need not flush when stop normally*/
     //pIndexBarrelWriter_->flush();
     //pBarrelsInfo_->write(pIndexer_->getDirectory());
-    
+
     pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::close()";
@@ -98,7 +98,7 @@ void IndexWriter::close()
 }
 
 void IndexWriter::flush()
-{   
+{
     DVLOG(2) << "=> IndexWriter::flush()...";
     if (!pCurBarrelInfo_)
     {
@@ -152,9 +152,9 @@ void IndexWriter::createBarrelInfo()
     DVLOG(2)<< "<= IndexWriter::createBarrelInfo()";
 }
 
-void IndexWriter::checkbinlog() 
+void IndexWriter::checkbinlog()
 {
-    pIndexBarrelWriter_->checkbinlog(); 
+    pIndexBarrelWriter_->checkbinlog();
 }
 
 void IndexWriter::deletebinlog()
@@ -201,7 +201,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     ///avoid of delete counting error
-    BitVector* del_filter = pIndexer_->getIndexReader()->getDocFilter();
+    Bitset* del_filter = pIndexer_->getIndexReader()->getDocFilter();
     if(del_filter && del_filter->test(docId))
         return;
     ///Perform deletion

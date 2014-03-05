@@ -1,5 +1,7 @@
 #include <ir/index_manager/index/rtype/BTreeIndexer.h>
+
 using namespace izenelib::ir::indexmanager;
+
 int main(int argc, char** argv)
 {
     std::string dir = argv[1];
@@ -15,11 +17,11 @@ int main(int argc, char** argv)
     indexer.getValue(key, data);
     if (data.which() == 0)
     {
-        docid_list = boost::get<BTreeIndexer<UString>::VecValueType>(data);
+        docid_list = boost::get<BTreeIndexer<UString>::DocListType>(data);
     }
     else
     {
-        const BitVector& bits = boost::get<BitVector>(data);
+        const Bitset& bits = boost::get<Bitset>(data);
         for(size_t i = 0; i < bits.size(); ++i)
         {
             if (bits.test(i))
@@ -32,4 +34,3 @@ int main(int argc, char** argv)
     }
     std::cout<<"count:"<<docid_list.size()<<std::endl;
 }
-

@@ -55,22 +55,20 @@ public:
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
 public:
-    IndexType type_;
+    IndexType type;
     // Current capacity (number of vocabulary terms)
-    uint32_t capacity_;
+    uint32_t capacity;
 
     // Docid buffer map
-    std::vector<std::vector<uint32_t> > docid_;
+    std::vector<std::vector<uint32_t> > docid;
     // Term frequency buffer map
-    std::vector<std::vector<uint32_t> > tf_;
+    std::vector<std::vector<uint32_t> > tf;
     // Term positions buffer map
-    std::vector<std::vector<uint32_t> > position_;
+    std::vector<std::vector<uint32_t> > position;
     // Cursor of last position block head
-    std::vector<std::vector<uint32_t> > posBlockCount_;
+    std::vector<std::vector<uint32_t> > posBlockCount;
     // Table of tail pointers for vocabulary terms
-    std::vector<size_t> tailPointer_;
-
-    std::vector<uint32_t> emptyList_;
+    std::vector<size_t> tailPointer;
 };
 
 }

@@ -10,7 +10,6 @@
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/index/PostingWriter.h>
 #include <ir/index_manager/index/BlockDataPool.h>
 #include <ir/index_manager/index/FixedBlockSkipListWriter.h>

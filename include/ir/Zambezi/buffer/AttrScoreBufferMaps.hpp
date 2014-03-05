@@ -3,6 +3,9 @@
 
 #include "../Consts.hpp"
 
+#include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
+#include <boost/atomic.hpp>
 #include <iostream>
 #include <vector>
 
@@ -23,8 +26,8 @@ public:
     AttrScoreBufferMaps(uint32_t initialSize);
     ~AttrScoreBufferMaps();
 
-    void save(std::ostream& ostr) const;
-    void load(std::istream& istr);
+    void save(std::ostream& ostr, bool reverse) const;
+    void load(std::istream& istr, bool reverse);
 
     /**
      * Expand buffer maps' capacities by a factor of 2
@@ -38,22 +41,24 @@ public:
      * and return the index of the next buffer whose length is more
      * than a given threshold.
      *
-     * @param buffer Buffer map
      * @param pos Current index
      * @param minLength Minimum length to consider
      */
     uint32_t nextIndex(uint32_t pos, uint32_t minLength) const;
 
+    boost::shared_array<uint32_t> getBuffer(uint32_t id) const;
+
+    void resetBuffer(uint32_t id, uint32_t new_cap, bool reverse, bool copy);
+
 public:
     // Current capacity (number of vocabulary terms)
-    uint32_t capacity_;
+    uint32_t capacity;
 
+    boost::shared_array<boost::atomic_flag> flags;
     // Docid buffer map
-    std::vector<std::vector<uint32_t> > docid_;
-    // Doc-term score buffer map
-    std::vector<std::vector<uint32_t> > score_;
+    std::vector<boost::shared_array<uint32_t> > buffer;
     // Table of tail pointers for vocabulary terms
-    std::vector<size_t> tailPointer_;
+    std::vector<size_t> tailPointer;
 };
 
 }

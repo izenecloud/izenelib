@@ -18,7 +18,6 @@ typedef uint64_t block_t;
 /* Block size (64-bit environment) */
 static const size_t BSIZE = 64;
 static const size_t PRESUM_SZ = 128;
-static const size_t CACHELINE_SIZE = 512;
 static const size_t LEVEL1_NUM = 256;
 static const size_t LEVEL2_NUM = BSIZE;
 

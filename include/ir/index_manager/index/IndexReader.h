@@ -18,7 +18,7 @@
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/DocLengthReader.h>
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -61,7 +61,7 @@ public:
 
     size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
-    BitVector* getDocFilter() { return pDocFilter_; }
+    Bitset* getDocFilter() { return pDocFilter_; }
 
     void delDocFilter();
 
@@ -74,7 +74,7 @@ public:
     bool isDirty() {return pIndexer_->isDirty(); }
 
     /**
-     * If the BitVector recording which docs are removed exists and any bit is set,
+     * If the Bitset recording which docs are removed exists and any bit is set,
      * write it to disk.
      */
     void flush();
@@ -95,7 +95,7 @@ private:
 
     mutable boost::mutex mutex_;
 
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
 
     boost::mutex docFilterMutex_; /// mutex for pDocFilter_
 

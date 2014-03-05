@@ -1,6 +1,7 @@
 #ifndef IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 #define IZENELIB_IR_ZAMBEZI_POSITIONAL_INVERTED_INDEX_HPP
 
+#include "IndexBase.hpp"
 #include "SegmentPool.hpp"
 #include "Dictionary.hpp"
 #include "Pointers.hpp"
@@ -18,32 +19,50 @@ NS_IZENELIB_IR_BEGIN
 namespace Zambezi
 {
 
-class PositionalInvertedIndex
+class PositionalInvertedIndex : public IndexBase
 {
 public:
     PositionalInvertedIndex(
             IndexType type = NON_POSITIONAL,
             uint32_t maxPoolSize = MAX_POOL_SIZE,
             uint32_t numberOfPools = NUMBER_OF_POOLS,
+            uint32_t vocabSize = DEFAULT_VOCAB_SIZE,
             bool reverse = true,
             bool bloomEnabled = true,
-            uint32_t nbHash = 3,
-            uint32_t bitsPerElement = 8);
+            uint32_t nbHash = 6,
+            uint32_t bitsPerElement = 16);
 
-    ~PositionalInvertedIndex();
+    virtual ~PositionalInvertedIndex();
 
-    void save(std::ostream& ostr) const;
-    void load(std::istream& istr);
+    virtual void save(std::ostream& ostr) const;
+    virtual void load(std::istream& istr);
 
-    void insertDoc(uint32_t docid, const std::vector<std::string>& term_list);
-    void flush();
+    /// @brief: interface to build Positional zambezi index;
+    /// @docid: must be used;
+    /// @term_list:
+    /// for example: if the title is:"aa bb cc dd aa cc";
+    /// then, the term_list is {aa, bb, cc, dd, aa, cc};
+    /// @score_list: not use here, just for unify insertDoc interface;
+    virtual void insertDoc(uint32_t docid,
+                     const std::vector<std::string>& term_list,
+                     const std::vector<uint32_t>& score_list);
 
-    void retrieval(
+    virtual void flush();
+
+    /// @algorithm, different search mode;
+    /// @term_list, in pair<std::string, int>, infact olny string is used in
+    /// this function;
+    /// @hits, the max number of hit number;
+    /// @search_buffer:is not used here, just for unify interface;
+    virtual void retrieve(
             Algorithm algorithm,
-            const std::vector<std::string>& term_list,
+            const std::vector<std::pair<std::string, int> >& term_list,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
+
+    virtual uint32_t totalDocNum() const;
 
 private:
     void processTermBuffer_(
@@ -87,12 +106,14 @@ private:
 
     void bwandAnd_(
             std::vector<size_t>& headPointers,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list) const;
 
     void bwandOr_(
             std::vector<size_t>& headPointers,
             const std::vector<float>& UB,
+            const FilterBase* filter,
             uint32_t hits,
             std::vector<uint32_t>& docid_list,
             std::vector<float>& score_list) const;
@@ -102,6 +123,7 @@ private:
             const std::vector<uint32_t>& df,
             const std::vector<float>& UB,
             const std::vector<uint32_t>& docLen,
+            const FilterBase* filter,
             uint32_t totalDocs,
             float avgDocLen,
             uint32_t hits,
@@ -111,18 +133,26 @@ private:
 
     void intersectSvS_(
             std::vector<size_t>& headPointers,
+            const FilterBase* filter,
             uint32_t minDf,
             uint32_t hits,
             std::vector<uint32_t>& docid_list) const;
 
-    bool gallopSearch_(
+    bool iterateSegment_(
             FastPFor& codec,
-            std::vector<uint32_t>& blockDocid,
+            uint32_t* block,
             uint32_t& count, uint32_t& index, size_t& pointer,
+            uint32_t pivot) const;
+
+    bool gallopSearch_(
+            const uint32_t* block,
+            uint32_t count,
+            uint32_t& index,
             uint32_t pivot) const;
 
     void intersectPostingsLists_(
             FastPFor& codec,
+            const FilterBase* filter,
             size_t pointer0, size_t pointer1,
             std::vector<uint32_t>& docid_list) const;
 
@@ -142,6 +172,8 @@ private:
     bool bloomEnabled_;
     uint32_t nbHash_;
     uint32_t bitsPerElement_;
+
+    bool reverse_;
 
     FastPFor codec_;
 

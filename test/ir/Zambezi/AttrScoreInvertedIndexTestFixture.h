@@ -36,7 +36,7 @@ namespace Zambezi
 
         void initIndex(bool isReverse)
         {
-            index_ = new AttrScoreInvertedIndex(1 << 28, 4, isReverse);
+            index_ = new AttrScoreInvertedIndex(1 << 28, 4, 4194304, isReverse);
         }
 
         ~AttrScoreInvertedIndexTestFixture()
@@ -191,7 +191,7 @@ namespace Zambezi
             docTermMap.clear();
         }
 
-        void initIndexer(uint32_t docNumber, bool reverse)
+        void initIndexer(uint32_t docNumber, bool reverse, bool search_buffer = false)
         {
             DocIDTermMapT docTermMap;
 
@@ -199,10 +199,10 @@ namespace Zambezi
 
             initIndex(reverse);
 
-            buildIndex(docTermMap);
+            buildIndex(docTermMap, search_buffer);
         }
 
-        void buildIndex(const DocIDTermMapT& docTermMap)
+        void buildIndex(const DocIDTermMapT& docTermMap, bool search_buffer = false)
         {
             int count = 1;
             for (DocIDTermMapT::const_iterator i = docTermMap.begin(); i != docTermMap.end(); ++i)
@@ -212,19 +212,28 @@ namespace Zambezi
                 index_->insertDoc(i->first, i->second, score_list);
                 if (count % 100000 == 0)
                 {
-                    std::cout << "insert document:" << count << std::endl;
+                    //std::cout << "insert document:" << count << std::endl;
                 }
                 count++;
             }
-            index_->flush();
+            if (!search_buffer)
+                index_->flush();
         }
 
         void search(const std::vector<std::string>& term_list, std::vector<uint32_t>& docid_list)
         {
-            std::vector<uint32_t> score_list;
+            std::vector<float> score_list;
+            std::vector<std::pair<std::string, int> > term_list_1;
+            for (unsigned int i = 0; i < term_list.size(); ++i)
+            {
+                term_list_1.push_back(make_pair(term_list[i], 0));
+            }
             uint32_t hits = 10000000;
-            index_->retrieval(
-                term_list,
+            FilterBase* filter = new FilterBase;
+            index_->retrieve(
+                SVS,
+                term_list_1,
+                filter,
                 hits,
                 docid_list,
                 score_list);

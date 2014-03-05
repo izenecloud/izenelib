@@ -15,7 +15,7 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/SkipListMerger.h>
 #include <ir/index_manager/index/BarrelInfo.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -25,10 +25,10 @@ class PostingMerger
 {
 public:
     PostingMerger(
-        int skipInterval, 
-        int maxSkipLevel, 
-        CompressionType compressType, 
-        bool optimize, 
+        int skipInterval,
+        int maxSkipLevel,
+        CompressionType compressType,
+        bool optimize,
         bool requireIntermediateFileForMerging,
         IndexLevel indexLevel,
         size_t memPoolSizeForPostingMerger
@@ -45,13 +45,13 @@ public:
 
     void mergeWith(MemPostingReader* pInMemoryPosting);
 
-    void mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+    void mergeWith(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter);
 
-    void mergeWith(BlockPostingReader* pPosting,BitVector* pFilter);
+    void mergeWith(BlockPostingReader* pPosting, Bitset* pFilter);
 
-    void mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter);
+    void mergeWith(ChunkPostingReader* pPosting, Bitset* pFilter);
 
-    void optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+    void optimize(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter);
 
     fileoffset_t endMerge();
 
@@ -82,11 +82,11 @@ private:
 
     void mergeWith(RTDiskPostingReader* pOnDiskPosting);
 
-    void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+    void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter);
 
-    void optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
-	
-    void optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+    void optimize_to_Block(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter);
+
+    void optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting, Bitset* pFilter);
 
     fileoffset_t endMerge_ByteAlign();
 
@@ -116,7 +116,7 @@ private:
 
     OutputDescriptor* pOutputDescriptor_; ///where merged data store
 
-    std::string tmpPostingName_; 
+    std::string tmpPostingName_;
 
     IndexOutput* pTmpPostingOutput_; ///used during merging posting
 

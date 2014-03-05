@@ -5,7 +5,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <3rdparty/am/stx/btree_map.h>
-#include <ir/index_manager/utility/BitVector.h>
 #include <am/concurrent/slfvector.h>
 #include <boost/dynamic_bitset.hpp>
 #include <util/ReadFavorLock.h>
@@ -383,7 +382,7 @@ private:
         //}
         //data_[key].add(value_item, b);
     }
-    
+
     void insert2_(const KeyType& key, const ValueItemType& value_item, bool b)
     {
         //boost::lock_guard<MutexType> lock(mutex_);

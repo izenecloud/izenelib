@@ -6,13 +6,13 @@ namespace Zambezi
 {
 
 PositionalBufferMaps::PositionalBufferMaps(uint32_t initialSize, IndexType type)
-    : type_(type)
-    , capacity_(initialSize)
-    , docid_(initialSize)
-    , tf_(initialSize)
-    , position_(initialSize)
-    , posBlockCount_(initialSize)
-    , tailPointer_(initialSize, UNDEFINED_POINTER)
+    : type(type)
+    , capacity(initialSize)
+    , docid(initialSize)
+    , tf(initialSize)
+    , position(initialSize)
+    , posBlockCount(initialSize)
+    , tailPointer(initialSize, UNDEFINED_POINTER)
 {
 }
 
@@ -22,148 +22,148 @@ PositionalBufferMaps::~PositionalBufferMaps()
 
 void PositionalBufferMaps::save(std::ostream& ostr) const
 {
-    ostr.write((const char*)&capacity_, sizeof(capacity_));
+    ostr.write((const char*)&capacity, sizeof(capacity));
 
     size_t termNum;
-    for (termNum = 0; termNum < capacity_; ++termNum)
+    for (termNum = 0; termNum < capacity; ++termNum)
     {
-        uint32_t capacity = docid_[termNum].capacity();
-        ostr.write((const char*)&capacity, sizeof(uint32_t));
+        uint32_t buffer_cap = docid[termNum].capacity();
+        ostr.write((const char*)&buffer_cap, sizeof(buffer_cap));
 
-        if (capacity == 0) break;
+        if (buffer_cap == 0) break;
 
-        uint32_t size = docid_[termNum].size();
-        ostr.write((const char*)&size, sizeof(uint32_t));
+        uint32_t size = docid[termNum].size();
+        ostr.write((const char*)&size, sizeof(size));
 
-        ostr.write((const char*)&docid_[termNum][0], sizeof(uint32_t) * size);
+        ostr.write((const char*)&docid[termNum][0], sizeof(docid[0][0]) * size);
 
-        if (type_ != NON_POSITIONAL)
+        if (type != NON_POSITIONAL)
         {
-            ostr.write((const char*)&tf_[termNum][0], sizeof(uint32_t) * size);
+            ostr.write((const char*)&tf[termNum][0], sizeof(tf[0][0]) * size);
         }
 
-        if (type_ == POSITIONAL)
+        if (type == POSITIONAL)
         {
-            ostr.write((const char*)&posBlockCount_[termNum][0], sizeof(uint32_t) * size);
+            ostr.write((const char*)&posBlockCount[termNum][0], sizeof(posBlockCount[0][0]) * size);
 
-            capacity = position_[termNum].capacity();
-            ostr.write((const char*)&capacity, sizeof(uint32_t));
+            buffer_cap = position[termNum].capacity();
+            ostr.write((const char*)&buffer_cap, sizeof(buffer_cap));
 
-            size = position_[termNum].size();
-            ostr.write((const char*)&size, sizeof(uint32_t));
+            size = position[termNum].size();
+            ostr.write((const char*)&size, sizeof(size));
 
-            ostr.write((const char*)&position_[termNum][0], sizeof(uint32_t) * size);
+            ostr.write((const char*)&position[termNum][0], sizeof(position[0][0]) * size);
         }
     }
 
-    ostr.write((const char*)&tailPointer_[0], sizeof(size_t) * termNum);
+    ostr.write((const char*)&tailPointer[0], sizeof(tailPointer[0]) * termNum);
 }
 
 void PositionalBufferMaps::load(std::istream& istr)
 {
-    istr.read((char*)&capacity_, sizeof(capacity_));
+    istr.read((char*)&capacity, sizeof(capacity));
 
-    docid_.resize(capacity_);
-    if (type_ != NON_POSITIONAL)
+    docid.resize(capacity);
+    if (type != NON_POSITIONAL)
     {
-        tf_.resize(capacity_);
+        tf.resize(capacity);
     }
-    if (type_ == POSITIONAL)
+    if (type == POSITIONAL)
     {
-        position_.resize(capacity_);
-        posBlockCount_.resize(capacity_);
+        position.resize(capacity);
+        posBlockCount.resize(capacity);
     }
 
     size_t termNum;
-    for (termNum = 0; termNum < capacity_; ++termNum)
+    for (termNum = 0; termNum < capacity; ++termNum)
     {
-        uint32_t capacity = 0;
-        istr.read((char*)&capacity, sizeof(uint32_t));
+        uint32_t buffer_cap = 0;
+        istr.read((char*)&buffer_cap, sizeof(buffer_cap));
 
-        if (capacity == 0) break;
+        if (buffer_cap == 0) break;
 
-        docid_[termNum].reserve(capacity);
+        docid[termNum].reserve(buffer_cap);
 
         uint32_t size = 0;
-        istr.read((char*)&size, sizeof(uint32_t));
-        docid_[termNum].resize(size);
+        istr.read((char*)&size, sizeof(size));
+        docid[termNum].resize(size);
 
-        istr.read((char*)&docid_[termNum][0], sizeof(uint32_t) * size);
+        istr.read((char*)&docid[termNum][0], sizeof(docid[0][0]) * size);
 
-        if (type_ != NON_POSITIONAL)
+        if (type != NON_POSITIONAL)
         {
-            tf_[termNum].reserve(capacity);
-            tf_[termNum].resize(size);
-            istr.read((char*)&tf_[termNum][0], sizeof(uint32_t) * size);
+            tf[termNum].reserve(buffer_cap);
+            tf[termNum].resize(size);
+            istr.read((char*)&tf[termNum][0], sizeof(tf[0][0]) * size);
         }
 
-        if (type_ == POSITIONAL)
+        if (type == POSITIONAL)
         {
-            posBlockCount_[termNum].reserve(capacity);
-            posBlockCount_[termNum].resize(size);
-            istr.read((char*)&posBlockCount_[termNum][0], sizeof(uint32_t) * size);
+            posBlockCount[termNum].reserve(buffer_cap);
+            posBlockCount[termNum].resize(size);
+            istr.read((char*)&posBlockCount[termNum][0], sizeof(posBlockCount[0][0]) * size);
 
-            capacity = 0;
-            istr.read((char*)&capacity, sizeof(uint32_t));
-            position_[termNum].reserve(capacity);
+            buffer_cap = 0;
+            istr.read((char*)&buffer_cap, sizeof(buffer_cap));
+            position[termNum].reserve(buffer_cap);
 
             size = 0;
-            istr.read((char*)&size, sizeof(uint32_t));
-            position_[termNum].resize(size);
-            istr.read((char*)&position_[termNum][0], sizeof(uint32_t) * size);
+            istr.read((char*)&size, sizeof(size));
+            position[termNum].resize(size);
+            istr.read((char*)&position[termNum][0], sizeof(position[0][0]) * size);
         }
     }
 
-    tailPointer_.resize(capacity_, UNDEFINED_POINTER);
-    istr.read((char*)&tailPointer_[0], sizeof(size_t) * termNum);
+    tailPointer.resize(capacity, UNDEFINED_POINTER);
+    istr.read((char*)&tailPointer[0], sizeof(tailPointer[0]) * termNum);
 }
 
 void PositionalBufferMaps::expand(uint32_t newSize)
 {
-    if (newSize <= capacity_) return;
+    if (newSize <= capacity) return;
 
-    if (capacity_ == 0)
+    if (capacity == 0)
     {
-        capacity_ = newSize;
+        capacity = newSize;
     }
     else
     {
-        while (newSize > capacity_)
+        while (newSize > capacity)
         {
-            capacity_ *= 2;
+            capacity *= 2;
         }
     }
 
-    docid_.resize(capacity_);
-    tailPointer_.resize(capacity_, UNDEFINED_POINTER);
+    docid.resize(capacity);
+    tailPointer.resize(capacity, UNDEFINED_POINTER);
 
-    if (type_ != NON_POSITIONAL)
+    if (type != NON_POSITIONAL)
     {
-        tf_.resize(capacity_);
+        tf.resize(capacity);
     }
 
-    if (type_ == POSITIONAL)
+    if (type == POSITIONAL)
     {
-        position_.resize(capacity_);
-        posBlockCount_.resize(capacity_);
+        position.resize(capacity);
+        posBlockCount.resize(capacity);
     }
 }
 
 bool PositionalBufferMaps::containsKey(uint32_t k) const
 {
-    return !docid_[k].empty();
+    return !docid[k].empty();
 }
 
 uint32_t PositionalBufferMaps::nextIndex(uint32_t pos, uint32_t minLength) const
 {
     do
     {
-        if (++pos >= capacity_)
+        if (++pos >= capacity)
         {
             return -1;
         }
     }
-    while (docid_[pos].capacity() <= minLength);
+    while (docid[pos].empty() || docid[pos].capacity() <= minLength);
 
     return pos;
 }

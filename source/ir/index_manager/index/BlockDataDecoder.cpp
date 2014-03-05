@@ -56,7 +56,7 @@ void ChunkDecoder::decodeFrequencies(bool computePos)
 {
     curr_buffer_position_ += frequency_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), frequencies_, num_docs_);
 
-    if(computePos)
+    if (computePos)
     {
         num_positions_ = 0;
         for (int i = 0; i < num_docs_; ++i)
@@ -71,9 +71,9 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
     int num_words_consumed = position_decompressor_.decompress(const_cast<uint32_t*> (compressed_positions), positions_, num_positions_);
 
     uint32_t* pos = positions_;
-    for(int i = 0; i < num_docs_; ++i)
+    for (int i = 0; i < num_docs_; ++i)
     {
-        for(uint32_t j = 1; j < frequencies_[i]; ++j)
+        for (uint32_t j = 1; j < frequencies_[i]; ++j)
         {
             pos[j] += pos[j-1];
         }
@@ -83,48 +83,48 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
     return num_words_consumed;
 }
 
-void ChunkDecoder::post_process(BitVector* pDocFilter)
+void ChunkDecoder::post_process(Bitset* pDocFilter)
 {
     assert(num_docs_ > 0);
 
-    if(! pDocFilter->hasBetween(doc_ids_[0], doc_ids_[num_docs_-1]))
+    if (!pDocFilter->any(doc_ids_[0], doc_ids_[num_docs_ - 1] + 1))
         return;
 
     uint32_t srcFreq = 0;
     uint32_t destFreq = 0;
 
     int dest = 0; // copy to the destination
-    for(int i = 0; i < num_docs_; ++i)
+    for (int i = 0; i < num_docs_; ++i)
     {
-        if(! pDocFilter->test(doc_ids_[i]))
+        if (!pDocFilter->test(doc_ids_[i]))
         {
             // avoid copy if destination is the same to source
-            if(dest != i)
+            if (dest != i)
             {
                 doc_ids_[dest] = doc_ids_[i];
                 frequencies_[dest] = frequencies_[i];
 
                 // copy positions
-                if(pos_decoded_)
+                if (pos_decoded_)
                     memmove(positions_ + destFreq, positions_ + srcFreq, frequencies_[i] * sizeof(uint32_t));
             }
 
-            if(pos_decoded_)
+            if (pos_decoded_)
                 destFreq += frequencies_[dest];
 
             ++dest;
         }
 
-        if(pos_decoded_)
+        if (pos_decoded_)
             srcFreq += frequencies_[i];
     }
 
-    if(dest < num_docs_)
+    if (dest < num_docs_)
     {
         doc_deleted_ = true;
         num_docs_ = dest;
 
-        if(pos_decoded_)
+        if (pos_decoded_)
             num_positions_ = destFreq;
     }
 }
@@ -142,11 +142,11 @@ void ChunkDecoder::updatePositionOffset()
 
 uint32_t ChunkDecoder::move_to(uint32_t target, int32_t& currentBufferPointer, bool computePos)
 {
-    while((doc_ids_[curr_document_offset_] < target)&&(curr_document_offset_ < (num_docs_-1)))
+    while (doc_ids_[curr_document_offset_] < target && curr_document_offset_ < num_docs_ - 1)
     {
         ++curr_document_offset_;
     }
-    if(computePos)
+    if (computePos)
     {
         curr_position_offset_ = 0;
         for (int i = 0; i < curr_document_offset_; ++i)
@@ -197,7 +197,6 @@ int BlockDecoder::decodeHeader(uint32_t* compressed_header)
     return num_words_consumed;
 }
 
-
 }
-NS_IZENELIB_IR_END
 
+NS_IZENELIB_IR_END

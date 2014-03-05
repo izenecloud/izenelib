@@ -18,42 +18,42 @@ public:
     void save(std::ostream& ostr) const;
     void load(std::istream& istr);
 
-    inline void setDocLen(uint32_t docid, uint32_t docLen)
+    inline void setDocLen(uint32_t docid, uint32_t len)
     {
-        docLen_.set(docid, docLen);
-        totalDocLen_ += docLen;
+        docLen.set(docid, len);
+        totalDocLen += len;
     }
 
     inline void setMaxTf(uint32_t term, uint32_t tf, uint32_t dl)
     {
-        maxTf_.set(term, tf);
-        maxTfDocLen_.set(term, dl);
+        maxTf.set(term, tf);
+        maxTfDocLen.set(term, dl);
     }
 
     inline uint32_t nextTerm(uint32_t currentTermId) const
     {
-        return headPointers_.nextIndex(currentTermId);
+        return headPointers.nextIndex(currentTermId);
     }
 
 private:
     void updateDefaultValues_();
 
 public:
-    uint32_t totalDocs_;
-    size_t totalDocLen_;
+    uint32_t totalDocs;
+    size_t totalDocLen;
 
-    FixedCounter<uint32_t> df_;
-    FixedCounter<size_t> cf_;
-    FixedCounter<size_t> headPointers_;
-    FixedCounter<uint32_t> maxTf_;
-    FixedCounter<uint32_t> maxTfDocLen_;
+    FixedCounter<uint32_t> df;
+    FixedCounter<size_t> cf;
+    FixedCounter<size_t> headPointers;
+    FixedCounter<uint32_t> maxTf;
+    FixedCounter<uint32_t> maxTfDocLen;
 
-    FixedCounter<uint32_t> docLen_;
+    FixedCounter<uint32_t> docLen;
 
     // Do not store
-    uint32_t defaultDf_;
-    float defaultIdf_;
-    size_t defaultCf_;
+    uint32_t defaultDf;
+    float defaultIdf;
+    size_t defaultCf;
 };
 
 }

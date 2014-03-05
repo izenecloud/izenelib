@@ -144,7 +144,7 @@ class KString
         return encode;
     }
     public:
-    explicit KString(const std::string& str, const std::string& encode="utf-8")
+    explicit KString(const std::string& str, const std::string& encode="utf-8//IGNORE")
         :mem_(NULL)
     {
         if (str.length() == 0)

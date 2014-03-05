@@ -90,7 +90,8 @@ public:
 
     void setMaxSkipLevel(int maxSkipLevel);
 
-    void setDocFilter(BitVector* pFilter);
+    void setDocFilter(Bitset* pFilter);
+
 private:
     collectionid_t colID_;
 

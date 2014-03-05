@@ -12,7 +12,7 @@
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 #include <string>
 
@@ -152,7 +152,7 @@ public:
         return pDirectory_;
     }
 
-    void setDocFilter(BitVector* pFilter)
+    void setDocFilter(Bitset* pFilter)
     {
         pDocFilter_ = pFilter;
     }
@@ -199,7 +199,7 @@ protected:
 
     BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
 
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
 
     bool triggerMerge_;
 

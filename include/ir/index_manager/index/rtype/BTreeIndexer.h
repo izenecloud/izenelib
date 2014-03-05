@@ -10,7 +10,7 @@
 #include <ir/index_manager/index/rtype/TermEnum.h>
 #include <ir/index_manager/index/rtype/Compare.h>
 #include <ir/index_manager/index/IndexerDocument.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/store/Directory.h>
 #include <util/ClockTimer.h>
 #include <glog/logging.h>
@@ -27,7 +27,6 @@
 #include <3rdparty/folly/RWSpinLock.h>
 #endif
 #include <util/ReadFavorLock.h>
-#include "dynamic_bitset2.hpp"
 #include <functional>
 
 #include <algorithm>
@@ -54,8 +53,8 @@ class BTreeIndexer
 {
     typedef BTreeIndexer<KeyType> ThisType;
 public:
-    typedef std::vector<docid_t> VecValueType;
-    typedef boost::variant<VecValueType, BitVector> ValueType;
+    typedef std::vector<docid_t> DocListType;
+    typedef boost::variant<DocListType, Bitset> ValueType;
     typedef boost::mutex WriteOnlyMutex;
     typedef izenelib::util::ReadFavorLock<500> MutexType;
     typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
@@ -73,7 +72,6 @@ public:
 
     typedef TermEnum<KeyType, ValueType> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
-    typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
     typedef izenelib::am::AMIterator<DbType> iterator;
     static const size_t MAX_VALUE_LEN = 1024*1024;
 
@@ -92,7 +90,7 @@ public:
 
     bool open()
     {
-        if(!db_.open(path_))
+        if (!db_.open(path_))
             return false;
         if (pre_load_)
         {
@@ -125,20 +123,20 @@ public:
         return iterator();
     }
 
-    static size_t  getValueNum(const ValueType& val)
+    static size_t getValueNum(const ValueType& val)
     {
         if (val.which() == 0)
-            return boost::get<VecValueType>(val).size();
+            return boost::get<DocListType>(val).size();
         else
-            return boost::get<BitVector>(val).count();
+            return boost::get<Bitset>(val).count();
     }
 
-    static bool  isEmpltyValue(const ValueType& val)
+    static bool isEmpltyValue(const ValueType& val)
     {
         if (val.which() == 0)
-            return boost::get<VecValueType>(val).empty();
+            return boost::get<DocListType>(val).empty();
         else
-            return !boost::get<BitVector>(val).any();
+            return boost::get<Bitset>(val).none();
     }
 
     static docid_t getDocId(const ValueType& val, size_t index)
@@ -146,20 +144,12 @@ public:
         if (val.which() == 0)
         {
             // value is common docid vector.
-            return boost::get<VecValueType>(val)[index];
+            return boost::get<DocListType>(val)[index];
         }
         else
         {
             // value is bitvector
-            const BitVector& tmp = boost::get<BitVector>(val);
-            size_t num = 0;
-            for(std::size_t i = 0; i < tmp.size(); i++)
-            {
-                if (tmp.test(i)) ++num;
-                if (num == index + 1)
-                    return i;
-            }
-            return 0;
+            return boost::get<Bitset>(val).select(index);
         }
     }
 
@@ -206,18 +196,18 @@ public:
     bool seek(const KeyType& key)
     {
         boost::shared_lock<MutexType> lock(mutex_);
-        BitVector docs;
+        Bitset docs;
         getValue_(key, docs);
         return docs.any();
     }
 
-    void getNoneEmptyList(const KeyType& key, BitVector& docs)
+    void getNoneEmptyList(const KeyType& key, Bitset& docs)
     {
         boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
     }
 
-    void getValue(const KeyType& key, BitVector& docs)
+    void getValue(const KeyType& key, Bitset& docs)
     {
         boost::shared_lock<MutexType> lock(mutex_);
         getValue_(key, docs);
@@ -228,8 +218,6 @@ public:
         boost::shared_lock<MutexType> lock(mutex_);
         return getValue_(key, docs);
     }
-
-    std::size_t convertAllValue(std::size_t maxDoc, uint32_t* & data);
 
     //std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     //{
@@ -255,7 +243,7 @@ public:
     //    return result;
     //}
 
-    void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
+    void getValueBetween(const KeyType& key1, const KeyType& key2, Bitset& docs)
     {
         if (compare_(key1, key2) > 0) return;
         boost::shared_lock<MutexType> lock(mutex_);
@@ -269,7 +257,7 @@ public:
         }
     }
 
-    void getValueLess(const KeyType& key, BitVector& docs)
+    void getValueLess(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] "<< docs << std::endl;
@@ -284,7 +272,7 @@ public:
         }
     }
 
-    void getValueLessEqual(const KeyType& key, BitVector& docs)
+    void getValueLessEqual(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -299,7 +287,7 @@ public:
         }
     }
 
-    void getValueGreat(const KeyType& key, BitVector& docs)
+    void getValueGreat(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -314,7 +302,7 @@ public:
         }
     }
 
-    void getValueGreatEqual(const KeyType& key, BitVector& docs)
+    void getValueGreatEqual(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -329,7 +317,7 @@ public:
     }
 
 
-    void getValueStart(const KeyType& key, BitVector& docs)
+    void getValueStart(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -344,7 +332,7 @@ public:
         }
     }
 
-    void getValueEnd(const KeyType& key, BitVector& docs)
+    void getValueEnd(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -359,7 +347,7 @@ public:
         }
     }
 
-    void getValueSubString(const KeyType& key, BitVector& docs)
+    void getValueSubString(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -523,41 +511,38 @@ private:
         izenelib::util::ClockTimer timer;
 #endif
 
-
         ValueType common_value;
+
 #ifdef CACHE_DEBUG
         std::cout << "cacheIterator : " << kvp.first << "," << kvp.second << std::endl;
 #endif
-
 #ifdef CACHE_TIME_INFO
 //      std::cout << "initialzed buffer size : " << common_compressed_.bufferCapacity() << std::endl;
         timer.restart();
 #endif
+
         getDbValue_(kvp.first, common_value);
+        if (common_value.which() == 1) boost::get<Bitset>(common_value).dup();
+
 #ifdef CACHE_TIME_INFO
         t1 += timer.elapsed();
 //      std::cout << "deserilized buffer size : " << common_compressed_.bufferCapacity() << std::endl;
 #endif
-
 #ifdef CACHE_DEBUG
         std::cout << "cacheIterator before update : " << kvp.first << "," << value << std::endl;
 #endif
-
 #ifdef CACHE_TIME_INFO
         timer.restart();
 #endif
+
         applyCacheValue_(common_value, kvp.second);
+
 #ifdef CACHE_TIME_INFO
         t2 += timer.elapsed();
 #endif
-
 #ifdef CACHE_TIME_INFO
         timer.restart();
 #endif
-
-
-
-
 #ifdef CACHE_DEBUG
         std::cout << "cacheIterator after update : " << kvp.first << "," << value << std::endl;
 #endif
@@ -572,17 +557,17 @@ private:
         size_t value_size = 0;
         if (common_value.which() == 0)
         {
-            VecValueType& tmp = boost::get<VecValueType>(common_value);
+            DocListType& tmp = boost::get<DocListType>(common_value);
             value_size = tmp.size();
             if (value_size > MAX_VALUE_LEN)
             {
                 // too much value, convert it to bitvector to save space.
-                BitVector newvalue;
-                for(size_t i = 0; i < tmp.size(); ++i)
+                Bitset newvalue;
+                for (size_t i = 0; i < tmp.size(); ++i)
                 {
                     newvalue.set(tmp[i]);
                 }
-                std::cerr << "btree index value converted to BitVector since the list is too large."
+                std::cerr << "btree index value converted to Bitset since the list is too large."
                     << ", key: " << kvp.first << ", value num: " << tmp.size() << std::endl;
                 common_value = newvalue;
             }
@@ -602,11 +587,10 @@ private:
                 pre_loaded_data_.erase(kvp.first);
         }
         cache_.clear_key(kvp.first);
+
 #ifdef CACHE_TIME_INFO
         t3 += timer.elapsed();
 #endif
-
-
 #ifdef CACHE_DEBUG
         std::cout << "cacheIterator update finish" << std::endl;
 #endif
@@ -615,12 +599,9 @@ private:
         if (cache_num_ % 10000 == 0)
         {
             std::cout << "cacheIterator number : " << cache_num_ << std::endl;
-        }
-#endif
 #ifdef CACHE_TIME_INFO
-        if (cache_num_ % 10000 == 0)
-        {
             LOG(INFO)<<"cacheIterator "<<cache_num_<<" time cost : "<<t1<<","<<t2<<","<<t3<<std::endl;
+#endif
         }
 #endif
     }
@@ -654,7 +635,7 @@ private:
     bool getCacheValue_(const KeyType& key, CacheValueType& value)
     {
         bool b = cache_.get(key, value);
-        if(value.empty()) b = false;
+        if (value.empty()) b = false;
         return b;
     }
 
@@ -682,13 +663,15 @@ private:
         }
     }
 
-    bool getValue_(const KeyType& key, BitVector& value)
+    bool getValue_(const KeyType& key, Bitset& value)
     {
         const ValueType* compressed = NULL;
         ValueType tmp;
         bool b_db = false;
         if (pre_load_)
+        {
             b_db = getPreLoadDbValue_(key, compressed);
+        }
         else
         {
             b_db = getDbValue_(key, tmp);
@@ -697,7 +680,11 @@ private:
         CacheValueType cache_value;
         bool b_cache = getCacheValue_(key, cache_value);
         if (!b_db && !b_cache) return false;
-        decompress_(*compressed, value);
+
+        if (compressed != NULL)
+        {
+            decompress_(*compressed, value);
+        }
         if (b_cache)
         {
             applyCacheValue_(value, cache_value);
@@ -705,7 +692,7 @@ private:
         return true;
     }
 
-    //bool getValue_(const KeyType& key, VecValueType& value)
+    //bool getValue_(const KeyType& key, DocListType& value)
     //{
     //    ValueType dbvalue;
     //    bool b_db = getDbValue_(key, dbvalue);
@@ -714,13 +701,13 @@ private:
     //    if (!b_db && !b_cache) return false;
     //    if (dbvalue.which() == 0)
     //    {
-    //        value = boost::get<VecValueType>(dbvalue);
+    //        value = boost::get<DocListType>(dbvalue);
     //    }
     //    else
     //    {
-    //        const BitVector& tmp = boost::get<BitVector>(dbvalue);
+    //        const Bitset& tmp = boost::get<Bitset>(dbvalue);
     //        value.reserve(MAX_VALUE_LEN);
-    //        for(size_t i = 0; i < tmp.size(); ++i)
+    //        for (size_t i = 0; i < tmp.size(); ++i)
     //        {
     //            if (tmp.test(i))
     //                value.push_back(i);
@@ -733,7 +720,7 @@ private:
     //    if (value.size() > (size_t)MAX_VALUE_LEN)
     //    {
     //        std::cerr << "============= Waring: Btree value len is too large for vector!" <<
-    //           " you should get this value using BitVector instead. ========= " << std::endl;
+    //           " you should get this value using Bitset instead. ========= " << std::endl;
     //    }
     //    return true;
     //}
@@ -741,6 +728,7 @@ private:
     bool getValue_(const KeyType& key, ValueType& value)
     {
         bool b_db = getDbValue_(key, value);
+        if (value.which() == 1) boost::get<Bitset>(value).dup();
         CacheValueType cache_value;
         bool b_cache = getCacheValue_(key, cache_value);
         if (!b_db && !b_cache) return false;
@@ -751,11 +739,11 @@ private:
         return true;
     }
 
-    static void decompress_(const ValueType& compressed, BitVector& value)
+    static void decompress_(const ValueType& compressed, Bitset& value)
     {
         if (compressed.which() == 0)
         {
-            const VecValueType& tmp = boost::get<VecValueType>(compressed);
+            const DocListType& tmp = boost::get<DocListType>(compressed);
             for (uint32_t i = 0; i < tmp.size(); i++)
             {
                 value.set(tmp[i]);
@@ -763,18 +751,13 @@ private:
         }
         else
         {
-            value |= boost::get<BitVector>(compressed);
+            value |= boost::get<Bitset>(compressed);
         }
     }
 
-    inline static void reset_common_bv_(DynBitsetType& value)
+    inline static void reset_common_bv_(Bitset& value)
     {
         value.reset();
-    }
-
-    inline static void reset_common_bv_(BitVector& value)
-    {
-        value.clear();
     }
 
 
@@ -788,6 +771,7 @@ private:
 #endif
         //decompress_(value, result);
         result = value;
+        if (result.which() == 1) boost::get<Bitset>(result).dup();
 
 #ifdef BT_DEBUG
         std::cout << "after decompress" << std::endl;
@@ -802,25 +786,36 @@ private:
 #endif
     }
 
-    /// called only in cacheIterator_, one thread, common_bv_ is safe.
-    /// value was already sorted, also cacheValue was sorted
-    static void applyCacheValue_(VecValueType& value, const CacheValueType& cacheValue)
+    static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
-        VecValueType new_value;
-        new_value.reserve(value.size()+cacheValue.size()/2);
-        VecValueType::const_iterator it1 = value.begin();
+        if (value.which() == 0)
+        {
+            applyCacheValue_(boost::get<DocListType>(value), cacheValue);
+        }
+        else
+        {
+            applyCacheValue_(boost::get<Bitset>(value), cacheValue);
+        }
+    }
+
+    /// value was already sorted, also cacheValue was sorted
+    static void applyCacheValue_(DocListType& value, const CacheValueType& cacheValue)
+    {
+        DocListType new_value;
+        new_value.reserve(value.size() + cacheValue.size() / 2);
+        DocListType::iterator it1 = value.begin();
         typename CacheValueType::const_iterator it2 = cacheValue.begin();
         typename CacheValueType::const_iterator it2_end = cacheValue.end();
-        while(it1!=value.end()&&it2!=it2_end)
+        while (it1 != value.end() && it2 != it2_end)
         {
-            if(*it1<*it2)
+            if (*it1 < *it2)
             {
                 new_value.push_back(*it1);
                 ++it1;
             }
-            else if(*it1>*it2)
+            else if (*it1 > *it2)
             {
-                if(it2.test())//is insert, not delete
+                if (it2.test())//is insert, not delete
                 {
                     new_value.push_back(*it2);
                 }
@@ -828,7 +823,7 @@ private:
             }
             else
             {
-                if(it2.test())
+                if (it2.test())
                 {
                     new_value.push_back(*it1);
                 }
@@ -836,13 +831,10 @@ private:
                 ++it2;
             }
         }
-        for(;it1!=value.end(); ++it1)
+        new_value.insert(new_value.end(), it1, value.end());
+        for (; it2 != it2_end; ++it2)
         {
-            new_value.push_back(*it1);
-        }
-        for(;it2!=it2_end;++it2)
-        {
-            if(it2.test())
+            if (it2.test())
             {
                 new_value.push_back(*it2);
             }
@@ -850,19 +842,7 @@ private:
         value.swap(new_value);
     }
 
-    static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
-    {
-        if (value.which() == 0)
-        {
-            applyCacheValue_(boost::get<VecValueType>(value), cacheValue);
-        }
-        else
-        {
-            applyCacheValue_(boost::get<BitVector>(value), cacheValue);
-        }
-    }
-
-    static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
+    static void applyCacheValue_(Bitset& value, const CacheValueType& cacheValue)
     {
         std::size_t count = cacheValue.count;
         for (std::size_t i = 0; i < count; i++)
@@ -873,7 +853,7 @@ private:
             }
             else
             {
-                value.clear(cacheValue.item[i].first);
+                value.reset(cacheValue.item[i].first);
             }
         }
     }
@@ -886,11 +866,8 @@ private:
     WriteOnlyMutex mutex2_;
     CacheType cache_;
     EnumCombineFunc func_;
-    /// used only in cacheIterator_, one thread,  safe.
-    DynBitsetType common_bv_;
-    ///
     boost::optional<std::size_t> count_in_cache_;
-#if BOOST_VERSION >= 105300	
+#if BOOST_VERSION >= 105300
     boost::atomic_bool count_has_modify_;
 #else
     bool count_has_modify_;

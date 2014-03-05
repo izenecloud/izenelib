@@ -211,4 +211,5 @@ TARGET_LINK_LIBRARIES(t_bitmap
    snappy
    izene_util
    luxio
+   index_manager
   )

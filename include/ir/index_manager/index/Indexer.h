@@ -15,7 +15,7 @@
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 
 #include <util/ThreadModel.h>
 
@@ -107,39 +107,39 @@ public:
     ///API for BTreeIndex
     bool seekTermFromBTreeIndex(collectionid_t colID, const std::string& property, const PropertyType& value);
 
-    bool getDocsByNumericValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs);
+    bool getDocsByNumericValue(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docs);
 
-    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector& docs);
+    bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docs);
 
     bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, BTreeIndexerManager::ValueType& docList);
 
     template <typename word_t>
     bool getDocsByPropertyValue(collectionid_t colID, const std::string& property, const PropertyType& value, EWAHBoolArray<word_t>& docs);
 
-    bool getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, BitVector& docs);
+    bool getDocsByPropertyValueRange(collectionid_t colID, const std::string& property, const PropertyType& value1, const PropertyType& value2, Bitset& docs);
 
-    bool getDocsByPropertyValueLessThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueLessThan(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& docList);
 
     template <typename word_t>
-    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<word_t>& docsList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitset, EWAHBoolArray<word_t>& docsList);
 
-    bool getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector&docList);
+    bool getDocsByPropertyValueNotIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& docList);
 
-    bool getDocsByPropertyValueNotEqual(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueNotEqual(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueStart(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueStart(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueEnd(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueEnd(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
-    bool getDocsByPropertyValueSubString(collectionid_t colID, const std::string& property, const PropertyType& value, BitVector&docList);
+    bool getDocsByPropertyValueSubString(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
 public:
     ///API for configuration
@@ -251,10 +251,10 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, const std::string& pr
 }
 
 template <typename word_t>
-bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, BitVector& bitVector, EWAHBoolArray<word_t>& docList)
+bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, const std::string& property, const std::vector<PropertyType>& values, Bitset& bitset, EWAHBoolArray<word_t>& docList)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
-    pBTreeIndexer_->getValueIn(property, values, bitVector, docList);
+    pBTreeIndexer_->getValueIn(property, values, bitset, docList);
     return true;
 }
 

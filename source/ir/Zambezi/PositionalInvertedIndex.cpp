@@ -2,7 +2,9 @@
 #include <ir/Zambezi/Utils.hpp>
 #include <ir/Zambezi/bloom/BloomFilter.hpp>
 
+#include <algorithm>
 #include <boost/tuple/tuple.hpp>
+#include <boost/function.hpp>
 #include <glog/logging.h>
 
 
@@ -19,24 +21,38 @@ inline bool termCompare(const boost::tuple<uint32_t, uint32_t, size_t>& t1, cons
     return t1.get<0>() < t2.get<0>();
 }
 
+typedef std::pair<float, uint32_t> ScoreDocId;
+
+inline bool compareDocIdLess(const ScoreDocId& x, const ScoreDocId& y)
+{
+    return x.second < y.second;
+}
+
+inline bool compareDocIdGreater(const ScoreDocId& x, const ScoreDocId& y)
+{
+    return x.second > y.second;
+}
+
 }
 
 PositionalInvertedIndex::PositionalInvertedIndex(
         IndexType type,
         uint32_t maxPoolSize,
         uint32_t numberOfPools,
+        uint32_t vocabSize,
         bool reverse,
         bool bloomEnabled,
         uint32_t nbHash,
         uint32_t bitsPerElement)
     : type_(type)
-    , buffer_(DEFAULT_VOCAB_SIZE, type)
-    , pool_(maxPoolSize, numberOfPools, reverse)
-    , dictionary_(DEFAULT_VOCAB_SIZE)
-    , pointers_(DEFAULT_VOCAB_SIZE, DEFAULT_COLLECTION_SIZE)
+    , buffer_(vocabSize, type)
+    , pool_(maxPoolSize, numberOfPools)
+    , dictionary_(vocabSize)
+    , pointers_(vocabSize, DEFAULT_COLLECTION_SIZE)
     , bloomEnabled_(bloomEnabled)
     , nbHash_(nbHash)
     , bitsPerElement_(bitsPerElement)
+    , reverse_(reverse)
 {
 }
 
@@ -47,6 +63,8 @@ PositionalInvertedIndex::~PositionalInvertedIndex()
 void PositionalInvertedIndex::save(std::ostream& ostr) const
 {
     LOG(INFO) << "Save: start....";
+
+    ostr.write((const char*)&reverse_, sizeof(reverse_));
 
     std::streamoff offset = ostr.tellp();
     buffer_.save(ostr);
@@ -72,6 +90,8 @@ void PositionalInvertedIndex::load(std::istream& istr)
 {
     LOG(INFO) << "Load: start....";
 
+    istr.read((char*)&reverse_, sizeof(reverse_));
+
     std::streamoff offset = istr.tellg();
     buffer_.load(istr);
     LOG(INFO) << "Loaded: buffer maps size " << istr.tellg() - offset;
@@ -92,19 +112,35 @@ void PositionalInvertedIndex::load(std::istream& istr)
     LOG(INFO) << "Load: done!";
 }
 
-void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::string>& term_list)
+uint32_t PositionalInvertedIndex::totalDocNum() const
+{
+    return pointers_.totalDocs;
+}
+
+void PositionalInvertedIndex::insertDoc(uint32_t docid,
+                     const std::vector<std::string>& term_list,
+                     const std::vector<uint32_t>& score_list)
 {
     std::set<uint32_t> uniqueTerms;
     for (uint32_t i = 0; i < term_list.size(); ++i)
     {
         uint32_t id = dictionary_.insertTerm(term_list[i]);
+
+        if (id == INVALID_ID)
+        {
+            LOG(WARNING) << "failed to insert term as dictionary is full"
+                         << ", term: " << term_list[i]
+                         << ", dictionary size: " << dictionary_.size();
+            continue;
+        }
+
         bool added = uniqueTerms.insert(id).second;
 
-        pointers_.cf_.increment(id);
+        pointers_.cf.increment(id);
 
         if (type_ == TF_ONLY)
         {
-            std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
+            std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
             if (tfBuffer.capacity() == 0)
             {
                 tfBuffer.reserve(DF_CUTOFF + 1);
@@ -120,8 +156,8 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
         }
         else if (type_ == POSITIONAL)
         {
-            std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
-            std::vector<uint32_t>& posBuffer = buffer_.position_[id];
+            std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
+            std::vector<uint32_t>& posBuffer = buffer_.position[id];
 
             if (posBuffer.capacity() == 0)
             {
@@ -142,38 +178,38 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
         }
     }
 
-    pointers_.docLen_.set(docid, term_list.size());
-    ++pointers_.totalDocs_;
+    pointers_.docLen.set(docid, term_list.size());
+    ++pointers_.totalDocs;
 
     for (std::set<uint32_t>::const_iterator it = uniqueTerms.begin();
             it != uniqueTerms.end(); ++it)
     {
         uint32_t id = *it;
-        std::vector<uint32_t>& docBuffer = buffer_.docid_[id];
-        std::vector<uint32_t>& tfBuffer = buffer_.tf_[id];
-        std::vector<uint32_t>& posBuffer = buffer_.position_[id];
+        std::vector<uint32_t>& docBuffer = buffer_.docid[id];
+        std::vector<uint32_t>& tfBuffer = buffer_.tf[id];
+        std::vector<uint32_t>& posBuffer = buffer_.position[id];
 
         if (type_ != NON_POSITIONAL)
         {
             uint32_t tf = tfBuffer.back();
-            uint32_t dl = pointers_.docLen_.get(docid);
+            uint32_t dl = pointers_.docLen.get(docid);
             float bm25TfScore = default_bm25tf(
                     tf, dl,
-                    pointers_.totalDocLen_ /
-                    (float)pointers_.totalDocs_);
+                    pointers_.totalDocLen /
+                    (float)pointers_.totalDocs);
             float maxBm25TfScore = default_bm25tf(
-                    pointers_.maxTf_.get(id),
-                    pointers_.maxTfDocLen_.get(id),
-                    pointers_.totalDocLen_ /
-                    (float)pointers_.totalDocs_);
+                    pointers_.maxTf.get(id),
+                    pointers_.maxTfDocLen.get(id),
+                    pointers_.totalDocLen /
+                    (float)pointers_.totalDocs);
             if (bm25TfScore > maxBm25TfScore)
             {
                 pointers_.setMaxTf(id, tf, dl);
             }
         }
 
-        pointers_.df_.increment(id);
-        if (pointers_.df_.get(id) <= DF_CUTOFF)
+        pointers_.df.increment(id);
+        if (pointers_.df.get(id) <= DF_CUTOFF)
         {
             if (docBuffer.capacity() == 0)
             {
@@ -203,19 +239,19 @@ void PositionalInvertedIndex::insertDoc(uint32_t docid, const std::vector<std::s
 
         if (type_ == POSITIONAL && docBuffer.size() % BLOCK_SIZE == 0)
         {
-            buffer_.posBlockCount_[id].push_back(posBuffer.size());
+            buffer_.posBlockCount[id].push_back(posBuffer.size());
             posBuffer.resize((posBuffer.size() + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE);
         }
 
         if (docBuffer.size() == docBuffer.capacity())
         {
             processTermBuffer_(
-                    buffer_.docid_[id],
-                    buffer_.tf_[id],
-                    buffer_.position_[id],
-                    buffer_.posBlockCount_[id],
-                    buffer_.tailPointer_[id],
-                    pointers_.headPointers_.get(id));
+                    buffer_.docid[id],
+                    buffer_.tf[id],
+                    buffer_.position[id],
+                    buffer_.posBlockCount[id],
+                    buffer_.tailPointer[id],
+                    pointers_.headPointers.get(id));
 
             if (docBuffer.capacity() < MAX_BLOCK_SIZE)
             {
@@ -237,12 +273,12 @@ void PositionalInvertedIndex::flush()
     while ((term = buffer_.nextIndex(term, DF_CUTOFF)) != INVALID_ID)
     {
         processTermBuffer_(
-                buffer_.docid_[term],
-                buffer_.tf_[term],
-                buffer_.position_[term],
-                buffer_.posBlockCount_[term],
-                buffer_.tailPointer_[term],
-                pointers_.headPointers_.get(term));
+                buffer_.docid[term],
+                buffer_.tf[term],
+                buffer_.position[term],
+                buffer_.posBlockCount[term],
+                buffer_.tailPointer[term],
+                pointers_.headPointers.get(term));
     }
 }
 
@@ -257,7 +293,7 @@ void PositionalInvertedIndex::processTermBuffer_(
     uint32_t nb = docBuffer.size() / BLOCK_SIZE;
     uint32_t res = docBuffer.size() % BLOCK_SIZE;
 
-    if (pool_.reverse_)
+    if (reverse_)
     {
         size_t curPointer = UNDEFINED_POINTER;
         size_t lastPointer = UNDEFINED_POINTER;
@@ -310,7 +346,10 @@ void PositionalInvertedIndex::processTermBuffer_(
             }
         }
 
-        headPointer = tailPointer = curPointer;
+        if (curPointer != UNDEFINED_POINTER)
+        {
+            headPointer = tailPointer = curPointer;
+        }
     }
     else
     {
@@ -376,13 +415,13 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         size_t lastPointer,
         size_t nextPointer)
 {
-    uint32_t maxDocId = pool_.reverse_ ? docBlock[0] : docBlock[len - 1];
+    uint32_t maxDocId = reverse_ ? docBlock[0] : docBlock[len - 1];
 
     uint32_t filterSize = 0;
     if (bloomEnabled_)
     {
         filterSize = BloomFilter::computeLength(len, bitsPerElement_);
-        memset(&segment_[BUFFER_SIZE - filterSize], 0, filterSize * sizeof(uint32_t));
+        memset(&segment_[BUFFER_SIZE - filterSize], 0, filterSize * sizeof(segment_[0]));
         for (uint32_t i = 0; i < len; ++i)
         {
             BloomFilter::insert(&segment_[BUFFER_SIZE - filterSize], filterSize, nbHash_, docBlock[i]);
@@ -394,7 +433,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         docBlock[i] -= docBlock[i - 1];
     }
 
-    if (pool_.reverse_)
+    if (reverse_)
     {
         std::reverse(docBlock, docBlock + len);
         std::reverse(tfBlock, tfBlock + tflen);
@@ -404,18 +443,18 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
         for (uint32_t i = 0; i < tflen; ++i)
         {
             curPos -= tfBlock[i];
-            memcpy(&rpositions[newPos], &posBlock[curPos], tfBlock[i] * sizeof(uint32_t));
+            memcpy(&rpositions[newPos], &posBlock[curPos], tfBlock[i] * sizeof(rpositions[0]));
             newPos += tfBlock[i];
         }
-        memcpy(posBlock, &rpositions[0], plen * sizeof(uint32_t));
+        memcpy(posBlock, &rpositions[0], plen * sizeof(posBlock[0]));
     }
 
     if (len < BLOCK_SIZE)
     {
-        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(uint32_t));
+        memset(&docBlock[len], 0, (BLOCK_SIZE - len) * sizeof(docBlock[0]));
         if (tflen == len)
         {
-            memset(&tfBlock[tflen], 0, (BLOCK_SIZE - tflen) * sizeof(uint32_t));
+            memset(&tfBlock[tflen], 0, (BLOCK_SIZE - tflen) * sizeof(tfBlock[0]));
         }
     }
 
@@ -424,7 +463,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     segment_[reqspace++] = len;
 
     size_t csize = BLOCK_SIZE * 2;
-    memset(&segment_[reqspace + 1], 0, csize * sizeof(uint32_t));
+    memset(&segment_[reqspace + 1], 0, csize * sizeof(segment_[0]));
     codec_.encodeArray(docBlock, BLOCK_SIZE, &segment_[reqspace + 1], csize);
     segment_[reqspace] = csize;
     reqspace += csize + 1;
@@ -432,7 +471,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (tflen > 0)
     {
         size_t tfcsize = BLOCK_SIZE * 2;
-        memset(&segment_[reqspace + 1], 0, tfcsize * sizeof(uint32_t));
+        memset(&segment_[reqspace + 1], 0, tfcsize * sizeof(segment_[0]));
         codec_.encodeArray(tfBlock, BLOCK_SIZE, &segment_[reqspace + 1], tfcsize);
         segment_[reqspace] = tfcsize;
         reqspace += tfcsize + 1;
@@ -447,7 +486,7 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
             for (uint32_t i = 0; i < nb; ++i)
             {
                 size_t tempPcsize = BLOCK_SIZE * 2;
-                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(uint32_t));
+                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(segment_[0]));
                 codec.encodeArray(&posBlock[i * BLOCK_SIZE], BLOCK_SIZE, &segment_[reqspace + 1], tempPcsize);
                 segment_[reqspace] = tempPcsize;
                 reqspace += tempPcsize + 1;
@@ -456,8 +495,8 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
             if (res > 0)
             {
                 size_t tempPcsize = BLOCK_SIZE * 2;
-                memset(&posBlock[plen], 0, (BLOCK_SIZE - res) * sizeof(uint32_t));
-                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(uint32_t));
+                memset(&posBlock[plen], 0, (BLOCK_SIZE - res) * sizeof(posBlock[0]));
+                memset(&segment_[reqspace + 1], 0, tempPcsize * sizeof(segment_[0]));
                 codec.encodeArray(&posBlock[nb * BLOCK_SIZE], BLOCK_SIZE, &segment_[reqspace + 1], tempPcsize);
                 segment_[reqspace] = tempPcsize;
                 reqspace += tempPcsize + 1;
@@ -470,20 +509,28 @@ size_t PositionalInvertedIndex::compressAndAppendBlock_(
     if (bloomEnabled_)
     {
         segment_[reqspace] = filterSize;
-        memcpy(&segment_[reqspace + 1], &segment_[BUFFER_SIZE - filterSize], filterSize * sizeof(uint32_t));
+        memcpy(&segment_[reqspace + 1], &segment_[BUFFER_SIZE - filterSize], filterSize * sizeof(segment_[0]));
         reqspace += filterSize + 1;
     }
 
     return pool_.appendSegment(segment_, maxDocId, reqspace, lastPointer, nextPointer);
 }
 
-void PositionalInvertedIndex::retrieval(
+void PositionalInvertedIndex::retrieve(
         Algorithm algorithm,
-        const std::vector<std::string>& term_list,
+        const std::vector<std::pair<std::string, int> >& term_list_pair,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
+    std::vector<std::string> term_list;
+    for (std::vector<std::pair<std::string, int> >::const_iterator i = term_list_pair.begin();
+         i != term_list_pair.end(); ++i)
+    {
+        term_list.push_back(i->first);
+    }
+
     std::vector<boost::tuple<uint32_t, uint32_t, size_t> > queries;
     uint32_t minimumDf = 0xFFFFFFFF;
     for (uint32_t i = 0; i < term_list.size(); ++i)
@@ -491,10 +538,10 @@ void PositionalInvertedIndex::retrieval(
         uint32_t termid = dictionary_.getTermId(term_list[i]);
         if (termid != INVALID_ID)
         {
-            size_t pointer = pointers_.headPointers_.get(termid);
+            size_t pointer = pointers_.headPointers.get(termid);
             if (pointer != UNDEFINED_POINTER)
             {
-                queries.push_back(boost::make_tuple(pointers_.df_.get(termid), termid, pointer));
+                queries.push_back(boost::make_tuple(pointers_.df.get(termid), termid, pointer));
                 minimumDf = std::min(queries.back().get<0>(), minimumDf);
             }
         }
@@ -520,9 +567,9 @@ void PositionalInvertedIndex::retrieval(
         std::vector<float> UB(queries.size());
         for (uint32_t i = 0; i < queries.size(); ++i)
         {
-            UB[i] = idf(pointers_.totalDocs_, qdf[i]);
+            UB[i] = idf(pointers_.totalDocs, qdf[i]);
         }
-        bwandOr_(qHeadPointers, UB, hits, docid_list, score_list);
+        bwandOr_(qHeadPointers, UB, filter, hits, docid_list, score_list);
     }
     else if (algorithm == BWAND_AND)
     {
@@ -530,43 +577,50 @@ void PositionalInvertedIndex::retrieval(
         {
             hits = minimumDf;
         }
-        bwandAnd_(qHeadPointers, hits, docid_list);
+        bwandAnd_(qHeadPointers, filter, hits, docid_list);
     }
     else if (algorithm == WAND || algorithm == MBWAND)
     {
         std::vector<float> UB(queries.size());
-        for (uint32_t i = 0; i < queries.size(); ++i)
+        if (algorithm == WAND && type_ != NON_POSITIONAL)
         {
-            if (algorithm == WAND)
+            for (uint32_t i = 0; i < queries.size(); ++i)
             {
                 UB[i] = default_bm25(
-                        pointers_.maxTf_.get(queries[i].get<1>()),
+                        pointers_.maxTf.get(queries[i].get<1>()),
                         qdf[i],
-                        pointers_.totalDocs_,
-                        pointers_.maxTfDocLen_.get(queries[i].get<1>()),
-                        pointers_.totalDocLen_ / (float)pointers_.totalDocs_);
-            }
-            else
-            {
-                UB[i] = idf(pointers_.totalDocs_, qdf[i]);
+                        pointers_.totalDocs,
+                        pointers_.maxTfDocLen.get(queries[i].get<1>()),
+                        pointers_.totalDocLen / (float)pointers_.totalDocs);
             }
         }
+        else
+        {
+            for (uint32_t i = 0; i < queries.size(); ++i)
+            {
+                UB[i] = idf(pointers_.totalDocs, qdf[i]);
+            }
+        }
+
         wand_(
                 qHeadPointers,
                 qdf,
                 UB,
-                pointers_.docLen_.getCounter(),
-                pointers_.totalDocs_,
-                pointers_.totalDocLen_ / (float)pointers_.totalDocs_,
+                pointers_.docLen.getCounter(),
+                filter,
+                pointers_.totalDocs,
+                pointers_.totalDocLen / (float)pointers_.totalDocs,
                 hits,
-                algorithm == WAND,
+                algorithm == WAND && type_ != NON_POSITIONAL,
                 docid_list,
                 score_list);
     }
     else if (algorithm == SVS)
     {
-        intersectSvS_(qHeadPointers, minimumDf, hits, docid_list);
+        intersectSvS_(qHeadPointers, filter, minimumDf, hits, docid_list);
     }
+
+    score_list.resize(docid_list.size());
 }
 
 uint32_t PositionalInvertedIndex::decompressDocidBlock_(
@@ -579,7 +633,7 @@ uint32_t PositionalInvertedIndex::decompressDocidBlock_(
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + 7];
     size_t csize = pool_.pool_[pSegment][pOffset + 6];
     size_t nvalue = BLOCK_SIZE;
-    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(outBlock[0]));
     codec.decodeArray(block, csize, outBlock, nvalue);
 
     uint32_t len = pool_.pool_[pSegment][pOffset + 5];
@@ -587,7 +641,7 @@ uint32_t PositionalInvertedIndex::decompressDocidBlock_(
     if (len == 0)
         return 0;
 
-    if (pool_.reverse_)
+    if (reverse_)
     {
         for (uint32_t i = len - 1; i > 0; --i)
         {
@@ -616,7 +670,7 @@ uint32_t PositionalInvertedIndex::decompressTfBlock_(
     const uint32_t* block = &pool_.pool_[pSegment][pOffset + csize + 8];
     size_t tfcsize = pool_.pool_[pSegment][pOffset + csize + 7];
     size_t nvalue = BLOCK_SIZE;
-    memset(outBlock, 0, BLOCK_SIZE * sizeof(uint32_t));
+    memset(outBlock, 0, BLOCK_SIZE * sizeof(outBlock[0]));
     codec.decodeArray(block, tfcsize, outBlock, nvalue);
 
     return pool_.pool_[pSegment][pOffset + 5];
@@ -692,7 +746,7 @@ void PositionalInvertedIndex::decompressPositions_(
         std::vector<uint32_t> temp(BLOCK_SIZE);
         size_t nvalue = BLOCK_SIZE;
         codec.decodeArray(&pool_.pool_[pSegment][pos + 1], sb, &temp[0], nvalue);
-        memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(uint32_t));
+        memcpy(&out[cindex], &temp[rindex], tocopy * sizeof(out[0]));
         pos += sb + 1;
 
         cindex += tocopy;
@@ -715,7 +769,7 @@ bool PositionalInvertedIndex::containsDocid_(uint32_t docid, size_t& pointer) co
     uint32_t pSegment = DECODE_SEGMENT(pointer);
     uint32_t pOffset = DECODE_OFFSET(pointer);
 
-    while (LESS_THAN(pool_.pool_[pSegment][pOffset + 3], docid, pool_.reverse_))
+    while (LESS_THAN(pool_.pool_[pSegment][pOffset + 3], docid, reverse_))
     {
         uint32_t oldSegment = pSegment;
         uint32_t oldOffset = pOffset;
@@ -744,26 +798,32 @@ bool PositionalInvertedIndex::containsDocid_(uint32_t docid, size_t& pointer) co
 
 void PositionalInvertedIndex::bwandAnd_(
         std::vector<size_t>& headPointers,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list) const
 {
     docid_list.reserve(hits);
     FastPFor codec;
-    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
+    uint32_t block[BLOCK_SIZE];
 
-    while (headPointers[0] != UNDEFINED_POINTER)
+    uint32_t c = 0, i = 0;
+
+    uint32_t eligible = filter->find_first(reverse_);
+
+    if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+        return;
+
+    if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+        return;
+
+    while (true)
     {
-        uint32_t count = decompressDocidBlock_(codec, &docid_block[0], headPointers[0]);
-        for (uint32_t i = 0; i < count; ++i)
+        if (block[i] == eligible)
         {
-            uint32_t pivot = docid_block[i];
             bool found = true;
             for (uint32_t j = 1; j < headPointers.size(); ++j)
             {
-                if (headPointers[j] == UNDEFINED_POINTER)
-                    return;
-
-                if (!containsDocid_(pivot, headPointers[j]))
+                if (!containsDocid_(eligible, headPointers[j]))
                 {
                     found = false;
                     break;
@@ -772,18 +832,27 @@ void PositionalInvertedIndex::bwandAnd_(
 
             if (found)
             {
-                docid_list.push_back(pivot);
+                docid_list.push_back(eligible);
                 if (docid_list.size() >= hits)
                     return;
             }
+
+            if ((eligible = filter->find_next(eligible, reverse_)) == INVALID_ID)
+                break;
         }
-        headPointers[0] = pool_.nextPointer(headPointers[0]);
+
+        if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+            break;
+
+        if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+            break;
     }
 }
 
 void PositionalInvertedIndex::bwandOr_(
         std::vector<size_t>& headPointers,
         const std::vector<float>& UB,
+        const FilterBase* filter,
         uint32_t hits,
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
@@ -803,18 +872,26 @@ void PositionalInvertedIndex::bwandOr_(
     }
 
     FastPFor codec;
-    std::vector<uint32_t> docid_block(2 * BLOCK_SIZE);
-    while (headPointers[0] != UNDEFINED_POINTER)
-    {
-        uint32_t count = decompressDocidBlock_(codec, &docid_block[0], headPointers[0]);
+    uint32_t block[BLOCK_SIZE];
 
-        for (uint32_t i = 0; i < count; ++i)
+    uint32_t c = 0, i = 0;
+
+    uint32_t eligible = filter->find_first(reverse_);
+
+    if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+        return;
+
+    if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+        return;
+
+    while (true)
+    {
+        if (block[i] == eligible)
         {
-            uint32_t pivot = docid_block[i];
             float score = UB[0];
             for (uint32_t j = 1; j < headPointers.size(); ++j)
             {
-                if (containsDocid_(pivot, headPointers[j]))
+                if (containsDocid_(eligible, headPointers[j]))
                 {
                     score += UB[j];
                 }
@@ -822,26 +899,35 @@ void PositionalInvertedIndex::bwandOr_(
 
             if (result_list.size() < hits)
             {
-                result_list.push_back(std::make_pair(score, pivot));
+                result_list.push_back(std::make_pair(score, eligible));
                 std::push_heap(result_list.begin(), result_list.end(), comparator);
-                if (result_list.size() == hits && (threshold = result_list[0].first) == sumOfUB)
-                    break;
             }
             else if (score > threshold)
             {
                 std::pop_heap(result_list.begin(), result_list.end(), comparator);
-                result_list.back() = std::make_pair(score, pivot);
+                result_list.back() = std::make_pair(score, eligible);
                 std::push_heap(result_list.begin(), result_list.end(), comparator);
-                if ((threshold = result_list[0].first) == sumOfUB)
-                    break;
             }
+
+            threshold = result_list[0].first;
+            if (result_list.size() == hits && threshold == sumOfUB)
+                break;
+
+            if ((eligible = filter->find_next(eligible, reverse_)) == INVALID_ID)
+                break;
         }
 
-        if (result_list.size() == hits && threshold == sumOfUB)
+        if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
             break;
 
-        headPointers[0] = pool_.nextPointer(headPointers[0]);
+        if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+            break;
     }
+
+    boost::function<bool (const ScoreDocId&, const ScoreDocId&)> docIdComparator =
+            reverse_ ? compareDocIdGreater : compareDocIdLess;
+
+    std::sort(result_list.begin(), result_list.end(), docIdComparator);
 
     for (uint32_t i = 0; i < result_list.size(); ++i)
     {
@@ -850,26 +936,37 @@ void PositionalInvertedIndex::bwandOr_(
     }
 }
 
-bool PositionalInvertedIndex::gallopSearch_(
+bool PositionalInvertedIndex::iterateSegment_(
         FastPFor& codec,
-        std::vector<uint32_t>& blockDocid,
+        uint32_t* block,
         uint32_t& count, uint32_t& index, size_t& pointer,
         uint32_t pivot) const
 {
-    if (LESS_THAN(blockDocid[count - 1], pivot, pool_.reverse_))
+    if (count == 0 || LESS_THAN(block[count - 1], pivot, reverse_))
     {
-        if ((pointer = pool_.nextPointer(pointer, pivot)) == UNDEFINED_POINTER)
+        if ((pointer = pool_.nextPointer(pointer, pivot, reverse_)) == UNDEFINED_POINTER)
             return false;
 
-        count = decompressDocidBlock_(codec, &blockDocid[0], pointer);
+        count = decompressDocidBlock_(codec, &block[0], pointer);
         index = 0;
     }
 
-    if (GREATER_THAN_EQUAL(blockDocid[index], pivot, pool_.reverse_))
-    {
+    return gallopSearch_(block, count, index, pivot);
+}
+
+bool PositionalInvertedIndex::gallopSearch_(
+        const uint32_t* block,
+        uint32_t count,
+        uint32_t& index,
+        uint32_t pivot) const
+{
+    if (index >= count || LESS_THAN(block[count - 1], pivot, reverse_))
+        return false;
+
+    if (GREATER_THAN_EQUAL(block[index], pivot, reverse_))
         return true;
-    }
-    if (blockDocid[count - 1] == pivot)
+
+    if (block[count - 1] == pivot)
     {
         index = count - 1;
         return true;
@@ -878,13 +975,13 @@ bool PositionalInvertedIndex::gallopSearch_(
     int beginIndex = index;
     int hop = 1;
     int tempIndex = beginIndex + 1;
-    while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL(blockDocid[tempIndex], pivot, pool_.reverse_))
+    while ((uint32_t)tempIndex < count && LESS_THAN_EQUAL(block[tempIndex], pivot, reverse_))
     {
         beginIndex = tempIndex;
         tempIndex += hop;
         hop *= 2;
     }
-    if (blockDocid[beginIndex] == pivot)
+    if (block[beginIndex] == pivot)
     {
         index = beginIndex;
         return true;
@@ -893,13 +990,13 @@ bool PositionalInvertedIndex::gallopSearch_(
     int endIndex = count - 1;
     hop = 1;
     tempIndex = endIndex - 1;
-    while (tempIndex >= 0 && GREATER_THAN(blockDocid[tempIndex], pivot, pool_.reverse_))
+    while (tempIndex >= 0 && GREATER_THAN(block[tempIndex], pivot, reverse_))
     {
         endIndex = tempIndex;
         tempIndex -= hop;
         hop *= 2;
     }
-    if (blockDocid[endIndex] == pivot)
+    if (block[endIndex] == pivot)
     {
         index = endIndex;
         return true;
@@ -910,11 +1007,11 @@ bool PositionalInvertedIndex::gallopSearch_(
     {
         uint32_t mid = beginIndex + (endIndex - beginIndex) / 2;
 
-        if (LESS_THAN(pivot, blockDocid[mid], pool_.reverse_))
+        if (LESS_THAN(pivot, block[mid], reverse_))
         {
             endIndex = mid;
         }
-        else if (GREATER_THAN(pivot, blockDocid[mid], pool_.reverse_))
+        else if (GREATER_THAN(pivot, block[mid], reverse_))
         {
             beginIndex = mid + 1;
         }
@@ -934,6 +1031,7 @@ void PositionalInvertedIndex::wand_(
         const std::vector<uint32_t>& df,
         const std::vector<float>& UB,
         const std::vector<uint32_t>& docLen,
+        const FilterBase* filter,
         uint32_t totalDocs,
         float avgDocLen,
         uint32_t hits,
@@ -946,25 +1044,40 @@ void PositionalInvertedIndex::wand_(
     std::vector<std::vector<uint32_t> > blockTf(len);
     std::vector<uint32_t> counts(len);
     std::vector<uint32_t> posting(len);
-    std::vector<uint32_t> mapping(len);
+    std::vector<uint32_t> mapping;
     float threshold = .0f;
 
     FastPFor codec;
+
+    uint32_t eligible = filter->find_first(reverse_);
+
+    if (eligible == INVALID_ID) return;
+
+    mapping.reserve(len);
+
     for (uint32_t i = 0; i < len; ++i)
     {
         blockDocid[i].resize(BLOCK_SIZE);
-        counts[i] = decompressDocidBlock_(codec, &blockDocid[i][0], headPointers[i]);
+
+        if (!iterateSegment_(codec, &blockDocid[i][0], counts[i], posting[i], headPointers[i], eligible))
+            continue;
+
         if (hasTf)
         {
             blockTf[i].resize(BLOCK_SIZE);
             decompressTfBlock_(codec, &blockTf[i][0], headPointers[i]);
         }
-        mapping[i] = i;
+
+        mapping.push_back(i);
+
         if (UB[i] <= threshold)
         {
             threshold = UB[i] - 1;
         }
     }
+
+    if (mapping.empty()) return;
+    len = mapping.size();
 
     for (uint32_t i = 0; i < len - 1; ++i)
     {
@@ -973,7 +1086,7 @@ void PositionalInvertedIndex::wand_(
         {
             if (GREATER_THAN(blockDocid[mapping[least]][0],
                              blockDocid[mapping[j]][0],
-                             pool_.reverse_))
+                             reverse_))
             {
                 least = j;
             }
@@ -991,26 +1104,19 @@ void PositionalInvertedIndex::wand_(
         uint32_t pTermIdx = INVALID_ID;
         for (uint32_t i = 0; i < len; ++i)
         {
-            if ((sum += UB[mapping[i]]) > threshold)
+            if ((sum += UB[mapping[i]]) > threshold && (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] != blockDocid[mapping[i + 1]][posting[mapping[i + 1]]]))
             {
                 pTermIdx = i;
-                if (i == len - 1 || blockDocid[mapping[i]][posting[mapping[i]]] !=
-                        blockDocid[mapping[i + 1]][posting[mapping[i + 1]]])
-                {
-                    break;
-                }
+                break;
             }
         }
 
-        if (sum == 0 || pTermIdx == INVALID_ID)
-        {
-            break;
-        }
+        if (sum == 0 || pTermIdx == INVALID_ID) break;
 
         uint32_t pTerm = mapping[pTermIdx];
         uint32_t pivot = blockDocid[pTerm][posting[pTerm]];
 
-        if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot)
+        if (blockDocid[mapping[0]][posting[mapping[0]]] == pivot && filter->test(pivot))
         {
             float score = 0;
             if (hasTf)
@@ -1032,77 +1138,56 @@ void PositionalInvertedIndex::wand_(
                 {
                     result_list.push_back(std::make_pair(score, pivot));
                     std::push_heap(result_list.begin(), result_list.end(), comparator);
-                    if (result_list.size() == hits)
-                    {
-                        if (!hasTf && len == 1) break;
-                        threshold = result_list[0].first;
-                    }
                 }
                 else if (score > result_list[0].first)
                 {
                     std::pop_heap(result_list.begin(), result_list.end(), comparator);
                     result_list.back() = std::make_pair(score, pivot);
                     std::push_heap(result_list.begin(), result_list.end(), comparator);
+                }
+
+                if (result_list.size() == hits)
+                {
                     if (!hasTf && len == 1) break;
                     threshold = result_list[0].first;
                 }
             }
-
-            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
-            {
-                uint32_t aterm = mapping[atermIdx];
-
-                if (posting[aterm] == counts[aterm] - 1)
-                {
-                    if ((headPointers[aterm] = pool_.nextPointer(headPointers[aterm])) == UNDEFINED_POINTER)
-                    {
-                        mapping.erase(mapping.begin() + atermIdx);
-                        --len;
-                        --atermIdx;
-                        continue;
-                    }
-                    else
-                    {
-                        counts[aterm] = decompressDocidBlock_(codec, &blockDocid[aterm][0], headPointers[aterm]);
-                        if (hasTf)
-                        {
-                            decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
-                        }
-                        posting[aterm] = 0;
-                    }
-                }
-            }
         }
-        else
+
+        eligible = (blockDocid[mapping[0]][posting[mapping[0]]] != pivot && filter->test(pivot)) ? pivot : filter->find_next(pivot, reverse_);
+
+        if (eligible == INVALID_ID) break;
+
+        for (uint32_t i = 0; i < mapping.size(); ++i)
         {
-            for (uint32_t atermIdx = 0; atermIdx <= pTermIdx; ++atermIdx)
-            {
-                if (blockDocid[mapping[atermIdx]][posting[mapping[atermIdx]]] == pivot)
-                    break;
+            uint32_t aterm = mapping[i];
+            if (blockDocid[aterm][posting[aterm]] >= eligible)
+                break;
 
-                uint32_t aterm = mapping[atermIdx];
-                size_t tmpHead = headPointers[aterm];
-                if (!gallopSearch_(codec, blockDocid[aterm], counts[aterm], posting[aterm], headPointers[aterm], pivot))
-                {
-                    mapping.erase(mapping.begin() + atermIdx);
-                    --len;
-                    --atermIdx;
-                }
-                else if (hasTf && tmpHead != headPointers[aterm])
-                {
-                    decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
-                }
+            size_t pointer = headPointers[aterm];
+            if (!iterateSegment_(codec, &blockDocid[aterm][0], counts[aterm], posting[aterm], headPointers[aterm], eligible))
+            {
+                mapping[i] = INVALID_ID;
+                continue;
+            }
+
+            if (hasTf && pointer != headPointers[aterm])
+            {
+                decompressTfBlock_(codec, &blockTf[aterm][0], headPointers[aterm]);
             }
         }
 
-        for (uint32_t i = 0; i <= pTermIdx; ++i)
+        mapping.erase(std::remove(mapping.begin(), mapping.end(), INVALID_ID), mapping.end());
+        len = mapping.size();
+
+        for (uint32_t i = 0; i < len; ++i)
         {
             bool unchanged = true;
             for (uint32_t j = i + 1; j < len; ++j)
             {
                 if (GREATER_THAN(blockDocid[mapping[j - 1]][posting[mapping[j - 1]]],
                                  blockDocid[mapping[j]][posting[mapping[j]]],
-                                 pool_.reverse_))
+                                 reverse_))
                 {
                     std::swap(mapping[j - 1], mapping[j]);
                     unchanged = false;
@@ -1122,47 +1207,59 @@ void PositionalInvertedIndex::wand_(
 
 void PositionalInvertedIndex::intersectPostingsLists_(
         FastPFor& codec,
+        const FilterBase* filter,
         size_t pointer0, size_t pointer1,
         std::vector<uint32_t>& docid_list) const
 {
-    std::vector<uint32_t> data0(BLOCK_SIZE);
-    std::vector<uint32_t> data1(BLOCK_SIZE);
+    uint32_t data0[BLOCK_SIZE];
+    uint32_t data1[BLOCK_SIZE];
 
-    uint32_t c0 = decompressDocidBlock_(codec, &data0[0], pointer0);
-    uint32_t c1 = decompressDocidBlock_(codec, &data1[0], pointer1);
+    uint32_t c0 = 0, c1 = 0;
     uint32_t i0 = 0, i1 = 0;
+
+    uint32_t eligible = filter->find_first(reverse_);
+
+    if (!iterateSegment_(codec, data0, c0, i0, pointer0, eligible))
+        return;
+
+    if ((eligible = filter->test(data0[i0]) ? data0[i0] : filter->find_next(data0[i0], reverse_)) == INVALID_ID)
+        return;
+
+    if (!iterateSegment_(codec, data1, c1, i1, pointer1, eligible))
+        return;
 
     while (true)
     {
         if (data1[i1] == data0[i0])
         {
             docid_list.push_back(data0[i0]);
-            if (++i0 == c0)
-            {
-                if ((pointer0 = pool_.nextPointer(pointer0)) == UNDEFINED_POINTER)
-                    break;
 
-                c0 = decompressDocidBlock_(codec, &data0[0], pointer0);
-                i0 = 0;
-            }
-            if (++i1 == c1)
-            {
-                if ((pointer1 = pool_.nextPointer(pointer1)) == UNDEFINED_POINTER)
-                    break;
+            if ((eligible = filter->find_next(data0[i0], reverse_)) == INVALID_ID)
+                break;
 
-                c1 = decompressDocidBlock_(codec, &data1[0], pointer1);
-                i1 = 0;
-            }
-        }
+            if (!iterateSegment_(codec, data0, c0, i0, pointer0, eligible))
+                break;
 
-        if (LESS_THAN(data0[i0], data1[i1], pool_.reverse_))
-        {
-            if (!gallopSearch_(codec, data0, c0, ++i0, pointer0, data1[i1]))
+            if ((eligible = filter->test(data0[i0]) ? data0[i0] : filter->find_next(data0[i0], reverse_)) == INVALID_ID)
+                break;
+
+            if (!iterateSegment_(codec, data1, c1, i1, pointer1, eligible))
                 break;
         }
-        else if (LESS_THAN(data1[i1], data0[i0], pool_.reverse_))
+        else if (LESS_THAN(data0[i0], data1[i1], reverse_))
         {
-            if (!gallopSearch_(codec, data1, c1, ++i1, pointer1, data0[i0]))
+            if ((eligible = filter->test(data1[i1]) ? data1[i1] : filter->find_next(data1[i1], reverse_)) == INVALID_ID)
+                break;
+
+            if (!iterateSegment_(codec, data0, c0, i0, pointer0, eligible))
+                break;
+        }
+        else
+        {
+            if ((eligible = filter->test(data0[i0]) ? data0[i0] : filter->find_next(data0[i0], reverse_)) == INVALID_ID)
+                break;
+
+            if (!iterateSegment_(codec, data1, c1, i1, pointer1, eligible))
                 break;
         }
     }
@@ -1173,41 +1270,31 @@ void PositionalInvertedIndex::intersectSetPostingsList_(
         size_t pointer,
         std::vector<uint32_t>& docid_list) const
 {
-    std::vector<uint32_t> blockDocid(BLOCK_SIZE);
-    uint32_t c = decompressDocidBlock_(codec, &blockDocid[0], pointer);
-    uint32_t iSet = 0, iCurrent = 0, i = 0;
+    uint32_t block[BLOCK_SIZE];
+    uint32_t c = 0, i = 0;
+    uint32_t iSet = 0, iCurrent = 0;
 
-    while (iCurrent < docid_list.size())
+    if (!iterateSegment_(codec, block, c, i, pointer, docid_list[iCurrent]))
+        return;
+
+    if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, block[i]))
+        return;
+
+    while (true)
     {
-        if (blockDocid[i] == docid_list[iCurrent])
+        if (block[i] == docid_list[iCurrent])
         {
             docid_list[iSet++] = docid_list[iCurrent++];
-            if (iCurrent == docid_list.size())
-                break;
 
-            if (++i == c)
-            {
-                if ((pointer = pool_.nextPointer(pointer)) == UNDEFINED_POINTER)
-                    break;
-
-                c = decompressDocidBlock_(codec, &blockDocid[0], pointer);
-                i = 0;
-            }
-        }
-        else if (LESS_THAN(blockDocid[i], docid_list[iCurrent], pool_.reverse_))
-        {
-            if (!gallopSearch_(codec, blockDocid, c, ++i, pointer, docid_list[iCurrent]))
-                break;
-        }
-        else
-        {
-            while (iCurrent < docid_list.size() && LESS_THAN(docid_list[iCurrent], blockDocid[i], pool_.reverse_))
-            {
-                ++iCurrent;
-            }
             if (iCurrent == docid_list.size())
                 break;
         }
+
+        if (!iterateSegment_(codec, block, c, i, pointer, docid_list[iCurrent]))
+            break;
+
+        if (!gallopSearch_(&docid_list[0], docid_list.size(), iCurrent, block[i]))
+            break;
     }
 
     docid_list.resize(iSet);
@@ -1215,32 +1302,55 @@ void PositionalInvertedIndex::intersectSetPostingsList_(
 
 void PositionalInvertedIndex::intersectSvS_(
         std::vector<size_t>& headPointers,
+        const FilterBase* filter,
         uint32_t minDf,
         uint32_t hits,
         std::vector<uint32_t>& docid_list) const
 {
     FastPFor codec;
 
-    if (headPointers.size() < 2)
+    if (headPointers.size() == 1)
     {
-        std::vector<uint32_t> block(BLOCK_SIZE);
+        uint32_t block[BLOCK_SIZE];
         uint32_t length = std::min(minDf, hits);
-        docid_list.resize(length);
-        uint32_t iSet = 0;
-        size_t t = headPointers[0];
-        while (t != UNDEFINED_POINTER && iSet < length)
+
+        docid_list.reserve(length);
+
+        uint32_t c = 0, i = 0;
+
+        uint32_t eligible = filter->find_first(reverse_);
+
+        if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+            return;
+
+        if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+            return;
+
+        while (true)
         {
-            uint32_t c = decompressDocidBlock_(codec, &block[0], t);
-            uint32_t r = iSet + c <= length ? c : length - iSet;
-            memcpy(&docid_list[iSet], &block[0], r * sizeof(uint32_t));
-            iSet += r;
-            t = pool_.nextPointer(t);
+            if (block[i] == eligible)
+            {
+                docid_list.push_back(eligible);
+
+                if (docid_list.size() == length)
+                    break;
+
+                if ((eligible = filter->find_next(eligible, reverse_)) == INVALID_ID)
+                    break;
+            }
+
+            if (!iterateSegment_(codec, block, c, i, headPointers[0], eligible))
+                break;
+
+            if ((eligible = filter->test(block[i]) ? block[i] : filter->find_next(block[i], reverse_)) == INVALID_ID)
+                break;
         }
+
         return;
     }
 
     docid_list.reserve(minDf);
-    intersectPostingsLists_(codec, headPointers[0], headPointers[1], docid_list);
+    intersectPostingsLists_(codec, filter, headPointers[0], headPointers[1], docid_list);
     for (uint32_t i = 2; i < headPointers.size(); ++i)
     {
         if (docid_list.empty()) return;

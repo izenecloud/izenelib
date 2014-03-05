@@ -37,31 +37,31 @@ BOOST_AUTO_TEST_CASE(Insert)
     for (uint64_t i = 0; i < N; ++i)
     {
         if (i % 1000000 == 999999)
-            fprintf(stderr, "fm inserted: %llu\n", i + 1);
+            fprintf(stderr, "fm inserted: %lu\n", i + 1);
         fm.setInteger(i, i, true);
     }
     uint64_t t2 = gettimeofday_usec();
-    fprintf(stderr, "fm  set   : %llu (%f)\n", t2 - t1, double(t2 - t1) / N);
+    fprintf(stderr, "fm  set   : %lu (%f)\n", t2 - t1, double(t2 - t1) / N);
 
     uint64_t fp = 0;
     for (uint64_t i = 0; i < N; ++i)
     {
         if (i % 1000000 == 999999)
-            fprintf(stderr, "fm queried: %llu\n", i + 1);
+            fprintf(stderr, "fm queried: %lu\n", i + 1);
         uint64_t tmp = fm.getInteger(i);
         if (i != tmp) ++fp;
     }
     uint64_t t3 = gettimeofday_usec();
-    fprintf(stderr, "fm  lookup: %llu (%f)\n", t3 - t2, double(t3 - t2) / N);
+    fprintf(stderr, "fm  lookup: %lu (%f)\n", t3 - t2, double(t3 - t2) / N);
     cerr <<"fm    size: " << fm.getWorkingSize() << endl;
-    fprintf(stderr, "false positive: %llu\n", fp);
+    fprintf(stderr, "false positive: %lu\n", fp);
     fm.save("tmp.fm");
     uint64_t t4 = gettimeofday_usec();
-    fprintf(stderr, "fm  serialize: %llu\n", t4 - t3);
+    fprintf(stderr, "fm  serialize: %lu\n", t4 - t3);
     fm.clear();
     fm.load("tmp.fm");
     uint64_t t5 = gettimeofday_usec();
-    fprintf(stderr, "fm  deserialize: %llu\n", t5 - t4);
+    fprintf(stderr, "fm  deserialize: %lu\n", t5 - t4);
 }
 
 
