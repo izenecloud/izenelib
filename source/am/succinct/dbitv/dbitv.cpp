@@ -1,5 +1,6 @@
 #include <am/succinct/dbitv/dbitv.hpp>
 #include <am/succinct/utils.hpp>
+#include <util/mem_utils.h>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -21,7 +22,7 @@ DBitV::~DBitV()
 void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 {
     size_t size = len_ / kSuperBlockSize + 1;
-    super_blocks_.reset(SuccinctUtils::cachealign_alloc<SuperBlock>(CACHELINE_SIZE, size));
+    super_blocks_.reset(cachealign_alloc<SuperBlock>(size), cachealign_deleter());
 
     if (support_select_)
     {
@@ -265,7 +266,7 @@ void DBitV::load(std::istream &is)
     is.read((char *)&one_count_, sizeof(one_count_));
 
     size_t size = len_ / kSuperBlockSize + 1;
-    super_blocks_.reset(SuccinctUtils::cachealign_alloc<SuperBlock>(CACHELINE_SIZE, size));
+    super_blocks_.reset(cachealign_alloc<SuperBlock>(size), cachealign_deleter());
     is.read((char *)&super_blocks_[0], size * sizeof(super_blocks_[0]));
 
     if (support_select_)

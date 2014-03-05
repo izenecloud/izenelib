@@ -20,6 +20,7 @@
 #include <am/succinct/rsdic/EnumCoder.hpp>
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/utils.hpp>
+#include <util/mem_utils.h>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -42,7 +43,7 @@ RSDic::~RSDic()
 void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 {
     size_t size = len / kLargeBlockSize + 1;
-    rank_blocks_.reset(SuccinctUtils::cachealign_alloc<RankBlock>(CACHELINE_SIZE, size));
+    rank_blocks_.reset(cachealign_alloc<RankBlock>(size), cachealign_deleter());
 
     if (support_select_)
     {
@@ -312,7 +313,7 @@ void RSDic::Load(std::istream& is)
     SuccinctUtils::loadVec(is, bits_);
 
     size_t size = num_ / kLargeBlockSize + 1;
-    rank_blocks_.reset(SuccinctUtils::cachealign_alloc<RankBlock>(CACHELINE_SIZE, size));
+    rank_blocks_.reset(cachealign_alloc<RankBlock>(size), cachealign_deleter());
     is.read((char *)&rank_blocks_[0], size * sizeof(rank_blocks_[0]));
 
     if (support_select_)
