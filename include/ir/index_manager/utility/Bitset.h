@@ -69,32 +69,22 @@ public:
     void write(Directory* pDirectory, const char* name) const;
 
     template <typename word_t>
-    void compress(EWAHBoolArray<word_t>& compressedBitMap) const
+    void compress(EWAHBoolArray<word_t>& ewah) const
     {
-        const size_t byteNum = block_num(size_) * sizeof(uint64_t);
-        const size_t wordByteNum = sizeof(word_t);
-
-        const size_t wordNum = byteNum / wordByteNum;
-        const word_t* pWord = reinterpret_cast<const word_t*>(bits_.get());
-        const word_t* pWordEnd = pWord + wordNum;
-        while (pWord != pWordEnd)
-        {
-            compressedBitMap.add(*pWord++);
-        }
+        ewah.addStreamOfWords((const word_t*)bits_.get(), block_num(size_) * 64 / ewah.wordinbits);
     }
 
     template <typename word_t>
-    void decompress(const EWAHBoolArray<word_t>& ewahBitmap)
+    void decompress(const EWAHBoolArray<word_t>& ewah)
     {
         size_t pointer = 0;
         size_t pos = 0;
-        const size_t wordBitNum = sizeof(word_t) << 3;
-        const std::vector<word_t>& buffer = ewahBitmap.getBuffer();
+        const std::vector<word_t>& buffer = ewah.getBuffer();
 
         while (pointer < buffer.size())
         {
             ConstRunningLengthWord<word_t> rlw(buffer[pointer]);
-            const size_t rlen = rlw.getRunningLength() * wordBitNum;
+            const size_t rlen = rlw.getRunningLength() * ewah.wordinbits;
 
             if (rlw.getRunningBit()) set(pos, pos + rlen);
 
@@ -102,9 +92,9 @@ public:
             ++pointer;
 
             const size_t literalWordNum = rlw.getNumberOfLiteralWords();
-            copy_segment(&buffer[pointer], pos, literalWordNum * wordBitNum);
+            copy_segment(&buffer[pointer], pos, literalWordNum * ewah.wordinbits);
 
-            pos += literalWordNum * wordBitNum;
+            pos += literalWordNum * ewah.wordinbits;
             pointer += literalWordNum;
         }
     }
