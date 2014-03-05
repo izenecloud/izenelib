@@ -436,10 +436,10 @@ size_t Bitset::find_last() const
 
     for (; first > last + 3; first -= 4)
     {
-        if (first[0]) return (first - bits_.get()) * 64 + 63 + __builtin_clzll(first[0]);
-        if (first[-1]) return (first - bits_.get() - 1) * 64 + 63 + __builtin_clzll(first[-1]);
-        if (first[-2]) return (first - bits_.get() - 2) * 64 + 63 + __builtin_clzll(first[-2]);
-        if (first[-3]) return (first - bits_.get() - 3) * 64 + 63 + __builtin_clzll(first[-3]);
+        if (first[0]) return (first - bits_.get()) * 64 + 63 - __builtin_clzll(first[0]);
+        if (first[-1]) return (first - bits_.get()) * 64 - 1 - __builtin_clzll(first[-1]);
+        if (first[-2]) return (first - bits_.get()) * 64 - 65 - __builtin_clzll(first[-2]);
+        if (first[-3]) return (first - bits_.get()) * 64 - 129 - __builtin_clzll(first[-3]);
     }
 
     for (; first != last; --first)
@@ -465,10 +465,10 @@ size_t Bitset::find_prev(size_t pos) const
 
     for (; first > last + 3; first -= 4)
     {
-        if (first[0]) return (first - bits_.get()) * 64 + 63 + __builtin_clzll(first[0]);
-        if (first[-1]) return (first - bits_.get() - 1) * 64 + 63 + __builtin_clzll(first[-1]);
-        if (first[-2]) return (first - bits_.get() - 2) * 64 + 63 + __builtin_clzll(first[-2]);
-        if (first[-3]) return (first - bits_.get() - 3) * 64 + 63 + __builtin_clzll(first[-3]);
+        if (first[0]) return (first - bits_.get()) * 64 + 63 - __builtin_clzll(first[0]);
+        if (first[-1]) return (first - bits_.get()) * 64 - 1 - __builtin_clzll(first[-1]);
+        if (first[-2]) return (first - bits_.get()) * 64 - 65 - __builtin_clzll(first[-2]);
+        if (first[-3]) return (first - bits_.get()) * 64 - 129 - __builtin_clzll(first[-3]);
     }
 
     for (; first != last; --first)
