@@ -553,7 +553,7 @@ ValueType Fujimap<KeyType, ValueType>::getInteger(const KeyType& key) const
     izenelib::util::izene_serialization<KeyType> izsKey(key);
     izsKey.write_image(kbuf, klen);
     const uint64_t id = blockID_(key);
-    for (size_t i = fbs_count_; i >= 0; --i)
+    for (size_t i = fbs_count_; i > 0; --i)
     {
         KeyEdge<ValueType> ke(kbuf, klen, 0, fbs_[i - 1][id].getSeed());
         ValueType ret = fbs_[i - 1][id].getVal(ke);
