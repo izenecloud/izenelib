@@ -20,7 +20,7 @@ dump.*
 *.out
 cscope.files
 /cmake
-/testbin/*
+/testbin
 /bin/*
 !/testbin/r_IndexStats.config
 help
