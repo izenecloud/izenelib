@@ -251,6 +251,7 @@ private:
     boost::unordered_map<KeyType, ValueType> tmpEdges_; ///< A set of searchable key/values to be indexed
 
     std::vector<std::vector<FujimapBlock<ValueType> > > fbs_; ///< BitArrays
+    size_t fbs_count_;
 
     uint64_t seed_; ///< A seed for hash
     uint64_t fpLen_; ///< A false positive rate (prob. of false positive is 2^{-fpLen})
@@ -265,6 +266,7 @@ private:
 template <class KeyType, class ValueType>
 Fujimap<KeyType, ValueType>::Fujimap(const char* fn)
     : kf_(fn)
+    , fbs_count_(0)
     , seed_(0x123456)
     , fpLen_(FPLEN)
     , tmpN_(TMPN)
@@ -402,7 +404,6 @@ int Fujimap<KeyType, ValueType>::build()
         uint64_t id = blockID_(it->first);
         kf_.write(id, it->first, it->second);
     }
-    boost::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
 
     fbs_.push_back(std::vector<FujimapBlock<ValueType> >(keyBlockN_));
     std::vector<FujimapBlock<ValueType> >& cur = fbs_.back();
@@ -423,6 +424,8 @@ int Fujimap<KeyType, ValueType>::build()
     }
     kf_.clear();
     tmpC_ = 0;
+    ++fbs_count_;
+    boost::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
     return 0;
 }
 
@@ -466,7 +469,7 @@ size_t Fujimap<KeyType, ValueType>::getKeyNum() const
 {
     size_t keyNum = tmpEdges_.size() + kf_.getNum();
 
-    for (size_t i = 0; i < fbs_.size(); ++i)
+    for (size_t i = 0; i < fbs_count_; ++i)
     {
         for (size_t j = 0; j < fbs_[i].size(); ++j)
         {
@@ -481,7 +484,7 @@ template <class KeyType, class ValueType>
 size_t Fujimap<KeyType, ValueType>::getWorkingSize() const
 {
     size_t workingSize = 0;
-    for (size_t i = 0; i < fbs_.size(); ++i)
+    for (size_t i = 0; i < fbs_count_; ++i)
     {
         for (size_t j = 0; j < fbs_[i].size(); ++j)
         {
@@ -550,11 +553,10 @@ ValueType Fujimap<KeyType, ValueType>::getInteger(const KeyType& key) const
     izenelib::util::izene_serialization<KeyType> izsKey(key);
     izsKey.write_image(kbuf, klen);
     const uint64_t id = blockID_(key);
-    for (typename std::vector<std::vector<FujimapBlock<ValueType> > >::const_reverse_iterator it2
-            = fbs_.rbegin(); it2 != fbs_.rend(); ++it2)
+    for (size_t i = fbs_count_; i >= 0; --i)
     {
-        KeyEdge<ValueType> ke(kbuf, klen, 0, (*it2)[id].getSeed());
-        ValueType ret = (*it2)[id].getVal(ke);
+        KeyEdge<ValueType> ke(kbuf, klen, 0, fbs_[i - 1][id].getSeed());
+        ValueType ret = fbs_[i - 1][id].getVal(ke);
         if (ret != (ValueType)NOTFOUND)
         {
             return ret;
@@ -609,9 +611,8 @@ int Fujimap<KeyType, ValueType>::load(const char* index)
         tmpEdges_.insert(kv);
     }
 
-    uint64_t fbs_Size = 0;
-    ifs.read((char*)(&fbs_Size), sizeof(fbs_Size));
-    fbs_.resize(fbs_Size);
+    ifs.read((char*)(&fbs_count_), sizeof(fbs_count_));
+    fbs_.resize(fbs_count_);
 
     for (size_t i = 0; i < fbs_.size(); ++i)
     {
@@ -683,9 +684,8 @@ int Fujimap<KeyType, ValueType>::save(const char* index)
         ofs.write(kbuf, klen);
     }
 
-    uint64_t fbs_Size = static_cast<uint64_t>(fbs_.size());
-    ofs.write((const char*)(&fbs_Size), sizeof(fbs_Size));
-    for (size_t i = 0; i < fbs_.size(); ++i)
+    ofs.write((const char*)(&fbs_count_), sizeof(fbs_count_));
+    for (size_t i = 0; i < fbs_count_; ++i)
     {
         uint64_t fbs_InSize = fbs_[i].size();
         ofs.write((const char*)(&fbs_InSize), sizeof(fbs_InSize));
