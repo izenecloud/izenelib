@@ -21,7 +21,7 @@ DBitV::~DBitV()
 
 void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 {
-    size_t size = len_ / kSuperBlockSize + 1;
+    size_t size = len / kSuperBlockSize + 1;
     super_blocks_.reset(cachealign_alloc<SuperBlock>(size), cachealign_deleter());
 
     if (support_select_)
