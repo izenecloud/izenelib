@@ -51,7 +51,7 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 
     if (offset)
     {
-        buildBlock_(bv[index] & ((1LLU << offset) - 1), offset, sb_index, sb_offset, sb_rank);
+        buildBlock_(bv[index] & ((1ULL << offset) - 1), offset, sb_index, sb_offset, sb_rank);
     }
     else
     {
@@ -119,7 +119,7 @@ bool DBitV::lookup(size_t pos) const
     size_t index = pos / kSuperBlockSize;
     size_t offset = pos % kSuperBlockSize;
 
-    return super_blocks_[index].bits_[offset / kBlockSize] & (1LLU << (offset % kBlockSize));
+    return super_blocks_[index].bits_[offset / kBlockSize] & (1ULL << (offset % kBlockSize));
 }
 
 bool DBitV::lookup(size_t pos, size_t &r) const
@@ -133,14 +133,14 @@ bool DBitV::lookup(size_t pos, size_t &r) const
 
     const SuperBlock &sb = super_blocks_[index];
 
-    if (sb.bits_[sb_index] & (1LLU << sb_offset))
+    if (sb.bits_[sb_index] & (1ULL << sb_offset))
     {
-        r = sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << sb_offset) - 1));
+        r = sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << sb_offset) - 1));
         return true;
     }
     else
     {
-        r = pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << sb_offset) - 1));
+        r = pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << sb_offset) - 1));
         return false;
     }
 }
@@ -161,7 +161,7 @@ size_t DBitV::rank1(size_t pos) const
     const SuperBlock &sb = super_blocks_[index];
 
     return sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511)
-        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1LLU << (pos % kBlockSize)) - 1));
+        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << (pos % kBlockSize)) - 1));
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const
@@ -169,83 +169,77 @@ size_t DBitV::rank(size_t pos, bool bit) const
     return bit ? rank1(pos) : rank0(pos);
 }
 
-size_t DBitV::select0(size_t rank) const
+size_t DBitV::select0(size_t ind) const
 {
-    __assert(support_select_ && rank < len_ - one_count_);
+    __assert(support_select_ && ind < len_ - one_count_);
 
-    size_t select_ind = rank / kSelectBlockSize;
+    size_t select_ind = ind / kSelectBlockSize;
     size_t low = select_zero_inds_[select_ind];
     size_t high = select_zero_inds_[select_ind + 1];
 
-    while (low < high)
+    while (low + kSelectLinearFallback < high)
     {
         size_t mid = (low + high) / 2;
-        if (mid * kSuperBlockSize - super_blocks_[mid].rank_ <= rank)
-        {
-            low = mid + 1;
-        }
-        else
-        {
-            high = mid;
-        }
+        asm("cmpq %3, %2\n\tcmovge %4, %0\n\tcmovl %5, %1"
+                : "+r"(low), "+r"(high)
+                : "r"(ind), "g"(mid * kSuperBlockSize - super_blocks_[mid].rank_), "g"(mid + 1), "g"(mid));
     }
+
+    for (; low < high && low * kSuperBlockSize - super_blocks_[low].rank_ <= ind; ++low);
 
     __assert(low > 0);
     const SuperBlock &sb = super_blocks_[--low];
-    rank -= low * kSuperBlockSize - sb.rank_;
+    ind -= low * kSuperBlockSize - sb.rank_;
 
     size_t sb_index = 1;
     uint64_t subrank = sb.subrank_;
 
-    while (rank >= 64 * sb_index - ((subrank >> 9 * sb_index) & 511))
+    while (ind >= 64 * sb_index - ((subrank >> 9 * sb_index) & 511))
     {
         ++sb_index;
     }
     --sb_index;
 
-    return low * kSuperBlockSize + sb_index * kBlockSize + SuccinctUtils::selectBlock(~sb.bits_[sb_index], rank + ((subrank >> 9 * sb_index) & 511) - 64 * sb_index);
+    return low * kSuperBlockSize + sb_index * kBlockSize + SuccinctUtils::selectBlock(~sb.bits_[sb_index], ind + ((subrank >> 9 * sb_index) & 511) - 64 * sb_index);
 }
 
-size_t DBitV::select1(size_t rank) const
+size_t DBitV::select1(size_t ind) const
 {
-    __assert(support_select_ && rank < one_count_);
+    __assert(support_select_ && ind < one_count_);
 
-    size_t select_ind = rank / kSelectBlockSize;
+    size_t select_ind = ind / kSelectBlockSize;
     size_t low = select_one_inds_[select_ind];
     size_t high = select_one_inds_[select_ind + 1];
 
-    while (low < high)
+    while (low + kSelectLinearFallback < high)
     {
         size_t mid = (low + high) / 2;
-        if (super_blocks_[mid].rank_ <= rank)
-        {
-            low = mid + 1;
-        }
-        else
-        {
-            high = mid;
-        }
+        asm("cmpq %3, %2\n\tcmovge %4, %0\n\tcmovl %5, %1"
+                : "+r"(low), "+r"(high)
+                : "r"(ind), "g"(super_blocks_[mid].rank_), "g"(mid + 1), "g"(mid));
     }
+
+    for (; low < high && super_blocks_[low].rank_ <= ind; ++low);
 
     __assert(low > 0);
     const SuperBlock &sb = super_blocks_[--low];
-    rank -= sb.rank_;
+    ind -= sb.rank_;
 
     size_t sb_index = 1;
     uint64_t subrank = sb.subrank_;
 
-    while (rank >= ((subrank >> 9 * sb_index) & 511))
+    while (ind >= ((subrank >> 9 * sb_index) & 511))
     {
         ++sb_index;
     }
     --sb_index;
 
-    return low * kSuperBlockSize + sb_index * kBlockSize + SuccinctUtils::selectBlock(sb.bits_[sb_index], rank - ((subrank >> 9 * sb_index) & 511));
+    return low * kSuperBlockSize + sb_index * kBlockSize + SuccinctUtils::selectBlock(sb.bits_[sb_index], ind - ((subrank >> 9 * sb_index) & 511));
 }
 
-size_t DBitV::select(size_t rank, bool bit) const
+size_t DBitV::select(size_t ind, bool bit) const
 {
-    return bit ? select1(rank) : select0(rank);
+    return bit ? select1(ind) : select0(ind);
 }
 
 void DBitV::save(std::ostream &os) const

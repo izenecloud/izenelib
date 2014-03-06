@@ -31,9 +31,9 @@ public:
     size_t rank1(size_t pos) const;
     size_t rank(size_t pos, bool bit) const;
 
-    size_t select0(size_t rank) const;
-    size_t select1(size_t rank) const;
-    size_t select(size_t rank, bool bit) const;
+    size_t select0(size_t ind) const;
+    size_t select1(size_t ind) const;
+    size_t select(size_t ind, bool bit) const;
 
     void save(std::ostream &os) const;
     void load(std::istream &is);

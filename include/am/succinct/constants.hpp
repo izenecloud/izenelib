@@ -27,6 +27,7 @@ static const size_t kLargeBlockSize = kBlockSize * kBlockPerLargeBlock;
 static const size_t kBlockPerSuperBlock = 6;
 static const size_t kSuperBlockSize = kBlockSize * kBlockPerSuperBlock;
 static const size_t kSelectBlockSize = 2048;
+static const size_t kSelectLinearFallback = 16;
 
 }
 
