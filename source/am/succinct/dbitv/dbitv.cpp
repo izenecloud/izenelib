@@ -23,6 +23,7 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
 {
     size_t size = len / kSuperBlockSize + 1;
     super_blocks_.reset(cachealign_alloc<SuperBlock>(size), cachealign_deleter());
+    memset(super_blocks_.get(), 0, size * sizeof(super_blocks_[0]));
 
     if (support_select_)
     {
@@ -51,6 +52,10 @@ void DBitV::build(const std::vector<uint64_t> &bv, size_t len)
     if (offset)
     {
         buildBlock_(bv[index] & ((1LLU << offset) - 1), offset, sb_index, sb_offset, sb_rank);
+    }
+    else
+    {
+        super_blocks_[sb_index].subrank_ |= sb_rank << 9 * (sb_offset + 1);
     }
 
     if (support_select_)
@@ -267,6 +272,7 @@ void DBitV::load(std::istream &is)
 
     size_t size = len_ / kSuperBlockSize + 1;
     super_blocks_.reset(cachealign_alloc<SuperBlock>(size), cachealign_deleter());
+    memset(super_blocks_.get(), 0, size * sizeof(super_blocks_[0]));
     is.read((char *)&super_blocks_[0], size * sizeof(super_blocks_[0]));
 
     if (support_select_)

@@ -44,6 +44,7 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 {
     size_t size = len / kLargeBlockSize + 1;
     rank_blocks_.reset(cachealign_alloc<RankBlock>(size), cachealign_deleter());
+    memset(rank_blocks_.get(), 0, size * sizeof(rank_blocks_[0]));
 
     if (support_select_)
     {
@@ -314,6 +315,7 @@ void RSDic::Load(std::istream& is)
 
     size_t size = num_ / kLargeBlockSize + 1;
     rank_blocks_.reset(cachealign_alloc<RankBlock>(size), cachealign_deleter());
+    memset(rank_blocks_.get(), 0, size * sizeof(rank_blocks_[0]));
     is.read((char *)&rank_blocks_[0], size * sizeof(rank_blocks_[0]));
 
     if (support_select_)
