@@ -63,7 +63,6 @@ IF(izene_util_SHOULD_BUILD)
     util_SRC
 
     thread-pool/*.cpp
-    io/*.cpp
     compression/*.cpp
     compressed_vector/*.cpp
     sysinfo/*.cpp
