@@ -453,7 +453,8 @@ void AttrScoreInvertedIndex::intersectPostingsLists_(
     uint32_t sc0 = 0, sc1 = 0;
 
     bool in_buffer0 = reverse_, in_buffer1 = reverse_;
-    id1 = filter->find_first(reverse_);
+
+    if ((id1 = filter->find_first(reverse_)) == INVALID_ID) return;
 
     if (!unionIterate_(in_buffer0, docBuffer0, blockDocid0, blockScore0, id1, c0, t0, i0, pointer0, id0, sc0))
         return;
@@ -576,7 +577,9 @@ void AttrScoreInvertedIndex::intersectSvS_(
         uint32_t id = 0, sc = 0;
 
         bool in_buffer = reverse_;
+
         uint32_t eligible = filter->find_first(reverse_);
+        if (eligible == INVALID_ID) return;
 
         if (!unionIterate_(in_buffer, docBuffer, blockDocid, blockScore, eligible, c, t, i, pointer, id, sc))
             return;
