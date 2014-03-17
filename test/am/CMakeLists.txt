@@ -52,7 +52,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     luxio
     izene_log
     ${TokyoCabinet_LIBRARIES}
-    #${Toku_LIBS}
+    ${Toku_LIBS}
     compressor
     leveldb
     jemalloc
