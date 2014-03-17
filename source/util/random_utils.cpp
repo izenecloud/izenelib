@@ -41,7 +41,7 @@
 /*static char *sccsid = "from: @(#)random.c	5.9 (Berkeley) 2/23/91";*/
 static char *rcsid = "$Id: random.cc,v 1.1 1999/09/30 19:49:52 yeogirl Exp $";
 #endif /* LIBC_SCCS and not lint */
-#include <util/random.h>
+#include <util/random_utils.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -350,5 +350,3 @@ wise_random(void)
 	}
 	return(i);
 }
-
-

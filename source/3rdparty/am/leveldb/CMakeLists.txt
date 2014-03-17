@@ -15,16 +15,12 @@ IF(leveldb_SHOULD_BUILD)
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
-    ${IZENELIB_SOURCE_DIR}/include/3rdparty/
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/am/
     ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
-#  ADD_DEFINITIONS("-fPIC -DSNAPPY")
   ADD_DEFINITIONS("-fPIC")
 
   MACRO_ADD_LIBRARY(leveldb SRCS ${leveldb_SRC})
-#  TARGET_LINK_LIBRARIES(leveldb snappy)
 
 ENDIF(leveldb_SHOULD_BUILD)
-

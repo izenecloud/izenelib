@@ -21,7 +21,7 @@ dump.*
 cscope.files
 /cmake
 /testbin
-/bin/*
+/bin
 !/testbin/r_IndexStats.config
 help
 *.save
@@ -32,6 +32,7 @@ help
 /cmake.yml
 /build
 /pkg
+/lib
 /include/izenelib-version.h
 /nbproject
 *.diff

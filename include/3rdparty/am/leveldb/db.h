@@ -7,14 +7,14 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "iterator.h"
-#include "options.h"
+#include "leveldb/iterator.h"
+#include "leveldb/options.h"
 
 namespace leveldb {
 
 // Update Makefile if you change these
 static const int kMajorVersion = 1;
-static const int kMinorVersion = 13;
+static const int kMinorVersion = 16;
 
 struct Options;
 struct ReadOptions;

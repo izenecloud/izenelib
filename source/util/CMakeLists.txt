@@ -12,7 +12,7 @@ IF(procmeminfo_SHOULD_BUILD)
     SRCS
     ProcMemInfo.cpp
     MRandom.cpp
-    random.cpp
+    random_utils.cpp
     profiler/Profiler.cpp
     profiler/TimeChecker.cpp
     profiler/YString.cpp)

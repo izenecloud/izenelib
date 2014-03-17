@@ -42,13 +42,12 @@
 #endif
 
 #include <pthread.h>
-#define SNAPPY
 #ifdef SNAPPY
-#include <3rdparty/compression/snappy/snappy.h>
+#include <snappy.h>
 #endif
 #include <stdint.h>
 #include <string>
-#include "atomic_pointer.h"
+#include "port/atomic_pointer.h"
 
 #ifndef PLATFORM_IS_LITTLE_ENDIAN
 #define PLATFORM_IS_LITTLE_ENDIAN (__BYTE_ORDER == __LITTLE_ENDIAN)
