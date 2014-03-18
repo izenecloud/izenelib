@@ -52,7 +52,7 @@ void get_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
     int32_t cnt = 200;
     while(cnt-- > 0)
     {
-        for (size_t i = 0; i < 100000; ++i)
+        for (size_t i = 0; i < 1000000; ++i)
         {
             std::string tmp = boost::lexical_cast<std::string>(i);
             std::string ret;
@@ -66,13 +66,17 @@ void get_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
 void write_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
 {
     int32_t cache_full = 0;
-    for (size_t i = 0; i < 100000; ++i)
+    int32_t cnt = 10;
+    while(cnt-- > 0)
     {
-        std::string tmp = boost::lexical_cast<std::string>(i);
-        if( !con_cache->insert(tmp, tmp) )
+        for (size_t i = 0; i < 1000000; ++i)
         {
-            cache_full++;
-            usleep(100);
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            if( !con_cache->insert(tmp, tmp) )
+            {
+                cache_full++;
+                usleep(100);
+            }
         }
     }
     LOG(INFO) << "cache full : " << cache_full;
@@ -113,28 +117,20 @@ BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
             BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
         }
 
+        std::string insert_failed;
         for(size_t i = 0; i < cache_size * 2 ; ++i)
         {
             std::string tmp = boost::lexical_cast<std::string>(i);
             if (!con_cache.insert(tmp, tmp))
             {
                 LOG(INFO) << "cache insert full:" << i;
+                insert_failed = tmp;
                 break;
             }
             usleep(10000);
         }
         sleep(10);
-        bool last_ret = false;
-        std::string ret;
-        BOOST_CHECK_EQUAL(con_cache.get("0", ret), false);
-        for(size_t i = 0; i < cache_size*wash_out_threshold - 1; ++i)
-        {
-            std::string tmp = boost::lexical_cast<std::string>(i);
-            bool cur_ret = con_cache.get(tmp, ret);
-            if (last_ret)
-                BOOST_CHECK_EQUAL(cur_ret, true);
-            last_ret = cur_ret;
-        }
+        BOOST_CHECK_EQUAL(con_cache.insert(insert_failed, insert_failed), true);
     }
     {
         ConcurrentCache<std::string, std::string> con_cache(cache_size*1000, LRLFU, 1, wash_out_threshold);

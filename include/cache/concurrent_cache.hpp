@@ -135,17 +135,42 @@ public:
             assert(item.item_list.empty());
             // first key in this bucket.
             // found a non-used access info for this bucket.
-            for (std::size_t i = 0; i < access_info_list_size_; ++i)
+            while (true)
             {
+                std::size_t free_index = -1;
+
+                free_list_lock_.lock();
+                if (!free_access_info_list_.empty())
+                {
+                    free_index = free_access_info_list_.front();
+                    free_access_info_list_.pop_front();
+                }
+                free_list_lock_.unlock();
+
+                if (free_index == (std::size_t)-1)
+                    break;
+                if (free_index >= access_info_list_size_)
+                    continue;
                 int32_t nonused = -1;
-                if (access_info_list_[i].item_cache_index.compare_exchange_weak(nonused, (int32_t)bucket_index))
+                if (access_info_list_[free_index].item_cache_index.compare_exchange_weak(nonused, (uint32_t)bucket_index))
                 {
                     item.item_list.push_back(std::make_pair(key, value));
-                    item.access_info_index = i;
-                    update_access_info(i);
+                    item.access_info_index = free_index;
+                    update_access_info(free_index);
                     return true;
                 }
             }
+            //for (std::size_t i = 0; i < access_info_list_size_; ++i)
+            //{
+            //    int32_t nonused = -1;
+            //    if (access_info_list_[i].item_cache_index.compare_exchange_weak(nonused, (int32_t)bucket_index))
+            //    {
+            //        item.item_list.push_back(std::make_pair(key, value));
+            //        item.access_info_index = i;
+            //        update_access_info(i);
+            //        return true;
+            //    }
+            //}
             //std::cerr << "cache is full, need wash out." << std::endl;
             wash_out_by_full_ = true;
             wash_out_cond_.notify_all();
@@ -170,8 +195,8 @@ public:
             if (!is_exist)
             {
                 item.item_list.push_back(std::make_pair(key, value));
-                if (item.item_list.size() > 3)
-                    std::cerr << "hash collision is heavy : " << item.item_list.size() << std::endl;
+                //if (item.item_list.size() > 5)
+                //    std::cerr << "hash collision is heavy : " << item.item_list.size() << std::endl;
             }
 
             update_access_info(item.access_info_index);
@@ -209,26 +234,26 @@ public:
     void remove(const KeyType& key)
     {
         std::size_t bucket_index = getBucketIndex(key);
-        folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
-        ItemT& item = item_buffer_[bucket_index];
-        for (typename ItemT::ContainerT::iterator it = item.item_list.begin();
-            it != item.item_list.end(); ++it)
+        int32_t access_index = -1;
         {
-            if (it->first == key)
+            folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
+            ItemT& item = item_buffer_[bucket_index];
+            for (typename ItemT::ContainerT::iterator it = item.item_list.begin();
+                it != item.item_list.end(); ++it)
             {
-                item.item_list.erase(it);
-                break;
+                if (it->first == key)
+                {
+                    item.item_list.erase(it);
+                    break;
+                }
             }
+            if (!item.item_list.empty())
+                return;
+            access_index = item.access_info_index;
+            reset_access_info(item.access_info_index);
+            item.access_info_index = -1;
         }
-        if (!item.item_list.empty())
-            return;
-        if (item.access_info_index >= 0 && item.access_info_index < (int32_t)access_info_list_size_)
-        {
-            access_info_list_[item.access_info_index].last_time = 0;
-            access_info_list_[item.access_info_index].get_cnt = 0;
-            access_info_list_[item.access_info_index].item_cache_index = -1;
-        }
-        item.access_info_index = -1;
+        free_access_info_to_list(access_index);
     }
 
     void clear()
@@ -288,20 +313,40 @@ private:
         return hashkey % item_buffer_size_;
     }
 
+    void reset_access_info(int32_t access_info_index)
+    {
+        if (access_info_index >= 0 && access_info_index < (int32_t)access_info_list_size_)
+        {
+            access_info_list_[access_info_index].last_time = 0;
+            access_info_list_[access_info_index].get_cnt = 0;
+            access_info_list_[access_info_index].item_cache_index = -1;
+        }
+    }
+
+    void free_access_info_to_list(int32_t access_info_index)
+    {
+        if (access_info_index >= 0 && access_info_index < (int32_t)access_info_list_size_)
+        {
+            free_list_lock_.lock();
+            free_access_info_list_.push_back(access_info_index);
+            free_list_lock_.unlock();
+        }
+    }
+
     void clear_bucket(std::size_t bucket_index)
     {
         if (bucket_index >= item_buffer_size_)
             return;
-        folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
-        ItemT& item = item_buffer_[bucket_index];
-        item.item_list.clear();
-        if (item.access_info_index >= 0 && item.access_info_index < (int32_t)access_info_list_size_)
+        int32_t access_index = -1;
         {
-            access_info_list_[item.access_info_index].last_time = 0;
-            access_info_list_[item.access_info_index].get_cnt = 0;
-            access_info_list_[item.access_info_index].item_cache_index = -1;
+            folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
+            ItemT& item = item_buffer_[bucket_index];
+            item.item_list.clear();
+            access_index = item.access_info_index;
+            reset_access_info(item.access_info_index);
+            item.access_info_index = -1;
         }
-        item.access_info_index = -1;
+        free_access_info_to_list(access_index);
     }
 
     void update_access_info(int32_t access_info_index)
@@ -379,7 +424,7 @@ private:
                 //std::cout << access_info_list_[washheap[i]].item_cache_index << "-" << access_info_list_[washheap[i]].last_time << ", ";
                 clear_bucket(access_info_list_[washheap[i]].item_cache_index);
             }
-            std::cout << "wash out cache item num : " << washheap.size() << std::endl;
+            //std::cout << "wash out cache item num : " << washheap.size() << std::endl;
         }
         std::cerr << "cache wash out thread exit." << std::endl;
     }
