@@ -42,6 +42,7 @@
 #endif
 
 #include <pthread.h>
+#define SNAPPY
 #ifdef SNAPPY
 #include <snappy.h>
 #endif
