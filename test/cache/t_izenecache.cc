@@ -4,10 +4,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cache/IzeneCache.h>
+#include <cache/concurrent_cache.hpp>
 #include <string>
 #include <boost/test/unit_test.hpp>
-
+#include <boost/lexical_cast.hpp>
 #include <util/ustring/UString.h>
+#include <glog/logging.h>
 
 
 namespace rde{
@@ -32,6 +34,7 @@ inline  hash_value_t extract_int_key_value<izenelib::util::UString>(const izenel
 using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::cache;
+using namespace izenelib::concurrent_cache;
 
 typedef string KeyType;
 typedef int ValueType;
@@ -43,7 +46,114 @@ static string inputFile1("test1.txt");
 static bool trace = true;
 static size_t cacheSize = 2501;
 
+void get_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
+{
+    int32_t cache_hit = 0;
+    int32_t cnt = 200;
+    while(cnt-- > 0)
+    {
+        for (size_t i = 0; i < 100000; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            std::string ret;
+            if( con_cache->get(tmp, ret) )
+                cache_hit++;
+        }
+    }
+    LOG(INFO) << "cache hit : " << cache_hit;
+}
+
+void write_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
+{
+    int32_t cache_full = 0;
+    for (size_t i = 0; i < 100000; ++i)
+    {
+        std::string tmp = boost::lexical_cast<std::string>(i);
+        if( !con_cache->insert(tmp, tmp) )
+        {
+            cache_full++;
+            usleep(100);
+        }
+    }
+    LOG(INFO) << "cache full : " << cache_full;
+}
+
 BOOST_AUTO_TEST_SUITE( izene_cache_suite )
+
+BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
+{
+    using namespace izenelib::concurrent_cache;
+    static const std::size_t cache_size = 100;
+    static const double wash_out_threshold = 0.1;
+    {
+        // single thread common unit test.
+        ConcurrentCache<std::string, std::string> con_cache(cache_size, LRU, 10, wash_out_threshold);
+        for(size_t i = 0; i < cache_size/2; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            con_cache.insert(tmp, tmp);
+            std::string ret;
+            con_cache.get(tmp, ret);
+            BOOST_CHECK_EQUAL(ret, tmp);
+            BOOST_CHECK_EQUAL(con_cache.get(tmp + "1", ret), false);
+            usleep(10);
+        }
+        for(size_t i = 0; i < cache_size/4; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            con_cache.remove(tmp);
+            std::string ret;
+            BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
+        }
+        con_cache.clear();
+        for(size_t i = 0; i < cache_size/2; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            std::string ret;
+            BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
+        }
+
+        for(size_t i = 0; i < cache_size * 2 ; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            if (!con_cache.insert(tmp, tmp))
+            {
+                LOG(INFO) << "cache insert full:" << i;
+                break;
+            }
+            usleep(10000);
+        }
+        sleep(10);
+        bool last_ret = false;
+        std::string ret;
+        BOOST_CHECK_EQUAL(con_cache.get("0", ret), false);
+        for(size_t i = 0; i < cache_size*wash_out_threshold - 1; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            bool cur_ret = con_cache.get(tmp, ret);
+            if (last_ret)
+                BOOST_CHECK_EQUAL(cur_ret, true);
+            last_ret = cur_ret;
+        }
+    }
+    {
+        ConcurrentCache<std::string, std::string> con_cache(cache_size*1000, LRLFU, 1, wash_out_threshold);
+        boost::thread_group read_group;
+        boost::thread_group write_group;
+        LOG(INFO) << "begin perf test for concurrent cache.";
+        for(int i = 0; i < 8; ++i)
+        {
+            write_group.add_thread(new boost::thread(boost::bind(&write_cache_func, &con_cache)));
+        }
+        for(int i = 0; i < 1; ++i)
+        {
+            read_group.add_thread(new boost::thread(boost::bind(&get_cache_func, &con_cache)));
+        }
+        read_group.join_all();
+        LOG(INFO) << "all cache read perf thread finished.";
+        write_group.join_all();
+    }
+}
 
 BOOST_AUTO_TEST_CASE(izene_cache_test)
 {
