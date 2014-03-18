@@ -44,7 +44,7 @@
 #include <pthread.h>
 #define SNAPPY
 #ifdef SNAPPY
-#include <snappy.h>
+#include <3rdparty/compression/snappy/snappy.h>
 #endif
 #include <stdint.h>
 #include <string>
