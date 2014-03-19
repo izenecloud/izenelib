@@ -180,17 +180,9 @@ bool RSDic::GetBit(size_t pos, size_t& rank) const
     }
     rank_sb = rb.subrank_[sblock];
 
-    if (EnumCoder::GetBit(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize, rank_sb))
-    {
-        rank += rank_sb;
-        return true;
-    }
-    else
-    {
-        rank = pos - rank - rank_sb;
-        return false;
-    }
-
+    bool bit = EnumCoder::GetBit(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize, rank_sb);
+    rank = bit ? rank + rank_sb : pos - rank - rank_sb;
+    return bit;
 }
 
 size_t RSDic::Rank0(size_t pos) const

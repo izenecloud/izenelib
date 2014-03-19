@@ -117,8 +117,7 @@ public:
         {
             if (size_ == 0)
             {
-                container_[1].first = value;
-                container_[1].second = value;
+                container_[1].first = container_[1].second = value;
             }
             else
             {
@@ -140,11 +139,11 @@ public:
 
         if (size_ % 2) // odd number of elements
         {
-            min_heap = compare_(value, container_[last_pos].first) ? true : false;
+            min_heap = compare_(value, container_[last_pos].first);
         }
         else
         {
-            min_heap = compare_(value, container_[++last_pos / 2].first) ? true : false;
+            min_heap = compare_(value, container_[++last_pos / 2].first);
         }
 
         if (min_heap)
@@ -183,6 +182,68 @@ public:
         }
     }
 
+    void replace_min(const value_type& value)
+    {
+        assert(size_ > 0);
+        if (size_ == 1)
+        {
+            container_[1].first = container_[1].second = value;
+            return;
+        }
+
+        size_type last_pos = size_ / 2 + size_ % 2;
+        value_type elem = value;
+
+        size_type crt = 1; // root node
+        size_type child = 2;
+
+        while (child <= last_pos)
+        {
+            child += child < last_pos && compare_(container_[child + 1].first, container_[child].first);
+
+            if (!compare_(container_[child].first, elem)) break;
+
+            container_[crt].first = container_[child].first;
+            if (compare_(container_[child].second, elem))
+                std::swap(elem, container_[child].second);
+
+            crt = child;
+            child *= 2;
+        }
+        container_[crt].first = elem;
+    }
+
+    void replace_max(const value_type& value)
+    {
+        assert(size_ > 0);
+        if (size_ == 1)
+        {
+            container_[1].first = container_[1].second = value;
+            return;
+        }
+
+        size_type last_pos = size_ / 2 + size_ % 2;
+        value_type elem = value;
+
+        size_type crt = 1; // root node
+        size_type child = 2;
+
+        while (child <= last_pos)
+        {
+            child += child < last_pos && compare_(container_[child].second, container_[child + 1].second);
+
+            if (!compare_(elem, container_[child].second)) break;
+
+            container_[crt].second = container_[child].second;
+            if (compare_(elem, container_[child].first))
+                std::swap(elem, container_[child].first);
+
+            crt = child;
+            child *= 2;
+        }
+        container_[crt].second = elem;
+    }
+
     void pop_min()
     {
         assert(size_ > 0);
@@ -204,8 +265,7 @@ public:
 
         while (child <= last_pos)
         {
-            if (child < last_pos && compare_(container_[child + 1].first, container_[child].first))
-                ++child; // pick the child with min
+            child += child < last_pos && compare_(container_[child + 1].first, container_[child].first);
 
             if (!compare_(container_[child].first, elem)) break;
 
@@ -240,8 +300,7 @@ public:
 
         while (child <= last_pos)
         {
-            if (child < last_pos && compare_(container_[child].second, container_[child + 1].second))
-                ++child; // pick the child with max
+            child += child < last_pos && compare_(container_[child].second, container_[child + 1].second);
 
             if (!compare_(elem, container_[child].second)) break;
 

@@ -9,7 +9,7 @@
 #ifndef BITPACK_UTIL
 #define BITPACK_UTIL
 #include "common.h"
-#include <iostream> // for std::cerr 
+#include <iostream> // for std::cerr
 
 using namespace std;
 
@@ -42,7 +42,7 @@ bool needPaddingTo128Bits(const T * inbyte)
 __attribute__ ((const))
 inline uint32_t gccbits(const uint32_t v)
 {
-    return v == 0 ? 0 : 32 - __builtin_clz(v);
+    return 32 - __builtin_clz(v);
 }
 
 template<class iterator>
