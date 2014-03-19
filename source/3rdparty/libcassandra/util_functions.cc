@@ -8,6 +8,7 @@
  */
 
 #include <sys/time.h>
+#include <endian.h>
 
 #include "libcassandra/util_functions.h"
 
@@ -250,38 +251,13 @@ int64_t createTimestamp()
 
 string serializeLong(int64_t t)
 {
-    unsigned char raw_array[8];
-    raw_array[0] = (t >> 56) & 0xff;
-    raw_array[1] = (t >> 48) & 0xff;
-    raw_array[2] = (t >> 40) & 0xff;
-    raw_array[3] = (t >> 32) & 0xff;
-    raw_array[4] = (t >> 24) & 0xff;
-    raw_array[5] = (t >> 16) & 0xff;
-    raw_array[6] = (t >> 8) & 0xff;
-    raw_array[7] = t & 0xff;
-    return string(reinterpret_cast<const char *>(raw_array), 8);
+    int64_t tmp = htobe64(t);
+    return string(reinterpret_cast<const char *>(&tmp), 8);
 }
 
 int64_t deserializeLong(const string& t)
 {
-    int64_t ret= 0;
-    const unsigned char *raw_array= reinterpret_cast<const unsigned char *>(t.c_str());
-    ret |= raw_array[0];
-    ret <<= 8;
-    ret |= raw_array[1];
-    ret <<= 8;
-    ret |= raw_array[2];
-    ret <<= 8;
-    ret |= raw_array[3];
-    ret <<= 8;
-    ret |= raw_array[4];
-    ret <<= 8;
-    ret |= raw_array[5];
-    ret <<= 8;
-    ret |= raw_array[6];
-    ret <<= 8;
-    ret |= raw_array[7];
-    return ret;
+    return be64toh(*reinterpret_cast<const int64_t*>(t.c_str()));
 }
 
 } /* end namespace libcassandra */

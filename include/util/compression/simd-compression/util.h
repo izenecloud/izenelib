@@ -34,7 +34,7 @@ inline uint32_t random(int b) {
 
 __attribute__((const))
 inline uint32_t gccbits(const uint32_t v) {
-    return v == 0 ? 0 : 32 - __builtin_clz(v);
+    return 32 - __builtin_clz(v);
 }
 
 // this macro should not be required if true C++11 could be counted on

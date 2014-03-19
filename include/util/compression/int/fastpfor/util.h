@@ -166,7 +166,7 @@ inline uint32_t gccbits(const uint32_t v)
     _BitScanReverse(&answer, v);
     return answer + 1;
 #else
-    return v == 0 ? 0 : 32 - __builtin_clz(v);
+    return 32 - __builtin_clz(v);
 #endif
 }
 
