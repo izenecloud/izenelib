@@ -210,7 +210,12 @@ public:
             crt = child;
             child *= 2;
         }
+
         container_[crt].first = elem;
+        if (crt == last_pos && size_ % 2)
+        {
+            container_[crt].second = elem;
+        }
     }
 
     void replace_max(const value_type& value)
@@ -242,6 +247,10 @@ public:
             child *= 2;
         }
         container_[crt].second = elem;
+        if (crt == last_pos && size_ % 2)
+        {
+            container_[crt].first = elem;
+        }
     }
 
     void pop_min()
