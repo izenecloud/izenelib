@@ -4,6 +4,7 @@
 #include "IzeneCacheTraits.h"
 #include <stdint.h>
 #include <boost/atomic.hpp>
+#include <boost/lexical_cast.hpp>
 #include <3rdparty/folly/RWSpinLock.h>
 #include <util/hashFunction.h>
 
@@ -27,7 +28,7 @@ public:
     typedef std::list<std::pair<KeyType, ValueType> > ContainerT;
     folly::RWSpinLock rw_lock;
     ContainerT item_list;
-    int32_t  access_info_index;
+    boost::atomic<int32_t>  access_info_index;
     CacheItem()
         :access_info_index(-1)
     {
@@ -93,6 +94,8 @@ public:
         wash_out_threshold_ = wash_out_threshold;
         need_exit_ = false;
         wash_out_by_full_ = false;
+        total_get_cnt_ = 0;
+        total_hit_cnt_ = 0;
         init(cache_size);
     }
     ~ConcurrentCache()
@@ -112,10 +115,10 @@ public:
     {
         // keep some free space to reduce collision. Use the prime as bucket size to reduce collision.
         item_buffer_size_ = cal_next_prime(cache_size*4);
-        std::cout << "init hash bucket size : " << item_buffer_size_ << std::endl;
         item_buffer_ = new ItemT[item_buffer_size_];
         access_info_list_size_ = cache_size;
         access_info_list_ = new ItemAccessInfo[access_info_list_size_];
+        std::cout << "init hash bucket size : " << item_buffer_size_ << ", access list size: " << access_info_list_size_ << std::endl;
 
         for (std::size_t i = 0; i < access_info_list_size_; ++i)
         {
@@ -206,9 +209,10 @@ public:
 
     bool get(const KeyType& key, ValueType& value)
     {
+        ++total_get_cnt_;
         std::size_t bucket_index = getBucketIndex(key);
         folly::RWSpinLock::ReadHolder guard(item_buffer_[bucket_index].rw_lock);
-        ItemT& item = item_buffer_[bucket_index];
+        const ItemT& item = item_buffer_[bucket_index];
         if (item.item_list.empty())
         {
             // not found in cache.
@@ -224,6 +228,7 @@ public:
                 {
                     value = it->second;
                     update_access_info(item.access_info_index);
+                    ++total_hit_cnt_;
                     return true;
                 }
             }
@@ -264,6 +269,74 @@ public:
         }
     }
 
+    bool check_correctness()
+    {
+        // check free list should be really free and all free pos should be in free list
+        free_list_lock_.lock();
+        std::set<std::size_t> diff_set;
+        bool check_ok = true;
+        for (std::list<std::size_t>::const_iterator it = free_access_info_list_.begin();
+            it != free_access_info_list_.end(); ++it)
+        {
+            if (*it >= access_info_list_size_)
+            {
+                // free pos should be no larger than size.
+                std::cerr << "free access list position larger than size." << *it << std::endl;
+                check_ok = false;
+                break;
+            }
+            if (access_info_list_[*it].item_cache_index != -1)
+            {
+                std::cerr << "free access list position not really free." << std::endl;
+                check_ok = false;
+                break;
+            }
+            if (diff_set.find(*it) != diff_set.end())
+            {
+                std::cerr << "free access list position duplicate." << std::endl;
+                check_ok = false;
+                break;
+            }
+            diff_set.insert(*it);
+        }
+        free_list_lock_.unlock();
+        if (!check_ok)
+            return false;
+        //
+        // check bucket access info consistent.
+        for(std::size_t i = 0; i < item_buffer_size_; ++i)
+        {
+            folly::RWSpinLock::ReadHolder guard(item_buffer_[i].rw_lock);
+            const ItemT& item = item_buffer_[i];
+            if (!item.item_list.empty() && item.access_info_index != -1)
+            {
+                if (item.access_info_index >= (int32_t)access_info_list_size_)
+                {
+                    std::cerr << "bucket access info pos out of range." << std::endl;
+                    return false;
+                }
+                if (access_info_list_[item.access_info_index].item_cache_index != (int32_t)i)
+                {
+                    std::cerr << "bucket access info pos is not consistent. " << i
+                        << "-" << item.access_info_index << "-" << access_info_list_[item.access_info_index].item_cache_index << std::endl;
+                    return false;
+                }
+            }
+
+        }
+        return true;
+    }
+
+    std::string get_useful_info()
+    {
+        std::string retstr("Concurrent cache statistic:\n");
+        retstr += "Current free : " + boost::lexical_cast<std::string>(free_access_info_list_.size()) + "\n";
+
+        retstr += "Hit ratio: " + boost::lexical_cast<std::string>((int64_t)total_hit_cnt_)
+            + " / " + boost::lexical_cast<std::string>((int64_t)total_get_cnt_);
+        return retstr;
+    }
+
 private:
     class CmpFunc
     {
@@ -272,25 +345,25 @@ private:
             : access_info_(access_info), access_info_size_(access_info_size), evit_strategy_(evit_strategy)
         {
         }
-        bool is_left_useless(std::size_t left, std::size_t right) const
+        bool is_left_useless(const ItemAccessInfo& left, const ItemAccessInfo& right) const
         {
             if (evit_strategy_ == izenelib::cache::LRU)
             {
-                if (access_info_[left].last_time == access_info_[right].last_time)
-                    return access_info_[left].get_cnt <= access_info_[right].get_cnt;
-                return access_info_[left].last_time < access_info_[right].last_time;
+                if (left.last_time == right.last_time)
+                    return left.get_cnt <= right.get_cnt;
+                return left.last_time < right.last_time;
             }
             else if (evit_strategy_ == izenelib::cache::LFU)
             {
-                if (access_info_[left].get_cnt == access_info_[right].get_cnt)
-                    return access_info_[left].last_time <= access_info_[right].last_time;
-                return access_info_[left].get_cnt < access_info_[right].get_cnt;
+                if (left.get_cnt == right.get_cnt)
+                    return left.last_time <= right.last_time;
+                return left.get_cnt < right.get_cnt;
             }
             else
             {
                 // for the frequency used cache item, we add some timestamp to leverage its importance.
-                int64_t l = access_info_[left].last_time + access_info_[left].get_cnt*60*1000;
-                int64_t r = access_info_[right].last_time + access_info_[right].get_cnt*60*1000;
+                int64_t l = left.last_time + left.get_cnt*60*1000;
+                int64_t r = right.last_time + right.get_cnt*60*1000;
                 return l <= r;
             }
         }
@@ -300,8 +373,9 @@ private:
             return left >= 0 && right >= 0 && left < access_info_size_
                 && right < access_info_size_ && access_info_[left].last_time != 0
                 && (0 == access_info_[right].last_time
-                    || is_left_useless(left, right));
+                    || is_left_useless(access_info_[left], access_info_[right]));
         }
+
     private:
         const ItemAccessInfo* const access_info_;
         const std::size_t access_info_size_;
@@ -362,7 +436,7 @@ private:
         }
         else
         {
-            std::cerr << "the cache access info data is not ready." << access_info_index;
+            std::cerr << "the cache access info data is not ready." << access_info_index << std::endl;
         }
     }
 
@@ -382,6 +456,8 @@ private:
                 wash_out_by_full_ = false;
                 wash_out_many = true;
             }
+            struct timespec start_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
             // here, we ignore the updated access info during scan to avoid performance degrade.
             // There may be some inaccurate to evict some useful cache, but I think it will be rare.
             std::vector<int32_t> washheap;
@@ -416,15 +492,28 @@ private:
             }
             if (freesize >= heapsize)
             {
-                //std::cout << "wash out ignore since there are some free. " << freesize << std::endl;
+                if (!wash_out_many)
+                    std::cout << get_useful_info() << std::endl;
                 continue;
             }
+            struct timespec sort_time;
+            clock_gettime(CLOCK_MONOTONIC, &sort_time);
+
             for (std::size_t i = 0; i < washheap.size(); ++i)
             {
                 //std::cout << access_info_list_[washheap[i]].item_cache_index << "-" << access_info_list_[washheap[i]].last_time << ", ";
                 clear_bucket(access_info_list_[washheap[i]].item_cache_index);
             }
-            //std::cout << "wash out cache item num : " << washheap.size() << std::endl;
+
+            struct timespec end_time;
+            clock_gettime(CLOCK_MONOTONIC, &end_time);
+            int64_t wash_cost = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+            int64_t sort_cost = (sort_time.tv_sec - start_time.tv_sec)*1000 + (sort_time.tv_nsec - start_time.tv_nsec)/1000000;
+            if (wash_cost > 200)
+            {
+                std::cout << "wash out cache item num : " << washheap.size()
+                    << ", cost time:" << wash_cost << ", sort time:" << sort_cost << std::endl;
+            }
         }
         std::cerr << "cache wash out thread exit." << std::endl;
     }
@@ -444,6 +533,8 @@ private:
     HashIDTraits<KeyType, uint32_t>  hash_func_;
     std::list<std::size_t>  free_access_info_list_;
     spinlock  free_list_lock_;
+    boost::atomic<int64_t>  total_get_cnt_;
+    boost::atomic<int64_t>  total_hit_cnt_;
 };
 
 

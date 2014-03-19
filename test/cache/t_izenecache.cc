@@ -46,38 +46,40 @@ static string inputFile1("test1.txt");
 static bool trace = true;
 static size_t cacheSize = 2501;
 
-void get_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
+void get_cache_func(ConcurrentCache<int, int>* con_cache)
 {
     int32_t cache_hit = 0;
-    int32_t cnt = 200;
+    int32_t cnt = 10;
+    int ret = 0;
     while(cnt-- > 0)
     {
         for (size_t i = 0; i < 1000000; ++i)
         {
-            std::string tmp = boost::lexical_cast<std::string>(i);
-            std::string ret;
-            if( con_cache->get(tmp, ret) )
+            if( con_cache->get(i, ret) )
                 cache_hit++;
         }
+        //BOOST_CHECK(con_cache->check_correctness());
     }
-    LOG(INFO) << "cache hit : " << cache_hit;
+
+    LOG(INFO) << con_cache->get_useful_info();
 }
 
-void write_cache_func(ConcurrentCache<std::string, std::string>* con_cache)
+void write_cache_func(ConcurrentCache<int, int>* con_cache)
 {
     int32_t cache_full = 0;
-    int32_t cnt = 10;
+    int32_t cnt = 2;
     while(cnt-- > 0)
     {
         for (size_t i = 0; i < 1000000; ++i)
         {
-            std::string tmp = boost::lexical_cast<std::string>(i);
-            if( !con_cache->insert(tmp, tmp) )
+            if( !con_cache->insert(i, i) )
             {
+                //BOOST_CHECK(con_cache->check_correctness());
                 cache_full++;
                 usleep(100);
             }
         }
+        //BOOST_CHECK(con_cache->check_correctness());
     }
     LOG(INFO) << "cache full : " << cache_full;
 }
@@ -102,6 +104,7 @@ BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
             BOOST_CHECK_EQUAL(con_cache.get(tmp + "1", ret), false);
             usleep(10);
         }
+        BOOST_CHECK(con_cache.check_correctness());
         for(size_t i = 0; i < cache_size/4; ++i)
         {
             std::string tmp = boost::lexical_cast<std::string>(i);
@@ -109,13 +112,16 @@ BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
             std::string ret;
             BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
         }
+        BOOST_CHECK(con_cache.check_correctness());
         con_cache.clear();
+        BOOST_CHECK(con_cache.check_correctness());
         for(size_t i = 0; i < cache_size/2; ++i)
         {
             std::string tmp = boost::lexical_cast<std::string>(i);
             std::string ret;
             BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
         }
+        BOOST_CHECK(con_cache.check_correctness());
 
         std::string insert_failed;
         for(size_t i = 0; i < cache_size * 2 ; ++i)
@@ -129,25 +135,30 @@ BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
             }
             usleep(10000);
         }
+        BOOST_CHECK(con_cache.check_correctness());
         sleep(10);
         BOOST_CHECK_EQUAL(con_cache.insert(insert_failed, insert_failed), true);
+        BOOST_CHECK(con_cache.check_correctness());
     }
     {
-        ConcurrentCache<std::string, std::string> con_cache(cache_size*1000, LRLFU, 1, wash_out_threshold);
+        ConcurrentCache<int, int> con_cache(cache_size*10000, LRLFU, 1, wash_out_threshold);
         boost::thread_group read_group;
         boost::thread_group write_group;
         LOG(INFO) << "begin perf test for concurrent cache.";
-        for(int i = 0; i < 8; ++i)
+        for(int i = 0; i < 16; ++i)
         {
             write_group.add_thread(new boost::thread(boost::bind(&write_cache_func, &con_cache)));
         }
-        for(int i = 0; i < 1; ++i)
+        for(int i = 0; i < 16; ++i)
         {
             read_group.add_thread(new boost::thread(boost::bind(&get_cache_func, &con_cache)));
         }
+        BOOST_CHECK(con_cache.check_correctness());
         read_group.join_all();
+        BOOST_CHECK(con_cache.check_correctness());
         LOG(INFO) << "all cache read perf thread finished.";
         write_group.join_all();
+        BOOST_CHECK(con_cache.check_correctness());
     }
 }
 
