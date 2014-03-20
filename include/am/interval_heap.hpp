@@ -243,7 +243,7 @@ public:
             child *= 2;
         }
 
-        container_[crt].second = (crt <= size / 2) ? elem : container_[crt].first;
+        container_[crt].second = (crt <= size_ / 2) ? elem : container_[crt].first;
     }
 
     void pop_min()
