@@ -211,7 +211,7 @@ public:
             child *= 2;
         }
 
-        container_[crt].first = (crt <= size / 2) ? elem : container_[crt].second;
+        container_[crt].first = (crt <= size_ / 2) ? elem : container_[crt].second;
     }
 
     void replace_max(const value_type& value)
