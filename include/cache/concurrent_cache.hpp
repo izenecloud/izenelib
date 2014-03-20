@@ -36,6 +36,8 @@ public:
     }
 };
 
+static const uint32_t MULT_FREE_LIST_NUM = 20;
+
 enum { PRIME_NUM = 28 };
 
 static const int64_t PRIME_LIST[PRIME_NUM] =
@@ -110,10 +112,13 @@ public:
         wash_out_cond_.notify_all();
         wash_out_thread_.join();
         free_access_info_list_.clear();
-        
-        delete[] item_buffer_;
+        if (free_list_lock_)
+            delete[] free_list_lock_;
+        if (item_buffer_)
+            delete[] item_buffer_;
         item_buffer_ = NULL;
-        delete[] access_info_list_;
+        if (access_info_list_)
+            delete[] access_info_list_;
         access_info_list_ = NULL;
         item_buffer_size_ = 0;
         access_info_list_size_ = 0;
@@ -127,9 +132,11 @@ public:
         access_info_list_size_ = cache_size;
         access_info_list_ = new ItemAccessInfo[access_info_list_size_];
 
+        free_list_lock_ = new spinlock[MULT_FREE_LIST_NUM];
+        free_access_info_list_.resize(MULT_FREE_LIST_NUM);
         for (std::size_t i = 0; i < access_info_list_size_; ++i)
         {
-            free_access_info_list_.push_back(i);
+            free_access_info_list_[i%MULT_FREE_LIST_NUM].push_back(i);
         }
 
         std::cout << "init hash bucket size : " << item_buffer_size_ << ", access list size: " << access_info_list_size_ << std::endl;
@@ -146,17 +153,18 @@ public:
             assert(item.item_list.empty());
             // first key in this bucket.
             // found a non-used access info for this bucket.
+            std::size_t free_list_num = bucket_index % MULT_FREE_LIST_NUM;
             while (true)
             {
                 std::size_t free_index = -1;
 
-                free_list_lock_.lock();
-                if (!free_access_info_list_.empty())
+                free_list_lock_[free_list_num].lock();
+                if (!free_access_info_list_[free_list_num].empty())
                 {
-                    free_index = free_access_info_list_.front();
-                    free_access_info_list_.pop_front();
+                    free_index = free_access_info_list_[free_list_num].front();
+                    free_access_info_list_[free_list_num].pop_front();
                 }
-                free_list_lock_.unlock();
+                free_list_lock_[free_list_num].unlock();
 
                 if (free_index == (std::size_t)-1)
                     break;
@@ -285,36 +293,39 @@ public:
     bool check_correctness()
     {
         // check free list should be really free and all free pos should be in free list
-        free_list_lock_.lock();
-        std::set<std::size_t> diff_set;
-        bool check_ok = true;
-        for (std::list<std::size_t>::const_iterator it = free_access_info_list_.begin();
-            it != free_access_info_list_.end(); ++it)
+        for (std::size_t i = 0; i < MULT_FREE_LIST_NUM; ++i)
         {
-            if (*it >= access_info_list_size_)
+            free_list_lock_[i].lock();
+            std::set<std::size_t> diff_set;
+            bool check_ok = true;
+            for (std::list<std::size_t>::const_iterator it = free_access_info_list_[i].begin();
+                it != free_access_info_list_[i].end(); ++it)
             {
-                // free pos should be no larger than size.
-                std::cerr << "free access list position larger than size." << *it << std::endl;
-                check_ok = false;
-                break;
+                if (*it >= access_info_list_size_)
+                {
+                    // free pos should be no larger than size.
+                    std::cerr << "free access list position larger than size." << *it << std::endl;
+                    check_ok = false;
+                    break;
+                }
+                if (access_info_list_[*it].item_cache_index != -1)
+                {
+                    std::cerr << "free access list position not really free." << std::endl;
+                    check_ok = false;
+                    break;
+                }
+                if (diff_set.find(*it) != diff_set.end())
+                {
+                    std::cerr << "free access list position duplicate." << std::endl;
+                    check_ok = false;
+                    break;
+                }
+                diff_set.insert(*it);
             }
-            if (access_info_list_[*it].item_cache_index != -1)
-            {
-                std::cerr << "free access list position not really free." << std::endl;
-                check_ok = false;
-                break;
-            }
-            if (diff_set.find(*it) != diff_set.end())
-            {
-                std::cerr << "free access list position duplicate." << std::endl;
-                check_ok = false;
-                break;
-            }
-            diff_set.insert(*it);
+            free_list_lock_[i].unlock();
+            if (!check_ok)
+                return false;
         }
-        free_list_lock_.unlock();
-        if (!check_ok)
-            return false;
         //
         // check bucket access info consistent.
         for(std::size_t i = 0; i < item_buffer_size_; ++i)
@@ -343,7 +354,12 @@ public:
     std::string get_useful_info()
     {
         std::string retstr("Concurrent cache statistic:\n");
-        retstr += "Current free : " + boost::lexical_cast<std::string>(free_access_info_list_.size()) + "\n";
+        retstr += "Current free list size: \n";
+        for(std::size_t i = 0; i < MULT_FREE_LIST_NUM; ++i)
+        {
+           retstr += boost::lexical_cast<std::string>(free_access_info_list_[i].size()) + ", ";
+        }
+        retstr += "\n";
 
         retstr += "Hit ratio: " + boost::lexical_cast<std::string>((int64_t)total_hit_cnt_)
             + " / " + boost::lexical_cast<std::string>((int64_t)total_get_cnt_);
@@ -414,9 +430,9 @@ private:
     {
         if (access_info_index >= 0 && access_info_index < (int32_t)access_info_list_size_)
         {
-            free_list_lock_.lock();
-            free_access_info_list_.push_back(access_info_index);
-            free_list_lock_.unlock();
+            free_list_lock_[access_info_index % MULT_FREE_LIST_NUM].lock();
+            free_access_info_list_[access_info_index % MULT_FREE_LIST_NUM].push_back(access_info_index);
+            free_list_lock_[access_info_index % MULT_FREE_LIST_NUM].unlock();
         }
     }
 
@@ -541,7 +557,7 @@ private:
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             int64_t wash_cost = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
             int64_t sort_cost = (sort_time.tv_sec - start_time.tv_sec)*1000 + (sort_time.tv_nsec - start_time.tv_nsec)/1000000;
-            if (wash_cost > 200 /*|| wash_out_many*/)
+            if (wash_cost > 200 || wash_out_many)
             {
                 std::cout << "wash out cache item num : " << washheap.size()
                     << ", cost time:" << wash_cost << ", sort time:" << sort_cost << std::endl;
@@ -563,8 +579,8 @@ private:
     boost::condition_variable wash_out_cond_;
     boost::thread wash_out_thread_;
     HashIDTraits<KeyType, uint32_t>  hash_func_;
-    std::list<std::size_t>  free_access_info_list_;
-    spinlock  free_list_lock_;
+    std::vector<std::list<std::size_t> >  free_access_info_list_;
+    spinlock  *free_list_lock_;
     boost::atomic<int64_t>  total_get_cnt_;
     boost::atomic<int64_t>  total_hit_cnt_;
 };
