@@ -605,14 +605,14 @@ void WaveletTreeBinary<CharT>::topKUnion(
             {
                 ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
             }
-            else if (*one_ranges < *ranges_heap.get_min().first)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
-            else
+            else if (*ranges_heap.get_min().first < *one_ranges)
             {
                 recyc_queue.push_back(ranges_heap.get_min().first);
                 ranges_heap.replace_min(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -856,14 +856,14 @@ void WaveletTreeBinary<CharT>::topKUnionWithFilters(
             {
                 ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
             }
-            else if (*one_ranges < *ranges_heap.get_min().first)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
-            else
+            else if (*ranges_heap.get_min().first < *one_ranges)
             {
                 recyc_queue.push_back(ranges_heap.get_min().first);
                 ranges_heap.replace_min(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -1142,14 +1142,14 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             {
                 ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
             }
-            else if (*one_ranges < *ranges_heap.get_min().first)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
-            else
+            else if (*ranges_heap.get_min().first < *one_ranges)
             {
                 recyc_queue.push_back(ranges_heap.get_min().first);
                 ranges_heap.replace_min(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -1386,14 +1386,14 @@ void WaveletTreeBinary<CharT>::topKUnion(
             {
                 ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
             }
-            else if (*one_ranges < *ranges_heap.get_min().first)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
-            else
+            else if (*ranges_heap.get_min().first < *one_ranges)
             {
                 recyc_queue.push_back(ranges_heap.get_min().first);
                 ranges_heap.replace_min(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -1692,14 +1692,14 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
             {
                 ranges_heap.insert(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
             }
-            else if (*one_ranges < *ranges_heap.get_min().first)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
-            else
+            else if (*ranges_heap.get_min().first < *one_ranges)
             {
                 recyc_queue.push_back(ranges_heap.get_min().first);
                 ranges_heap.replace_min(std::make_pair(one_ranges, occ_.prefixSum(one_ranges->sym_)));
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 

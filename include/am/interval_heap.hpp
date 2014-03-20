@@ -53,7 +53,7 @@ public:
      */
     explicit interval_heap(size_type capacity, const Compare& compare = Compare())
         : compare_(compare)
-        , container_(capacity / 2 + capacity % 2 + 1) // 1-based indexing
+        , container_((capacity + 1) / 2 + 1) // 1-based indexing
         , capacity_(capacity)
         , size_(0)
     {
@@ -93,7 +93,7 @@ public:
     {
         if (capacity > capacity_)
         {
-            container_.resize(capacity / 2 + capacity % 2 + 1);
+            container_.resize((capacity + 1) / 2 + 1);
             capacity_ = capacity;
         }
     }
@@ -134,7 +134,7 @@ public:
             return;
         }
 
-        size_type last_pos = size_ / 2 + size_ % 2;
+        size_type last_pos = (size_ + 1) / 2;
         bool min_heap;
 
         if (size_ % 2) // odd number of elements
@@ -191,7 +191,7 @@ public:
             return;
         }
 
-        size_type last_pos = size_ / 2 + size_ % 2;
+        size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
 
         size_type crt = 1; // root node
@@ -210,7 +210,8 @@ public:
             crt = child;
             child *= 2;
         }
-        container_[crt].first = elem;
+
+        container_[crt].first = (crt <= size_ / 2) ? elem : container_[crt].second;
     }
 
     void replace_max(const value_type& value)
@@ -222,7 +223,7 @@ public:
             return;
         }
 
-        size_type last_pos = size_ / 2 + size_ % 2;
+        size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
 
         size_type crt = 1; // root node
@@ -241,13 +242,14 @@ public:
             crt = child;
             child *= 2;
         }
-        container_[crt].second = elem;
+
+        container_[crt].second = (crt <= size_ / 2) ? elem : container_[crt].first;
     }
 
     void pop_min()
     {
         assert(size_ > 0);
-        size_type last_pos = size_ / 2 + size_ % 2;
+        size_type last_pos = (size_ + 1) / 2;
         value_type elem = container_[last_pos].first;
 
         if (size_ % 2) // odd number of elements
@@ -276,13 +278,14 @@ public:
             crt = child;
             child *= 2;
         }
+
         container_[crt].first = elem;
     }
 
     void pop_max()
     {
         assert(size_ > 0);
-        size_type last_pos = size_ / 2 + size_ % 2;
+        size_type last_pos = (size_ + 1) / 2;
         value_type elem = container_[last_pos].second;
 
         if (size_ % 2) // odd number of elements
@@ -311,6 +314,7 @@ public:
             crt = child;
             child *= 2;
         }
+
         container_[crt].second = elem;
     }
 
