@@ -26,7 +26,8 @@ template <class KeyType, class ValueType> class CacheItem
 {
 public:
     typedef std::list<std::pair<KeyType, ValueType> > ContainerT;
-    folly::RWSpinLock rw_lock;
+    typedef folly::RWTicketSpinLockT<32, true> ItemRWLock;
+    ItemRWLock rw_lock;
     ContainerT item_list;
     boost::atomic<int32_t>  access_info_index;
     CacheItem()
@@ -74,7 +75,11 @@ public:
         }
         inline void lock()
         {
-            while (lock_.test_and_set(boost::memory_order_acquire));
+            int cnt = 0;
+            while (lock_.test_and_set(boost::memory_order_acquire))
+            {
+                if (++cnt > 10) sched_yield();
+            }
         }
         inline void unlock()
         {
@@ -84,7 +89,7 @@ public:
         {
             return !lock_.test_and_set(boost::memory_order_acquire);
         }
-    }__attribute__((aligned(64)));
+    };
 
     ConcurrentCache(std::size_t cache_size, izenelib::cache::REPLACEMENT_TYPE evit_strategy,
         int32_t wash_out_interval_sec = 10, double wash_out_threshold = 0.1)
@@ -98,11 +103,14 @@ public:
         total_hit_cnt_ = 0;
         init(cache_size);
     }
+
     ~ConcurrentCache()
     {
         need_exit_ = true;
         wash_out_cond_.notify_all();
         wash_out_thread_.join();
+        free_access_info_list_.clear();
+        
         delete[] item_buffer_;
         item_buffer_ = NULL;
         delete[] access_info_list_;
@@ -118,20 +126,20 @@ public:
         item_buffer_ = new ItemT[item_buffer_size_];
         access_info_list_size_ = cache_size;
         access_info_list_ = new ItemAccessInfo[access_info_list_size_];
-        std::cout << "init hash bucket size : " << item_buffer_size_ << ", access list size: " << access_info_list_size_ << std::endl;
 
         for (std::size_t i = 0; i < access_info_list_size_; ++i)
         {
             free_access_info_list_.push_back(i);
         }
 
+        std::cout << "init hash bucket size : " << item_buffer_size_ << ", access list size: " << access_info_list_size_ << std::endl;
         wash_out_thread_ = boost::thread(boost::bind(&ConcurrentCache::wash_out_bg, this));
     }
 
     bool insert(const KeyType& key, const ValueType& value, bool overwrite = true)
     {
         std::size_t bucket_index = getBucketIndex(key);
-        folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
+        typename ItemT::ItemRWLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
         ItemT& item = item_buffer_[bucket_index];
         if (item.access_info_index == -1)
         {
@@ -161,6 +169,11 @@ public:
                     item.access_info_index = free_index;
                     update_access_info(free_index);
                     return true;
+                }
+                else
+                {
+                    std::cerr << "exchange failed for item cache index." << std::endl;
+                    break;
                 }
             }
             //for (std::size_t i = 0; i < access_info_list_size_; ++i)
@@ -211,7 +224,7 @@ public:
     {
         ++total_get_cnt_;
         std::size_t bucket_index = getBucketIndex(key);
-        folly::RWSpinLock::ReadHolder guard(item_buffer_[bucket_index].rw_lock);
+        typename ItemT::ItemRWLock::ReadHolder guard(item_buffer_[bucket_index].rw_lock);
         const ItemT& item = item_buffer_[bucket_index];
         if (item.item_list.empty())
         {
@@ -241,7 +254,7 @@ public:
         std::size_t bucket_index = getBucketIndex(key);
         int32_t access_index = -1;
         {
-            folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
+            typename ItemT::ItemRWLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
             ItemT& item = item_buffer_[bucket_index];
             for (typename ItemT::ContainerT::iterator it = item.item_list.begin();
                 it != item.item_list.end(); ++it)
@@ -306,7 +319,7 @@ public:
         // check bucket access info consistent.
         for(std::size_t i = 0; i < item_buffer_size_; ++i)
         {
-            folly::RWSpinLock::ReadHolder guard(item_buffer_[i].rw_lock);
+            typename ItemT::ItemRWLock::ReadHolder guard(item_buffer_[i].rw_lock);
             const ItemT& item = item_buffer_[i];
             if (!item.item_list.empty() && item.access_info_index != -1)
             {
@@ -407,13 +420,32 @@ private:
         }
     }
 
+    void try_clear_bucket(std::size_t bucket_index)
+    {
+        if (bucket_index >= item_buffer_size_)
+            return;
+        int32_t access_index = -1;
+        {
+            if (!item_buffer_[bucket_index].rw_lock.try_lock())
+            {
+                return;
+            }
+            ItemT& item = item_buffer_[bucket_index];
+            item.item_list.clear();
+            access_index = item.access_info_index;
+            reset_access_info(item.access_info_index);
+            item.access_info_index = -1;
+            item_buffer_[bucket_index].rw_lock.unlock();
+        }
+        free_access_info_to_list(access_index);
+    }
     void clear_bucket(std::size_t bucket_index)
     {
         if (bucket_index >= item_buffer_size_)
             return;
         int32_t access_index = -1;
         {
-            folly::RWSpinLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
+            typename ItemT::ItemRWLock::WriteHolder guard(item_buffer_[bucket_index].rw_lock);
             ItemT& item = item_buffer_[bucket_index];
             item.item_list.clear();
             access_index = item.access_info_index;
@@ -502,14 +534,14 @@ private:
             for (std::size_t i = 0; i < washheap.size(); ++i)
             {
                 //std::cout << access_info_list_[washheap[i]].item_cache_index << "-" << access_info_list_[washheap[i]].last_time << ", ";
-                clear_bucket(access_info_list_[washheap[i]].item_cache_index);
+                try_clear_bucket(access_info_list_[washheap[i]].item_cache_index);
             }
 
             struct timespec end_time;
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             int64_t wash_cost = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
             int64_t sort_cost = (sort_time.tv_sec - start_time.tv_sec)*1000 + (sort_time.tv_nsec - start_time.tv_nsec)/1000000;
-            if (wash_cost > 200)
+            if (wash_cost > 200 /*|| wash_out_many*/)
             {
                 std::cout << "wash out cache item num : " << washheap.size()
                     << ", cost time:" << wash_cost << ", sort time:" << sort_cost << std::endl;

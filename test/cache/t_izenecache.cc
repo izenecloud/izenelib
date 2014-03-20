@@ -49,14 +49,23 @@ static size_t cacheSize = 2501;
 void get_cache_func(ConcurrentCache<int, int>* con_cache)
 {
     int32_t cache_hit = 0;
-    int32_t cnt = 10;
+    int32_t cnt = 20;
     int ret = 0;
     while(cnt-- > 0)
     {
         for (size_t i = 0; i < 1000000; ++i)
         {
+            struct timespec start_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
             if( con_cache->get(i, ret) )
                 cache_hit++;
+            struct timespec end_time;
+            clock_gettime(CLOCK_MONOTONIC, &end_time);
+            int64_t interval = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+            if (interval > 100)
+            {
+                LOG(INFO) << "get too long: " << interval << ", " << start_time.tv_sec << "-" << end_time.tv_sec;
+            }
         }
         //BOOST_CHECK(con_cache->check_correctness());
     }
@@ -72,11 +81,23 @@ void write_cache_func(ConcurrentCache<int, int>* con_cache)
     {
         for (size_t i = 0; i < 1000000; ++i)
         {
+            struct timespec start_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
             if( !con_cache->insert(i, i) )
             {
                 //BOOST_CHECK(con_cache->check_correctness());
                 cache_full++;
                 usleep(100);
+            }
+            else
+            {
+                struct timespec end_time;
+                clock_gettime(CLOCK_MONOTONIC, &end_time);
+                int64_t interval = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+                if (interval > 150)
+                {
+                    LOG(INFO) << "insert too long: " << interval << ", " << start_time.tv_sec << "-" << end_time.tv_sec;
+                }
             }
         }
         //BOOST_CHECK(con_cache->check_correctness());
