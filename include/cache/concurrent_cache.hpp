@@ -36,7 +36,7 @@ public:
     }
 };
 
-static const uint32_t MULT_FREE_LIST_NUM = 20;
+static const uint32_t MULT_FREE_LIST_NUM = 16;
 
 enum { PRIME_NUM = 28 };
 
@@ -503,6 +503,23 @@ private:
             {
                 wash_out_by_full_ = false;
                 wash_out_many = true;
+            }
+            bool is_need_scan = wash_out_many;
+            if (!wash_out_many)
+            {
+                for(std::size_t i = 0; i < MULT_FREE_LIST_NUM; ++i)
+                {
+                    if (free_access_info_list_[i].size() <= wash_out_threshold_ * access_info_list_size_ / MULT_FREE_LIST_NUM)
+                    {
+                        is_need_scan = true;
+                        break;
+                    }
+                }
+            }
+            if (!is_need_scan)
+            {
+                std::cout << "No need to wash out. " << get_useful_info() << std::endl;
+                continue;
             }
             struct timespec start_time;
             clock_gettime(CLOCK_MONOTONIC, &start_time);
