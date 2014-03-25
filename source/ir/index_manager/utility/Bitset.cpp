@@ -60,7 +60,7 @@ Bitset::~Bitset()
 const Bitset& Bitset::dup()
 {
     uint64_t* new_bits = cachealign_alloc<uint64_t>(capacity_);
-    memset(bits_.get(), 0, capacity_ * sizeof(uint64_t));
+    memset(new_bits, 0, capacity_ * sizeof(uint64_t));
     memcpy(new_bits, bits_.get(), (size_ + 7) / 8);
     bits_.reset(new_bits, cachealign_deleter());
 
