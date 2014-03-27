@@ -134,9 +134,11 @@ public:
 
         free_list_lock_ = new spinlock[MULT_FREE_LIST_NUM];
         free_access_info_list_.resize(MULT_FREE_LIST_NUM);
+        free_size_list_.resize(MULT_FREE_LIST_NUM, 0);
         for (std::size_t i = 0; i < access_info_list_size_; ++i)
         {
             free_access_info_list_[i%MULT_FREE_LIST_NUM].push_back(i);
+            ++free_size_list_[i % MULT_FREE_LIST_NUM];
         }
 
         std::cout << "init hash bucket size : " << item_buffer_size_ << ", access list size: " << access_info_list_size_ << std::endl;
@@ -163,6 +165,7 @@ public:
                 {
                     free_index = free_access_info_list_[free_list_num].front();
                     free_access_info_list_[free_list_num].pop_front();
+                    --free_size_list_[free_list_num];
                 }
                 free_list_lock_[free_list_num].unlock();
 
@@ -322,6 +325,12 @@ public:
                 }
                 diff_set.insert(*it);
             }
+            if (free_access_info_list_[i].size() != free_size_list_[i])
+            {
+                std::cerr << "free access list size mismatch." << std::endl;
+                check_ok = false;
+            }
+
             free_list_lock_[i].unlock();
             if (!check_ok)
                 return false;
@@ -357,7 +366,7 @@ public:
         retstr += "Current free list size: \n";
         for(std::size_t i = 0; i < MULT_FREE_LIST_NUM; ++i)
         {
-           retstr += boost::lexical_cast<std::string>(free_access_info_list_[i].size()) + ", ";
+            retstr += boost::lexical_cast<std::string>(free_size_list_[i]) + ", ";
         }
         retstr += "\n";
 
@@ -432,6 +441,7 @@ private:
         {
             free_list_lock_[access_info_index % MULT_FREE_LIST_NUM].lock();
             free_access_info_list_[access_info_index % MULT_FREE_LIST_NUM].push_back(access_info_index);
+            ++free_size_list_[access_info_index % MULT_FREE_LIST_NUM];
             free_list_lock_[access_info_index % MULT_FREE_LIST_NUM].unlock();
         }
     }
@@ -509,7 +519,7 @@ private:
             {
                 for(std::size_t i = 0; i < MULT_FREE_LIST_NUM; ++i)
                 {
-                    if (free_access_info_list_[i].size() <= wash_out_threshold_ * access_info_list_size_ / MULT_FREE_LIST_NUM)
+                    if (free_size_list_[i] <= wash_out_threshold_ * access_info_list_size_ / MULT_FREE_LIST_NUM)
                     {
                         is_need_scan = true;
                         break;
@@ -597,6 +607,7 @@ private:
     boost::thread wash_out_thread_;
     HashIDTraits<KeyType, uint32_t>  hash_func_;
     std::vector<std::list<std::size_t> >  free_access_info_list_;
+    std::vector<std::size_t>  free_size_list_;
     spinlock  *free_list_lock_;
     boost::atomic<int64_t>  total_get_cnt_;
     boost::atomic<int64_t>  total_hit_cnt_;
