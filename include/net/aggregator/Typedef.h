@@ -9,6 +9,7 @@
 
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 #include <3rdparty/msgpack/rpc/session_pool.h>
 
 namespace net{
@@ -23,10 +24,20 @@ struct ServerInfo
 {
     std::string host_;
     uint16_t port_;
+    std::string description_;
 
     ServerInfo(const std::string& host, uint16_t port)
     :host_(host), port_(port)
     {
+        description_ = host_ + ":" + boost::lexical_cast<std::string>(port_);
+    }
+    bool operator==(const ServerInfo& r) const
+    {
+        return (host_ == r.host_) && (port_ == r.port_);
+    }
+    const std::string& getStrDescription() const
+    {
+        return description_;
     }
 };
 
