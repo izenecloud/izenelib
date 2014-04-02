@@ -94,7 +94,7 @@ public:
     };
 
     ConcurrentCache(std::size_t cache_size, izenelib::cache::REPLACEMENT_TYPE evit_strategy,
-        int32_t wash_out_interval_sec = 10, double wash_out_threshold = 0.1)
+        int32_t wash_out_interval_sec = 60, double wash_out_threshold = 0.1)
     {
         evit_strategy_ = evit_strategy;
         wash_out_interval_sec_ = wash_out_interval_sec;
