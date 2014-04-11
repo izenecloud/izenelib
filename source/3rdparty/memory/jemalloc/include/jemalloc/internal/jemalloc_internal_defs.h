@@ -81,7 +81,7 @@
 #define JEMALLOC_HAVE_SBRK 
 
 /* Non-empty if the tls_model attribute is supported. */
-#define JEMALLOC_TLS_MODEL 
+#define JEMALLOC_TLS_MODEL __attribute__((tls_model("initial-exec")))
 
 /* JEMALLOC_CC_SILENCE enables code that silences unuseful compiler warnings. */
 /* #undef JEMALLOC_CC_SILENCE */
@@ -190,6 +190,9 @@
 
 /* C99 restrict keyword supported. */
 #define JEMALLOC_HAS_RESTRICT 1
+
+/* For use by hash code. */
+/* #undef JEMALLOC_BIG_ENDIAN */
 
 /* sizeof(int) == 2^LG_SIZEOF_INT. */
 #define LG_SIZEOF_INT 2
