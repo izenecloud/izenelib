@@ -21,8 +21,8 @@ class AggregatorConfig
 {
 public:
     AggregatorConfig(
-        unsigned int timeout = 20,
-        unsigned int sessionPoolThreadNum = 10)
+        unsigned int timeout = 15,
+        unsigned int sessionPoolThreadNum = 2)
     : is_ro_(false), timeout_(timeout)
     , sessionPoolThreadNum_(sessionPoolThreadNum)
     {
@@ -37,6 +37,8 @@ public:
     void setReadyOnly()
     {
         is_ro_ = true;
+        if (sessionPoolThreadNum_ < 10)
+            sessionPoolThreadNum_ = 10;
     }
 
     bool isReadOnly() const
