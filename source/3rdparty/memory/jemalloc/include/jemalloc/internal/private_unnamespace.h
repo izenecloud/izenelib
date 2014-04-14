@@ -197,6 +197,7 @@
 #undef huge_boot
 #undef huge_dalloc
 #undef huge_dalloc_junk
+#undef huge_dss_prec_get
 #undef huge_malloc
 #undef huge_mtx
 #undef huge_ndalloc

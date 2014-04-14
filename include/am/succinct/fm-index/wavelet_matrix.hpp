@@ -308,6 +308,7 @@ void WaveletMatrix<CharT>::intersect(
     if (thres > patterns.size()) return;
     if (thres > 0) thres = patterns.size() - thres;
 
+    results.reserve(max_count);
     doIntersect_(patterns, thres, max_count, 0, 0, results);
 }
 
@@ -337,51 +338,37 @@ void WaveletMatrix<CharT>::doIntersect_(
 
     const WaveletTreeNode *node = nodes_[level];
 
-    size_t rank_start, rank_end;
+    size_t zero_count = zero_counts_[level];
 
     for (std::vector<std::pair<size_t, size_t> >::const_iterator it = patterns.begin();
             it != patterns.end(); ++it)
     {
-        rank_start = node->rank1(it->first);
-        rank_end = node->rank1(it->second);
+        size_t rank_start = node->rank1(it->first);
+        size_t rank_end = node->rank1(it->second);
 
         if (has_zeros)
         {
-            if (it->first - rank_start >= it->second - rank_end)
-            {
-                if (zero_thres == 0)
-                {
-                    if (!has_ones) return;
-                    has_zeros = false;
-                }
-                else
-                {
-                    --zero_thres;
-                }
-            }
-            else
+            if (it->first - rank_start < it->second - rank_end)
             {
                 zero_ranges.push_back(std::make_pair(it->first - rank_start, it->second - rank_end));
+            }
+            else if (zero_thres-- == 0)
+            {
+                if (!has_ones) return;
+                has_zeros = false;
             }
         }
 
         if (has_ones)
         {
-            if (rank_start >= rank_end)
+            if (rank_start < rank_end)
             {
-                if (one_thres == 0)
-                {
-                    if (!has_zeros) return;
-                    has_ones = false;
-                }
-                else
-                {
-                    --one_thres;
-                }
+                one_ranges.push_back(std::make_pair(rank_start + zero_count, rank_end + zero_count));
             }
-            else
+            else if (one_thres-- == 0)
             {
-                one_ranges.push_back(std::make_pair(rank_start + zero_counts_[level], rank_end + zero_counts_[level]));
+                if (!has_zeros) return;
+                has_ones = false;
             }
         }
     }
@@ -393,9 +380,7 @@ void WaveletMatrix<CharT>::doIntersect_(
 
     if (has_ones)
     {
-        symbol |= (char_type)1 << level;
-
-        doIntersect_(one_ranges, one_thres, max_count, level + 1, symbol, results);
+        doIntersect_(one_ranges, one_thres, max_count, level + 1, symbol | (char_type)1 << level, results);
     }
 }
 
@@ -532,7 +517,7 @@ void WaveletMatrix<CharT>::topKUnion(
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*zero_ranges < *ranges_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -557,7 +542,7 @@ void WaveletMatrix<CharT>::topKUnion(
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*one_ranges < *ranges_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -580,19 +565,22 @@ void WaveletMatrix<CharT>::topKUnion(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            else if (top_queue.size() == max_queue_size)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else
+            else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
-
-                if (top_queue.size() + ranges_heap.size() > max_queue_size)
-                {
-                    recyc_queue.push_back(ranges_heap.get_min());
-                    ranges_heap.pop_min();
-                }
+            }
+            else if (*ranges_heap.get_min() < *one_ranges)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.replace_min(one_ranges);
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -782,7 +770,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*zero_ranges < *ranges_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -807,7 +795,7 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*one_ranges < *ranges_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -830,19 +818,22 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            else if (top_queue.size() == max_queue_size)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else
+            else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
-
-                if (top_queue.size() + ranges_heap.size() > max_queue_size)
-                {
-                    recyc_queue.push_back(ranges_heap.get_min());
-                    ranges_heap.pop_min();
-                }
+            }
+            else if (*ranges_heap.get_min() < *one_ranges)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.replace_min(one_ranges);
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -1067,7 +1058,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*zero_ranges < *ranges_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -1092,7 +1083,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*one_ranges < *ranges_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -1115,19 +1106,22 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            else if (top_queue.size() == max_queue_size)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else
+            else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
-
-                if (top_queue.size() + ranges_heap.size() > max_queue_size)
-                {
-                    recyc_queue.push_back(ranges_heap.get_min());
-                    ranges_heap.pop_min();
-                }
+            }
+            else if (*ranges_heap.get_min() < *one_ranges)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.replace_min(one_ranges);
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
@@ -1307,7 +1301,7 @@ void WaveletMatrix<CharT>::topKUnion(
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*zero_ranges < *ranges_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -1332,7 +1326,7 @@ void WaveletMatrix<CharT>::topKUnion(
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*one_ranges < *ranges_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -1355,25 +1349,27 @@ void WaveletMatrix<CharT>::topKUnion(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            else if (top_queue.size() == max_queue_size)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else
+            else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
-
-                if (top_queue.size() + ranges_heap.size() > max_queue_size)
-                {
-                    recyc_queue.push_back(ranges_heap.get_min());
-                    ranges_heap.pop_min();
-                }
+            }
+            else if (*ranges_heap.get_min() < *one_ranges)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.replace_min(one_ranges);
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
         recyc_queue.push_back(top_ranges);
     }
-
 }
 
 template <class CharT>
@@ -1590,7 +1586,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || zero_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (zero_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*zero_ranges < *ranges_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -1615,7 +1611,7 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || one_ranges->score_ >= ranges_heap.get_max()->score_)))
+            else if (one_ranges->score_ == top_ranges->score_ || (top_queue.empty() && (ranges_heap.empty() || !(*one_ranges < *ranges_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -1638,27 +1634,28 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size || (top_queue.size() + ranges_heap.size() == max_queue_size && one_ranges->score_ < ranges_heap.get_min()->score_))
+            else if (top_queue.size() == max_queue_size)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else
+            else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
-
-                if (top_queue.size() + ranges_heap.size() > max_queue_size)
-                {
-                    recyc_queue.push_back(ranges_heap.get_min());
-                    ranges_heap.pop_min();
-                }
+            }
+            else if (*ranges_heap.get_min() < *one_ranges)
+            {
+                recyc_queue.push_back(ranges_heap.get_min());
+                ranges_heap.replace_min(one_ranges);
+            }
+            else
+            {
+                recyc_queue.push_back(one_ranges);
             }
         }
 
         recyc_queue.push_back(top_ranges);
     }
-
 }
-
 
 template <class CharT>
 size_t WaveletMatrix<CharT>::getOcc(char_type c) const

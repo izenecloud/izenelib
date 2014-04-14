@@ -37,7 +37,7 @@
  */
 #include <types.h>
 #include <util/MRandom.h>
-#include <util/random.h>
+#include <util/random_utils.h>
 
 #include <sys/types.h>
 #include <sys/time.h>

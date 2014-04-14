@@ -4,10 +4,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cache/IzeneCache.h>
+#include <cache/concurrent_cache.hpp>
 #include <string>
 #include <boost/test/unit_test.hpp>
-
+#include <boost/lexical_cast.hpp>
 #include <util/ustring/UString.h>
+#include <glog/logging.h>
 
 
 namespace rde{
@@ -32,6 +34,7 @@ inline  hash_value_t extract_int_key_value<izenelib::util::UString>(const izenel
 using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::cache;
+using namespace izenelib::concurrent_cache;
 
 typedef string KeyType;
 typedef int ValueType;
@@ -43,7 +46,157 @@ static string inputFile1("test1.txt");
 static bool trace = true;
 static size_t cacheSize = 2501;
 
+void get_cache_func(ConcurrentCache<int, int>* con_cache)
+{
+    int32_t cache_hit = 0;
+    int32_t cnt = 20;
+    int ret = 0;
+    while(cnt-- > 0)
+    {
+        for (size_t i = 0; i < 1000000; ++i)
+        {
+            struct timespec start_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
+            if( con_cache->get(i, ret) )
+                cache_hit++;
+            struct timespec end_time;
+            clock_gettime(CLOCK_MONOTONIC, &end_time);
+            int64_t interval = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+            if (interval > 100)
+            {
+                LOG(INFO) << "get too long: " << interval << ", " << start_time.tv_sec << "-" << end_time.tv_sec;
+            }
+        }
+        //BOOST_CHECK(con_cache->check_correctness());
+        if (!con_cache->check_correctness())
+        {
+            LOG(ERROR) << "check correctness failed.";
+            break;
+        }
+    }
+
+    LOG(INFO) << con_cache->get_useful_info();
+}
+
+void write_cache_func(ConcurrentCache<int, int>* con_cache)
+{
+    int32_t cache_full = 0;
+    int32_t cnt = 2;
+    while(cnt-- > 0)
+    {
+        for (size_t i = 0; i < 1000000; ++i)
+        {
+            struct timespec start_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
+            if( !con_cache->insert(i, i) )
+            {
+                if (!con_cache->check_correctness())
+                {
+                    LOG(ERROR) << "check correctness failed.";
+                    break;
+                }
+                cache_full++;
+                usleep(100);
+            }
+            else
+            {
+                struct timespec end_time;
+                clock_gettime(CLOCK_MONOTONIC, &end_time);
+                int64_t interval = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+                if (interval > 150)
+                {
+                    LOG(INFO) << "insert too long: " << interval << ", " << start_time.tv_sec << "-" << end_time.tv_sec;
+                }
+            }
+        }
+        //BOOST_CHECK(con_cache->check_correctness());
+        if (!con_cache->check_correctness())
+        {
+            LOG(ERROR) << "check correctness failed.";
+            break;
+        }
+    }
+    LOG(INFO) << "cache full : " << cache_full;
+}
+
 BOOST_AUTO_TEST_SUITE( izene_cache_suite )
+
+BOOST_AUTO_TEST_CASE(izene_concurrent_cache_test)
+{
+    using namespace izenelib::concurrent_cache;
+    static const std::size_t cache_size = 100;
+    static const double wash_out_threshold = 0.1;
+    {
+        // single thread common unit test.
+        ConcurrentCache<std::string, std::string> con_cache(cache_size, LRU, 10, wash_out_threshold);
+        for(size_t i = 0; i < cache_size/2; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            bool inserted = con_cache.insert(tmp, tmp);
+            std::string ret;
+            BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), inserted);
+            if (inserted)
+                BOOST_CHECK_EQUAL(ret, tmp);
+            BOOST_CHECK_EQUAL(con_cache.get(tmp + "1", ret), false);
+            usleep(10);
+        }
+        BOOST_CHECK(con_cache.check_correctness());
+        for(size_t i = 0; i < cache_size/4; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            con_cache.remove(tmp);
+            std::string ret;
+            BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
+        }
+        BOOST_CHECK(con_cache.check_correctness());
+        con_cache.clear();
+        BOOST_CHECK(con_cache.check_correctness());
+        for(size_t i = 0; i < cache_size/2; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            std::string ret;
+            BOOST_CHECK_EQUAL(con_cache.get(tmp, ret), false);
+        }
+        BOOST_CHECK(con_cache.check_correctness());
+
+        std::string insert_failed;
+        for(size_t i = 0; i < cache_size * 2 ; ++i)
+        {
+            std::string tmp = boost::lexical_cast<std::string>(i);
+            if (!con_cache.insert(tmp, tmp))
+            {
+                LOG(INFO) << "cache insert full:" << i;
+                insert_failed = tmp;
+                break;
+            }
+            usleep(10000);
+        }
+        BOOST_CHECK(con_cache.check_correctness());
+        sleep(10);
+        //BOOST_CHECK_EQUAL(con_cache.insert(insert_failed, insert_failed), true);
+        BOOST_CHECK(con_cache.check_correctness());
+    }
+    {
+        ConcurrentCache<int, int> con_cache(cache_size*10000, LRLFU, 1, wash_out_threshold);
+        boost::thread_group read_group;
+        boost::thread_group write_group;
+        LOG(INFO) << "begin perf test for concurrent cache.";
+        for(int i = 0; i < 16; ++i)
+        {
+            write_group.add_thread(new boost::thread(boost::bind(&write_cache_func, &con_cache)));
+        }
+        for(int i = 0; i < 16; ++i)
+        {
+            read_group.add_thread(new boost::thread(boost::bind(&get_cache_func, &con_cache)));
+        }
+        BOOST_CHECK(con_cache.check_correctness());
+        read_group.join_all();
+        BOOST_CHECK(con_cache.check_correctness());
+        LOG(INFO) << "all cache read perf thread finished.";
+        write_group.join_all();
+        BOOST_CHECK(con_cache.check_correctness());
+    }
+}
 
 BOOST_AUTO_TEST_CASE(izene_cache_test)
 {
@@ -183,7 +336,6 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
         clock_t t1 = clock();
         ifstream inf(inputFile.c_str());
         string ystr;
-        ValueType val;
         while (inf>>ystr) {
             sum++;
             if (cm.del(ystr))

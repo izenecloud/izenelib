@@ -16,6 +16,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
+#include <boost/unordered_set.hpp>
 #include <iostream>
 
 namespace net{
@@ -59,6 +60,7 @@ public:
     virtual ~AggregatorBase(){}
 
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false) = 0;
+    virtual void setBusyAggregatorList(const std::vector<ServerInfo>& server_list) = 0;
 
     const std::string& collection() const { return collection_; }
 
@@ -93,6 +95,15 @@ public:
         const std::string& collection);
 
     virtual void setAggregatorConfig(const AggregatorConfig& aggregatorConfig, bool force_update = false);
+
+    virtual void setBusyAggregatorList(const std::vector<ServerInfo>& server_list)
+    {
+        busy_workers_.clear();
+        for (std::size_t i = 0; i < server_list.size(); ++i)
+        {
+            busy_workers_.insert(server_list[i].getStrDescription());
+        }
+    }
 
     const std::vector<workerid_t>& getWorkerIdList() const { return workeridList_; }
 
@@ -277,6 +288,8 @@ protected:
     typedef boost::shared_lock<MutexType> ScopedReadLock;
     typedef boost::unique_lock<MutexType> ScopedWriteLock;
     MutexType mutex_;
+
+    std::set<std::string> busy_workers_; 
 };
 
 template <class MergerProxy, class LocalWorkerProxy>
@@ -620,14 +633,23 @@ WorkerSessionPtr Aggregator<MergerProxy, LocalWorkerProxy>::getWorkerSessionById
 {
     if (is_readonly_)
     {
-        for (std::map<workerid_t, std::vector<WorkerSessionPtr> >::const_iterator cit = ro_workers_.begin();
-            cit != ro_workers_.end(); ++cit)
+        std::map<workerid_t, std::vector<WorkerSessionPtr> >::const_iterator cit = ro_workers_.find(workerid);
+        if (cit != ro_workers_.end())
         {
-            if (cit->first == workerid)
+            if (!cit->second.empty())
             {
-                if (!cit->second.empty())
-                    return cit->second[ro_index % cit->second.size()];
-                break;
+                std::size_t inc = 0;
+                WorkerSessionPtr selected_worker;
+                while(inc < cit->second.size()) 
+                {
+                    selected_worker = cit->second[(ro_index + inc) % cit->second.size()];
+                    ++inc;
+                    if (busy_workers_.find(selected_worker->getServerInfo().getStrDescription()) == busy_workers_.end())
+                    {
+                        break;
+                    }
+                }
+                return selected_worker;
             }
         }
         return WorkerSessionPtr();
@@ -682,7 +704,20 @@ bool Aggregator<MergerProxy, LocalWorkerProxy>::distributeRequestImpl_(
                 std::cout << __FUNCTION__ << ":" << __LINE__ << ", one of worker id missing : " << cit->first;
                 continue;
             }
-            session_t session = getMsgPackSession_(cit->second[ro_index % cit->second.size()]);
+
+            std::size_t inc = 0;
+            WorkerSessionPtr selected_worker;
+            while(inc < cit->second.size()) 
+            {
+                selected_worker = cit->second[(ro_index + inc) % cit->second.size()];
+                ++inc;
+                if (busy_workers_.find(selected_worker->getServerInfo().getStrDescription()) == busy_workers_.end())
+                {
+                    break;
+                }
+            }
+
+            session_t session = getMsgPackSession_(selected_worker);
             future_t future = param.getFuture(session);
             futureList.push_back(worker_future_pair_t(cit->first, future));
         }
