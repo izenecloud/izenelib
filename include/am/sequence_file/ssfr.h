@@ -503,6 +503,11 @@ public:
     {
       return count_;
     }
+
+    std::fstream& GetRaw()
+    {
+        return stream_;
+    }
     
     template <class T>
     bool Append(const T& t)
@@ -607,6 +612,43 @@ public:
       return true;
     }
     
+    template <typename T>
+    bool BatchAppend(const std::vector<std::vector<T> >& t_list_list)
+    {
+        LenType keySize = sizeof(T);
+        LenType plen = 0;
+        for(std::size_t t=0;t<t_list_list.size();t++)
+        {
+            const std::vector<T>& t_list = t_list_list[t];
+            LenType recodeSize = keySize * t_list.size();
+            LenType line_plen = recodeSize+sizeof(recodeSize);
+            plen+=line_plen;
+        }
+        char* data = new char[plen];
+        char* pData = data;
+        for(std::size_t t=0;t<t_list_list.size();t++)
+        {
+            const std::vector<T>& t_list = t_list_list[t];
+            LenType recodeSize = keySize * t_list.size();
+            //LenType line_plen = recodeSize+sizeof(recodeSize);
+            memcpy( pData, &recodeSize, sizeof(recodeSize) );
+            pData += sizeof(recodeSize);
+            for( uint32_t i=0;i<t_list.size();i++)
+            {
+                memcpy( pData, &t_list[i], keySize );
+                pData += keySize;
+            }
+        }
+
+        stream_.write(data, plen);
+        delete[] data;
+        if( Failed() )
+        {
+            return false;
+        }
+        count_+=t_list_list.size();
+        return true;
+    }
     
     bool Flush()
     {
