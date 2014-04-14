@@ -172,10 +172,14 @@ public:
     if (run_)
       delete run_;
     
+    std::cerr<<"count_ : "<<count_<<std::endl;
+    std::cerr<<"runner parameter "<<filenm_<<","<<buf_size_<<std::endl;
     run_ = new run_t(filenm_.c_str(), buf_size_);
     run_->run();
     
+    std::cerr<<"merger parameter "<<filenm_<<","<<run_->run_num()<<","<<buf_size_<<","<<buf_num_<<std::endl;
     merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
+    std::cerr<<"merger parameter 2 "<<run_->max_record_len()<<","<<run_->min_run_buf_size_for_merger()<<std::endl;
     merge_->set_params(run_->max_record_len(),run_->min_run_buf_size_for_merger());
     delete run_;
     run_ = NULL;
