@@ -1,5 +1,5 @@
-#ifndef __SCD__PARSER__H__
-#define __SCD__PARSER__H__
+#ifndef SF1COMMON__SCD__PARSER__H__
+#define SF1COMMON__SCD__PARSER__H__
 
 #include "ScdParserTraits.h"
 #include <util/streambuf.h>
@@ -13,6 +13,7 @@
 #include <fstream>
 #include <vector>
 
+namespace izenelib {
 enum SCD_TYPE
 {
     NOT_SCD = 0,
@@ -170,5 +171,6 @@ private:
 
     const std::string docDelimiter_; /// the boundary between each docs
 };
+}
 
 #endif

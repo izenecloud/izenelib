@@ -28,6 +28,7 @@ using namespace boost::filesystem;
 using namespace BOOST_SPIRIT_CLASSIC_NS;
 
 using namespace std;
+using namespace izenelib;
 
 namespace
 {
