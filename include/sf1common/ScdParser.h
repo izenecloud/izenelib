@@ -162,8 +162,10 @@ public:
     cached_iterator cbegin(const std::vector<string>& propertyNameList, unsigned int start_doc = 0);
     cached_iterator cend();
 
+    std::ifstream& fs() { return fs_; }
+
 private:
-    ifstream fs_;
+    std::ifstream fs_;
 
     long size_;
 

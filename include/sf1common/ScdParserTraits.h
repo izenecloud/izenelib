@@ -5,10 +5,12 @@
  * Created on September 15, 2012, 06:52 PM
  */
 
-#ifndef SCD_PARSER_TRAITS_H
-#define SCD_PARSER_TRAITS_H
+#ifndef SF1COMMON_SCD_PARSER_TRAITS_H
+#define SF1COMMON_SCD_PARSER_TRAITS_H
 
 #include <util/ustring/UString.h>
+
+namespace izenelib {
 
 // We use std::string as propertyName, UString as propertyValue.
 typedef std::string PropertyNameType;
@@ -23,5 +25,7 @@ typedef long offset_type; //< Type of offset values.
 typedef std::vector<offset_type> offset_list;
 
 typedef std::pair<ScdPropertyValueType, unsigned> DocIdPair; // should this be long instead of unsigned?
+
+}
 
 #endif /* SCD_PARSER_TRAITS_H */

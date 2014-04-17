@@ -157,16 +157,6 @@ TARGET_LINK_LIBRARIES(t_class_register
     ${Boost_LIBRARIES}
   )
 
-ADD_EXECUTABLE(scd_tool
-  scd_tool.cpp
-  )
-
-TARGET_LINK_LIBRARIES(scd_tool
-    febird
-    izene_util
-    ${Boost_LIBRARIES}
-    ${Glog_LIBRARIES}    
-  )
 
 ADD_EXECUTABLE(t_fmath
   fmath/t_fmath.cpp
