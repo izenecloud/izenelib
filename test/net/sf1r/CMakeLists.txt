@@ -6,6 +6,7 @@ find_package(Boost ${Boost_FIND_VERSION}
     regex
     system
     thread
+    serialization
     unit_test_framework
 )
 
@@ -16,7 +17,7 @@ list(APPEND LIBS ${Boost_LIBRARIES})
 find_package(Glog)
 include_directories(${Glog_INCLUDE_DIRS})
 list(APPEND LIBS ${Glog_LIBRARIES})
-list(APPEND LIBS pthread)
+list(APPEND LIBS pthread rt)
 
 option(ENABLE_SF1_TEST "Enable compilation of SF1 tests" false)
 if (ENABLE_SF1_TEST)

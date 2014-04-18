@@ -391,7 +391,8 @@ try {
 	msgpack::unpacked result;
 	msgpack::unpack(&result, buffer.data, rl);
 
-	result.zone()->push_finalizer(&::free, buffer.data);
+	static_cast<msgpack::zone*>(result.zone().get())->push_finalizer(&::free, buffer.data);
+
 	buffer.release();
 
 	dgram_handler<MixIn>::on_message(result.get(), result.zone(), (struct sockaddr*)&addrbuf, addrlen);

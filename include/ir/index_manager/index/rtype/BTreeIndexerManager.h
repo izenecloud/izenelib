@@ -33,12 +33,15 @@ namespace indexmanager
 class BTreeIndexerManager
 {
 public:
-    BTreeIndexerManager(const std::string& dir, Directory* pDirectory, const std::map<std::string, PropertyType>& type_map);
+    BTreeIndexerManager(const std::string& dir, Directory* pDirectory,
+        const std::map<std::string, PropertyType>& type_map,
+        const std::set<std::string>& no_preload_props);
 
     ~BTreeIndexerManager();
 public:
-    typedef std::vector<docid_t> ValueType;
-    
+    typedef std::vector<docid_t> DocListType;
+    typedef boost::variant<DocListType, Bitset> ValueType;
+
     template<class T>
     BTreeIndexer<T>* getIndexer(const std::string& property_name)
     {
@@ -49,7 +52,12 @@ public:
             boost::unique_lock<boost::shared_mutex> lock(mutex_);
             if(!instance_map_.contains(property_name))
             {
-                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
+                bool preload = (no_preload_props_.find(property_name) == no_preload_props_.end());
+                if (property_name == "uuid")
+                {
+                    preload = false;
+                }
+                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload);
                 result->open();
                 instance_map_.insert(std::make_pair( property_name, (void*)result) );
                 if(type_map_.find(property_name) == type_map_.end())
@@ -68,61 +76,61 @@ public:
         }
         return result;
     }
-    
+
     void add(const std::string& property_name, const PropertyType& key, docid_t docid);
 
     void remove(const std::string& property_name, const PropertyType& key, docid_t docid);
-    
+
     std::size_t count(const std::string& property_name);
-    
+
     bool seek(const std::string& property_name, const PropertyType& key);
 
-    void getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getNoneEmptyList(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValue(const std::string& property_name, const PropertyType& key, BitVector& docs, bool needFilter = true);
+    void getValue(const std::string& property_name, const PropertyType& key, Bitset& docs, bool needFilter = true);
 
-    void getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList);
+    void getValue(const std::string& property_name, const PropertyType& key, ValueType& docList);
 
     template <typename word_t>
     void getValue(const std::string& property_name, const PropertyType& key, EWAHBoolArray<word_t>& docs);
 
-    void getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs);
+    void getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, Bitset& docs);
 
-    void getValueLess(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueLess(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueLessEqual(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueLessEqual(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueGreat(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueGreat(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueGreatEqual(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueGreatEqual(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs, bool needFilter = true);
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& docs, bool needFilter = true);
 
     /**
-     * @param bitVector used as temp storage for performance consideration, it might not store the output docids.
+     * @param bitset used as temp storage for performance consideration, it might not store the output docids.
      * @param docs store the output docids
      */
     template <typename word_t>
-    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<word_t>& docs);
+    void getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitset, EWAHBoolArray<word_t>& docs);
 
-    void getValueNotIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs);
+    void getValueNotIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& docs);
 
-    void getValueNotEqual(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueNotEqual(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueStart(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueStart(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueEnd(const std::string& property_name, const PropertyType& key, BitVector& docs);
+    void getValueEnd(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
-    void getValueSubString(const std::string& property_name, const PropertyType& key, BitVector& docs);
-    
+    void getValueSubString(const std::string& property_name, const PropertyType& key, Bitset& docs);
+
     void flush();
-    
-    void setFilter(boost::shared_ptr<BitVector> pBitVector)
+
+    void setFilter(boost::shared_ptr<Bitset> pBitset)
     {
-        pFilter_ = pBitVector;
+        pFilter_ = pBitset;
     }
 
-    boost::shared_ptr<BitVector> getFilter()
+    boost::shared_ptr<Bitset> getFilter()
     {
         return pFilter_;
     }
@@ -131,7 +139,7 @@ public:
     {
         if(!pFilter_)
         {
-            pFilter_.reset(new BitVector(max_doc));
+            pFilter_.reset(new Bitset(max_doc));
         }
         pFilter_->set(docId);
     }
@@ -143,8 +151,8 @@ public:
     ///Additionally, this Iterator is a based on the persistent container of BTreeIndexer,
     ///So it should be used after flush operation has been called.
     template<typename KeyType>
-    class Iterator 
-        : public boost::iterator_facade<Iterator<KeyType>, std::pair<KeyType,ValueType> const, boost::forward_traversal_tag >
+    class Iterator
+        : public boost::iterator_facade<Iterator<KeyType>, std::pair<KeyType, DocListType> const, boost::forward_traversal_tag >
     {
     typedef typename BTreeIndexer<KeyType>::iterator BTreeIteratorType;
     public:
@@ -165,8 +173,8 @@ public:
     private:
         friend class boost::iterator_core_access;
 
-        void increment() 
-        { 
+        void increment()
+        {
             if(indexer_)
             {
                 ++iter_;
@@ -175,7 +183,7 @@ public:
             }
         }
 
-        const std::pair<KeyType,ValueType> & dereference() const {return *iter_; }
+        const std::pair<KeyType, DocListType> & dereference() const {return *iter_; }
 
         bool equal(const Iterator<KeyType>& rhs) const
         {
@@ -201,64 +209,65 @@ public:
     }
 
 private:
-    
+
     bool checkPropertyName_(const std::string& propertyName);
     bool checkType_(const std::string& propertyName, const PropertyType& value);
-    void doFilter_(BitVector& docs);
-    
+    void doFilter_(Bitset& docs);
+
 private:
     std::string dir_;
     Directory* pDirectory_;
     ::concurrent::hashmap<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
-    boost::shared_ptr<BitVector> pFilter_;
+    std::set<std::string> no_preload_props_;
+    boost::shared_ptr<Bitset> pFilter_;
     boost::shared_mutex mutex_;
 
     /**
      * if the number of docids is less than this value (256K),
-     * we use std::sort() on std::vector, otherwise, we use BitVector
+     * we use std::sort() on std::vector, otherwise, we use Bitset
      * to avoid the cost of sorting too many docids.
      */
     static const std::size_t kDocIdNumSortLimit = 1 << 18;
 };
 
-/// all modifer visitor below    
+/// all modifer visitor below
 class madd_visitor : public boost::static_visitor<void>
 {
 public:
-    
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, docid_t docid)
     {
         if(v.length()>0)
         {
-            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
             pindexer->add(v, docid);
         }
     }
-    
+
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->add(v, docid);
     }
-    
-    
+
+
 };
 
 class mremove_visitor : public boost::static_visitor<void>
 {
 public:
-    
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, docid_t docid)
+
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, docid_t docid)
     {
         if(v.length()>0)
         {
-            BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+            BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
             pindexer->remove(v, docid);
         }
     }
-    
+
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
@@ -316,7 +325,7 @@ class mget_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
@@ -327,7 +336,7 @@ class mget2_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, std::vector<docid_t>& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BTreeIndexerManager::ValueType& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
@@ -349,7 +358,7 @@ class mless_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueLess(v, docs);
@@ -360,7 +369,7 @@ class mless_equal_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueLessEqual(v, docs);
@@ -371,7 +380,7 @@ class mgreat_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueGreat(v, docs);
@@ -382,7 +391,7 @@ class mgreat_equal_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueGreatEqual(v, docs);
@@ -393,7 +402,7 @@ class mnot_equal_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueNotEqual(v, docs);
@@ -403,15 +412,15 @@ public:
 class mstart_equal_visitor : public boost::static_visitor<void>
 {
 public:
-    
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, Bitset& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueStart(v, docs);
     }
-    
+
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         std::cout<<"error, call getValueStart in no ustring type"<<std::endl;
     }
@@ -420,14 +429,14 @@ public:
 class mend_equal_visitor : public boost::static_visitor<void>
 {
 public:
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, Bitset& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueEnd(v, docs);
     }
-    
+
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         std::cout<<"error, call getValueEnd in no ustring type"<<std::endl;
     }
@@ -436,14 +445,14 @@ public:
 class msub_string_visitor : public boost::static_visitor<void>
 {
 public:
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const IndexPropString& v, Bitset& docs)
     {
-        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<IndexPropString>* pindexer = manager->getIndexer<IndexPropString>(property_name);
         pindexer->getValueSubString(v, docs);
     }
-    
+
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
     {
         std::cout<<"error, call getValueSubString in no ustring type"<<std::endl;
     }
@@ -454,16 +463,16 @@ class mbetween_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& low, const T& high, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& low, const T& high, Bitset& docs)
     {
         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueBetween(low, high, docs);
     }
-    
+
     template<typename T1, typename T2>
-    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T1& low, const T2& high, BitVector& docs)
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T1& low, const T2& high, Bitset& docs)
     {
-        
+
     }
 };
 
@@ -472,18 +481,18 @@ public:
 // {
 // public:
 //     template<typename T>
-//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, BitVector& docs)
+//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, Bitset& docs)
 //     {
 //         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
 //         pindexer->getValueIn(v_list, docs);
 //     }
 // };
-// 
+//
 // class mnot_in_visitor : public boost::static_visitor<void>
 // {
 // public:
 //     template<typename T>
-//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, BitVector& docs)
+//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, Bitset& docs)
 //     {
 //         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
 //         pindexer->getValueNotIn(v_list, docs);
@@ -496,21 +505,15 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
     if (!checkType_(property_name, key))
         return;
 
-    std::vector<docid_t> docList;
-    izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(docList)), key);
+    Bitset docList;
+    izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docList)), key);
 
-    for (std::vector<docid_t>::const_iterator it = docList.begin();
-         it != docList.end(); ++it)
-    {
-        if (!pFilter_ || !pFilter_->test(*it))
-        {
-            docs.set(*it);
-        }
-    }
+    doFilter_(docList);
+    docList.compress(docs);
 }
 
 template <typename word_t>
-void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& bitVector, EWAHBoolArray<word_t>& docs)
+void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, Bitset& bitset, EWAHBoolArray<word_t>& docs)
 {
     for (std::size_t i = 0; i < keys.size(); ++i)
     {
@@ -518,43 +521,15 @@ void BTreeIndexerManager::getValueIn(const std::string& property_name, const std
             return;
     }
 
-    std::vector<docid_t> docList;
     for (std::size_t i = 0; i < keys.size(); ++i)
     {
-        std::vector<docid_t> tempDocList;
-        izenelib::util::boost_variant_visit(boost::bind(mget2_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
-        docList.insert(docList.end(), tempDocList.begin(), tempDocList.end());
+        Bitset tempDocList;
+        izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(tempDocList)), keys[i]);
+        bitset |= tempDocList;
     }
 
-    if (docList.size() < kDocIdNumSortLimit)
-    {
-        std::sort(docList.begin(), docList.end());
-
-        docid_t lastDocId = 0;
-        for (std::vector<docid_t>::const_iterator it = docList.begin();
-             it != docList.end(); ++it)
-        {
-            // skip duplicated docid, required by EWAHBoolArray::set()
-            if (*it == lastDocId)
-                continue;
-
-            if (!pFilter_ || !pFilter_->test(*it))
-            {
-                docs.set(*it);
-            }
-
-            lastDocId = *it;
-        }
-    }
-    else
-    {
-        for (std::size_t i = 0; i < docList.size(); ++i)
-        {
-            bitVector.set(docList[i]);
-        }
-        doFilter_(bitVector);
-        bitVector.compressed(docs);
-    }
+    doFilter_(bitset);
+    bitset.compress(docs);
 }
 
 }

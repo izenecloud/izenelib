@@ -15,9 +15,9 @@
 /* } */
 
 
-MAKE_MEMCPY_SERIALIZATION(izenelib::util::UString);
+MAKE_FEBIRD_SERIALIZATION(izenelib::util::UString);
 
-NS_IZENELIB_UTIL_BEGIN
+//NS_IZENELIB_UTIL_BEGIN
 /*
 template<>
 inline void write_image_memcpy< izenelib::util::UString>(const izenelib::util::UString& dat, char* &str, size_t& size) {
@@ -46,40 +46,40 @@ inline void read_image_memcpy< izenelib::util::UString >(izenelib::util::UString
 }*/
 
 
-template<>
-class izene_serialization_memcpy<izenelib::util::UString>
-{
-    const izenelib::util::UString& dat_;
-public:
-    izene_serialization_memcpy(const izenelib::util::UString& dat)
-        : dat_(dat)
-    {
-    }
-    void write_image(char* &ptr, size_t& size)
-    {
-        ptr = (char*) dat_.c_str();
-        size = dat_.size();
-    }
-};
-
-template<>
-class izene_deserialization_memcpy<izenelib::util::UString>
-{
-    const char* ptr_;
-    const size_t size_;
-public:
-    izene_deserialization_memcpy(const char* ptr, const size_t size)
-        : ptr_(ptr), size_(size)
-    {
-    }
-    void read_image(izenelib::util::UString& dat)
-    {
-        dat.assign(std::string(ptr_, size_));
-    }
-};
-
-
-NS_IZENELIB_UTIL_END
+//template<>
+//class izene_serialization_memcpy<izenelib::util::UString>
+//{
+//    const izenelib::util::UString& dat_;
+//public:
+//    izene_serialization_memcpy(const izenelib::util::UString& dat)
+//        : dat_(dat)
+//    {
+//    }
+//    void write_image(char* &ptr, size_t& size)
+//    {
+//        ptr = (char*) dat_.c_str();
+//        size = dat_.size();
+//    }
+//};
+//
+//template<>
+//class izene_deserialization_memcpy<izenelib::util::UString>
+//{
+//    const char* ptr_;
+//    const size_t size_;
+//public:
+//    izene_deserialization_memcpy(const char* ptr, const size_t size)
+//        : ptr_(ptr), size_(size)
+//    {
+//    }
+//    void read_image(izenelib::util::UString& dat)
+//    {
+//        dat.assign(std::string(ptr_, size_), izenelib::util::UString::UTF_8);
+//    }
+//};
+//
+//
+//NS_IZENELIB_UTIL_END
 
 
 #endif

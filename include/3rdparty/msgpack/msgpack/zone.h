@@ -92,14 +92,16 @@ void* msgpack_zone_malloc_no_align(msgpack_zone* zone, size_t size)
 {
 	msgpack_zone_chunk_list* cl = &zone->chunk_list;
 
+    char* ptr = NULL;
 	if(zone->chunk_list.free < size) {
-		return msgpack_zone_malloc_expand(zone, size);
+		ptr = (char*)msgpack_zone_malloc_expand(zone, size);
 	}
-
-	char* ptr = cl->ptr;
-	cl->free -= size;
-	cl->ptr  += size;
-
+    else
+    {
+        ptr = cl->ptr;
+        cl->free -= size;
+        cl->ptr  += size;
+    }
 	return ptr;
 }
 
@@ -119,16 +121,18 @@ bool msgpack_zone_push_finalizer(msgpack_zone* zone,
 	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
 	msgpack_zone_finalizer* fin = fa->tail;
 
+    bool ret = true;
 	if(fin == fa->end) {
-		return msgpack_zone_push_finalizer_expand(zone, func, data);
+		ret = msgpack_zone_push_finalizer_expand(zone, func, data);
 	}
+    else
+    {
+        fin->func = func;
+        fin->data = data;
 
-	fin->func = func;
-	fin->data = data;
-
-	++fa->tail;
-
-	return true;
+        ++fa->tail;
+    }
+	return ret;
 }
 
 void msgpack_zone_swap(msgpack_zone* a, msgpack_zone* b)

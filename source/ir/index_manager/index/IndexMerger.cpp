@@ -188,7 +188,7 @@ void IndexMerger::updateBarrels()
 
 void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName)
 {
-    DVLOG(2)<< "=> IndexMerger::outputNewBarrel(), newBarrelName: " << newBarrelName;
+    LOG(INFO)<< "=> IndexMerger::outputNewBarrel(), newBarrelName: " << newBarrelName << ", indexLevel_: " << pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_;
 
     string name = newBarrelName + ".voc";///the file name of new index barrel
     IndexOutput* pVocStream = pDirectory_->createOutput(name);

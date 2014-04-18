@@ -26,11 +26,11 @@ namespace msgpack {
 namespace rpc {
 
 
-session_impl::session_impl(const address& addr, loop lo) :
+session_impl::session_impl(const address& addr, loop lo, unsigned int tm) :
 	m_addr(addr),
 	m_loop(lo),
 	m_msgid_rr(0),  // FIXME rand()?
-	m_timeout(30)
+	m_timeout(tm)
 { }
 
 session_impl::~session_impl() { }
@@ -38,12 +38,12 @@ session_impl::~session_impl() { }
 void session_impl::build(const builder& b)
 {
 	m_tran = b.build(this, m_addr);
-	m_timeout = b.get_timeout();
+	//m_timeout = b.get_timeout();
 }
 
-shared_session session_impl::create(const builder& b, const address addr, loop lo)
+shared_session session_impl::create(const builder& b, const address addr, loop lo, unsigned int tm)
 {
-	shared_session s(new session_impl(addr, lo));
+	shared_session s(new session_impl(addr, lo, tm));
 	s->build(b);
 	return s;
 }
@@ -140,8 +140,8 @@ const loop& session::get_loop() const
 loop session::get_loop()
 	{ return m_pimpl->get_loop(); }
 
-void session::set_timeout(unsigned int sec)
-	{ m_pimpl->set_timeout(sec); }
+//void session::set_timeout(unsigned int sec)
+//	{ m_pimpl->set_timeout(sec); }
 
 unsigned int session::get_timeout() const
 	{ return m_pimpl->get_timeout(); }

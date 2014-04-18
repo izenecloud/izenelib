@@ -42,7 +42,7 @@ public:
     /*
      *  set delete documents filter
      */
-    void setDocFilter(BitVector* pFilter);
+    void setDocFilter(Bitset* pFilter);
 
     /**
      * get the term iterator

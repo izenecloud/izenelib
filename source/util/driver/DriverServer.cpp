@@ -23,21 +23,30 @@ DriverServer::DriverServer(
 : parent_type(bindPort, connectionFactory),
   threadPoolSize_(threadPoolSize)
 {
-    if (threadPoolSize_ == 0)
+    if (threadPoolSize_ < 2)
     {
-        // at least one thread
-        threadPoolSize_ = 1;
+        threadPoolSize_ = 2;
     }
+    DriverThreadPool::init(threadPoolSize_);
 }
 
 void DriverServer::run()
 {
+    normal_stop_ = false;
     boost::thread_group threads;
-    for (std::size_t i = 0; i < threadPoolSize_; ++i)
+    for (std::size_t i = 0; i < threadPoolSize_/2; ++i)
     {
         threads.create_thread(boost::bind(&DriverServer::worker, this));
     }
     threads.join_all();
+    DriverThreadPool::stop();
+}
+
+void DriverServer::stop()
+{
+    normal_stop_ = true;
+    LOG(INFO) << "stop driver server by request.";
+    parent_type::stop();
 }
 
 void DriverServer::worker()
@@ -48,12 +57,19 @@ void DriverServer::worker()
         {
             parent_type::run();
             // normal exit
-            break;
+            if (normal_stop_)
+                break;
+            else
+            {
+                LOG(ERROR) << "driver stopped by accident.";
+                parent_type::reset();
+            }
         }
         catch (std::exception& e)
         {
-            DLOG(ERROR) << "[DriverServer] "
-                        << e.what() << std::endl;
+            parent_type::reset();
+            LOG(ERROR) << "[DriverServer] "
+                << e.what() << std::endl;
         }
     }
 }

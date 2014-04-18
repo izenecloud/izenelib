@@ -21,7 +21,7 @@ IndexReader::IndexReader(Indexer* pIndex)
     Directory* pDirectory = pIndexer_->getDirectory();
     if(pDirectory->fileExists(DELETED_DOCS))
     {
-        pDocFilter_ = new BitVector;
+        pDocFilter_ = new Bitset;
         pDocFilter_->read(pDirectory, DELETED_DOCS);
     }
     ///todo since only one collection is used within indexmanager, so we only get collectionmeta for one collection to build
@@ -58,7 +58,7 @@ void IndexReader::delDocFilter()
     {
         if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
             pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
-        pDocFilter_->clear();
+        pDocFilter_->reset();
     }
     DVLOG(2) << "<= IndexReader::delDocFilter()";
 }
@@ -83,6 +83,8 @@ size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    if (!pDocLengthReader_)
+        return 0;
     return pDocLengthReader_->docLength(docId, fid);
 }
 
@@ -91,6 +93,8 @@ double IndexReader::getAveragePropertyLength(fieldid_t fid)
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+    if (!pDocLengthReader_)
+        return 0;
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
@@ -206,13 +210,13 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
         if(!pDocFilter_)
         {
             // bit 0 is reserved, so that for doc id i, we can access it just using bit i
-            pDocFilter_ = new BitVector(pBarrelsInfo_->maxDocId() + 1);
+            pDocFilter_ = new Bitset(pBarrelsInfo_->maxDocId() + 1);
         }
 
         pDocFilter_->set(docId);
     }
-
-    DVLOG(4) << "<= IndexReader::delDocument()";
+    else
+        LOG(WARNING) << "<= IndexReader::delDocument() failed : " << docId;
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)

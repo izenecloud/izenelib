@@ -9,6 +9,7 @@
 
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 #include <3rdparty/msgpack/rpc/session_pool.h>
 
 namespace net{
@@ -23,10 +24,20 @@ struct ServerInfo
 {
     std::string host_;
     uint16_t port_;
+    std::string description_;
 
     ServerInfo(const std::string& host, uint16_t port)
     :host_(host), port_(port)
     {
+        description_ = host_ + ":" + boost::lexical_cast<std::string>(port_);
+    }
+    bool operator==(const ServerInfo& r) const
+    {
+        return (host_ == r.host_) && (port_ == r.port_);
+    }
+    const std::string& getStrDescription() const
+    {
+        return description_;
     }
 };
 
@@ -96,13 +107,13 @@ public:
             const std::string& func, const RequestType& param, const ResultType& result, unsigned int sec)
     {
         msgpack::rpc::session session =
-                sessionPool.get_session(workerSrv_.host_, workerSrv_.port_);
+                sessionPool.get_session(workerSrv_.host_, workerSrv_.port_, sec);
 
         // timeout is set for session, i.e., if send 2 or more requests through the same session, the time for timeout
         // is the total time for processing these 2 or more requests, but not for processing each request respectively.
         // Because the sessions for a worker got from a same session pool are the same session, each request should share
         // a different session pool.
-        session.set_timeout(sec);
+        //session.set_timeout(sec);
         return session.call(func, param, result);
     }
 

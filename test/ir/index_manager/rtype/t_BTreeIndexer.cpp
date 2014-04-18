@@ -74,7 +74,7 @@ class FileController
         std::string file_;
 };
 
-void PrintBitVector(const BitVector& docs)
+void PrintBitset(const Bitset& docs)
 {
     std::cout<<"final "<<docs<<std::endl;
 }
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 
 BOOST_AUTO_TEST_CASE(bitvector)
 {
-//     BitVector bv;
+//     Bitset bv;
 //     bv.clear(37);
 //     bv.set(31);
 //     std::cout<<bv<<std::endl;
@@ -184,33 +184,41 @@ BOOST_AUTO_TEST_CASE(simple)
     bt.add(2, 3);
 //     {
 //
-//         BitVector docs;
+//         Bitset docs;
 //         bt.getValueLess(2, docs);
-//         PrintBitVector(docs);
+//         PrintBitset(docs);
 //     }
 //
 //     {
 //         std::cout<<"test 2"<<std::endl;
-//         BitVector docs;
+//         Bitset docs;
 //         bt.getValueGreatEqual(1, docs);
-//         PrintBitVector(docs);
+//         PrintBitset(docs);
 //     }
 
     bt.flush();
     {
         std::cout<<"test 11"<<std::endl;
-        BitVector docs;
+        Bitset docs;
         bt.getValueLess(2, docs);
-        PrintBitVector(docs);
+        PrintBitset(docs);
     }
 
 //     {
 //         std::cout<<"test 21"<<std::endl;
-//         BitVector docs;
+//         Bitset docs;
 //         bt.getValueGreatEqual(1, docs);
-//         PrintBitVector(docs);
+//         PrintBitset(docs);
 //     }
     bt.close();
+}
+
+BOOST_AUTO_TEST_CASE(framework_int_small)
+{
+    DirController dir("./t_bt_framework_int");
+
+    BTreeTestRunner<uint32_t> runner(dir.path()+"/test", 100);
+    runner.start();
 }
 
 BOOST_AUTO_TEST_CASE(framework_int)
@@ -240,6 +248,13 @@ BOOST_AUTO_TEST_CASE(framework_str)
 
 }
 
+BOOST_AUTO_TEST_CASE(performance_int)
+{
+    DirController dir("./t_bt_performance_int");
 
+    BTreePerformanceRunner<int64_t> runner(dir.path()+"/test", 18312347, 1, 10, 10);
+    runner.start();
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()

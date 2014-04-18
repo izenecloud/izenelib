@@ -1,26 +1,37 @@
-#include "EWAHTermDocFreqsTestFixture.h"
+#include "BitmapTermDocFreqsTestFixture.h"
+#include <am/bitmap/ewah.h>
+#include <ir/index_manager/utility/EWAHTermDocFreqs.h>
+
+template <typename word_t>
+struct FixtureType
+{
+    typedef izenelib::am::EWAHBoolArray<word_t> bitmap_t;
+    typedef izenelib::ir::indexmanager::EWAHTermDocFreqs<word_t> iter_t;
+
+    typedef BitmapTermDocFreqsTestFixture<bitmap_t, iter_t> type;
+};
 
 BOOST_AUTO_TEST_SUITE(EWAHTermDocFreqsTest)
 
-BOOST_AUTO_TEST_CASE(testDocFreq)
+BOOST_AUTO_TEST_CASE(docFreq)
 {
-    EWAHTermDocFreqsTestFixture<uint16_t>().testDocFreq();
-    EWAHTermDocFreqsTestFixture<uint32_t>().testDocFreq();
-    EWAHTermDocFreqsTestFixture<uint64_t>().testDocFreq();
+    FixtureType<uint16_t>::type().testDocFreq();
+    FixtureType<uint32_t>::type().testDocFreq();
+    FixtureType<uint64_t>::type().testDocFreq();
 }
 
-BOOST_AUTO_TEST_CASE(testNext)
+BOOST_AUTO_TEST_CASE(next)
 {
-    EWAHTermDocFreqsTestFixture<uint16_t>().testNext();
-    EWAHTermDocFreqsTestFixture<uint32_t>().testNext();
-    EWAHTermDocFreqsTestFixture<uint64_t>().testNext();
+    FixtureType<uint16_t>::type().testNext();
+    FixtureType<uint32_t>::type().testNext();
+    FixtureType<uint64_t>::type().testNext();
 }
 
-BOOST_AUTO_TEST_CASE(testSkipTo)
+BOOST_AUTO_TEST_CASE(skipTo)
 {
-    EWAHTermDocFreqsTestFixture<uint16_t>().testSkipTo();
-    EWAHTermDocFreqsTestFixture<uint32_t>().testSkipTo();
-    EWAHTermDocFreqsTestFixture<uint64_t>().testSkipTo();
+    FixtureType<uint16_t>::type().testSkipTo();
+    FixtureType<uint32_t>::type().testSkipTo();
+    FixtureType<uint64_t>::type().testSkipTo();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

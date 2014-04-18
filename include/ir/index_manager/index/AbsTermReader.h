@@ -14,7 +14,7 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -30,9 +30,9 @@ class FieldInfo;
 * because all other search utilities will utilize the information got from vocabulary
 * According to the form of indices, we have MemTermReader, which
 * indicates its cooresponding indices lie in memory; RTDiskTermReader, which
-* indicates the cooresponding indices lie on disk; and MultiTermReader, which 
+* indicates the cooresponding indices lie on disk; and MultiTermReader, which
 * is used if there exists multiple index barrels
-* For the sake of efficiency, we do not need to read vocabulary whenever 
+* For the sake of efficiency, we do not need to read vocabulary whenever
 * there's a query request, so we use TermReaderImpl to read the vocabulary
 * physically, and all other instances of TermReader will reuse TermReaderImpl
 */
@@ -72,9 +72,9 @@ public:
     ///Return all the information of a certain term on the vocabulary
     virtual TermInfo* termInfo(Term* term) { return NULL;}
 
-    virtual void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
+    virtual void setDocFilter(Bitset* pFilter) { pDocFilter_ = pFilter;}
 
-    BitVector* getDocFilter() { return pDocFilter_; }
+    Bitset* getDocFilter() { return pDocFilter_; }
 
     int getSkipInterval() { return skipInterval_; }
 
@@ -90,7 +90,7 @@ public:
 
     IndexLevel getIndexLevel() { return indexLevel_; }
 protected:
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
     int skipInterval_;
     int maxSkipLevel_;
     BarrelInfo* pBarrelInfo_;

@@ -36,8 +36,7 @@ public:
      */
     void put(const Type& element)
     {
-        size_++;
-        heap_[size_] = element;
+        heap_[++size_] = element;
         upHeap();
     }
 
@@ -54,7 +53,7 @@ public:
             put(element);
             return true;
         }
-        else if (size_ > 0 && !lessThan(element, top()))
+        else if (lessThan(heap_[1], element))
         {
             heap_[1] = element;
             adjustTop();

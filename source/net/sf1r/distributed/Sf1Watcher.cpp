@@ -33,8 +33,24 @@ Sf1Watcher::process(ZooKeeperEvent& zkEvent) {
     LOG(INFO) << zkEvent.toString();
     if (zkEvent.type_ == ZOO_SESSION_EVENT && zkEvent.state_ == ZOO_EXPIRED_SESSION_STATE)
     {
-        LOG(INFO) << "session expired, reconnect.";
-        router.reconnect();
+        while(true)
+        {
+            try
+            {
+            LOG(INFO) << "session expired, reconnect.";
+            router.reconnect();
+            break;
+            }
+            catch(...)
+            {
+                sleep(10);
+            }
+        }
+    }
+    else if (zkEvent.type_ == ZOO_SESSION_EVENT && zkEvent.state_ == ZOO_CONNECTED_STATE)
+    {
+        LOG(INFO) << "auto connected";
+        router.reloadTopology();
     }
 }
 

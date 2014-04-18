@@ -71,8 +71,9 @@ public:
         unload();
         if (keys)
             delete [] keys;
-        if (values)
-            delete [] values;
+        //if (values)
+        //    delete [] values;
+        std::vector<ValueType>().swap(values);
         if (children)
             for (size_t i=0; i<_fh.maxKeys+1; i++)
             {
@@ -224,7 +225,7 @@ public:
 
     KeyType* keys;
     sdb_node_** children;
-    ValueType* values;
+    std::vector<ValueType> values;
     //std::vector<KeyType> keys;
     //std::vector<sdb_node_*> children; //it has objCount+1 childrens.
     //std::vector<ValueType> values;
@@ -263,8 +264,9 @@ typename Alloc> sdb_node_< KeyType, ValueType, LockType, fixed, Alloc>::sdb_node
 
     keys = new KeyType[_fh.maxKeys];
     ::memset(keys, 0x00, sizeof(KeyType)*_fh.maxKeys);
-    values = new ValueType[_fh.maxKeys];
-    ::memset(values, 0x00, sizeof(ValueType)*_fh.maxKeys);
+    //values = new ValueType[_fh.maxKeys];
+    values.resize(_fh.maxKeys);
+    //::memset(&values[0], 0x00, sizeof(ValueType)*_fh.maxKeys);
 
     children = new sdb_node_*[_fh.maxKeys+1];
     for (size_t i=0; i<_fh.maxKeys+1; i++)
@@ -335,10 +337,11 @@ Alloc>::read(FILE* f)
         keys = new KeyType[_fh.maxKeys];
         ::memset(keys, 0x00, sizeof(KeyType)*_fh.maxKeys);
     }
-    if (values == NULL)
+    if (values.empty())
     {
-        values = new ValueType[_fh.maxKeys];
-        ::memset(values, 0x00, sizeof(ValueType)*_fh.maxKeys);
+        //values = new ValueType[_fh.maxKeys];
+        values.resize(_fh.maxKeys);
+        //::memset(&values[0], 0x00, sizeof(ValueType)*_fh.maxKeys);
     }
 
     //cout<<"read leafFlag ="<<isLeaf<<endl;
@@ -790,8 +793,9 @@ Alloc>::unload()
         objCount = 0;
         delete [] keys;
         keys = NULL;
-        delete [] values;
-        values = NULL;
+        //delete [] values;
+        //values = NULL;
+        std::vector<ValueType>().swap(values);
         delete [] children;
         children = NULL;
 
@@ -818,8 +822,9 @@ Alloc>::unloadself()
         //children.resize(0);
         delete [] keys;
         keys = NULL;
-        delete [] values;
-        values = NULL;
+        //delete [] values;
+        //values = NULL;
+        std::vector<ValueType>().swap(values);
         delete [] children;
         children = NULL;
         isLoaded = false;

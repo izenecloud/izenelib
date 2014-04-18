@@ -44,7 +44,7 @@ public:
     virtual TermReader* termReader(collectionid_t colID,const char* field) { return NULL; }
 
     virtual size_t getDistinctNumTerms(collectionid_t colID,const std::string& property) = 0;
-	
+
     virtual void close() = 0;
 
     virtual bool hasMemBarrel() = 0;
@@ -55,5 +55,5 @@ protected:
 }
 
 NS_IZENELIB_IR_END
-	
+
 #endif

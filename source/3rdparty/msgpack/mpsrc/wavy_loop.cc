@@ -58,6 +58,7 @@ loop_impl::~loop_impl()
 		pthread_scoped_lock lk(m_mutex);
 		m_cond.broadcast();
 	}
+    //printf("loop destructed for %p in t:%llu.\n", this, (uint64_t)pthread_self());
 	delete[] m_state;
 }
 
@@ -81,28 +82,57 @@ bool loop_impl::is_end() const
 
 void loop_impl::join()
 {
+    bool is_join_self = false;
 	for(workers_t::iterator it(m_workers.begin());
 			it != m_workers.end(); ++it) {
 		try {
 			it->join();
 		} catch (mp::pthread_error& e) {
-			if(e.code == EDEADLK) {
-				it->detach();
-			} else {
-				throw e;
-			}
+            printf("===== join loop thread failed.=======!!!\n");
+            if (pthread_self() == it->get_thread())
+            {
+                // this may happen because of the shared session may be destructed 
+                // in the step_timeout function which run in the loop thread.
+                is_join_self = true;
+            }
+            //sleep(1);
+            //void* array[100];
+            //int size = backtrace(array, 100);
+            //char** messages = backtrace_symbols(array, size);
+            //for (int i = 1; i < size && messages != NULL; ++i)
+            //{
+            //    fprintf(stderr, "[bt] : (%d) %s\n", i, messages[i]);
+            //}
+            //free(messages);
+			//if(e.code == EDEADLK) {
+			//	it->detach();
+			//} else {
+			//	//throw e;
+			//}
 		}
 	}
-	m_workers.clear();
+    m_workers.clear();
+    if (is_join_self)
+    {
+        {
+            pthread_scoped_lock lk(m_mutex);
+            m_cond.broadcast();
+        }
+        printf("loop destructed in self loop thread.\n");
+        delete[] m_state;
+
+        throw mp::pthread_joinself_error(0, "");
+        printf("This should not print!!!!!!!!!!!!!!!.\n");
+    }
 }
 
-void loop_impl::detach()
-{
-	for(workers_t::iterator it(m_workers.begin());
-			it != m_workers.end(); ++it) {
-		it->detach();
-	}
-}
+//void loop_impl::detach()
+//{
+//	for(workers_t::iterator it(m_workers.begin());
+//			it != m_workers.end(); ++it) {
+//		it->detach();
+//	}
+//}
 
 
 void loop_impl::start(size_t num)
@@ -113,6 +143,7 @@ void loop_impl::start(size_t num)
 		throw std::runtime_error("loop is already running");
 	}
 	add_thread(num);
+    //printf("start loop finished for loop %p.\n", this);
 }
 
 void loop_impl::add_thread(size_t num)
@@ -127,6 +158,8 @@ void loop_impl::add_thread(size_t num)
 			throw;
 		}
 	}
+    // wait for the threads to start.
+    //sleep(1);
 }
 
 bool loop_impl::is_running() const
@@ -174,7 +207,9 @@ void loop_impl::do_task(pthread_scoped_lock& lk)
 
 	try {
 		ev();
-	} catch (...) { }
+	} catch (const mp::pthread_joinself_error& e) {
+        throw;
+    } catch (...) { }
 
 	if(last) {
 		lk.relock(m_mutex);
@@ -198,6 +233,7 @@ void loop_impl::thread_main()
 {
 	retry:
 	while(true) {
+        //printf("loop thread  %llu running in %p\n", (uint64_t)(pthread_self()), this);
 		pthread_scoped_lock lk(m_mutex);
 
 		retry_task:
@@ -277,6 +313,8 @@ void loop_impl::thread_main()
 			if(h) {
 				try {
 					cont = (*h)(e);
+                } catch (const mp::pthread_joinself_error& e) {
+                    throw;
 				} catch (...) { }
 			}
 
@@ -386,6 +424,8 @@ void loop_impl::run_once(pthread_scoped_lock& lk, bool block)
 		if(h) {
 			try {
 				cont = (*h)(e);
+            } catch (const mp::pthread_joinself_error& e) {
+                throw;
 			} catch (...) { }
 		}
 
@@ -501,8 +541,8 @@ bool loop::is_end() const
 void loop::join()
 	{ ANON_impl->join(); }
 
-void loop::detach()
-	{ ANON_impl->detach(); }
+//void loop::detach()
+//	{ ANON_impl->detach(); }
 
 void loop::add_thread(size_t num)
 	{ ANON_impl->add_thread(num); }

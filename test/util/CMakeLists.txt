@@ -57,6 +57,7 @@ ADD_EXECUTABLE(t_ustring
   )
 
 TARGET_LINK_LIBRARIES(t_ustring
+  febird
   izene_util
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
@@ -68,6 +69,7 @@ ADD_EXECUTABLE(t_mempool
   )
 
 TARGET_LINK_LIBRARIES(t_mempool
+  febird
   izene_util
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
@@ -81,6 +83,7 @@ ADD_EXECUTABLE(t_compressor
   ) 
 
 TARGET_LINK_LIBRARIES(t_compressor 
+  febird
   izene_util 
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
@@ -92,6 +95,7 @@ ADD_EXECUTABLE(t_compressed_vector
   ) 
 
 TARGET_LINK_LIBRARIES(t_compressed_vector 
+  febird
   izene_util 
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
@@ -137,6 +141,7 @@ ADD_EXECUTABLE(t_osgi
     osgi/LauncherTest.cpp
     )
 TARGET_LINK_LIBRARIES(t_osgi
+    febird
     izene_util
     ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}    
@@ -152,12 +157,14 @@ TARGET_LINK_LIBRARIES(t_class_register
     ${Boost_LIBRARIES}
   )
 
-ADD_EXECUTABLE(scd_tool
-  scd_tool.cpp
+
+ADD_EXECUTABLE(t_fmath
+  fmath/t_fmath.cpp
   )
 
-TARGET_LINK_LIBRARIES(scd_tool
+TARGET_LINK_LIBRARIES(t_fmath
     izene_util
+    febird
     ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}    
   )

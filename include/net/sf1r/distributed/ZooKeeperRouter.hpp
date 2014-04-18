@@ -68,6 +68,7 @@ public:
     }
 
     void reconnect();
+    void reloadTopology();
     /**
      * Get a connection to a node hosting the given collection.
      * @param collection The collection name.
@@ -110,6 +111,9 @@ public:
      */
     //NodeCollectionsRange getSf1Nodes(const std::string& collection) const;
  
+    void increSlowCounter(const std::string& path);
+    void decreSlowCounter(const std::string& path);
+
 private:
     
     /** The watcher need to access private member functions. */
@@ -149,6 +153,7 @@ private:
     /// Condition variable for connection pool deletion.
     boost::condition_variable_any condition;
     
+    void removeNodeFromPools(const std::string& path, WriteLockT& rwlock);
     /// ZooKeeper client.
     boost::scoped_ptr<iz::ZooKeeper> client;
     

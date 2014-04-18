@@ -33,9 +33,9 @@ BOOST_AUTO_TEST_CASE(headerSize_test) {
 
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(RawClient(service, "somewhere", "", timeout), NetworkError);
-    BOOST_CHECK_THROW(RawClient(service, "somewhere", "port", timeout), NetworkError);
-    BOOST_CHECK_THROW(RawClient(service, "localhost", "12345", timeout), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service).do_connect("somewhere", "", timeout), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service).do_connect("somewhere", "port", timeout), NetworkError);
+    BOOST_CHECK_THROW(RawClient(service).do_connect("localhost", "12345", timeout), NetworkError);
 }
 
 
@@ -46,14 +46,16 @@ BOOST_AUTO_TEST_CASE(connection_fail) {
 
 
 BOOST_AUTO_TEST_CASE(connection_test) {
-    RawClient client(service, host, port, timeout);
+    RawClient client(service);
+    client.do_connect(host, port, timeout);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
     BOOST_CHECK_EQUAL(RawClient::Idle, client.getStatus());
     BOOST_CHECK_EQUAL("", client.getPath());
     
-    RawClient zclient(service, host, port, timeout, "zkpath");
+    RawClient zclient(service, "zkpath");
+    zclient.do_connect(host, port, timeout);
     BOOST_CHECK(zclient.isConnected());
     BOOST_CHECK(zclient.idle());
     BOOST_CHECK(zclient.valid());
@@ -67,7 +69,8 @@ BOOST_AUTO_TEST_CASE(connection_test) {
 BOOST_AUTO_TEST_CASE(connection_error_test) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, host, port, timeout, "/path");
+    RawClient client(service, "/path");
+    client.do_connect(host, port, timeout);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());
@@ -90,7 +93,8 @@ BOOST_AUTO_TEST_CASE(send_receive_test) {
     const string    message = "{\"header\":{\"controller\":\"test\",\"action\":\"echo\"},\"message\":\"Ciao! 你好！\"}";
     const string   expected = "{\"header\":{\"success\":true},\"message\":\"Ciao! 你好！\"}";
     
-    RawClient client(service, host, port, timeout, "/path");
+    RawClient client(service, "/path");
+    client.do_connect(host, port, timeout);
     BOOST_CHECK(client.isConnected());
     BOOST_CHECK(client.idle());
     BOOST_CHECK(client.valid());

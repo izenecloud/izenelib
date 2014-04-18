@@ -51,6 +51,7 @@ public:
     /// threads.join_all();
     /// </code>
     inline void run();
+    inline void reset();
 
     /// @brief Stop the server.
     inline void stop();
@@ -103,6 +104,12 @@ template<typename ConnectionFactory>
 void AsyncServer<ConnectionFactory>::run()
 {
     ioService_.run();
+}
+
+template<typename ConnectionFactory>
+void AsyncServer<ConnectionFactory>::reset()
+{
+    ioService_.reset();
 }
 
 template<typename ConnectionFactory>

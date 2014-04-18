@@ -15,7 +15,7 @@
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/PostingMerger.h>
 #include <ir/index_manager/index/AbsTermReader.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <ir/index_manager/utility/MemCache.h>
 
 #include <string>
@@ -209,7 +209,7 @@ public:
         return nMergedTerms_;
     }
 
-    void setDocFilter(BitVector* pFilter)
+    void setDocFilter(Bitset* pFilter)
     {
         pDocFilter_ = pFilter;
     }
@@ -281,7 +281,7 @@ private:
 
     MergeTermInfo cachedTermInfos_[NUM_CACHEDTERMINFO];
 
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
 
     boost::shared_ptr<MemCache> pMemCache_;
 

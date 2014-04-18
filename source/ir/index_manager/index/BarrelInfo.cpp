@@ -85,9 +85,10 @@ void BarrelInfo::write(Directory* pDirectory)
     try
     {
         boost::mutex::scoped_lock lock(mutex_);
-        DVLOG(2) << "=> BarrelInfo::write(), barrel name: " << barrelName
+        LOG(INFO) << "=> BarrelInfo::write(), barrel name: " << barrelName
                  << ", doc range: [" << baseDocIDMap.begin()->second << ", " << maxDocId << "]"
-                 << ", nNumDocs: " << nNumDocs << " ...";
+                 << ", nNumDocs: " << nNumDocs << " ..."
+                 << ", index level: " << indexLevel_;
 
         string s = barrelName +".voc";
         IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());
@@ -298,6 +299,18 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                     else
                         pBarrelInfo->searchable = false;
                 }
+                
+                ///get <is_in_memory_barrel></is_in_memory_barrel> element
+                pItem = pBarrelItem->getElementByName("is_in_memory_barrel");
+                if (!pItem) pBarrelInfo->inMemoryBarrel = false;
+                else
+                {
+                    if(pItem->getValue().compare("yes") == 0)
+                        pBarrelInfo->inMemoryBarrel = true;
+                    else
+                        pBarrelInfo->inMemoryBarrel = false;
+                }
+
 
                 ///get <compress></compress> element
                 pItem = pBarrelItem->getElementByName("compress");
@@ -311,7 +324,7 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                     else if(pItem->getValue().compare("chunk") == 0)
                         pBarrelInfo->compressType = CHUNK;
                 }
-
+                
                 barrelInfos.push_back(pBarrelInfo);
             }
             delete pDatabase;
@@ -365,12 +378,13 @@ void BarrelsInfo::write(Directory* pDirectory)
     while (iter != barrelInfos.end())
     {
         pBarrelInfo = *iter;
-        if(pBarrelInfo->getWriter())
+        /* Change for barrel consistency.*/
+        /*if(pBarrelInfo->getWriter())
         {
             DVLOG(2) << "ignore in-memory barrel " << pBarrelInfo->getName() << " in writing file \"barrels\"";
             iter ++;
             continue;
-        }
+        }*/
         pBarrelItem = pBarrelsItem->addElement("barrel");
         ///add <name></name> element
         pItem = pBarrelItem->addElement("name");
@@ -405,6 +419,17 @@ void BarrelsInfo::write(Directory* pDirectory)
         ///add <searchable></searchable>
         pItem = pBarrelItem->addElement("searchable");
         str = pBarrelInfo->searchable ? "yes":"no";
+        pItem->setValue(str.c_str()); 
+        ///add <is_inmemorybarrel></searchable>
+        pItem = pBarrelItem->addElement("is_in_memory_barrel");
+        if(pBarrelInfo->isRealTime() )
+        {
+            str = "yes";
+        }
+        else
+        {
+            str = "no";
+        }
         pItem->setValue(str.c_str()); 
 
         ///add <compress></compress>
@@ -597,6 +622,33 @@ bool BarrelsInfo::deleteDocument(collectionid_t colId, docid_t docId)
         }
     }
 
-    DVLOG(2) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
+    LOG(INFO) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
     return false;
+}
+
+void BarrelsInfo::printBarrelsInfo(Directory* pDirectory)
+{
+    boost::mutex::scoped_lock lock(mutex_);
+
+    vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
+    LOG(INFO)<<"Print barrels info begin";
+    while (iter != barrelInfos.end())
+    {
+        BarrelInfo* pBarrelInfo = *iter;
+        std::string directory = pDirectory->directory();
+        std::string fileName = directory + pBarrelInfo->barrelName;
+        if (boost::filesystem::exists(fileName + ".dfp"))
+        {
+            LOG(INFO)<<"Barrel name: "<<pBarrelInfo->barrelName << std::endl
+                    <<" Document count: "<<pBarrelInfo->nNumDocs << std::endl
+                    <<" Max document number: "<<pBarrelInfo->nNumDocs << std::endl
+                    << " Base doc : " << pBarrelInfo->getBaseDocID() << std::endl
+                    <<" dfp size: "<<boost::filesystem::file_size(fileName + ".dfp")
+                    <<" voc size: "<<boost::filesystem::file_size(fileName + ".voc")
+                    <<" fdi size: "<<boost::filesystem::file_size(fileName + ".fdi")
+                    <<" pop size: "<<boost::filesystem::file_size(fileName + ".pop");
+        }
+        iter ++;
+    }
+    LOG(INFO)<<"Print barrels info end";
 }

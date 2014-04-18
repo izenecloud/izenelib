@@ -61,6 +61,7 @@ public:
     void getTopKDocIdList(
             const MatchRangeListT &raw_range_list,
             const std::vector<double> &score_list,
+            size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list,
             std::vector<size_t> &doclen_list) const;
@@ -467,6 +468,7 @@ template <class CharT>
 void FMIndex<CharT>::getTopKDocIdList(
     const MatchRangeListT &raw_range_list,
     const std::vector<double> &score_list,
+    size_t thres,
     size_t max_docs,
     std::vector<std::pair<double, uint32_t> > &res_list,
     std::vector<size_t> &doclen_list) const
@@ -485,7 +487,7 @@ void FMIndex<CharT>::getTopKDocIdList(
         range_list[i].get<2>() = score_list[i];
     }
 
-    doc_array_->topKUnion(range_list, max_docs, res_list, alloc);
+    doc_array_->topKUnion(range_list, thres, max_docs, res_list, alloc);
 
     doclen_list.resize(res_list.size());
     for (size_t i = 0; i < res_list.size(); ++i)

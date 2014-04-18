@@ -418,7 +418,9 @@ public:
     void close()
     {
         flush();
+        mutex_.lock();
         fujimap_.clear();
+        mutex_.unlock();
     }
 
     void display()
@@ -426,9 +428,12 @@ public:
     }
 
 protected:
-    bool saveFujimap_()
+    void saveFujimap_()
     {
-        return fujimap_.empty() || fujimap_.save(fujimapFile_.c_str()) == 0;
+        mutex_.lock();
+        if (!fujimap_.empty())
+            fujimap_.save(fujimapFile_.c_str());
+        mutex_.unlock();
     }
 
     bool loadFujimap_()
@@ -534,11 +539,13 @@ inline bool UniqueIDGenerator<NameString, NameID,
 {
     mutex_.lock();
 
-    nameID = fujimap_.getInteger(nameString);
+    static NameID tmpid;
+    tmpid = fujimap_.getInteger(nameString);
 
     // If name string is found, return the id.
-    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != nameID)
+    if ((NameID)izenelib::am::succinct::fujimap::NOTFOUND != tmpid)
     {
+        nameID = tmpid;
         mutex_.unlock();
         return true;
     }

@@ -21,9 +21,9 @@ class AggregatorConfig
 {
 public:
     AggregatorConfig(
-        unsigned int timeout = 30,
-        unsigned int sessionPoolThreadNum = 10)
-    : timeout_(timeout)
+        unsigned int timeout = 15,
+        unsigned int sessionPoolThreadNum = 2)
+    : is_ro_(false), timeout_(timeout)
     , sessionPoolThreadNum_(sessionPoolThreadNum)
     {
     }
@@ -31,6 +31,28 @@ public:
     void reset()
     {
         workerInfoList_.clear();
+        is_ro_ = false;
+    }
+
+    void setReadyOnly()
+    {
+        is_ro_ = true;
+        if (sessionPoolThreadNum_ < 10)
+            sessionPoolThreadNum_ = 10;
+    }
+
+    bool isReadOnly() const
+    {
+        return is_ro_;
+    }
+    void addReadOnlyWorker(const std::string& host, uint16_t port, uint32_t workerid)
+    {
+        WorkerServerInfo workerInfo(host, port, workerid, false);
+        ro_workerInfoList_.push_back(workerInfo);
+    }
+    const std::vector<WorkerServerInfo>& getReadOnlyWorkerList() const
+    {
+        return ro_workerInfoList_;
     }
 
     void addWorker(const std::string& host, uint16_t port, uint32_t workerid, bool isLocal=false)
@@ -75,11 +97,21 @@ public:
                <<(workerInfoList_[i].isLocal_ ? " (local worker)" : "")
                <<endl;
         }
+        for (size_t i = 0; i < ro_workerInfoList_.size(); i++)
+        {
+            ss <<"- read only worker "<< ro_workerInfoList_[i].workerid_<<", "
+               << ro_workerInfoList_[i].host_<<":"<< ro_workerInfoList_[i].port_
+               <<(ro_workerInfoList_[i].isLocal_ ? " (local worker)" : "")
+               <<endl;
+        }
+
         return ss.str();
     }
 
 private:
+    bool is_ro_;
     std::vector<WorkerServerInfo> workerInfoList_;
+    std::vector<WorkerServerInfo> ro_workerInfoList_;
     unsigned int timeout_; // second
     unsigned int sessionPoolThreadNum_;
 };

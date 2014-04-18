@@ -45,7 +45,10 @@ void FSIndexOutput::flushBuffer(char* b, size_t len)
     fflush(fileHandle_);
     if (len > 0 && len != ret)
     {
-        close();
+        bufferStart_ = 0;
+        bufferPosition_ = 0;
+        fclose(fileHandle_);
+        fileHandle_ = NULL;
         SF1V5_THROW(ERROR_FILEIO,"FSIndexOutput::flushBuffer():file IO write error:");
     }
 }

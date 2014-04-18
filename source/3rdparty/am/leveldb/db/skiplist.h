@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include "port/port.h"
 #include "util/arena.h"
-#include "../util/random.h"
+#include "util/random.h"
 
 namespace leveldb {
 

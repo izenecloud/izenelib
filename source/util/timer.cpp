@@ -20,6 +20,7 @@ public:
 
     ~TimerThread() 
     {
+        stop(true);
     }
 
     void stop(bool wait = false)
@@ -35,7 +36,12 @@ public:
         {
             return;
         }
+        try{
         thread_->join();
+        }catch(const std::exception& e)
+        {
+            std::cerr << "join timer thread error: " << e.what() << std::endl; 
+        }
     }
 
     void run()

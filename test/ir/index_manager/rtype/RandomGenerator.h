@@ -12,7 +12,7 @@ public:
     static void Gen(const T& low, const T& high, T& value)
     {
         static boost::mt19937 gen;
-        boost::uniform_int<> dist(low, high);
+        boost::uniform_int<T> dist(low, high);
         value = dist(gen);
     }
     
@@ -34,7 +34,7 @@ public:
     static void Gen(const T& low, const T& high, T& value)
     {
         static boost::mt19937 gen;
-        boost::uniform_real<> dist(low, high);
+        boost::uniform_real<T> dist(low, high);
         value = dist(gen);
     }
     
@@ -53,6 +53,10 @@ class RandomGenerator<izenelib::util::UString>
 public:
 
     static void Gen(izenelib::util::UString& value)
+    {
+        Gen(0, 0, value);
+    }
+    static void Gen(const int& low, const int& high, izenelib::util::UString& value)
     {
         static uint32_t max_length = 2;
         static std::string chars("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");

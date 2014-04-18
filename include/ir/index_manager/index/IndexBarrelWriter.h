@@ -17,7 +17,7 @@
 
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
-#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/Bitset.h>
 #include <util/izene_log.h>
 
 #include <boost/shared_ptr.hpp>
@@ -44,7 +44,7 @@ public:
 public:
     /**
      * checkbinlog
-     */	
+     */
     void checkbinlog();
     /**
      * add a analyzed IndexerDocument
@@ -104,9 +104,9 @@ public:
         return new InMemoryIndexBarrelReader(this);
     }
 
-    void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
+    void setDocFilter(Bitset* pFilter) { pDocFilter_ = pFilter;}
 
-    BitVector* getDocFilter() { return pDocFilter_; }
+    Bitset* getDocFilter() { return pDocFilter_; }
 
     void deletebinlog();
 
@@ -141,7 +141,7 @@ private:
 
     Directory* pDirectory_;
 
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
 
     int numFieldIndexers_;
 

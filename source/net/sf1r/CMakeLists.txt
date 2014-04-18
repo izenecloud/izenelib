@@ -9,6 +9,10 @@ if (sf1r_SHOULD_BUILD)
     find_package(Boost ${Boost_FIND_VERSION}
         REQUIRED COMPONENTS
         regex
+        thread
+        serialization
+        system
+        date_time
     )
 
     set(libsf1r_SOURCES
@@ -41,5 +45,13 @@ if (sf1r_SHOULD_BUILD)
     install(TARGETS sf1r
             LIBRARY DESTINATION lib
             COMPONENT sf1r)
+
+    list(APPEND LIBS pthread rt)
+    add_executable(Sf1rSharedDataMaster distributed/share_data_master.cpp)
+    target_link_libraries(Sf1rSharedDataMaster ${LIBS} ${Boost_LIBRARIES}
+        ${Glog_LIBRARIES})
+    install(TARGETS Sf1rSharedDataMaster
+            RUNTIME DESTINATION bin
+            COMPONENT Sf1rSharedDataMaster)
 
 endif(sf1r_SHOULD_BUILD)

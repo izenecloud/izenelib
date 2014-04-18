@@ -553,6 +553,11 @@ BOOST_AUTO_TEST_CASE(izene_serialization_test)
 	cout<<"!!!"<<endl;
 	test_serialization(ustr);
 
+	izenelib::util::UString ustr2("10K_E", izenelib::util::UString::UTF_8);
+	test_serialization_boost(ustr2);
+	cout<<"!!!"<<endl;
+	test_serialization(ustr2);
+
     test_padding();
 
 	/*	test1();

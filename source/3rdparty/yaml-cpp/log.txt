@@ -1,0 +1,5275 @@
+#include "yaml-cpp/binary.h"
+
+namespace YAML
+{
+    static const char encoding[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::string EncodeBase64(const unsigned char *data, std::size_t size)
+    {
+        const char PAD = '=';
+        
+        std::string ret;
+        ret.resize(4 * size / 3 + 3);
+        char *out = &ret[0];
+        
+        std::size_t chunks = size / 3;
+        std::size_t remainder = size % 3;
+        
+        for(std::size_t i=0;i<chunks;i++, data += 3) {
+            *out++ = encoding[data[0] >> 2];
+            *out++ = encoding[((data[0] & 0x3) << 4) | (data[1] >> 4)];
+            *out++ = encoding[((data[1] & 0xf) << 2) | (data[2] >> 6)];
+            *out++ = encoding[data[2] & 0x3f];
+        }
+        
+        switch(remainder) {
+            case 0:
+                break;
+            case 1:
+                *out++ = encoding[data[0] >> 2];
+                *out++ = encoding[((data[0] & 0x3) << 4)];
+                *out++ = PAD;
+                *out++ = PAD;
+                break;
+            case 2:
+                *out++ = encoding[data[0] >> 2];
+                *out++ = encoding[((data[0] & 0x3) << 4) | (data[1] >> 4)];
+                *out++ = encoding[((data[1] & 0xf) << 2)];
+                *out++ = PAD;
+                break;
+        }
+        
+        ret.resize(out - &ret[0]);
+        return ret;
+    }
+    
+    static const unsigned char decoding[] = {
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255, 62,255,255,255, 63,
+         52, 53, 54, 55, 56, 57, 58, 59, 60, 61,255,255,255,  0,255,255,
+        255,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,255,255,255,255,255,
+        255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+         41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+    };
+
+    std::vector<unsigned char> DecodeBase64(const std::string& input)
+    {
+        typedef std::vector<unsigned char> ret_type;
+        if(input.empty())
+            return ret_type();
+        
+        ret_type ret(3 * input.size() / 4 + 1);
+        unsigned char *out = &ret[0];
+        
+        unsigned value = 0;
+        for(std::size_t i=0;i<input.size();i++) {
+            unsigned char d = decoding[static_cast<unsigned>(input[i])];
+            if(d == 255)
+                return ret_type();
+
+            value = (value << 6) | d;
+            if(i % 4 == 3) {
+                *out++ = value >> 16;
+                if(i > 0 && input[i - 1] != '=')
+                    *out++ = value >> 8;
+                if(input[i] != '=')
+                    *out++ = value;
+            }
+        }
+        
+        ret.resize(out - &ret[0]);
+        return ret;
+    }
+}
+#include "yaml-cpp/node/convert.h"
+#include "yaml-cpp/node/impl.h"
+#include <algorithm>
+
+namespace
+{
+	// we're not gonna mess with the mess that is all the isupper/etc. functions
+	bool IsLower(char ch) { return 'a' <= ch && ch <= 'z'; }
+	bool IsUpper(char ch) { return 'A' <= ch && ch <= 'Z'; }
+	char ToLower(char ch) { return IsUpper(ch) ? ch + 'a' - 'A' : ch; }
+	
+	std::string tolower(const std::string& str)
+	{
+		std::string s(str);
+		std::transform(s.begin(), s.end(), s.begin(), ToLower);
+		return s;
+	}
+	
+	template <typename T>
+	bool IsEntirely(const std::string& str, T func)
+	{
+		for(std::size_t i=0;i<str.size();i++)
+			if(!func(str[i]))
+				return false;
+		
+		return true;
+	}
+	
+	// IsFlexibleCase
+	// . Returns true if 'str' is:
+	//   . UPPERCASE
+	//   . lowercase
+	//   . Capitalized
+	bool IsFlexibleCase(const std::string& str)
+	{
+		if(str.empty())
+			return true;
+		
+		if(IsEntirely(str, IsLower))
+			return true;
+		
+		bool firstcaps = IsUpper(str[0]);
+		std::string rest = str.substr(1);
+		return firstcaps && (IsEntirely(rest, IsLower) || IsEntirely(rest, IsUpper));
+	}
+}
+
+namespace YAML
+{
+	bool convert<bool>::decode(const Node& node, bool& rhs) {
+		if(!node.IsScalar())
+			return false;
+		
+		// we can't use iostream bool extraction operators as they don't
+		// recognize all possible values in the table below (taken from
+		// http://yaml.org/type/bool.html)
+		static const struct {
+			std::string truename, falsename;
+		} names[] = {
+			{ "y", "n" },
+			{ "yes", "no" },
+			{ "true", "false" },
+			{ "on", "off" },
+		};
+		
+		if(!IsFlexibleCase(node.Scalar()))
+			return false;
+		
+		for(unsigned i=0;i<sizeof(names)/sizeof(names[0]);i++) {
+			if(names[i].truename == tolower(node.Scalar())) {
+				rhs = true;
+				return true;
+			}
+			
+			if(names[i].falsename == tolower(node.Scalar())) {
+				rhs = false;
+				return true;
+			}
+		}
+		
+		return false;
+	}
+}
+#include "directives.h"
+
+namespace YAML
+{
+	Directives::Directives()
+	{
+		// version
+		version.isDefault = true;
+		version.major = 1;
+		version.minor = 2;
+	}
+	
+	const std::string Directives::TranslateTagHandle(const std::string& handle) const
+	{
+		std::map <std::string, std::string>::const_iterator it = tags.find(handle);
+		if(it == tags.end()) {
+			if(handle == "!!")
+				return "tag:yaml.org,2002:";
+			return handle;
+		}
+		
+		return it->second;
+	}
+}
+#include "yaml-cpp/node/emit.h"
+#include "yaml-cpp/emitfromevents.h"
+#include "yaml-cpp/emitter.h"
+#include "nodeevents.h"
+
+namespace YAML
+{
+	Emitter& operator << (Emitter& out, const Node& node)
+	{
+		EmitFromEvents emitFromEvents(out);
+		NodeEvents events(node);
+		events.Emit(emitFromEvents);
+		return out;
+	}
+	
+	std::ostream& operator << (std::ostream& out, const Node& node)
+	{
+		Emitter emitter(out);
+		emitter << node;
+		return out;
+	}
+
+	std::string Dump(const Node& node)
+	{
+		Emitter emitter;
+		emitter << node;
+		return emitter.c_str();
+	}
+}
+#include "yaml-cpp/emitfromevents.h"
+#include "yaml-cpp/emitter.h"
+#include "yaml-cpp/null.h"
+#include <cassert>
+#include <sstream>
+
+namespace {
+	std::string ToString(YAML::anchor_t anchor) {
+		std::stringstream stream;
+		stream << anchor;
+		return stream.str();
+	}
+}
+
+namespace YAML
+{
+	EmitFromEvents::EmitFromEvents(Emitter& emitter): m_emitter(emitter)
+	{
+	}
+	
+	void EmitFromEvents::OnDocumentStart(const Mark&)
+	{
+	}
+	
+	void EmitFromEvents::OnDocumentEnd()
+	{
+	}
+	
+	void EmitFromEvents::OnNull(const Mark&, anchor_t anchor)
+	{
+		BeginNode();
+		EmitProps("", anchor);
+		m_emitter << Null;
+	}
+	
+	void EmitFromEvents::OnAlias(const Mark&, anchor_t anchor)
+	{
+		BeginNode();
+		m_emitter << Alias(ToString(anchor));
+	}
+	
+	void EmitFromEvents::OnScalar(const Mark&, const std::string& tag, anchor_t anchor, const std::string& value)
+	{
+		BeginNode();
+		EmitProps(tag, anchor);
+		m_emitter << value;
+	}
+	
+	void EmitFromEvents::OnSequenceStart(const Mark&, const std::string& tag, anchor_t anchor)
+	{
+		BeginNode();
+		EmitProps(tag, anchor);
+		m_emitter << BeginSeq;
+		m_stateStack.push(State::WaitingForSequenceEntry);
+	}
+	
+	void EmitFromEvents::OnSequenceEnd()
+	{
+		m_emitter << EndSeq;
+		assert(m_stateStack.top() == State::WaitingForSequenceEntry);
+		m_stateStack.pop();
+	}
+	
+	void EmitFromEvents::OnMapStart(const Mark&, const std::string& tag, anchor_t anchor)
+	{
+		BeginNode();
+		EmitProps(tag, anchor);
+		m_emitter << BeginMap;
+		m_stateStack.push(State::WaitingForKey);
+	}
+
+	void EmitFromEvents::OnMapEnd()
+	{
+		m_emitter << EndMap;
+		assert(m_stateStack.top() == State::WaitingForKey);
+		m_stateStack.pop();
+	}
+
+	void EmitFromEvents::BeginNode()
+	{
+		if(m_stateStack.empty())
+			return;
+		
+		switch(m_stateStack.top()) {
+			case State::WaitingForKey:
+				m_emitter << Key;
+				m_stateStack.top() = State::WaitingForValue;
+				break;
+			case State::WaitingForValue:
+				m_emitter << Value;
+				m_stateStack.top() = State::WaitingForKey;
+				break;
+			default:
+				break;
+		}
+	}
+	
+	void EmitFromEvents::EmitProps(const std::string& tag, anchor_t anchor)
+	{
+		if(!tag.empty() && tag != "?")
+			m_emitter << VerbatimTag(tag);
+		if(anchor)
+			m_emitter << Anchor(ToString(anchor));
+	}
+}
+#include "yaml-cpp/emitter.h"
+#include "emitterstate.h"
+#include "emitterutils.h"
+#include "indentation.h"
+#include "yaml-cpp/exceptions.h"
+#include <sstream>
+
+namespace YAML
+{	
+	Emitter::Emitter(): m_pState(new EmitterState)
+	{
+	}
+	
+	Emitter::Emitter(std::ostream& stream): m_pState(new EmitterState), m_stream(stream)
+	{
+	}
+
+	Emitter::~Emitter()
+	{
+	}
+	
+	const char *Emitter::c_str() const
+	{
+		return m_stream.str();
+	}
+	
+    std::size_t Emitter::size() const
+	{
+		return m_stream.pos();
+	}
+	
+	// state checking
+	bool Emitter::good() const
+	{
+		return m_pState->good();
+	}
+	
+	const std::string Emitter::GetLastError() const
+	{
+		return m_pState->GetLastError();
+	}
+
+	// global setters
+	bool Emitter::SetOutputCharset(EMITTER_MANIP value)
+	{
+		return m_pState->SetOutputCharset(value, FmtScope::Global);
+	}
+
+	bool Emitter::SetStringFormat(EMITTER_MANIP value)
+	{
+		return m_pState->SetStringFormat(value, FmtScope::Global);
+	}
+	
+	bool Emitter::SetBoolFormat(EMITTER_MANIP value)
+	{
+		bool ok = false;
+		if(m_pState->SetBoolFormat(value, FmtScope::Global))
+			ok = true;
+		if(m_pState->SetBoolCaseFormat(value, FmtScope::Global))
+			ok = true;
+		if(m_pState->SetBoolLengthFormat(value, FmtScope::Global))
+			ok = true;
+		return ok;
+	}
+	
+	bool Emitter::SetIntBase(EMITTER_MANIP value)
+	{
+		return m_pState->SetIntFormat(value, FmtScope::Global);
+	}
+	
+	bool Emitter::SetSeqFormat(EMITTER_MANIP value)
+	{
+		return m_pState->SetFlowType(GroupType::Seq, value, FmtScope::Global);
+	}
+	
+	bool Emitter::SetMapFormat(EMITTER_MANIP value)
+	{
+		bool ok = false;
+		if(m_pState->SetFlowType(GroupType::Map, value, FmtScope::Global))
+			ok = true;
+		if(m_pState->SetMapKeyFormat(value, FmtScope::Global))
+			ok = true;
+		return ok;
+	}
+	
+	bool Emitter::SetIndent(unsigned n)
+	{
+		return m_pState->SetIndent(n, FmtScope::Global);
+	}
+	
+	bool Emitter::SetPreCommentIndent(unsigned n)
+	{
+		return m_pState->SetPreCommentIndent(n, FmtScope::Global);
+	}
+	
+	bool Emitter::SetPostCommentIndent(unsigned n)
+	{
+		return m_pState->SetPostCommentIndent(n, FmtScope::Global);
+	}
+    
+    bool Emitter::SetFloatPrecision(unsigned n)
+    {
+        return m_pState->SetFloatPrecision(n, FmtScope::Global);
+    }
+
+    bool Emitter::SetDoublePrecision(unsigned n)
+    {
+        return m_pState->SetDoublePrecision(n, FmtScope::Global);
+    }
+
+	// SetLocalValue
+	// . Either start/end a group, or set a modifier locally
+	Emitter& Emitter::SetLocalValue(EMITTER_MANIP value)
+	{
+		if(!good())
+			return *this;
+		
+		switch(value) {
+			case BeginDoc:
+				EmitBeginDoc();
+				break;
+			case EndDoc:
+				EmitEndDoc();
+				break;
+			case BeginSeq:
+				EmitBeginSeq();
+				break;
+			case EndSeq:
+				EmitEndSeq();
+				break;
+			case BeginMap:
+				EmitBeginMap();
+				break;
+			case EndMap:
+				EmitEndMap();
+				break;
+			case Key:
+			case Value:
+                // deprecated (these can be deduced by the parity of nodes in a map)
+				break;
+			case TagByKind:
+				EmitKindTag();
+				break;
+			case Newline:
+				EmitNewline();
+				break;
+			default:
+				m_pState->SetLocalValue(value);
+				break;
+		}
+		return *this;
+	}
+	
+	Emitter& Emitter::SetLocalIndent(const _Indent& indent)
+	{
+		m_pState->SetIndent(indent.value, FmtScope::Local);
+		return *this;
+	}
+
+    Emitter& Emitter::SetLocalPrecision(const _Precision& precision)
+    {
+        if(precision.floatPrecision >= 0)
+            m_pState->SetFloatPrecision(precision.floatPrecision, FmtScope::Local);
+        if(precision.doublePrecision >= 0)
+            m_pState->SetDoublePrecision(precision.doublePrecision, FmtScope::Local);
+        return *this;
+    }
+
+	// EmitBeginDoc
+	void Emitter::EmitBeginDoc()
+	{
+		if(!good())
+			return;
+        
+        if(m_pState->CurGroupType() != GroupType::None) {
+			m_pState->SetError("Unexpected begin document");
+			return;
+        }
+        
+        if(m_pState->HasAnchor() || m_pState->HasTag()) {
+			m_pState->SetError("Unexpected begin document");
+			return;
+        }
+        
+        if(m_stream.col() > 0)
+            m_stream << "\n";
+        m_stream << "---\n";
+        
+        m_pState->StartedDoc();
+	}
+	
+	// EmitEndDoc
+	void Emitter::EmitEndDoc()
+	{
+		if(!good())
+			return;
+        
+        if(m_pState->CurGroupType() != GroupType::None) {
+			m_pState->SetError("Unexpected begin document");
+			return;
+        }
+        
+        if(m_pState->HasAnchor() || m_pState->HasTag()) {
+			m_pState->SetError("Unexpected begin document");
+			return;
+        }
+        
+        if(m_stream.col() > 0)
+            m_stream << "\n";
+        m_stream << "...\n";
+	}
+
+	// EmitBeginSeq
+	void Emitter::EmitBeginSeq()
+	{
+		if(!good())
+			return;
+        
+        PrepareNode(m_pState->NextGroupType(GroupType::Seq));
+        
+        m_pState->StartedGroup(GroupType::Seq);
+	}
+	
+	// EmitEndSeq
+	void Emitter::EmitEndSeq()
+	{
+		if(!good())
+			return;
+        
+        if(m_pState->CurGroupChildCount() == 0)
+            m_pState->ForceFlow();
+        
+        if(m_pState->CurGroupFlowType() == FlowType::Flow) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(m_pState->CurIndent());
+            if(m_pState->CurGroupChildCount() == 0)
+                m_stream << "[";
+            m_stream << "]";
+        }
+        
+        m_pState->EndedGroup(GroupType::Seq);
+	}
+	
+	// EmitBeginMap
+	void Emitter::EmitBeginMap()
+	{
+		if(!good())
+			return;
+
+        PrepareNode(m_pState->NextGroupType(GroupType::Map));
+        
+        m_pState->StartedGroup(GroupType::Map);
+	}
+	
+	// EmitEndMap
+	void Emitter::EmitEndMap()
+	{
+		if(!good())
+			return;
+
+        if(m_pState->CurGroupChildCount() == 0)
+            m_pState->ForceFlow();
+        
+        if(m_pState->CurGroupFlowType() == FlowType::Flow) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(m_pState->CurIndent());
+            if(m_pState->CurGroupChildCount() == 0)
+                m_stream << "{";
+            m_stream << "}";
+        }
+
+        m_pState->EndedGroup(GroupType::Map);
+    }
+
+	// EmitNewline
+	void Emitter::EmitNewline()
+	{
+		if(!good())
+			return;
+        
+        PrepareNode(EmitterNodeType::None);
+        m_stream << "\n";
+        m_pState->SetNonContent();
+	}
+
+	bool Emitter::CanEmitNewline() const
+	{
+        return true;
+	}
+
+    // Put the stream in a state so we can simply write the next node
+    // E.g., if we're in a sequence, write the "- "
+    void Emitter::PrepareNode(EmitterNodeType::value child)
+    {
+        switch(m_pState->CurGroupNodeType()) {
+            case EmitterNodeType::None:
+                PrepareTopNode(child);
+                break;
+            case EmitterNodeType::FlowSeq:
+                FlowSeqPrepareNode(child);
+                break;
+            case EmitterNodeType::BlockSeq:
+                BlockSeqPrepareNode(child);
+                break;
+            case EmitterNodeType::FlowMap:
+                FlowMapPrepareNode(child);
+                break;
+            case EmitterNodeType::BlockMap:
+                BlockMapPrepareNode(child);
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+                assert(false);
+                break;
+        }
+    }
+    
+    void Emitter::PrepareTopNode(EmitterNodeType::value child)
+    {
+        if(child == EmitterNodeType::None)
+            return;
+        
+        if(m_pState->CurGroupChildCount() > 0 && m_stream.col() > 0) {
+            if(child != EmitterNodeType::None)
+                EmitBeginDoc();
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                // TODO: if we were writing null, and
+                // we wanted it blank, we wouldn't want a space
+                SpaceOrIndentTo(m_pState->HasBegunContent(), 0);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                if(m_pState->HasBegunNode())
+                    m_stream << "\n";
+                break;
+        }
+    }
+    
+    void Emitter::FlowSeqPrepareNode(EmitterNodeType::value child)
+    {
+        const unsigned lastIndent = m_pState->LastIndent();
+
+        if(!m_pState->HasBegunNode()) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(lastIndent);
+            if(m_pState->CurGroupChildCount() == 0)
+                m_stream << "[";
+            else
+                m_stream << ",";
+        }
+
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent() || m_pState->CurGroupChildCount() > 0, lastIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                assert(false);
+                break;
+        }
+    }
+
+    void Emitter::BlockSeqPrepareNode(EmitterNodeType::value child)
+    {
+        const unsigned curIndent = m_pState->CurIndent();
+        const unsigned nextIndent = curIndent + m_pState->CurGroupIndent();
+        
+        if(child == EmitterNodeType::None)
+            return;
+        
+        if(!m_pState->HasBegunContent()) {
+            if(m_pState->CurGroupChildCount() > 0 || m_stream.comment()) {
+                m_stream << "\n";
+            }
+            m_stream << IndentTo(curIndent);
+            m_stream << "-";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent(), nextIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+                m_stream << "\n";
+                break;
+            case EmitterNodeType::BlockMap:
+                if(m_pState->HasBegunContent() || m_stream.comment())
+                    m_stream << "\n";
+                break;
+        }
+    }
+    
+    void Emitter::FlowMapPrepareNode(EmitterNodeType::value child)
+    {
+        if(m_pState->CurGroupChildCount() % 2 == 0) {
+            if(m_pState->GetMapKeyFormat() == LongKey)
+                m_pState->SetLongKey();
+            
+            if(m_pState->CurGroupLongKey())
+                FlowMapPrepareLongKey(child);
+            else
+                FlowMapPrepareSimpleKey(child);
+        } else {
+            if(m_pState->CurGroupLongKey())
+                FlowMapPrepareLongKeyValue(child);
+            else
+                FlowMapPrepareSimpleKeyValue(child);
+        }
+    }
+
+    void Emitter::FlowMapPrepareLongKey(EmitterNodeType::value child)
+    {
+        const unsigned lastIndent = m_pState->LastIndent();
+        
+        if(!m_pState->HasBegunNode()) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(lastIndent);
+            if(m_pState->CurGroupChildCount() == 0)
+                m_stream << "{ ?";
+            else
+                m_stream << ", ?";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent() || m_pState->CurGroupChildCount() > 0, lastIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                assert(false);
+                break;
+        }
+    }
+    
+    void Emitter::FlowMapPrepareLongKeyValue(EmitterNodeType::value child)
+    {
+        const unsigned lastIndent = m_pState->LastIndent();
+        
+        if(!m_pState->HasBegunNode()) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(lastIndent);
+            m_stream << ":";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent() || m_pState->CurGroupChildCount() > 0, lastIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                assert(false);
+                break;
+        }
+    }
+    
+    void Emitter::FlowMapPrepareSimpleKey(EmitterNodeType::value child)
+    {
+        const unsigned lastIndent = m_pState->LastIndent();
+        
+        if(!m_pState->HasBegunNode()) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(lastIndent);
+            if(m_pState->CurGroupChildCount() == 0)
+                m_stream << "{";
+            else
+                m_stream << ",";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent() || m_pState->CurGroupChildCount() > 0, lastIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                assert(false);
+                break;
+        }
+    }
+    
+    void Emitter::FlowMapPrepareSimpleKeyValue(EmitterNodeType::value child)
+    {
+        const unsigned lastIndent = m_pState->LastIndent();
+        
+        if(!m_pState->HasBegunNode()) {
+            if(m_stream.comment())
+                m_stream << "\n";
+            m_stream << IndentTo(lastIndent);
+            m_stream << ":";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent() || m_pState->CurGroupChildCount() > 0, lastIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                assert(false);
+                break;
+        }
+    }
+
+    void Emitter::BlockMapPrepareNode(EmitterNodeType::value child)
+    {
+        if(m_pState->CurGroupChildCount() % 2 == 0) {
+            if(m_pState->GetMapKeyFormat() == LongKey)
+                m_pState->SetLongKey();
+            if(child == EmitterNodeType::BlockSeq || child == EmitterNodeType::BlockMap)
+                m_pState->SetLongKey();
+            
+            if(m_pState->CurGroupLongKey())
+                BlockMapPrepareLongKey(child);
+            else
+                BlockMapPrepareSimpleKey(child);
+        } else {
+            if(m_pState->CurGroupLongKey())
+                BlockMapPrepareLongKeyValue(child);
+            else
+                BlockMapPrepareSimpleKeyValue(child);
+        }
+    }
+    
+    void Emitter::BlockMapPrepareLongKey(EmitterNodeType::value child)
+    {
+        const unsigned curIndent = m_pState->CurIndent();
+        const std::size_t childCount = m_pState->CurGroupChildCount();
+        
+        if(child == EmitterNodeType::None)
+            return;
+
+        if(!m_pState->HasBegunContent()) {
+            if(childCount > 0) {
+                m_stream << "\n";
+            }
+            if(m_stream.comment()) {
+                m_stream << "\n";
+            }
+            m_stream << IndentTo(curIndent);
+            m_stream << "?";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(true, curIndent + 1);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                break;
+        }
+    }
+
+    void Emitter::BlockMapPrepareLongKeyValue(EmitterNodeType::value child)
+    {
+        const unsigned curIndent = m_pState->CurIndent();
+        
+        if(child == EmitterNodeType::None)
+            return;
+
+        if(!m_pState->HasBegunContent()) {
+            m_stream << "\n";
+            m_stream << IndentTo(curIndent);
+            m_stream << ":";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                SpaceOrIndentTo(true, curIndent + 1);
+                break;
+        }
+    }
+
+    void Emitter::BlockMapPrepareSimpleKey(EmitterNodeType::value child)
+    {
+        const unsigned curIndent = m_pState->CurIndent();
+        const std::size_t childCount = m_pState->CurGroupChildCount();
+        
+        if(child == EmitterNodeType::None)
+            return;
+        
+        if(!m_pState->HasBegunNode()) {
+            if(childCount > 0) {
+                m_stream << "\n";
+            }
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(m_pState->HasBegunContent(), curIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                break;
+        }
+    }
+    
+    void Emitter::BlockMapPrepareSimpleKeyValue(EmitterNodeType::value child)
+    {
+        const unsigned curIndent = m_pState->CurIndent();
+        const unsigned nextIndent = curIndent + m_pState->CurGroupIndent();
+        
+        if(!m_pState->HasBegunNode()) {
+            m_stream << ":";
+        }
+        
+        switch(child) {
+            case EmitterNodeType::None:
+                break;
+            case EmitterNodeType::Property:
+            case EmitterNodeType::Scalar:
+            case EmitterNodeType::FlowSeq:
+            case EmitterNodeType::FlowMap:
+                SpaceOrIndentTo(true, nextIndent);
+                break;
+            case EmitterNodeType::BlockSeq:
+            case EmitterNodeType::BlockMap:
+                m_stream << "\n";
+                break;
+        }
+    }
+    
+    // SpaceOrIndentTo
+    // . Prepares for some more content by proper spacing
+    void Emitter::SpaceOrIndentTo(bool requireSpace, unsigned indent)
+    {
+        if(m_stream.comment())
+            m_stream << "\n";
+        if(m_stream.col() > 0 && requireSpace)
+            m_stream << " ";
+        m_stream << IndentTo(indent);
+    }
+
+    void Emitter::PrepareIntegralStream(std::stringstream& stream) const
+    {
+		
+		switch(m_pState->GetIntFormat()) {
+			case Dec:
+				stream << std::dec;
+				break;
+			case Hex:
+                stream << "0x";
+				stream << std::hex;
+				break;
+			case Oct:
+                stream << "0";
+				stream << std::oct;
+				break;
+			default:
+				assert(false);
+		}
+    }
+
+    void Emitter::StartedScalar()
+    {
+        m_pState->StartedScalar();
+    }
+
+	// *******************************************************************************************
+	// overloads of Write
+	
+	Emitter& Emitter::Write(const std::string& str)
+	{
+		if(!good())
+			return *this;
+        
+		const bool escapeNonAscii = m_pState->GetOutputCharset() == EscapeNonAscii;
+        const StringFormat::value strFormat = Utils::ComputeStringFormat(str, m_pState->GetStringFormat(), m_pState->CurGroupFlowType(), escapeNonAscii);
+        
+        if(strFormat == StringFormat::Literal)
+            m_pState->SetMapKeyFormat(YAML::LongKey, FmtScope::Local);
+        
+        PrepareNode(EmitterNodeType::Scalar);
+        
+        switch(strFormat) {
+            case StringFormat::Plain:
+                m_stream << str;
+                break;
+            case StringFormat::SingleQuoted:
+                Utils::WriteSingleQuotedString(m_stream, str);
+                break;
+            case StringFormat::DoubleQuoted:
+                Utils::WriteDoubleQuotedString(m_stream, str, escapeNonAscii);
+                break;
+            case StringFormat::Literal:
+                Utils::WriteLiteralString(m_stream, str, m_pState->CurIndent() + m_pState->GetIndent());
+                break;
+        }
+
+        StartedScalar();
+        
+		return *this;
+	}
+
+    unsigned Emitter::GetFloatPrecision() const
+    {
+        return m_pState->GetFloatPrecision();
+    }
+    
+    unsigned Emitter::GetDoublePrecision() const
+    {
+        return m_pState->GetDoublePrecision();
+    }
+
+	const char *Emitter::ComputeFullBoolName(bool b) const
+	{
+		const EMITTER_MANIP mainFmt = (m_pState->GetBoolLengthFormat() == ShortBool ? YesNoBool : m_pState->GetBoolFormat());
+		const EMITTER_MANIP caseFmt = m_pState->GetBoolCaseFormat();
+		switch(mainFmt) {
+			case YesNoBool:
+				switch(caseFmt) {
+					case UpperCase: return b ? "YES" : "NO";
+					case CamelCase: return b ? "Yes" : "No";
+					case LowerCase: return b ? "yes" : "no";
+					default: break;
+				}
+				break;
+			case OnOffBool:
+				switch(caseFmt) {
+					case UpperCase: return b ? "ON" : "OFF";
+					case CamelCase: return b ? "On" : "Off";
+					case LowerCase: return b ? "on" : "off";
+					default: break;
+				}
+				break;
+			case TrueFalseBool:
+				switch(caseFmt) {
+					case UpperCase: return b ? "TRUE" : "FALSE";
+					case CamelCase: return b ? "True" : "False";
+					case LowerCase: return b ? "true" : "false";
+					default: break;
+				}
+				break;
+			default:
+				break;
+		}
+		return b ? "y" : "n"; // should never get here, but it can't hurt to give these answers
+	}
+
+	Emitter& Emitter::Write(bool b)
+	{
+		if(!good())
+			return *this;
+
+        PrepareNode(EmitterNodeType::Scalar);
+
+		const char *name = ComputeFullBoolName(b);
+		if(m_pState->GetBoolLengthFormat() == ShortBool)
+			m_stream << name[0];
+		else
+			m_stream << name;
+
+        StartedScalar();
+
+		return *this;
+	}
+
+	Emitter& Emitter::Write(char ch)
+	{
+		if(!good())
+			return *this;
+
+        PrepareNode(EmitterNodeType::Scalar);
+        Utils::WriteChar(m_stream, ch);
+        StartedScalar();
+
+		return *this;
+	}
+
+	Emitter& Emitter::Write(const _Alias& alias)
+	{
+		if(!good())
+			return *this;
+        
+        if(m_pState->HasAnchor() || m_pState->HasTag()) {
+            m_pState->SetError(ErrorMsg::INVALID_ALIAS);
+            return *this;
+        }
+
+        PrepareNode(EmitterNodeType::Scalar);
+
+		if(!Utils::WriteAlias(m_stream, alias.content)) {
+			m_pState->SetError(ErrorMsg::INVALID_ALIAS);
+			return *this;
+		}
+        
+        StartedScalar();
+
+		return *this;
+	}
+	
+	Emitter& Emitter::Write(const _Anchor& anchor)
+	{
+		if(!good())
+			return *this;
+        
+        if(m_pState->HasAnchor()) {
+            m_pState->SetError(ErrorMsg::INVALID_ANCHOR);
+            return *this;
+        }
+
+        PrepareNode(EmitterNodeType::Property);
+
+		if(!Utils::WriteAnchor(m_stream, anchor.content)) {
+			m_pState->SetError(ErrorMsg::INVALID_ANCHOR);
+			return *this;
+		}
+        
+        m_pState->SetAnchor();
+
+		return *this;
+	}
+	
+	Emitter& Emitter::Write(const _Tag& tag)
+	{
+		if(!good())
+			return *this;
+        
+        if(m_pState->HasTag()) {
+            m_pState->SetError(ErrorMsg::INVALID_TAG);
+            return *this;
+        }
+        
+        PrepareNode(EmitterNodeType::Property);
+        
+		bool success = false;
+		if(tag.type == _Tag::Type::Verbatim)
+			success = Utils::WriteTag(m_stream, tag.content, true);
+		else if(tag.type == _Tag::Type::PrimaryHandle)
+			success = Utils::WriteTag(m_stream, tag.content, false);
+		else
+			success = Utils::WriteTagWithPrefix(m_stream, tag.prefix, tag.content);
+		
+		if(!success) {
+			m_pState->SetError(ErrorMsg::INVALID_TAG);
+			return *this;
+		}
+
+        m_pState->SetTag();
+
+		return *this;
+	}
+
+	void Emitter::EmitKindTag()
+	{
+		Write(LocalTag(""));
+	}
+
+	Emitter& Emitter::Write(const _Comment& comment)
+	{
+		if(!good())
+			return *this;
+
+        PrepareNode(EmitterNodeType::None);
+        
+		if(m_stream.col() > 0)
+			m_stream << Indentation(m_pState->GetPreCommentIndent());
+		Utils::WriteComment(m_stream, comment.content, m_pState->GetPostCommentIndent());
+
+        m_pState->SetNonContent();
+
+		return *this;
+	}
+
+	Emitter& Emitter::Write(const _Null& /*null*/)
+	{
+		if(!good())
+			return *this;
+
+        PrepareNode(EmitterNodeType::Scalar);
+        
+        m_stream << "~";
+
+        StartedScalar();
+
+		return *this;
+	}
+
+	Emitter& Emitter::Write(const Binary& binary)
+	{
+		Write(SecondaryTag("binary"));
+
+		if(!good())
+			return *this;
+
+        PrepareNode(EmitterNodeType::Scalar);
+		Utils::WriteBinary(m_stream, binary);
+        StartedScalar();
+
+		return *this;
+	}
+}
+
+#include "emitterstate.h"
+#include "yaml-cpp/exceptions.h"
+#include <limits>
+
+namespace YAML
+{
+	EmitterState::EmitterState(): m_isGood(true), m_curIndent(0), m_hasAnchor(false), m_hasTag(false), m_hasNonContent(false), m_docCount(0)
+	{
+		// set default global manipulators
+		m_charset.set(EmitNonAscii);
+		m_strFmt.set(Auto);
+		m_boolFmt.set(TrueFalseBool);
+		m_boolLengthFmt.set(LongBool);
+		m_boolCaseFmt.set(LowerCase);
+		m_intFmt.set(Dec);
+		m_indent.set(2);
+		m_preCommentIndent.set(2);
+		m_postCommentIndent.set(1);
+		m_seqFmt.set(Block);
+		m_mapFmt.set(Block);
+		m_mapKeyFmt.set(Auto);
+        m_floatPrecision.set(std::numeric_limits<float>::digits10 + 1);
+        m_doublePrecision.set(std::numeric_limits<double>::digits10 + 1);
+	}
+	
+	EmitterState::~EmitterState()
+	{
+	}
+
+	// SetLocalValue
+	// . We blindly tries to set all possible formatters to this value
+	// . Only the ones that make sense will be accepted
+	void EmitterState::SetLocalValue(EMITTER_MANIP value)
+	{
+		SetOutputCharset(value, FmtScope::Local);
+		SetStringFormat(value, FmtScope::Local);
+		SetBoolFormat(value, FmtScope::Local);
+		SetBoolCaseFormat(value, FmtScope::Local);
+		SetBoolLengthFormat(value, FmtScope::Local);
+		SetIntFormat(value, FmtScope::Local);
+		SetFlowType(GroupType::Seq, value, FmtScope::Local);
+		SetFlowType(GroupType::Map, value, FmtScope::Local);
+		SetMapKeyFormat(value, FmtScope::Local);
+	}
+	
+    void EmitterState::SetAnchor()
+    {
+        m_hasAnchor = true;
+    }
+        
+    void EmitterState::SetTag()
+    {
+        m_hasTag = true;
+    }
+
+    void EmitterState::SetNonContent()
+    {
+        m_hasNonContent = true;
+    }
+
+    void EmitterState::SetLongKey()
+    {
+        assert(!m_groups.empty());        
+        if(m_groups.empty())
+            return;
+        
+        assert(m_groups.top().type == GroupType::Map);
+        m_groups.top().longKey = true;
+    }
+    
+    void EmitterState::ForceFlow()
+    {
+        assert(!m_groups.empty());
+        if(m_groups.empty())
+            return;
+        
+        m_groups.top().flowType = FlowType::Flow;
+    }
+
+    void EmitterState::StartedNode()
+    {
+        if(m_groups.empty()) {
+            m_docCount++;
+        } else {
+            m_groups.top().childCount++;
+            if(m_groups.top().childCount % 2 == 0)
+                m_groups.top().longKey = false;
+        }
+        
+        m_hasAnchor = false;
+        m_hasTag = false;
+        m_hasNonContent = false;
+    }
+
+    EmitterNodeType::value EmitterState::NextGroupType(GroupType::value type) const
+    {
+        if(type == GroupType::Seq) {
+            if(GetFlowType(type) == Block)
+                return EmitterNodeType::BlockSeq;
+            else
+                return EmitterNodeType::FlowSeq;
+        } else {
+            if(GetFlowType(type) == Block)
+                return EmitterNodeType::BlockMap;
+            else
+                return EmitterNodeType::FlowMap;
+        }
+        
+        // can't happen
+        assert(false);
+        return EmitterNodeType::None;
+    }
+    
+    void EmitterState::StartedDoc()
+    {
+        m_hasAnchor = false;
+        m_hasTag = false;
+        m_hasNonContent = false;
+    }
+    
+    void EmitterState::EndedDoc()
+    {
+        m_hasAnchor = false;
+        m_hasTag = false;
+        m_hasNonContent = false;
+    }
+
+    void EmitterState::StartedScalar()
+    {
+        StartedNode();
+        ClearModifiedSettings();
+    }
+
+	void EmitterState::StartedGroup(GroupType::value type)
+	{
+        StartedNode();
+
+		const int lastGroupIndent = (m_groups.empty() ? 0 : m_groups.top().indent);
+		m_curIndent += lastGroupIndent;
+		
+		std::auto_ptr<Group> pGroup(new Group(type));
+		
+		// transfer settings (which last until this group is done)
+		pGroup->modifiedSettings = m_modifiedSettings;
+
+		// set up group
+        if(GetFlowType(type) == Block)
+            pGroup->flowType = FlowType::Block;
+        else
+            pGroup->flowType = FlowType::Flow;
+		pGroup->indent = GetIndent();
+
+		m_groups.push(pGroup);
+	}
+	
+	void EmitterState::EndedGroup(GroupType::value type)
+	{
+		if(m_groups.empty()) {
+            if(type == GroupType::Seq)
+                return SetError(ErrorMsg::UNEXPECTED_END_SEQ);
+            else
+                return SetError(ErrorMsg::UNEXPECTED_END_MAP);
+        }
+		
+		// get rid of the current group
+		{
+			std::auto_ptr<Group> pFinishedGroup = m_groups.pop();
+			if(pFinishedGroup->type != type)
+				return SetError(ErrorMsg::UNMATCHED_GROUP_TAG);
+		}
+
+		// reset old settings
+		unsigned lastIndent = (m_groups.empty() ? 0 : m_groups.top().indent);
+		assert(m_curIndent >= lastIndent);
+		m_curIndent -= lastIndent;
+		
+		// some global settings that we changed may have been overridden
+		// by a local setting we just popped, so we need to restore them
+		m_globalModifiedSettings.restore();
+
+        ClearModifiedSettings();
+	}
+
+    EmitterNodeType::value EmitterState::CurGroupNodeType() const
+    {
+        if(m_groups.empty())
+            return EmitterNodeType::None;
+        
+        return m_groups.top().NodeType();
+    }
+
+    GroupType::value EmitterState::CurGroupType() const
+	{
+        return m_groups.empty() ? GroupType::None : m_groups.top().type;
+	}
+	
+    FlowType::value EmitterState::CurGroupFlowType() const
+	{
+        return m_groups.empty() ? FlowType::None : m_groups.top().flowType;
+	}
+
+    int EmitterState::CurGroupIndent() const
+    {
+        return m_groups.empty() ? 0 : m_groups.top().indent;
+    }
+
+    std::size_t EmitterState::CurGroupChildCount() const
+    {
+        return m_groups.empty() ? m_docCount : m_groups.top().childCount;
+    }
+
+    bool EmitterState::CurGroupLongKey() const
+    {
+        return m_groups.empty() ? false : m_groups.top().longKey;
+    }
+
+    int EmitterState::LastIndent() const
+    {
+        if(m_groups.size() <= 1)
+            return 0;
+        
+        return m_curIndent - m_groups.top(-1).indent;
+    }
+
+	void EmitterState::ClearModifiedSettings()
+	{
+		m_modifiedSettings.clear();
+	}
+
+	bool EmitterState::SetOutputCharset(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case EmitNonAscii:
+			case EscapeNonAscii:
+				_Set(m_charset, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	bool EmitterState::SetStringFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case Auto:
+			case SingleQuoted:
+			case DoubleQuoted:
+			case Literal:
+				_Set(m_strFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	bool EmitterState::SetBoolFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case OnOffBool:
+			case TrueFalseBool:
+			case YesNoBool:
+				_Set(m_boolFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	bool EmitterState::SetBoolLengthFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case LongBool:
+			case ShortBool:
+				_Set(m_boolLengthFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	bool EmitterState::SetBoolCaseFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case UpperCase:
+			case LowerCase:
+			case CamelCase:
+				_Set(m_boolCaseFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	bool EmitterState::SetIntFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case Dec:
+			case Hex:
+			case Oct:
+				_Set(m_intFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	bool EmitterState::SetIndent(unsigned value, FmtScope::value scope)
+	{
+		if(value <= 1)
+			return false;
+		
+		_Set(m_indent, value, scope);
+		return true;
+	}
+
+	bool EmitterState::SetPreCommentIndent(unsigned value, FmtScope::value scope)
+	{
+		if(value == 0)
+			return false;
+		
+		_Set(m_preCommentIndent, value, scope);
+		return true;
+	}
+	
+	bool EmitterState::SetPostCommentIndent(unsigned value, FmtScope::value scope)
+	{
+		if(value == 0)
+			return false;
+		
+		_Set(m_postCommentIndent, value, scope);
+		return true;
+	}
+
+	bool EmitterState::SetFlowType(GroupType::value groupType, EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case Block:
+			case Flow:
+				_Set(groupType == GroupType::Seq ? m_seqFmt : m_mapFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	EMITTER_MANIP EmitterState::GetFlowType(GroupType::value groupType) const
+	{
+		// force flow style if we're currently in a flow
+		if(CurGroupFlowType() == FlowType::Flow)
+			return Flow;
+		
+		// otherwise, go with what's asked of us
+		return (groupType == GroupType::Seq ? m_seqFmt.get() : m_mapFmt.get());
+	}
+	
+	bool EmitterState::SetMapKeyFormat(EMITTER_MANIP value, FmtScope::value scope)
+	{
+		switch(value) {
+			case Auto:
+			case LongKey:
+				_Set(m_mapKeyFmt, value, scope);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+    bool EmitterState::SetFloatPrecision(int value, FmtScope::value scope)
+    {
+        if(value < 0 || value > std::numeric_limits<float>::digits10 + 1)
+            return false;
+        _Set(m_floatPrecision, value, scope);
+        return true;
+    }
+    
+    bool EmitterState::SetDoublePrecision(int value, FmtScope::value scope)
+    {
+        if(value < 0 || value > std::numeric_limits<double>::digits10 + 1)
+            return false;
+        _Set(m_doublePrecision, value, scope);
+        return true;
+    }
+}
+
+#include "emitterutils.h"
+#include "exp.h"
+#include "indentation.h"
+#include "yaml-cpp/binary.h"
+#include "yaml-cpp/exceptions.h"
+#include "stringsource.h"
+#include <sstream>
+#include <iomanip>
+
+namespace YAML
+{
+	namespace Utils
+	{
+		namespace {
+			enum {REPLACEMENT_CHARACTER = 0xFFFD};
+
+			bool IsAnchorChar(int ch) { // test for ns-anchor-char
+				switch (ch) {
+					case ',': case '[': case ']': case '{': case '}': // c-flow-indicator
+					case ' ': case '\t': // s-white
+					case 0xFEFF: // c-byte-order-mark
+					case 0xA: case 0xD: // b-char
+						return false;
+					case 0x85:
+						return true;
+				}
+
+				if (ch < 0x20)
+					return false;
+
+				if (ch < 0x7E)
+					return true;
+
+				if (ch < 0xA0)
+					return false;
+				if (ch >= 0xD800 && ch <= 0xDFFF)
+					return false;
+				if ((ch & 0xFFFE) == 0xFFFE)
+					return false;
+				if ((ch >= 0xFDD0) && (ch <= 0xFDEF))
+					return false;
+				if (ch > 0x10FFFF)
+					return false;
+
+				return true;
+			}
+			
+			int Utf8BytesIndicated(char ch) {
+				int byteVal = static_cast<unsigned char>(ch);
+				switch (byteVal >> 4) {
+					case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+						return 1;
+					case 12: case 13:
+						return 2;
+					case 14:
+						return 3;
+					case 15:
+						return 4;
+					default:
+					  return -1;
+				}
+			}
+
+			bool IsTrailingByte(char ch) {
+				return (ch & 0xC0) == 0x80;
+			}
+			
+			bool GetNextCodePointAndAdvance(int& codePoint, std::string::const_iterator& first, std::string::const_iterator last) {
+				if (first == last)
+					return false;
+				
+				int nBytes = Utf8BytesIndicated(*first);
+				if (nBytes < 1) {
+					// Bad lead byte
+					++first;
+					codePoint = REPLACEMENT_CHARACTER;
+					return true;
+				}
+				
+				if (nBytes == 1) {
+					codePoint = *first++;
+					return true;
+				}
+				
+				// Gather bits from trailing bytes
+				codePoint = static_cast<unsigned char>(*first) & ~(0xFF << (7 - nBytes));
+				++first;
+				--nBytes;
+				for (; nBytes > 0; ++first, --nBytes) {
+					if ((first == last) || !IsTrailingByte(*first)) {
+						codePoint = REPLACEMENT_CHARACTER;
+						break;
+					}
+					codePoint <<= 6;
+					codePoint |= *first & 0x3F;
+				}
+
+				// Check for illegal code points
+				if (codePoint > 0x10FFFF)
+					codePoint = REPLACEMENT_CHARACTER;
+				else if (codePoint >= 0xD800 && codePoint <= 0xDFFF)
+					codePoint = REPLACEMENT_CHARACTER;
+				else if ((codePoint & 0xFFFE) == 0xFFFE)
+					codePoint = REPLACEMENT_CHARACTER;
+				else if (codePoint >= 0xFDD0 && codePoint <= 0xFDEF)
+					codePoint = REPLACEMENT_CHARACTER;
+				return true;
+			}
+			
+			void WriteCodePoint(ostream_wrapper& out, int codePoint) {
+				if (codePoint < 0 || codePoint > 0x10FFFF) {
+					codePoint = REPLACEMENT_CHARACTER;
+				}
+				if (codePoint < 0x7F) {
+					out << static_cast<char>(codePoint);
+				} else if (codePoint < 0x7FF) {
+					out << static_cast<char>(0xC0 | (codePoint >> 6))
+					    << static_cast<char>(0x80 | (codePoint & 0x3F));
+				} else if (codePoint < 0xFFFF) {
+					out << static_cast<char>(0xE0 | (codePoint >> 12))
+					    << static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F))
+					    << static_cast<char>(0x80 | (codePoint & 0x3F));
+				} else {
+					out << static_cast<char>(0xF0 | (codePoint >> 18))
+					    << static_cast<char>(0x80 | ((codePoint >> 12) & 0x3F))
+					    << static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F))
+					    << static_cast<char>(0x80 | (codePoint & 0x3F));
+				}
+			}
+			
+			bool IsValidPlainScalar(const std::string& str, FlowType::value flowType, bool allowOnlyAscii) {
+				if(str.empty())
+					return false;
+				
+				// first check the start
+				const RegEx& start = (flowType == FlowType::Flow ? Exp::PlainScalarInFlow() : Exp::PlainScalar());
+				if(!start.Matches(str))
+					return false;
+				
+				// and check the end for plain whitespace (which can't be faithfully kept in a plain scalar)
+				if(!str.empty() && *str.rbegin() == ' ')
+					return false;
+
+				// then check until something is disallowed
+				const RegEx& disallowed = (flowType == FlowType::Flow ? Exp::EndScalarInFlow() : Exp::EndScalar())
+				                          || (Exp::BlankOrBreak() + Exp::Comment())
+				                          || Exp::NotPrintable()
+				                          || Exp::Utf8_ByteOrderMark()
+				                          || Exp::Break()
+				                          || Exp::Tab();
+				StringCharSource buffer(str.c_str(), str.size());
+				while(buffer) {
+					if(disallowed.Matches(buffer))
+						return false;
+					if(allowOnlyAscii && (0x80 <= static_cast<unsigned char>(buffer[0]))) 
+						return false;
+					++buffer;
+				}
+				
+				return true;
+			}
+
+			bool IsValidSingleQuotedScalar(const std::string& str, bool escapeNonAscii)
+            {
+                // TODO: check for non-printable characters?
+                for(std::size_t i=0;i<str.size();i++) {
+                    if(escapeNonAscii && (0x80 <= static_cast<unsigned char>(str[i])))
+                       return false;
+                    if(str[i] == '\n')
+                        return false;
+                }
+                return true;
+			}
+            
+            bool IsValidLiteralScalar(const std::string& str, FlowType::value flowType, bool escapeNonAscii)
+            {
+                if(flowType == FlowType::Flow)
+                    return false;
+
+                // TODO: check for non-printable characters?
+                for(std::size_t i=0;i<str.size();i++) {
+                    if(escapeNonAscii && (0x80 <= static_cast<unsigned char>(str[i])))
+                        return false;
+                }
+                return true;
+            }
+			
+            void WriteDoubleQuoteEscapeSequence(ostream_wrapper& out, int codePoint) {
+				static const char hexDigits[] = "0123456789abcdef";
+
+                out << "\\";
+				int digits = 8;
+				if(codePoint < 0xFF) {
+                    out << "x";
+					digits = 2;
+				} else if(codePoint < 0xFFFF) {
+                    out << "u";
+					digits = 4;
+				} else {
+                    out << "U";
+                    digits = 8;
+                }
+
+				// Write digits into the escape sequence
+				for (; digits > 0; --digits)
+					out << hexDigits[(codePoint >> (4 * (digits - 1))) & 0xF];
+			}
+
+			bool WriteAliasName(ostream_wrapper& out, const std::string& str) {
+				int codePoint;
+				for(std::string::const_iterator i = str.begin();
+					GetNextCodePointAndAdvance(codePoint, i, str.end());
+					)
+				{
+					if (!IsAnchorChar(codePoint))
+						return false;
+
+					WriteCodePoint(out, codePoint);
+				}
+				return true;
+			}
+		}
+		
+        StringFormat::value ComputeStringFormat(const std::string& str, EMITTER_MANIP strFormat, FlowType::value flowType, bool escapeNonAscii)
+        {
+            switch(strFormat) {
+                case Auto:
+                    if(IsValidPlainScalar(str, flowType, escapeNonAscii))
+                        return StringFormat::Plain;
+                    return StringFormat::DoubleQuoted;
+                case SingleQuoted:
+                    if(IsValidSingleQuotedScalar(str, escapeNonAscii))
+                        return StringFormat::SingleQuoted;
+                    return StringFormat::DoubleQuoted;
+                case DoubleQuoted:
+                    return StringFormat::DoubleQuoted;
+                case Literal:
+                    if(IsValidLiteralScalar(str, flowType, escapeNonAscii))
+                        return StringFormat::Literal;
+                    return StringFormat::DoubleQuoted;
+                default:
+                    break;
+            }
+
+            return StringFormat::DoubleQuoted;
+        }
+
+		bool WriteSingleQuotedString(ostream_wrapper& out, const std::string& str)
+		{
+			out << "'";
+			int codePoint;
+			for(std::string::const_iterator i = str.begin();
+				GetNextCodePointAndAdvance(codePoint, i, str.end());
+				) 
+			{
+				if (codePoint == '\n')
+					return false;  // We can't handle a new line and the attendant indentation yet
+
+				if (codePoint == '\'')
+					out << "''";
+				else
+					WriteCodePoint(out, codePoint);
+			}
+			out << "'";
+			return true;
+		}
+		
+		bool WriteDoubleQuotedString(ostream_wrapper& out, const std::string& str, bool escapeNonAscii)
+		{
+			out << "\"";
+			int codePoint;
+			for(std::string::const_iterator i = str.begin();
+				GetNextCodePointAndAdvance(codePoint, i, str.end());
+				) 
+			{
+                switch(codePoint) {
+                    case '\"': out << "\\\""; break;
+                    case '\\': out << "\\\\"; break;
+                    case '\n': out << "\\n"; break;
+                    case '\t': out << "\\t"; break;
+                    case '\r': out << "\\r"; break;
+                    case '\b': out << "\\b"; break;
+                    default:
+                        if(codePoint < 0x20 || (codePoint >= 0x80 && codePoint <= 0xA0)) // Control characters and non-breaking space
+                            WriteDoubleQuoteEscapeSequence(out, codePoint);
+                        else if (codePoint == 0xFEFF) // Byte order marks (ZWNS) should be escaped (YAML 1.2, sec. 5.2)	
+                            WriteDoubleQuoteEscapeSequence(out, codePoint);
+                        else if (escapeNonAscii && codePoint > 0x7E)
+                            WriteDoubleQuoteEscapeSequence(out, codePoint);
+                        else
+                            WriteCodePoint(out, codePoint);
+                }
+			}
+			out << "\"";
+			return true;
+		}
+
+		bool WriteLiteralString(ostream_wrapper& out, const std::string& str, int indent)
+		{
+			out << "|\n";
+			out << IndentTo(indent);
+			int codePoint;
+			for(std::string::const_iterator i = str.begin();
+				GetNextCodePointAndAdvance(codePoint, i, str.end());
+				)
+			{
+				if (codePoint == '\n')
+				  out << "\n" << IndentTo(indent);
+				else
+				  WriteCodePoint(out, codePoint);
+			}
+			return true;
+		}
+		
+		bool WriteChar(ostream_wrapper& out, char ch)
+		{
+			if(('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z'))
+				out << ch;
+			else if((0x20 <= ch && ch <= 0x7e) || ch == ' ')
+				out << "\"" << ch << "\"";
+			else if(ch == '\t')
+				out << "\"\\t\"";
+			else if(ch == '\n')
+				out << "\"\\n\"";
+			else if(ch == '\b')
+				out << "\"\\b\"";
+			else {
+				out << "\"";
+				WriteDoubleQuoteEscapeSequence(out, ch);
+				out << "\"";
+			}
+			return true;
+		}
+
+		bool WriteComment(ostream_wrapper& out, const std::string& str, int postCommentIndent)
+		{
+			const unsigned curIndent = out.col();
+			out << "#" << Indentation(postCommentIndent);
+            out.set_comment();
+			int codePoint;
+			for(std::string::const_iterator i = str.begin();
+				GetNextCodePointAndAdvance(codePoint, i, str.end());
+				)
+			{
+				if(codePoint == '\n') {
+					out << "\n" << IndentTo(curIndent) << "#" << Indentation(postCommentIndent);
+                    out.set_comment();
+				} else {
+					WriteCodePoint(out, codePoint);
+                }
+			}
+			return true;
+		}
+
+		bool WriteAlias(ostream_wrapper& out, const std::string& str)
+		{
+			out << "*";
+			return WriteAliasName(out, str);
+		}
+		
+		bool WriteAnchor(ostream_wrapper& out, const std::string& str)
+		{
+			out << "&";
+			return WriteAliasName(out, str);
+		}
+
+		bool WriteTag(ostream_wrapper& out, const std::string& str, bool verbatim)
+		{
+			out << (verbatim ? "!<" : "!");
+			StringCharSource buffer(str.c_str(), str.size());
+			const RegEx& reValid = verbatim ? Exp::URI() : Exp::Tag();
+			while(buffer) {
+				int n = reValid.Match(buffer);
+				if(n <= 0)
+					return false;
+
+				while(--n >= 0) {
+					out << buffer[0];
+					++buffer;
+				}
+			}
+			if (verbatim)
+				out << ">";
+			return true;
+		}
+
+		bool WriteTagWithPrefix(ostream_wrapper& out, const std::string& prefix, const std::string& tag)
+		{
+			out << "!";
+			StringCharSource prefixBuffer(prefix.c_str(), prefix.size());
+			while(prefixBuffer) {
+				int n = Exp::URI().Match(prefixBuffer);
+				if(n <= 0)
+					return false;
+				
+				while(--n >= 0) {
+					out << prefixBuffer[0];
+					++prefixBuffer;
+				}
+			}
+
+			out << "!";
+			StringCharSource tagBuffer(tag.c_str(), tag.size());
+			while(tagBuffer) {
+				int n = Exp::Tag().Match(tagBuffer);
+				if(n <= 0)
+					return false;
+				
+				while(--n >= 0) {
+					out << tagBuffer[0];
+					++tagBuffer;
+				}
+			}
+			return true;
+		}
+
+		bool WriteBinary(ostream_wrapper& out, const Binary& binary)
+		{
+            WriteDoubleQuotedString(out, EncodeBase64(binary.data(), binary.size()), false);
+            return true;
+		}
+	}
+}
+
+#include "exp.h"
+#include "yaml-cpp/exceptions.h"
+#include <sstream>
+
+namespace YAML
+{
+	namespace Exp
+	{
+		unsigned ParseHex(const std::string& str, const Mark& mark)
+		{
+			unsigned value = 0;
+			for(std::size_t i=0;i<str.size();i++) {
+				char ch = str[i];
+				int digit = 0;
+				if('a' <= ch && ch <= 'f')
+					digit = ch - 'a' + 10;
+				else if('A' <= ch && ch <= 'F')
+					digit = ch - 'A' + 10;
+				else if('0' <= ch && ch <= '9')
+					digit = ch - '0';
+				else
+					throw ParserException(mark, ErrorMsg::INVALID_HEX);
+
+				value = (value << 4) + digit;
+			}
+
+			return value;
+		}
+
+		std::string Str(unsigned ch)
+		{
+			return std::string(1, static_cast<char>(ch));
+		}
+
+		// Escape
+		// . Translates the next 'codeLength' characters into a hex number and returns the result.
+		// . Throws if it's not actually hex.
+		std::string Escape(Stream& in, int codeLength)
+		{
+			// grab string
+			std::string str;
+			for(int i=0;i<codeLength;i++)
+				str += in.get();
+
+			// get the value
+			unsigned value = ParseHex(str, in.mark());
+
+			// legal unicode?
+			if((value >= 0xD800 && value <= 0xDFFF) || value > 0x10FFFF) {
+				std::stringstream msg;
+				msg << ErrorMsg::INVALID_UNICODE << value;
+				throw ParserException(in.mark(), msg.str());
+			}
+
+			// now break it up into chars
+			if(value <= 0x7F)
+				return Str(value);
+			else if(value <= 0x7FF)
+				return Str(0xC0 + (value >> 6)) + Str(0x80 + (value & 0x3F));
+			else if(value <= 0xFFFF)
+				return Str(0xE0 + (value >> 12)) + Str(0x80 + ((value >> 6) & 0x3F)) + Str(0x80 + (value & 0x3F));
+			else
+				return Str(0xF0 + (value >> 18)) + Str(0x80 + ((value >> 12) & 0x3F)) +
+					Str(0x80 + ((value >> 6) & 0x3F)) + Str(0x80 + (value & 0x3F));
+		}
+
+		// Escape
+		// . Escapes the sequence starting 'in' (it must begin with a '\' or single quote)
+		//   and returns the result.
+		// . Throws if it's an unknown escape character.
+		std::string Escape(Stream& in)
+		{
+			// eat slash
+			char escape = in.get();
+
+			// switch on escape character
+			char ch = in.get();
+
+			// first do single quote, since it's easier
+			if(escape == '\'' && ch == '\'')
+				return "\'";
+
+			// now do the slash (we're not gonna check if it's a slash - you better pass one!)
+			switch(ch) {
+				case '0': return std::string(1, '\x00');
+				case 'a': return "\x07";
+				case 'b': return "\x08";
+				case 't':
+                case '\t': return "\x09";
+				case 'n': return "\x0A";
+				case 'v': return "\x0B";
+				case 'f': return "\x0C";
+				case 'r': return "\x0D";
+				case 'e': return "\x1B";
+				case ' ': return "\x20";
+				case '\"': return "\"";
+				case '\'': return "\'";
+				case '\\': return "\\";
+				case '/': return "/";
+				case 'N': return "\x85";
+				case '_': return "\xA0";
+				case 'L': return "\xE2\x80\xA8";  // LS (#x2028)
+				case 'P': return "\xE2\x80\xA9";  // PS (#x2029)
+				case 'x': return Escape(in, 2);
+				case 'u': return Escape(in, 4);
+				case 'U': return Escape(in, 8);
+			}
+
+			std::stringstream msg;
+			throw ParserException(in.mark(), std::string(ErrorMsg::INVALID_ESCAPE) + ch);
+		}
+	}
+}
+#include "yaml-cpp/node/detail/memory.h"
+#include "yaml-cpp/node/detail/node.h"
+
+namespace YAML
+{
+	namespace detail
+	{
+		void memory_holder::merge(memory_holder& rhs)
+		{
+			if(m_pMemory == rhs.m_pMemory)
+				return;
+			
+			m_pMemory->merge(*rhs.m_pMemory);
+			rhs.m_pMemory = m_pMemory;
+		}
+		
+		node& memory::create_node()
+		{
+			shared_node pNode(new node);
+			m_nodes.insert(pNode);
+			return *pNode;
+		}
+		
+		void memory::merge(const memory& rhs)
+		{
+			m_nodes.insert(rhs.m_nodes.begin(), rhs.m_nodes.end());
+		}
+	}
+}
+#include "nodebuilder.h"
+#include "yaml-cpp/mark.h"
+#include "yaml-cpp/node/node.h"
+#include "yaml-cpp/node/impl.h"
+#include <cassert>
+
+namespace YAML
+{
+	NodeBuilder::NodeBuilder(): m_pMemory(new detail::memory_holder), m_pRoot(0), m_mapDepth(0)
+	{
+		m_anchors.push_back(0); // since the anchors start at 1
+	}
+	
+	NodeBuilder::~NodeBuilder()
+	{
+	}
+	
+	Node NodeBuilder::Root()
+	{
+		if(!m_pRoot)
+			return Node();
+		
+		return Node(*m_pRoot, m_pMemory);
+	}
+
+	void NodeBuilder::OnDocumentStart(const Mark&)
+	{
+	}
+	
+	void NodeBuilder::OnDocumentEnd()
+	{
+	}
+	
+	void NodeBuilder::OnNull(const Mark& /* mark */, anchor_t anchor)
+	{
+		detail::node& node = Push(anchor);
+		node.set_null();
+		Pop();
+	}
+	
+	void NodeBuilder::OnAlias(const Mark& /* mark */, anchor_t anchor)
+	{
+		detail::node& node = *m_anchors[anchor];
+		Push(node);
+		Pop();
+	}
+	
+	void NodeBuilder::OnScalar(const Mark& /* mark */, const std::string& tag, anchor_t anchor, const std::string& value)
+	{
+		detail::node& node = Push(anchor);
+		node.set_scalar(value);
+		node.set_tag(tag);
+		Pop();
+	}
+	
+	void NodeBuilder::OnSequenceStart(const Mark& /* mark */, const std::string& tag, anchor_t anchor)
+	{
+		detail::node& node = Push(anchor);
+		node.set_tag(tag);
+		node.set_type(NodeType::Sequence);
+	}
+	
+	void NodeBuilder::OnSequenceEnd()
+	{
+		Pop();
+	}
+	
+	void NodeBuilder::OnMapStart(const Mark& /* mark */, const std::string& tag, anchor_t anchor)
+	{
+		detail::node& node = Push(anchor);
+		node.set_type(NodeType::Map);
+		node.set_tag(tag);
+		m_mapDepth++;
+	}
+	
+	void NodeBuilder::OnMapEnd()
+	{
+		assert(m_mapDepth > 0);
+		m_mapDepth--;
+		Pop();
+	}
+
+	detail::node& NodeBuilder::Push(anchor_t anchor)
+	{
+		detail::node& node = m_pMemory->create_node();
+		RegisterAnchor(anchor, node);
+		Push(node);
+		return node;
+	}
+	
+	void NodeBuilder::Push(detail::node& node)
+	{
+		const bool needsKey = (!m_stack.empty() && m_stack.back()->type() == NodeType::Map && m_keys.size() < m_mapDepth);
+		
+		m_stack.push_back(&node);
+		if(needsKey)
+			m_keys.push_back(PushedKey(&node, false));
+	}
+	
+	void NodeBuilder::Pop()
+	{
+		assert(!m_stack.empty());
+		if(m_stack.size() == 1) {
+			m_pRoot = m_stack[0];
+			m_stack.pop_back();
+			return;
+		}
+		
+		detail::node& node = *m_stack.back();
+		m_stack.pop_back();
+
+		detail::node& collection = *m_stack.back();
+		
+		if(collection.type() == NodeType::Sequence) {
+			collection.push_back(node, m_pMemory);
+		} else if(collection.type() == NodeType::Map) {
+			assert(!m_keys.empty());
+			PushedKey& key = m_keys.back();
+			if(key.second) {
+				collection.insert(*key.first, node, m_pMemory);
+				m_keys.pop_back();
+			} else {
+				key.second = true;
+			}
+		} else {
+			assert(false);
+			m_stack.clear();
+		}
+	}
+
+	void NodeBuilder::RegisterAnchor(anchor_t anchor, detail::node& node)
+	{
+		if(anchor) {
+			assert(anchor == m_anchors.size());
+			m_anchors.push_back(&node);
+		}
+	}
+}
+#include "yaml-cpp/node/node.h"
+#include "nodebuilder.h"
+#include "nodeevents.h"
+
+namespace YAML
+{
+    Node Clone(const Node& node)
+    {
+		NodeEvents events(node);
+        NodeBuilder builder;
+        events.Emit(builder);
+        return builder.Root();
+    }
+}
+#include "yaml-cpp/node/detail/node_data.h"
+#include "yaml-cpp/node/detail/memory.h"
+#include "yaml-cpp/node/detail/node.h"
+#include "yaml-cpp/exceptions.h"
+#include <sstream>
+
+namespace YAML
+{
+	namespace detail
+	{
+		std::string node_data::empty_scalar;
+
+		node_data::node_data(): m_isDefined(false), m_type(NodeType::Null), m_seqSize(0)
+		{
+		}
+
+		void node_data::mark_defined()
+		{
+			if(m_type == NodeType::Undefined)
+				m_type = NodeType::Null;
+			m_isDefined = true;
+		}
+
+		void node_data::set_type(NodeType::value type)
+		{
+			if(type == NodeType::Undefined) {
+				m_type = type;
+				m_isDefined = false;
+				return;
+			}
+			
+
+			m_isDefined = true;
+			if(type == m_type)
+				return;
+			
+			m_type = type;
+			
+			switch(m_type) {
+				case NodeType::Null:
+					break;
+				case NodeType::Scalar:
+					m_scalar.clear();
+					break;
+				case NodeType::Sequence:
+					reset_sequence();
+					break;
+				case NodeType::Map:
+					reset_map();
+					break;
+				case NodeType::Undefined:
+					assert(false);
+					break;
+			}
+		}
+
+		void node_data::set_tag(const std::string& tag)
+		{
+			m_tag = tag;
+		}
+		
+		void node_data::set_null()
+		{
+			m_isDefined = true;
+			m_type = NodeType::Null;
+		}
+		
+		void node_data::set_scalar(const std::string& scalar)
+		{
+			m_isDefined = true;
+			m_type = NodeType::Scalar;
+			m_scalar = scalar;
+		}
+
+		// size/iterator
+		std::size_t node_data::size() const
+		{
+			if(!m_isDefined)
+				return 0;
+
+			switch(m_type) {
+				case NodeType::Sequence: compute_seq_size(); return m_seqSize;
+				case NodeType::Map: compute_map_size(); return m_map.size() - m_undefinedPairs.size();
+				default:
+					return 0;
+			}
+			return 0;
+		}
+		
+		void node_data::compute_seq_size() const
+		{
+			while(m_seqSize < m_sequence.size() && m_sequence[m_seqSize]->is_defined())
+				m_seqSize++;
+		}
+
+		void node_data::compute_map_size() const
+		{
+			kv_pairs::iterator it = m_undefinedPairs.begin();
+			while(it != m_undefinedPairs.end()) {
+				kv_pairs::iterator jt = boost::next(it);
+				if(it->first->is_defined() && it->second->is_defined())
+					m_undefinedPairs.erase(it);
+				it = jt;
+			}
+		}
+		
+		const_node_iterator node_data::begin() const
+		{
+			if(!m_isDefined)
+				return const_node_iterator();
+			
+			switch(m_type) {
+				case NodeType::Sequence: return const_node_iterator(m_sequence.begin());
+				case NodeType::Map: return const_node_iterator(m_map.begin(), m_map.end());
+				default: return const_node_iterator();
+			}
+		}
+		
+		node_iterator node_data::begin()
+		{
+			if(!m_isDefined)
+				return node_iterator();
+
+			switch(m_type) {
+				case NodeType::Sequence: return node_iterator(m_sequence.begin());
+				case NodeType::Map: return node_iterator(m_map.begin(), m_map.end());
+				default: return node_iterator();
+			}
+		}
+		
+		const_node_iterator node_data::end() const
+		{
+			if(!m_isDefined)
+				return const_node_iterator();
+
+			switch(m_type) {
+				case NodeType::Sequence: return const_node_iterator(m_sequence.end());
+				case NodeType::Map: return const_node_iterator(m_map.end(), m_map.end());
+				default: return const_node_iterator();
+			}
+		}
+		
+		node_iterator node_data::end()
+		{
+			if(!m_isDefined)
+				return node_iterator();
+
+			switch(m_type) {
+				case NodeType::Sequence: return node_iterator(m_sequence.end());
+				case NodeType::Map: return node_iterator(m_map.end(), m_map.end());
+				default: return node_iterator();
+			}
+		}
+
+		// sequence
+		void node_data::push_back(node& node, shared_memory_holder /* pMemory */)
+		{
+			if(m_type == NodeType::Undefined || m_type == NodeType::Null) {
+				m_type = NodeType::Sequence;
+				reset_sequence();
+			}
+			
+			if(m_type != NodeType::Sequence)
+                throw BadPushback();
+			
+			m_sequence.push_back(&node);
+		}
+
+		void node_data::insert(node& key, node& value, shared_memory_holder pMemory)
+		{
+			switch(m_type) {
+				case NodeType::Map:
+					break;
+				case NodeType::Undefined:
+				case NodeType::Null:
+				case NodeType::Sequence:
+					convert_to_map(pMemory);
+					break;
+				case NodeType::Scalar:
+                    throw BadSubscript();
+			}
+
+			insert_map_pair(key, value);
+		}
+
+		// indexing
+		node& node_data::get(node& key, shared_memory_holder pMemory) const
+		{
+			if(m_type != NodeType::Map)
+				return pMemory->create_node();
+			
+			for(node_map::const_iterator it=m_map.begin();it!=m_map.end();++it) {
+				if(it->first->is(key))
+					return *it->second;
+			}
+			
+			return pMemory->create_node();
+		}
+		
+		node& node_data::get(node& key, shared_memory_holder pMemory)
+		{
+			switch(m_type) {
+				case NodeType::Map:
+					break;
+				case NodeType::Undefined:
+				case NodeType::Null:
+				case NodeType::Sequence:
+					convert_to_map(pMemory);
+					break;
+				case NodeType::Scalar:
+                    throw BadSubscript();
+			}
+
+			for(node_map::const_iterator it=m_map.begin();it!=m_map.end();++it) {
+				if(it->first->is(key))
+					return *it->second;
+			}
+			
+			node& value = pMemory->create_node();
+			insert_map_pair(key, value);
+			return value;
+		}
+		
+		bool node_data::remove(node& key, shared_memory_holder /* pMemory */)
+		{
+			if(m_type != NodeType::Map)
+				return false;
+
+			for(node_map::iterator it=m_map.begin();it!=m_map.end();++it) {
+				if(it->first->is(key)) {
+					m_map.erase(it);
+					return true;
+				}
+			}
+			
+			return false;
+		}
+
+		void node_data::reset_sequence()
+		{
+			m_sequence.clear();
+			m_seqSize = 0;
+		}
+
+		void node_data::reset_map()
+		{
+			m_map.clear();
+			m_undefinedPairs.clear();
+		}
+
+		void node_data::insert_map_pair(node& key, node& value)
+		{
+			m_map[&key] = &value;
+			if(!key.is_defined() || !value.is_defined())
+				m_undefinedPairs.push_back(kv_pair(&key, &value));
+		}
+
+		void node_data::convert_to_map(shared_memory_holder pMemory)
+		{
+			switch(m_type) {
+				case NodeType::Undefined:
+				case NodeType::Null:
+					reset_map();
+					m_type = NodeType::Map;
+					break;
+				case NodeType::Sequence:
+					convert_sequence_to_map(pMemory);
+					break;
+				case NodeType::Map:
+					break;
+				case NodeType::Scalar:
+					assert(false);
+					break;
+			}
+		}
+
+		void node_data::convert_sequence_to_map(shared_memory_holder pMemory)
+		{
+			assert(m_type == NodeType::Sequence);
+
+			reset_map();
+			for(std::size_t i=0;i<m_sequence.size();i++) {
+				std::stringstream stream;
+				stream << i;
+
+				node& key = pMemory->create_node();
+				key.set_scalar(stream.str());
+				insert_map_pair(key, *m_sequence[i]);
+			}
+			
+			reset_sequence();
+			m_type = NodeType::Map;
+		}
+	}
+}
+#include "nodeevents.h"
+#include "yaml-cpp/node/node.h"
+#include "yaml-cpp/node/impl.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/mark.h"
+
+namespace YAML
+{
+	void NodeEvents::AliasManager::RegisterReference(const detail::node& node)
+	{
+		m_anchorByIdentity.insert(std::make_pair(node.ref(), _CreateNewAnchor()));
+	}
+	
+	anchor_t NodeEvents::AliasManager::LookupAnchor(const detail::node& node) const
+	{
+		AnchorByIdentity::const_iterator it = m_anchorByIdentity.find(node.ref());
+		if(it == m_anchorByIdentity.end())
+			return 0;
+		return it->second;
+	}
+
+	NodeEvents::NodeEvents(const Node& node): m_pMemory(node.m_pMemory), m_root(*node.m_pNode)
+	{
+		Setup(m_root);
+	}
+
+	void NodeEvents::Setup(const detail::node& node)
+	{
+		int& refCount = m_refCount[node.ref()];
+		refCount++;
+		if(refCount > 1)
+			return;
+		
+		if(node.type() == NodeType::Sequence) {
+			for(detail::const_node_iterator it=node.begin();it!=node.end();++it)
+				Setup(**it);
+		} else if(node.type() == NodeType::Map) {
+			for(detail::const_node_iterator it=node.begin();it!=node.end();++it) {
+				Setup(*it->first);
+				Setup(*it->second);
+			}
+		}
+	}
+
+	void NodeEvents::Emit(EventHandler& handler)
+	{
+		AliasManager am;
+		
+		handler.OnDocumentStart(Mark());
+		Emit(m_root, handler, am);
+		handler.OnDocumentEnd();
+	}
+
+	void NodeEvents::Emit(const detail::node& node, EventHandler& handler, AliasManager& am) const
+	{
+		anchor_t anchor = NullAnchor;
+		if(IsAliased(node)) {
+			anchor = am.LookupAnchor(node);
+			if(anchor) {
+				handler.OnAlias(Mark(), anchor);
+				return;
+			}
+			
+			am.RegisterReference(node);
+			anchor = am.LookupAnchor(node);
+		}
+		
+		switch(node.type()) {
+			case NodeType::Undefined:
+				break;
+			case NodeType::Null:
+				handler.OnNull(Mark(), anchor);
+				break;
+			case NodeType::Scalar:
+				handler.OnScalar(Mark(), node.tag(), anchor, node.scalar());
+				break;
+			case NodeType::Sequence:
+				handler.OnSequenceStart(Mark(), node.tag(), anchor);
+				for(detail::const_node_iterator it=node.begin();it!=node.end();++it)
+					Emit(**it, handler, am);
+				handler.OnSequenceEnd();
+				break;
+			case NodeType::Map:
+				handler.OnMapStart(Mark(), node.tag(), anchor);
+				for(detail::const_node_iterator it=node.begin();it!=node.end();++it) {
+					Emit(*it->first, handler, am);
+					Emit(*it->second, handler, am);
+				}
+				handler.OnMapEnd();
+				break;
+		}
+	}
+
+	bool NodeEvents::IsAliased(const detail::node& node) const
+	{
+		RefCount::const_iterator it = m_refCount.find(node.ref());
+		return it != m_refCount.end() && it->second > 1;
+	}
+}
+#include "yaml-cpp/null.h"
+
+namespace YAML
+{
+	_Null Null;
+}
+#include "yaml-cpp/ostream_wrapper.h"
+#include <cstring>
+#include <iostream>
+
+namespace YAML
+{
+	ostream_wrapper::ostream_wrapper(): m_pStream(0), m_pos(0), m_row(0), m_col(0), m_comment(false)
+	{
+	}
+	
+	ostream_wrapper::ostream_wrapper(std::ostream& stream): m_pStream(&stream), m_pos(0), m_row(0), m_col(0), m_comment(false)
+	{
+	}
+
+	ostream_wrapper::~ostream_wrapper()
+	{
+	}
+	
+    void ostream_wrapper::write(const std::string& str)
+    {
+        if(m_pStream) {
+            m_pStream->write(str.c_str(), str.size());
+        } else {
+            m_buffer.resize(std::max(m_buffer.size(), m_pos + str.size() + 1));
+            std::copy(str.begin(), str.end(), &m_buffer[m_pos]);
+        }
+        
+        for(std::size_t i=0;i<str.size();i++)
+            update_pos(str[i]);
+    }
+
+    void ostream_wrapper::write(const char *str, std::size_t size)
+    {
+        if(m_pStream) {
+            m_pStream->write(str, size);
+        } else {
+            m_buffer.resize(std::max(m_buffer.size(), m_pos + size + 1));
+            std::copy(str, str + size, &m_buffer[m_pos]);
+        }
+        
+        for(std::size_t i=0;i<size;i++)
+            update_pos(str[i]);
+    }
+	
+    void ostream_wrapper::update_pos(char ch)
+    {
+		m_pos++;
+        m_col++;
+		
+		if(ch == '\n') {
+			m_row++;
+			m_col = 0;
+            m_comment = false;
+		}
+    }
+}
+#include "yaml-cpp/node/parse.h"
+#include "yaml-cpp/node/node.h"
+#include "yaml-cpp/node/impl.h"
+#include "yaml-cpp/parser.h"
+#include "nodebuilder.h"
+
+#include <fstream>
+#include <sstream>
+
+namespace YAML
+{
+	Node Load(const std::string& input) {
+		std::stringstream stream(input);
+		return Load(stream);
+	}
+	
+	Node Load(const char *input) {
+		std::stringstream stream(input);
+		return Load(stream);
+	}
+	
+	Node Load(std::istream& input) {
+		Parser parser(input);
+		NodeBuilder builder;
+		if(!parser.HandleNextDocument(builder))
+			return Node();
+		
+		return builder.Root();
+	}
+
+    Node LoadFile(const std::string& filename) {
+        std::ifstream fin(filename.c_str());
+        if(!fin)
+            throw BadFile();
+        return Load(fin);
+    }
+
+	std::vector<Node> LoadAll(const std::string& input) {
+		std::stringstream stream(input);
+		return LoadAll(stream);
+	}
+	
+	std::vector<Node> LoadAll(const char *input) {
+		std::stringstream stream(input);
+		return LoadAll(stream);
+	}
+	
+	std::vector<Node> LoadAll(std::istream& input) {
+		std::vector<Node> docs;
+		
+		Parser parser(input);
+		while(1) {
+			NodeBuilder builder;
+			if(!parser.HandleNextDocument(builder))
+				break;
+			docs.push_back(builder.Root());
+		}
+		
+		return docs;
+	}
+
+    std::vector<Node> LoadAllFromFile(const std::string& filename) {
+        std::ifstream fin(filename.c_str());
+        if(!fin)
+            throw BadFile();
+        return LoadAll(fin);
+    }
+}
+#include "yaml-cpp/parser.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/exceptions.h"
+#include "directives.h"
+#include "scanner.h"
+#include "singledocparser.h"
+#include "tag.h"
+#include "token.h"
+#include <sstream>
+#include <cstdio>
+
+namespace YAML
+{
+	Parser::Parser()
+	{
+	}
+	
+	Parser::Parser(std::istream& in)
+	{
+		Load(in);
+	}
+
+	Parser::~Parser()
+	{
+	}
+
+	Parser::operator bool() const
+	{
+		return m_pScanner.get() && !m_pScanner->empty();
+	}
+
+	void Parser::Load(std::istream& in)
+	{
+		m_pScanner.reset(new Scanner(in));
+		m_pDirectives.reset(new Directives);
+	}
+
+	// HandleNextDocument
+	// . Handles the next document
+	// . Throws a ParserException on error.
+	// . Returns false if there are no more documents
+	bool Parser::HandleNextDocument(EventHandler& eventHandler)
+	{
+		if(!m_pScanner.get())
+			return false;
+
+		ParseDirectives();
+		if(m_pScanner->empty())
+			return false;
+		
+		SingleDocParser sdp(*m_pScanner, *m_pDirectives);
+		sdp.HandleDocument(eventHandler);
+		return true;
+	}
+
+	// ParseDirectives
+	// . Reads any directives that are next in the queue.
+	void Parser::ParseDirectives()
+	{
+		bool readDirective = false;
+
+		while(1) {
+			if(m_pScanner->empty())
+				break;
+
+			Token& token = m_pScanner->peek();
+			if(token.type != Token::DIRECTIVE)
+				break;
+
+			// we keep the directives from the last document if none are specified;
+			// but if any directives are specific, then we reset them
+			if(!readDirective)
+				m_pDirectives.reset(new Directives);
+
+			readDirective = true;
+			HandleDirective(token);
+			m_pScanner->pop();
+		}
+	}
+
+	void Parser::HandleDirective(const Token& token)
+	{
+		if(token.value == "YAML")
+			HandleYamlDirective(token);
+		else if(token.value == "TAG")
+			HandleTagDirective(token);
+	}
+
+	// HandleYamlDirective
+	// . Should be of the form 'major.minor' (like a version number)
+	void Parser::HandleYamlDirective(const Token& token)
+	{
+		if(token.params.size() != 1)
+			throw ParserException(token.mark, ErrorMsg::YAML_DIRECTIVE_ARGS);
+		
+		if(!m_pDirectives->version.isDefault)
+			throw ParserException(token.mark, ErrorMsg::REPEATED_YAML_DIRECTIVE);
+
+		std::stringstream str(token.params[0]);
+		str >> m_pDirectives->version.major;
+		str.get();
+		str >> m_pDirectives->version.minor;
+		if(!str || str.peek() != EOF)
+			throw ParserException(token.mark, std::string(ErrorMsg::YAML_VERSION) + token.params[0]);
+
+		if(m_pDirectives->version.major > 1)
+			throw ParserException(token.mark, ErrorMsg::YAML_MAJOR_VERSION);
+
+		m_pDirectives->version.isDefault = false;
+		// TODO: warning on major == 1, minor > 2?
+	}
+
+	// HandleTagDirective
+	// . Should be of the form 'handle prefix', where 'handle' is converted to 'prefix' in the file.
+	void Parser::HandleTagDirective(const Token& token)
+	{
+		if(token.params.size() != 2)
+			throw ParserException(token.mark, ErrorMsg::TAG_DIRECTIVE_ARGS);
+
+		const std::string& handle = token.params[0];
+		const std::string& prefix = token.params[1];
+		if(m_pDirectives->tags.find(handle) != m_pDirectives->tags.end())
+			throw ParserException(token.mark, ErrorMsg::REPEATED_TAG_DIRECTIVE);
+		
+		m_pDirectives->tags[handle] = prefix;
+	}
+
+	void Parser::PrintTokens(std::ostream& out)
+	{
+		if(!m_pScanner.get())
+			return;
+		
+		while(1) {
+			if(m_pScanner->empty())
+				break;
+
+			out << m_pScanner->peek() << "\n";
+			m_pScanner->pop();
+		}
+	}
+}
+#include "regex.h"
+
+namespace YAML
+{
+	// constructors
+	RegEx::RegEx(): m_op(REGEX_EMPTY)
+	{
+	}
+	
+	RegEx::RegEx(REGEX_OP op): m_op(op)
+	{
+	}
+	
+	RegEx::RegEx(char ch): m_op(REGEX_MATCH), m_a(ch)
+	{
+	}
+	
+	RegEx::RegEx(char a, char z): m_op(REGEX_RANGE), m_a(a), m_z(z)
+	{
+	}
+	
+	RegEx::RegEx(const std::string& str, REGEX_OP op): m_op(op)
+	{
+		for(std::size_t i=0;i<str.size();i++)
+			m_params.push_back(RegEx(str[i]));
+	}
+	
+	// combination constructors
+	RegEx operator ! (const RegEx& ex)
+	{
+		RegEx ret(REGEX_NOT);
+		ret.m_params.push_back(ex);
+		return ret;
+	}
+	
+	RegEx operator || (const RegEx& ex1, const RegEx& ex2)
+	{
+		RegEx ret(REGEX_OR);
+		ret.m_params.push_back(ex1);
+		ret.m_params.push_back(ex2);
+		return ret;
+	}
+	
+	RegEx operator && (const RegEx& ex1, const RegEx& ex2)
+	{
+		RegEx ret(REGEX_AND);
+		ret.m_params.push_back(ex1);
+		ret.m_params.push_back(ex2);
+		return ret;
+	}
+	
+	RegEx operator + (const RegEx& ex1, const RegEx& ex2)
+	{
+		RegEx ret(REGEX_SEQ);
+		ret.m_params.push_back(ex1);
+		ret.m_params.push_back(ex2);
+		return ret;
+	}	
+}
+
+#include "scanner.h"
+#include "token.h"
+#include "yaml-cpp/exceptions.h"
+#include "exp.h"
+#include <cassert>
+#include <memory>
+
+namespace YAML
+{
+	Scanner::Scanner(std::istream& in)
+		: INPUT(in), m_startedStream(false), m_endedStream(false), m_simpleKeyAllowed(false), m_canBeJSONFlow(false)
+	{
+	}
+
+	Scanner::~Scanner()
+	{
+	}
+
+	// empty
+	// . Returns true if there are no more tokens to be read
+	bool Scanner::empty()
+	{
+		EnsureTokensInQueue();
+		return m_tokens.empty();
+	}
+
+	// pop
+	// . Simply removes the next token on the queue.
+	void Scanner::pop()
+	{
+		EnsureTokensInQueue();
+		if(!m_tokens.empty())
+			m_tokens.pop();
+	}
+
+	// peek
+	// . Returns (but does not remove) the next token on the queue.
+	Token& Scanner::peek()
+	{
+		EnsureTokensInQueue();
+		assert(!m_tokens.empty());  // should we be asserting here? I mean, we really just be checking
+		                            // if it's empty before peeking.
+
+#if 0
+		static Token *pLast = 0;
+		if(pLast != &m_tokens.front())
+			std::cerr << "peek: " << m_tokens.front() << "\n";
+		pLast = &m_tokens.front();
+#endif
+
+		return m_tokens.front();
+	}
+
+    // mark
+    // . Returns the current mark in the stream
+    Mark Scanner::mark() const
+    {
+        return INPUT.mark();
+    }
+
+	// EnsureTokensInQueue
+	// . Scan until there's a valid token at the front of the queue,
+	//   or we're sure the queue is empty.
+	void Scanner::EnsureTokensInQueue()
+	{
+		while(1) {
+			if(!m_tokens.empty()) {
+				Token& token = m_tokens.front();
+
+				// if this guy's valid, then we're done
+				if(token.status == Token::VALID)
+					return;
+
+				// here's where we clean up the impossible tokens
+				if(token.status == Token::INVALID) {
+					m_tokens.pop();
+					continue;
+				}
+
+				// note: what's left are the unverified tokens
+			}
+
+			// no token? maybe we've actually finished
+			if(m_endedStream)
+				return;
+
+			// no? then scan...
+			ScanNextToken();
+		}
+	}
+
+	// ScanNextToken
+	// . The main scanning function; here we branch out and
+	//   scan whatever the next token should be.
+	void Scanner::ScanNextToken()
+	{
+		if(m_endedStream)
+			return;
+
+		if(!m_startedStream)
+			return StartStream();
+
+		// get rid of whitespace, etc. (in between tokens it should be irrelevent)
+		ScanToNextToken();
+
+		// maybe need to end some blocks
+		PopIndentToHere();
+
+		// *****
+		// And now branch based on the next few characters!
+		// *****
+		
+		// end of stream
+		if(!INPUT)
+			return EndStream();
+
+		if(INPUT.column() == 0 && INPUT.peek() == Keys::Directive)
+			return ScanDirective();
+
+		// document token
+		if(INPUT.column() == 0 && Exp::DocStart().Matches(INPUT))
+			return ScanDocStart();
+
+		if(INPUT.column() == 0 && Exp::DocEnd().Matches(INPUT))
+			return ScanDocEnd();
+
+		// flow start/end/entry
+		if(INPUT.peek() == Keys::FlowSeqStart || INPUT.peek() == Keys::FlowMapStart)
+			return ScanFlowStart();
+
+		if(INPUT.peek() == Keys::FlowSeqEnd || INPUT.peek() == Keys::FlowMapEnd)
+			return ScanFlowEnd();
+	
+		if(INPUT.peek() == Keys::FlowEntry)
+			return ScanFlowEntry();
+
+		// block/map stuff
+		if(Exp::BlockEntry().Matches(INPUT))
+			return ScanBlockEntry();
+
+		if((InBlockContext() ? Exp::Key() : Exp::KeyInFlow()).Matches(INPUT))
+			return ScanKey();
+
+		if(GetValueRegex().Matches(INPUT))
+			return ScanValue();
+
+		// alias/anchor
+		if(INPUT.peek() == Keys::Alias || INPUT.peek() == Keys::Anchor)
+			return ScanAnchorOrAlias();
+
+		// tag
+		if(INPUT.peek() == Keys::Tag)
+			return ScanTag();
+
+		// special scalars
+		if(InBlockContext() && (INPUT.peek() == Keys::LiteralScalar || INPUT.peek() == Keys::FoldedScalar))
+			return ScanBlockScalar();
+
+		if(INPUT.peek() == '\'' || INPUT.peek() == '\"')
+			return ScanQuotedScalar();
+
+		// plain scalars
+		if((InBlockContext() ? Exp::PlainScalar() : Exp::PlainScalarInFlow()).Matches(INPUT))
+			return ScanPlainScalar();
+
+		// don't know what it is!
+		throw ParserException(INPUT.mark(), ErrorMsg::UNKNOWN_TOKEN);
+	}
+
+	// ScanToNextToken
+	// . Eats input until we reach the next token-like thing.
+	void Scanner::ScanToNextToken()
+	{
+		while(1) {
+			// first eat whitespace
+			while(INPUT && IsWhitespaceToBeEaten(INPUT.peek())) {
+				if(InBlockContext() && Exp::Tab().Matches(INPUT))
+					m_simpleKeyAllowed = false;
+				INPUT.eat(1);
+			}
+
+			// then eat a comment
+			if(Exp::Comment().Matches(INPUT)) {
+				// eat until line break
+				while(INPUT && !Exp::Break().Matches(INPUT))
+					INPUT.eat(1);
+			}
+
+			// if it's NOT a line break, then we're done!
+			if(!Exp::Break().Matches(INPUT))
+				break;
+
+			// otherwise, let's eat the line break and keep going
+			int n = Exp::Break().Match(INPUT);
+			INPUT.eat(n);
+
+			// oh yeah, and let's get rid of that simple key
+			InvalidateSimpleKey();
+
+			// new line - we may be able to accept a simple key now
+			if(InBlockContext())
+				m_simpleKeyAllowed = true;
+        }
+	}
+
+	///////////////////////////////////////////////////////////////////////
+	// Misc. helpers
+
+	// IsWhitespaceToBeEaten
+	// . We can eat whitespace if it's a space or tab
+	// . Note: originally tabs in block context couldn't be eaten
+	//         "where a simple key could be allowed
+	//         (i.e., not at the beginning of a line, or following '-', '?', or ':')"
+	//   I think this is wrong, since tabs can be non-content whitespace; it's just
+	//   that they can't contribute to indentation, so once you've seen a tab in a
+	//   line, you can't start a simple key
+	bool Scanner::IsWhitespaceToBeEaten(char ch)
+	{
+		if(ch == ' ')
+			return true;
+
+		if(ch == '\t')
+			return true;
+
+		return false;
+	}
+
+	// GetValueRegex
+	// . Get the appropriate regex to check if it's a value token
+	const RegEx& Scanner::GetValueRegex() const
+	{
+		if(InBlockContext())
+			return Exp::Value();
+		
+		return m_canBeJSONFlow ? Exp::ValueInJSONFlow() : Exp::ValueInFlow();
+	}
+
+	// StartStream
+	// . Set the initial conditions for starting a stream.
+	void Scanner::StartStream()
+	{
+		m_startedStream = true;
+		m_simpleKeyAllowed = true;
+		std::auto_ptr<IndentMarker> pIndent(new IndentMarker(-1, IndentMarker::NONE));
+		m_indentRefs.push_back(pIndent);
+		m_indents.push(&m_indentRefs.back());
+	}
+
+	// EndStream
+	// . Close out the stream, finish up, etc.
+	void Scanner::EndStream()
+	{
+		// force newline
+		if(INPUT.column() > 0)
+			INPUT.ResetColumn();
+
+		PopAllIndents();
+		PopAllSimpleKeys();
+
+		m_simpleKeyAllowed = false;
+		m_endedStream = true;
+	}
+
+	Token *Scanner::PushToken(Token::TYPE type)
+	{
+		m_tokens.push(Token(type, INPUT.mark()));
+		return &m_tokens.back();
+	}
+
+	Token::TYPE Scanner::GetStartTokenFor(IndentMarker::INDENT_TYPE type) const
+	{
+		switch(type) {
+			case IndentMarker::SEQ: return Token::BLOCK_SEQ_START;
+			case IndentMarker::MAP: return Token::BLOCK_MAP_START;
+			case IndentMarker::NONE: assert(false); break;
+		}
+		assert(false);
+		throw std::runtime_error("yaml-cpp: internal error, invalid indent type");
+	}
+
+	// PushIndentTo
+	// . Pushes an indentation onto the stack, and enqueues the
+	//   proper token (sequence start or mapping start).
+	// . Returns the indent marker it generates (if any).
+	Scanner::IndentMarker *Scanner::PushIndentTo(int column, IndentMarker::INDENT_TYPE type)
+	{
+		// are we in flow?
+		if(InFlowContext())
+			return 0;
+		
+		std::auto_ptr<IndentMarker> pIndent(new IndentMarker(column, type));
+		IndentMarker& indent = *pIndent;
+		const IndentMarker& lastIndent = *m_indents.top();
+
+		// is this actually an indentation?
+		if(indent.column < lastIndent.column)
+			return 0;
+		if(indent.column == lastIndent.column && !(indent.type == IndentMarker::SEQ && lastIndent.type == IndentMarker::MAP))
+			return 0;
+
+		// push a start token
+		indent.pStartToken = PushToken(GetStartTokenFor(type));
+
+		// and then the indent
+		m_indents.push(&indent);
+		m_indentRefs.push_back(pIndent);
+		return &m_indentRefs.back();
+	}
+
+	// PopIndentToHere
+	// . Pops indentations off the stack until we reach the current indentation level,
+	//   and enqueues the proper token each time.
+	// . Then pops all invalid indentations off.
+	void Scanner::PopIndentToHere()
+	{
+		// are we in flow?
+		if(InFlowContext())
+			return;
+
+		// now pop away
+		while(!m_indents.empty()) {
+			const IndentMarker& indent = *m_indents.top();
+			if(indent.column < INPUT.column())
+				break;
+			if(indent.column == INPUT.column() && !(indent.type == IndentMarker::SEQ && !Exp::BlockEntry().Matches(INPUT)))
+				break;
+				
+			PopIndent();
+		}
+		
+		while(!m_indents.empty() && m_indents.top()->status == IndentMarker::INVALID)
+			PopIndent();
+	}
+	
+	// PopAllIndents
+	// . Pops all indentations (except for the base empty one) off the stack,
+	//   and enqueues the proper token each time.
+	void Scanner::PopAllIndents()
+	{
+		// are we in flow?
+		if(InFlowContext())
+			return;
+
+		// now pop away
+		while(!m_indents.empty()) {
+			const IndentMarker& indent = *m_indents.top();
+			if(indent.type == IndentMarker::NONE)
+				break;
+			
+			PopIndent();
+		}
+	}
+	
+	// PopIndent
+	// . Pops a single indent, pushing the proper token
+	void Scanner::PopIndent()
+	{
+		const IndentMarker& indent = *m_indents.top();
+		m_indents.pop();
+
+		if(indent.status != IndentMarker::VALID) {
+			InvalidateSimpleKey();
+			return;
+		}
+		
+		if(indent.type == IndentMarker::SEQ)
+			m_tokens.push(Token(Token::BLOCK_SEQ_END, INPUT.mark()));
+		else if(indent.type == IndentMarker::MAP)
+			m_tokens.push(Token(Token::BLOCK_MAP_END, INPUT.mark()));
+	}
+
+	// GetTopIndent
+	int Scanner::GetTopIndent() const
+	{
+		if(m_indents.empty())
+			return 0;
+		return m_indents.top()->column;
+	}
+
+	// ThrowParserException
+	// . Throws a ParserException with the current token location
+	//   (if available).
+	// . Does not parse any more tokens.
+	void Scanner::ThrowParserException(const std::string& msg) const
+	{
+		Mark mark = Mark::null_mark();
+		if(!m_tokens.empty()) {
+			const Token& token = m_tokens.front();
+			mark = token.mark;
+		}
+		throw ParserException(mark, msg);
+	}
+}
+
+#include "scanscalar.h"
+#include "scanner.h"
+#include "exp.h"
+#include "yaml-cpp/exceptions.h"
+#include "token.h"
+
+namespace YAML
+{
+	// ScanScalar
+	// . This is where the scalar magic happens.
+	//
+	// . We do the scanning in three phases:
+	//   1. Scan until newline
+	//   2. Eat newline
+	//   3. Scan leading blanks.
+	//
+	// . Depending on the parameters given, we store or stop
+	//   and different places in the above flow.
+	std::string ScanScalar(Stream& INPUT, ScanScalarParams& params)
+	{
+		bool foundNonEmptyLine = false;
+		bool pastOpeningBreak = (params.fold == FOLD_FLOW);
+		bool emptyLine = false, moreIndented = false;
+		int foldedNewlineCount = 0;
+		bool foldedNewlineStartedMoreIndented = false;
+        std::size_t lastEscapedChar = std::string::npos;
+		std::string scalar;
+		params.leadingSpaces = false;
+
+		while(INPUT) {
+			// ********************************
+			// Phase #1: scan until line ending
+			
+			std::size_t lastNonWhitespaceChar = scalar.size();
+			bool escapedNewline = false;
+			while(!params.end.Matches(INPUT) && !Exp::Break().Matches(INPUT)) {
+				if(!INPUT)
+					break;
+
+				// document indicator?
+				if(INPUT.column() == 0 && Exp::DocIndicator().Matches(INPUT)) {
+					if(params.onDocIndicator == BREAK)
+						break;
+					else if(params.onDocIndicator == THROW)
+						throw ParserException(INPUT.mark(), ErrorMsg::DOC_IN_SCALAR);
+				}
+
+				foundNonEmptyLine = true;
+				pastOpeningBreak = true;
+
+				// escaped newline? (only if we're escaping on slash)
+				if(params.escape == '\\' && Exp::EscBreak().Matches(INPUT)) {
+					// eat escape character and get out (but preserve trailing whitespace!)
+					INPUT.get();
+					lastNonWhitespaceChar = scalar.size();
+                    lastEscapedChar = scalar.size();
+					escapedNewline = true;
+					break;
+				}
+
+				// escape this?
+				if(INPUT.peek() == params.escape) {
+					scalar += Exp::Escape(INPUT);
+					lastNonWhitespaceChar = scalar.size();
+                    lastEscapedChar = scalar.size();
+					continue;
+				}
+
+				// otherwise, just add the damn character
+				char ch = INPUT.get();
+				scalar += ch;
+				if(ch != ' ' && ch != '\t')
+					lastNonWhitespaceChar = scalar.size();
+			}
+
+			// eof? if we're looking to eat something, then we throw
+			if(!INPUT) {
+				if(params.eatEnd)
+					throw ParserException(INPUT.mark(), ErrorMsg::EOF_IN_SCALAR);
+				break;
+			}
+
+			// doc indicator?
+			if(params.onDocIndicator == BREAK && INPUT.column() == 0 && Exp::DocIndicator().Matches(INPUT))
+				break;
+
+			// are we done via character match?
+			int n = params.end.Match(INPUT);
+			if(n >= 0) {
+				if(params.eatEnd)
+					INPUT.eat(n);
+				break;
+			}
+			
+			// do we remove trailing whitespace?
+			if(params.fold == FOLD_FLOW)
+				scalar.erase(lastNonWhitespaceChar);
+			
+			// ********************************
+			// Phase #2: eat line ending
+			n = Exp::Break().Match(INPUT);
+			INPUT.eat(n);
+
+			// ********************************
+			// Phase #3: scan initial spaces
+
+			// first the required indentation
+			while(INPUT.peek() == ' ' && (INPUT.column() < params.indent || (params.detectIndent && !foundNonEmptyLine)))
+				INPUT.eat(1);
+
+			// update indent if we're auto-detecting
+			if(params.detectIndent && !foundNonEmptyLine)
+				params.indent = std::max(params.indent, INPUT.column());
+
+			// and then the rest of the whitespace
+			while(Exp::Blank().Matches(INPUT)) {
+				// we check for tabs that masquerade as indentation
+				if(INPUT.peek() == '\t'&& INPUT.column() < params.indent && params.onTabInIndentation == THROW)
+					throw ParserException(INPUT.mark(), ErrorMsg::TAB_IN_INDENTATION);
+
+				if(!params.eatLeadingWhitespace)
+					break;
+
+				INPUT.eat(1);
+			}
+
+			// was this an empty line?
+			bool nextEmptyLine = Exp::Break().Matches(INPUT);
+			bool nextMoreIndented = Exp::Blank().Matches(INPUT);
+			if(params.fold == FOLD_BLOCK && foldedNewlineCount == 0 && nextEmptyLine)
+				foldedNewlineStartedMoreIndented = moreIndented;
+
+			// for block scalars, we always start with a newline, so we should ignore it (not fold or keep)
+			if(pastOpeningBreak) {
+				switch(params.fold) {
+					case DONT_FOLD:
+						scalar += "\n";
+						break;
+					case FOLD_BLOCK:
+						if(!emptyLine && !nextEmptyLine && !moreIndented && !nextMoreIndented && INPUT.column() >= params.indent)
+							scalar += " ";
+						else if(nextEmptyLine)
+							foldedNewlineCount++;
+						else
+							scalar += "\n";
+						
+						if(!nextEmptyLine && foldedNewlineCount > 0) {
+							scalar += std::string(foldedNewlineCount - 1, '\n');
+							if(foldedNewlineStartedMoreIndented || nextMoreIndented | !foundNonEmptyLine)
+								scalar += "\n";
+							foldedNewlineCount = 0;
+						}
+						break;
+					case FOLD_FLOW:
+						if(nextEmptyLine)
+							scalar += "\n";
+						else if(!emptyLine && !nextEmptyLine && !escapedNewline)
+							scalar += " ";
+						break;
+				}
+			}
+
+			emptyLine = nextEmptyLine;
+			moreIndented = nextMoreIndented;
+			pastOpeningBreak = true;
+
+			// are we done via indentation?
+			if(!emptyLine && INPUT.column() < params.indent) {
+				params.leadingSpaces = true;
+				break;
+			}
+		}
+
+		// post-processing
+		if(params.trimTrailingSpaces) {
+			std::size_t pos = scalar.find_last_not_of(' ');
+            if(lastEscapedChar != std::string::npos) {
+                if(pos < lastEscapedChar || pos == std::string::npos)
+                    pos = lastEscapedChar;
+            }
+			if(pos < scalar.size())
+				scalar.erase(pos + 1);
+		}
+
+		switch(params.chomp) {
+			case CLIP: {
+				std::size_t pos = scalar.find_last_not_of('\n');
+                if(lastEscapedChar != std::string::npos) {
+                    if(pos < lastEscapedChar || pos == std::string::npos)
+                        pos = lastEscapedChar;
+                }
+				if(pos == std::string::npos)
+					scalar.erase();
+				else if(pos + 1 < scalar.size())
+					scalar.erase(pos + 2);
+			} break;
+			case STRIP: {
+				std::size_t pos = scalar.find_last_not_of('\n');
+                if(lastEscapedChar != std::string::npos) {
+                    if(pos < lastEscapedChar || pos == std::string::npos)
+                        pos = lastEscapedChar;
+                }
+				if(pos == std::string::npos)
+					scalar.erase();
+				else if(pos < scalar.size())
+					scalar.erase(pos + 1);
+			} break;
+			default:
+				break;
+		}
+
+		return scalar;
+	}
+}
+#include "scanner.h"
+#include "regex.h"
+#include "exp.h"
+#include "yaml-cpp/exceptions.h"
+
+namespace YAML
+{
+	const std::string ScanVerbatimTag(Stream& INPUT)
+	{
+		std::string tag;
+		
+		// eat the start character
+		INPUT.get();
+		
+		while(INPUT) {
+			if(INPUT.peek() == Keys::VerbatimTagEnd) {
+				// eat the end character
+				INPUT.get();
+				return tag;
+			}
+		
+			int n = Exp::URI().Match(INPUT);
+			if(n <= 0)
+				break;
+			
+			tag += INPUT.get(n);
+		}
+
+		throw ParserException(INPUT.mark(), ErrorMsg::END_OF_VERBATIM_TAG);
+	}
+	
+	const std::string ScanTagHandle(Stream& INPUT, bool& canBeHandle)
+	{
+		std::string tag;
+		canBeHandle = true;
+		Mark firstNonWordChar;
+		
+		while(INPUT) {
+			if(INPUT.peek() == Keys::Tag) {
+				if(!canBeHandle)
+					throw ParserException(firstNonWordChar, ErrorMsg::CHAR_IN_TAG_HANDLE);
+				break;
+			}
+
+			int n = 0;
+			if(canBeHandle) {
+				n = Exp::Word().Match(INPUT);
+				if(n <= 0) {
+					canBeHandle = false;
+					firstNonWordChar = INPUT.mark();
+				}
+			}
+			
+			if(!canBeHandle)
+				n = Exp::Tag().Match(INPUT);
+
+			if(n <= 0)
+				break;
+			
+			tag += INPUT.get(n);
+		}
+
+		return tag;
+	}
+	
+	const std::string ScanTagSuffix(Stream& INPUT)
+	{
+		std::string tag;
+		
+		while(INPUT) {
+			int n = Exp::Tag().Match(INPUT);
+			if(n <= 0)
+				break;
+			
+			tag += INPUT.get(n);
+		}
+		
+		if(tag.empty())
+			throw ParserException(INPUT.mark(), ErrorMsg::TAG_WITH_NO_SUFFIX);
+		
+		return tag;
+	}
+}
+
+#include "scanner.h"
+#include "token.h"
+#include "yaml-cpp/exceptions.h"
+#include "exp.h"
+#include "scanscalar.h"
+#include "scantag.h"
+#include "tag.h"
+#include <sstream>
+
+namespace YAML
+{
+	///////////////////////////////////////////////////////////////////////
+	// Specialization for scanning specific tokens
+
+	// Directive
+	// . Note: no semantic checking is done here (that's for the parser to do)
+	void Scanner::ScanDirective()
+	{
+		std::string name;
+		std::vector <std::string> params;
+
+		// pop indents and simple keys
+		PopAllIndents();
+		PopAllSimpleKeys();
+
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = false;
+
+		// store pos and eat indicator
+		Token token(Token::DIRECTIVE, INPUT.mark());
+		INPUT.eat(1);
+
+		// read name
+		while(INPUT && !Exp::BlankOrBreak().Matches(INPUT))
+			token.value += INPUT.get();
+
+		// read parameters
+		while(1) {
+			// first get rid of whitespace
+			while(Exp::Blank().Matches(INPUT))
+				INPUT.eat(1);
+
+			// break on newline or comment
+			if(!INPUT || Exp::Break().Matches(INPUT) || Exp::Comment().Matches(INPUT))
+				break;
+
+			// now read parameter
+			std::string param;
+			while(INPUT && !Exp::BlankOrBreak().Matches(INPUT))
+				param += INPUT.get();
+
+			token.params.push_back(param);
+		}
+		
+		m_tokens.push(token);
+	}
+
+	// DocStart
+	void Scanner::ScanDocStart()
+	{
+		PopAllIndents();
+		PopAllSimpleKeys();
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = false;
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(3);
+		m_tokens.push(Token(Token::DOC_START, mark));
+	}
+
+	// DocEnd
+	void Scanner::ScanDocEnd()
+	{
+		PopAllIndents();
+		PopAllSimpleKeys();
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = false;
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(3);
+		m_tokens.push(Token(Token::DOC_END, mark));
+	}
+
+	// FlowStart
+	void Scanner::ScanFlowStart()
+	{
+		// flows can be simple keys
+		InsertPotentialSimpleKey();
+		m_simpleKeyAllowed = true;
+		m_canBeJSONFlow = false;
+
+		// eat
+		Mark mark = INPUT.mark();
+		char ch = INPUT.get();
+		FLOW_MARKER flowType = (ch == Keys::FlowSeqStart ? FLOW_SEQ : FLOW_MAP);
+		m_flows.push(flowType);
+		Token::TYPE type = (flowType == FLOW_SEQ ? Token::FLOW_SEQ_START : Token::FLOW_MAP_START);
+		m_tokens.push(Token(type, mark));
+	}
+
+	// FlowEnd
+	void Scanner::ScanFlowEnd()
+	{
+		if(InBlockContext())
+			throw ParserException(INPUT.mark(), ErrorMsg::FLOW_END);
+
+		// we might have a solo entry in the flow context
+		if(InFlowContext()) {
+			if(m_flows.top() == FLOW_MAP && VerifySimpleKey())
+				m_tokens.push(Token(Token::VALUE, INPUT.mark()));
+			else if(m_flows.top() == FLOW_SEQ)
+				InvalidateSimpleKey();
+		}
+
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = true;
+
+		// eat
+		Mark mark = INPUT.mark();
+		char ch = INPUT.get();
+
+		// check that it matches the start
+		FLOW_MARKER flowType = (ch == Keys::FlowSeqEnd ? FLOW_SEQ : FLOW_MAP);
+		if(m_flows.top() != flowType)
+			throw ParserException(mark, ErrorMsg::FLOW_END);
+		m_flows.pop();
+		
+		Token::TYPE type = (flowType ? Token::FLOW_SEQ_END : Token::FLOW_MAP_END);
+		m_tokens.push(Token(type, mark));
+	}
+
+	// FlowEntry
+	void Scanner::ScanFlowEntry()
+	{
+		// we might have a solo entry in the flow context
+		if(InFlowContext()) {
+			if(m_flows.top() == FLOW_MAP && VerifySimpleKey())
+				m_tokens.push(Token(Token::VALUE, INPUT.mark()));
+			else if(m_flows.top() == FLOW_SEQ)
+				InvalidateSimpleKey();
+		}
+		
+		m_simpleKeyAllowed = true;
+		m_canBeJSONFlow = false;
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(1);
+		m_tokens.push(Token(Token::FLOW_ENTRY, mark));
+	}
+
+	// BlockEntry
+	void Scanner::ScanBlockEntry()
+	{
+		// we better be in the block context!
+		if(InFlowContext())
+			throw ParserException(INPUT.mark(), ErrorMsg::BLOCK_ENTRY);
+
+		// can we put it here?
+		if(!m_simpleKeyAllowed)
+			throw ParserException(INPUT.mark(), ErrorMsg::BLOCK_ENTRY);
+
+		PushIndentTo(INPUT.column(), IndentMarker::SEQ);
+		m_simpleKeyAllowed = true;
+		m_canBeJSONFlow = false;
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(1);
+		m_tokens.push(Token(Token::BLOCK_ENTRY, mark));
+	}
+
+	// Key
+	void Scanner::ScanKey()
+	{
+		// handle keys diffently in the block context (and manage indents)
+		if(InBlockContext()) {
+			if(!m_simpleKeyAllowed)
+				throw ParserException(INPUT.mark(), ErrorMsg::MAP_KEY);
+
+			PushIndentTo(INPUT.column(), IndentMarker::MAP);
+		}
+
+		// can only put a simple key here if we're in block context
+		m_simpleKeyAllowed = InBlockContext();
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(1);
+		m_tokens.push(Token(Token::KEY, mark));
+	}
+
+	// Value
+	void Scanner::ScanValue()
+	{
+		// and check that simple key
+		bool isSimpleKey = VerifySimpleKey();
+		m_canBeJSONFlow = false;
+		
+		if(isSimpleKey) {
+			// can't follow a simple key with another simple key (dunno why, though - it seems fine)
+			m_simpleKeyAllowed = false;
+		} else {
+			// handle values diffently in the block context (and manage indents)
+			if(InBlockContext()) {
+				if(!m_simpleKeyAllowed)
+					throw ParserException(INPUT.mark(), ErrorMsg::MAP_VALUE);
+
+				PushIndentTo(INPUT.column(), IndentMarker::MAP);
+			}
+
+			// can only put a simple key here if we're in block context
+			m_simpleKeyAllowed = InBlockContext();
+		}
+
+		// eat
+		Mark mark = INPUT.mark();
+		INPUT.eat(1);
+		m_tokens.push(Token(Token::VALUE, mark));
+	}
+
+	// AnchorOrAlias
+	void Scanner::ScanAnchorOrAlias()
+	{
+		bool alias;
+		std::string name;
+
+		// insert a potential simple key
+		InsertPotentialSimpleKey();
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = false;
+
+		// eat the indicator
+		Mark mark = INPUT.mark();
+		char indicator = INPUT.get();
+		alias = (indicator == Keys::Alias);
+
+		// now eat the content
+		while(INPUT && Exp::Anchor().Matches(INPUT))
+			name += INPUT.get();
+
+		// we need to have read SOMETHING!
+		if(name.empty())
+			throw ParserException(INPUT.mark(), alias ? ErrorMsg::ALIAS_NOT_FOUND : ErrorMsg::ANCHOR_NOT_FOUND);
+
+		// and needs to end correctly
+		if(INPUT && !Exp::AnchorEnd().Matches(INPUT))
+			throw ParserException(INPUT.mark(), alias ? ErrorMsg::CHAR_IN_ALIAS : ErrorMsg::CHAR_IN_ANCHOR);
+
+		// and we're done
+		Token token(alias ? Token::ALIAS : Token::ANCHOR, mark);
+		token.value = name;
+		m_tokens.push(token);
+	}
+
+	// Tag
+	void Scanner::ScanTag()
+	{
+		// insert a potential simple key
+		InsertPotentialSimpleKey();
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = false;
+
+		Token token(Token::TAG, INPUT.mark());
+
+		// eat the indicator
+		INPUT.get();
+		
+		if(INPUT && INPUT.peek() == Keys::VerbatimTagStart){
+			std::string tag = ScanVerbatimTag(INPUT);
+
+			token.value = tag;
+			token.data = Tag::VERBATIM;
+		} else {
+			bool canBeHandle;
+			token.value = ScanTagHandle(INPUT, canBeHandle);
+			if(!canBeHandle && token.value.empty())
+				token.data = Tag::NON_SPECIFIC;
+			else if(token.value.empty())
+				token.data = Tag::SECONDARY_HANDLE;
+			else
+				token.data = Tag::PRIMARY_HANDLE;
+			
+			// is there a suffix?
+			if(canBeHandle && INPUT.peek() == Keys::Tag) {
+				// eat the indicator
+				INPUT.get();
+				token.params.push_back(ScanTagSuffix(INPUT));
+				token.data = Tag::NAMED_HANDLE;
+			}
+		}
+
+		m_tokens.push(token);
+	}
+
+	// PlainScalar
+	void Scanner::ScanPlainScalar()
+	{
+		std::string scalar;
+
+		// set up the scanning parameters
+		ScanScalarParams params;
+		params.end = (InFlowContext() ? Exp::EndScalarInFlow() : Exp::EndScalar()) || (Exp::BlankOrBreak() + Exp::Comment());
+		params.eatEnd = false;
+		params.indent = (InFlowContext() ? 0 : GetTopIndent() + 1);
+		params.fold = FOLD_FLOW;
+		params.eatLeadingWhitespace = true;
+		params.trimTrailingSpaces = true;
+		params.chomp = STRIP;
+		params.onDocIndicator = BREAK;
+		params.onTabInIndentation = THROW;
+
+		// insert a potential simple key
+		InsertPotentialSimpleKey();
+
+		Mark mark = INPUT.mark();
+		scalar = ScanScalar(INPUT, params);
+
+		// can have a simple key only if we ended the scalar by starting a new line
+		m_simpleKeyAllowed = params.leadingSpaces;
+		m_canBeJSONFlow = false;
+
+		// finally, check and see if we ended on an illegal character
+		//if(Exp::IllegalCharInScalar.Matches(INPUT))
+		//	throw ParserException(INPUT.mark(), ErrorMsg::CHAR_IN_SCALAR);
+
+		Token token(Token::PLAIN_SCALAR, mark);
+		token.value = scalar;
+		m_tokens.push(token);
+	}
+
+	// QuotedScalar
+	void Scanner::ScanQuotedScalar()
+	{
+		std::string scalar;
+
+		// peek at single or double quote (don't eat because we need to preserve (for the time being) the input position)
+		char quote = INPUT.peek();
+		bool single = (quote == '\'');
+
+		// setup the scanning parameters
+		ScanScalarParams params;
+		params.end = (single ? RegEx(quote) && !Exp::EscSingleQuote() : RegEx(quote));
+		params.eatEnd = true;
+		params.escape = (single ? '\'' : '\\');
+		params.indent = 0;
+		params.fold = FOLD_FLOW;
+		params.eatLeadingWhitespace = true;
+		params.trimTrailingSpaces = false;
+		params.chomp = CLIP;
+		params.onDocIndicator = THROW;
+
+		// insert a potential simple key
+		InsertPotentialSimpleKey();
+
+		Mark mark = INPUT.mark();
+
+		// now eat that opening quote
+		INPUT.get();
+		
+		// and scan
+		scalar = ScanScalar(INPUT, params);
+		m_simpleKeyAllowed = false;
+		m_canBeJSONFlow = true;
+
+		Token token(Token::NON_PLAIN_SCALAR, mark);
+		token.value = scalar;
+		m_tokens.push(token);
+	}
+
+	// BlockScalarToken
+	// . These need a little extra processing beforehand.
+	// . We need to scan the line where the indicator is (this doesn't count as part of the scalar),
+	//   and then we need to figure out what level of indentation we'll be using.
+	void Scanner::ScanBlockScalar()
+	{
+		std::string scalar;
+
+		ScanScalarParams params;
+		params.indent = 1;
+		params.detectIndent = true;
+
+		// eat block indicator ('|' or '>')
+		Mark mark = INPUT.mark();
+		char indicator = INPUT.get();
+		params.fold = (indicator == Keys::FoldedScalar ? FOLD_BLOCK : DONT_FOLD);
+
+		// eat chomping/indentation indicators
+		params.chomp = CLIP;
+		int n = Exp::Chomp().Match(INPUT);
+		for(int i=0;i<n;i++) {
+			char ch = INPUT.get();
+			if(ch == '+')
+				params.chomp = KEEP;
+			else if(ch == '-')
+				params.chomp = STRIP;
+			else if(Exp::Digit().Matches(ch)) {
+				if(ch == '0')
+					throw ParserException(INPUT.mark(), ErrorMsg::ZERO_INDENT_IN_BLOCK);
+
+				params.indent = ch - '0';
+				params.detectIndent = false;
+			}
+		}
+
+		// now eat whitespace
+		while(Exp::Blank().Matches(INPUT))
+			INPUT.eat(1);
+
+		// and comments to the end of the line
+		if(Exp::Comment().Matches(INPUT))
+			while(INPUT && !Exp::Break().Matches(INPUT))
+				INPUT.eat(1);
+
+		// if it's not a line break, then we ran into a bad character inline
+		if(INPUT && !Exp::Break().Matches(INPUT))
+			throw ParserException(INPUT.mark(), ErrorMsg::CHAR_IN_BLOCK);
+
+		// set the initial indentation
+		if(GetTopIndent() >= 0)
+			params.indent += GetTopIndent();
+
+		params.eatLeadingWhitespace = false;
+		params.trimTrailingSpaces = false;
+		params.onTabInIndentation = THROW;
+
+		scalar = ScanScalar(INPUT, params);
+
+		// simple keys always ok after block scalars (since we're gonna start a new line anyways)
+		m_simpleKeyAllowed = true;
+		m_canBeJSONFlow = false;
+
+		Token token(Token::NON_PLAIN_SCALAR, mark);
+		token.value = scalar;
+		m_tokens.push(token);
+	}
+}
+#include "scanner.h"
+#include "token.h"
+#include "yaml-cpp/exceptions.h"
+#include "exp.h"
+
+namespace YAML
+{
+	Scanner::SimpleKey::SimpleKey(const Mark& mark_, int flowLevel_)
+		: mark(mark_), flowLevel(flowLevel_), pIndent(0), pMapStart(0), pKey(0)
+	{
+	}
+
+	void Scanner::SimpleKey::Validate()
+	{
+		// Note: pIndent will *not* be garbage here;
+		//       we "garbage collect" them so we can
+		//       always refer to them
+		if(pIndent)
+			pIndent->status = IndentMarker::VALID;
+		if(pMapStart)
+			pMapStart->status = Token::VALID;
+		if(pKey)
+			pKey->status = Token::VALID;
+	}
+
+	void Scanner::SimpleKey::Invalidate()
+	{
+		if(pIndent)
+			pIndent->status = IndentMarker::INVALID;
+		if(pMapStart)
+			pMapStart->status = Token::INVALID;
+		if(pKey)
+			pKey->status = Token::INVALID;
+	}
+	
+	// CanInsertPotentialSimpleKey
+	bool Scanner::CanInsertPotentialSimpleKey() const
+	{
+		if(!m_simpleKeyAllowed)
+			return false;
+
+		return !ExistsActiveSimpleKey();
+	}
+
+	// ExistsActiveSimpleKey
+	// . Returns true if there's a potential simple key at our flow level
+	//   (there's allowed at most one per flow level, i.e., at the start of the flow start token)
+	bool Scanner::ExistsActiveSimpleKey() const
+	{
+		if(m_simpleKeys.empty())
+			return false;
+		
+		const SimpleKey& key = m_simpleKeys.top();
+		return key.flowLevel == GetFlowLevel();
+	}
+
+	// InsertPotentialSimpleKey
+	// . If we can, add a potential simple key to the queue,
+	//   and save it on a stack.
+	void Scanner::InsertPotentialSimpleKey()
+	{
+		if(!CanInsertPotentialSimpleKey())
+			return;
+		
+		SimpleKey key(INPUT.mark(), GetFlowLevel());
+
+		// first add a map start, if necessary
+		if(InBlockContext()) {
+			key.pIndent = PushIndentTo(INPUT.column(), IndentMarker::MAP);
+			if(key.pIndent) {
+				key.pIndent->status = IndentMarker::UNKNOWN;
+				key.pMapStart = key.pIndent->pStartToken;
+				key.pMapStart->status = Token::UNVERIFIED;
+			}
+		}
+
+		// then add the (now unverified) key
+		m_tokens.push(Token(Token::KEY, INPUT.mark()));
+		key.pKey = &m_tokens.back();
+		key.pKey->status = Token::UNVERIFIED;
+
+		m_simpleKeys.push(key);
+	}
+
+	// InvalidateSimpleKey
+	// . Automatically invalidate the simple key in our flow level
+	void Scanner::InvalidateSimpleKey()
+	{
+		if(m_simpleKeys.empty())
+			return;
+		
+		// grab top key
+		SimpleKey& key = m_simpleKeys.top();
+		if(key.flowLevel != GetFlowLevel())
+			return;
+		
+		key.Invalidate();
+		m_simpleKeys.pop();
+	}
+
+	// VerifySimpleKey
+	// . Determines whether the latest simple key to be added is valid,
+	//   and if so, makes it valid.
+	bool Scanner::VerifySimpleKey()
+	{
+		if(m_simpleKeys.empty())
+			return false;
+
+		// grab top key
+		SimpleKey key = m_simpleKeys.top();
+
+		// only validate if we're in the correct flow level
+		if(key.flowLevel != GetFlowLevel())
+			return false;
+
+		m_simpleKeys.pop();
+
+		bool isValid = true;
+
+		// needs to be less than 1024 characters and inline
+		if(INPUT.line() != key.mark.line || INPUT.pos() - key.mark.pos > 1024)
+			isValid = false;
+
+		// invalidate key
+		if(isValid)
+			key.Validate();
+		else
+			key.Invalidate();
+
+		return isValid;
+	}
+
+	void Scanner::PopAllSimpleKeys()
+	{
+		while(!m_simpleKeys.empty())
+			m_simpleKeys.pop();
+	}
+}
+
+#include "singledocparser.h"
+#include "collectionstack.h"
+#include "directives.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/exceptions.h"
+#include "scanner.h"
+#include "tag.h"
+#include "token.h"
+#include <sstream>
+#include <cstdio>
+#include <algorithm>
+
+namespace YAML
+{
+	SingleDocParser::SingleDocParser(Scanner& scanner, const Directives& directives): m_scanner(scanner), m_directives(directives), m_pCollectionStack(new CollectionStack), m_curAnchor(0)
+	{
+	}
+
+	SingleDocParser::~SingleDocParser()
+	{
+	}
+
+	// HandleDocument
+	// . Handles the next document
+	// . Throws a ParserException on error.
+	void SingleDocParser::HandleDocument(EventHandler& eventHandler)
+	{
+		assert(!m_scanner.empty()); // guaranteed that there are tokens
+		assert(!m_curAnchor);
+
+		eventHandler.OnDocumentStart(m_scanner.peek().mark);
+		
+		// eat doc start
+		if(m_scanner.peek().type == Token::DOC_START)
+			m_scanner.pop();
+		
+		// recurse!
+		HandleNode(eventHandler);
+		
+		eventHandler.OnDocumentEnd();
+		
+		// and finally eat any doc ends we see
+		while(!m_scanner.empty() && m_scanner.peek().type == Token::DOC_END)
+			m_scanner.pop();
+	}
+	
+	void SingleDocParser::HandleNode(EventHandler& eventHandler)
+	{
+		// an empty node *is* a possibility
+		if(m_scanner.empty()) {
+			eventHandler.OnNull(m_scanner.mark(), NullAnchor);
+			return;
+		}
+		
+		// save location
+		Mark mark = m_scanner.peek().mark;
+		
+		// special case: a value node by itself must be a map, with no header
+		if(m_scanner.peek().type == Token::VALUE) {
+			eventHandler.OnMapStart(mark, "?", NullAnchor);
+			HandleMap(eventHandler);
+			eventHandler.OnMapEnd();
+			return;
+		}
+		
+		// special case: an alias node
+		if(m_scanner.peek().type == Token::ALIAS) {
+			eventHandler.OnAlias(mark, LookupAnchor(mark, m_scanner.peek().value));
+			m_scanner.pop();
+			return;
+		}
+		
+		std::string tag;
+		anchor_t anchor;
+		ParseProperties(tag, anchor);
+		
+		const Token& token = m_scanner.peek();
+
+        if(token.type == Token::PLAIN_SCALAR && token.value == "null") {
+            eventHandler.OnNull(mark, anchor);
+            m_scanner.pop();
+            return;
+        }
+		
+		// add non-specific tags
+		if(tag.empty())
+			tag = (token.type == Token::NON_PLAIN_SCALAR ? "!" : "?");
+		
+		// now split based on what kind of node we should be
+		switch(token.type) {
+			case Token::PLAIN_SCALAR:
+			case Token::NON_PLAIN_SCALAR:
+				eventHandler.OnScalar(mark, tag, anchor, token.value);
+				m_scanner.pop();
+				return;
+			case Token::FLOW_SEQ_START:
+			case Token::BLOCK_SEQ_START:
+				eventHandler.OnSequenceStart(mark, tag, anchor);
+				HandleSequence(eventHandler);
+				eventHandler.OnSequenceEnd();
+				return;
+			case Token::FLOW_MAP_START:
+			case Token::BLOCK_MAP_START:
+				eventHandler.OnMapStart(mark, tag, anchor);
+				HandleMap(eventHandler);
+				eventHandler.OnMapEnd();
+				return;
+			case Token::KEY:
+				// compact maps can only go in a flow sequence
+				if(m_pCollectionStack->GetCurCollectionType() == CollectionType::FlowSeq) {
+					eventHandler.OnMapStart(mark, tag, anchor);
+					HandleMap(eventHandler);
+					eventHandler.OnMapEnd();
+					return;
+				}
+				break;
+			default:
+				break;
+		}
+		
+		if(tag == "?")
+			eventHandler.OnNull(mark, anchor);
+		else
+			eventHandler.OnScalar(mark, tag, anchor, "");
+	}
+	
+	void SingleDocParser::HandleSequence(EventHandler& eventHandler)
+	{
+		// split based on start token
+		switch(m_scanner.peek().type) {
+			case Token::BLOCK_SEQ_START: HandleBlockSequence(eventHandler); break;
+			case Token::FLOW_SEQ_START: HandleFlowSequence(eventHandler); break;
+			default: break;
+		}
+	}
+	
+	void SingleDocParser::HandleBlockSequence(EventHandler& eventHandler)
+	{
+		// eat start token
+		m_scanner.pop();
+		m_pCollectionStack->PushCollectionType(CollectionType::BlockSeq);
+		
+		while(1) {
+			if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_SEQ);
+			
+			Token token = m_scanner.peek();
+			if(token.type != Token::BLOCK_ENTRY && token.type != Token::BLOCK_SEQ_END)
+				throw ParserException(token.mark, ErrorMsg::END_OF_SEQ);
+			
+			m_scanner.pop();
+			if(token.type == Token::BLOCK_SEQ_END)
+				break;
+			
+			// check for null
+			if(!m_scanner.empty()) {
+				const Token& token = m_scanner.peek();
+				if(token.type == Token::BLOCK_ENTRY || token.type == Token::BLOCK_SEQ_END) {
+					eventHandler.OnNull(token.mark, NullAnchor);
+					continue;
+				}
+			}
+			
+			HandleNode(eventHandler);
+		}
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::BlockSeq);
+	}
+	
+	void SingleDocParser::HandleFlowSequence(EventHandler& eventHandler)
+	{
+		// eat start token
+		m_scanner.pop();
+		m_pCollectionStack->PushCollectionType(CollectionType::FlowSeq);
+		
+		while(1) {
+			if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_SEQ_FLOW);
+			
+			// first check for end
+			if(m_scanner.peek().type == Token::FLOW_SEQ_END) {
+				m_scanner.pop();
+				break;
+			}
+			
+			// then read the node
+			HandleNode(eventHandler);
+            
+            if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_SEQ_FLOW);
+			
+			// now eat the separator (or could be a sequence end, which we ignore - but if it's neither, then it's a bad node)
+			Token& token = m_scanner.peek();
+			if(token.type == Token::FLOW_ENTRY)
+				m_scanner.pop();
+			else if(token.type != Token::FLOW_SEQ_END)
+				throw ParserException(token.mark, ErrorMsg::END_OF_SEQ_FLOW);
+		}
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::FlowSeq);
+	}
+	
+	void SingleDocParser::HandleMap(EventHandler& eventHandler)
+	{
+		// split based on start token
+		switch(m_scanner.peek().type) {
+			case Token::BLOCK_MAP_START: HandleBlockMap(eventHandler); break;
+			case Token::FLOW_MAP_START: HandleFlowMap(eventHandler); break;
+			case Token::KEY: HandleCompactMap(eventHandler); break;
+			case Token::VALUE: HandleCompactMapWithNoKey(eventHandler); break;
+			default: break;
+		}
+	}
+	
+	void SingleDocParser::HandleBlockMap(EventHandler& eventHandler)
+	{
+		// eat start token
+		m_scanner.pop();
+		m_pCollectionStack->PushCollectionType(CollectionType::BlockMap);
+		
+		while(1) {
+			if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_MAP);
+			
+			Token token = m_scanner.peek();
+			if(token.type != Token::KEY && token.type != Token::VALUE && token.type != Token::BLOCK_MAP_END)
+				throw ParserException(token.mark, ErrorMsg::END_OF_MAP);
+			
+			if(token.type == Token::BLOCK_MAP_END) {
+				m_scanner.pop();
+				break;
+			}
+			
+			// grab key (if non-null)
+			if(token.type == Token::KEY) {
+				m_scanner.pop();
+				HandleNode(eventHandler);
+			} else {
+				eventHandler.OnNull(token.mark, NullAnchor);
+			}
+			
+			// now grab value (optional)
+			if(!m_scanner.empty() && m_scanner.peek().type == Token::VALUE) {
+				m_scanner.pop();
+				HandleNode(eventHandler);
+			} else {
+				eventHandler.OnNull(token.mark, NullAnchor);
+			}
+		}
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::BlockMap);
+	}
+	
+	void SingleDocParser::HandleFlowMap(EventHandler& eventHandler)
+	{
+		// eat start token
+		m_scanner.pop();
+		m_pCollectionStack->PushCollectionType(CollectionType::FlowMap);
+		
+		while(1) {
+			if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_MAP_FLOW);
+			
+			Token& token = m_scanner.peek();
+            const Mark mark = token.mark;
+			// first check for end
+			if(token.type == Token::FLOW_MAP_END) {
+				m_scanner.pop();
+				break;
+			}
+			
+			// grab key (if non-null)
+			if(token.type == Token::KEY) {
+				m_scanner.pop();
+				HandleNode(eventHandler);
+			} else {
+				eventHandler.OnNull(mark, NullAnchor);
+			}
+			
+			// now grab value (optional)
+			if(!m_scanner.empty() && m_scanner.peek().type == Token::VALUE) {
+				m_scanner.pop();
+				HandleNode(eventHandler);
+			} else {
+				eventHandler.OnNull(mark, NullAnchor);
+			}
+            
+            if(m_scanner.empty())
+				throw ParserException(m_scanner.mark(), ErrorMsg::END_OF_MAP_FLOW);
+			
+			// now eat the separator (or could be a map end, which we ignore - but if it's neither, then it's a bad node)
+			Token& nextToken = m_scanner.peek();
+			if(nextToken.type == Token::FLOW_ENTRY)
+				m_scanner.pop();
+			else if(nextToken.type != Token::FLOW_MAP_END)
+				throw ParserException(nextToken.mark, ErrorMsg::END_OF_MAP_FLOW);
+		}
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::FlowMap);
+	}
+	
+	// . Single "key: value" pair in a flow sequence
+	void SingleDocParser::HandleCompactMap(EventHandler& eventHandler)
+	{
+		m_pCollectionStack->PushCollectionType(CollectionType::CompactMap);
+		
+		// grab key
+		Mark mark = m_scanner.peek().mark;
+		m_scanner.pop();
+		HandleNode(eventHandler);
+		
+		// now grab value (optional)
+		if(!m_scanner.empty() && m_scanner.peek().type == Token::VALUE) {
+			m_scanner.pop();
+			HandleNode(eventHandler);
+		} else {
+			eventHandler.OnNull(mark, NullAnchor);
+		}
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::CompactMap);
+	}
+	
+	// . Single ": value" pair in a flow sequence
+	void SingleDocParser::HandleCompactMapWithNoKey(EventHandler& eventHandler)
+	{
+		m_pCollectionStack->PushCollectionType(CollectionType::CompactMap);
+		
+		// null key
+		eventHandler.OnNull(m_scanner.peek().mark, NullAnchor);
+		
+		// grab value
+		m_scanner.pop();
+		HandleNode(eventHandler);
+		
+		m_pCollectionStack->PopCollectionType(CollectionType::CompactMap);
+	}
+	
+	// ParseProperties
+	// . Grabs any tag or anchor tokens and deals with them.
+	void SingleDocParser::ParseProperties(std::string& tag, anchor_t& anchor)
+	{
+		tag.clear();
+		anchor = NullAnchor;
+		
+		while(1) {
+			if(m_scanner.empty())
+				return;
+			
+			switch(m_scanner.peek().type) {
+				case Token::TAG: ParseTag(tag); break;
+				case Token::ANCHOR: ParseAnchor(anchor); break;
+				default: return;
+			}
+		}
+	}
+	
+	void SingleDocParser::ParseTag(std::string& tag)
+	{
+		Token& token = m_scanner.peek();
+		if(!tag.empty())
+			throw ParserException(token.mark, ErrorMsg::MULTIPLE_TAGS);
+		
+		Tag tagInfo(token);
+		tag = tagInfo.Translate(m_directives);
+		m_scanner.pop();
+	}
+	
+	void SingleDocParser::ParseAnchor(anchor_t& anchor)
+	{
+		Token& token = m_scanner.peek();
+		if(anchor)
+			throw ParserException(token.mark, ErrorMsg::MULTIPLE_ANCHORS);
+		
+		anchor = RegisterAnchor(token.value);
+		m_scanner.pop();
+	}
+	
+	anchor_t SingleDocParser::RegisterAnchor(const std::string& name)
+	{
+		if(name.empty())
+			return NullAnchor;
+		
+		return m_anchors[name] = ++m_curAnchor;
+	}
+	
+	anchor_t SingleDocParser::LookupAnchor(const Mark& mark, const std::string& name) const
+	{
+		Anchors::const_iterator it = m_anchors.find(name);
+		if(it == m_anchors.end())
+			throw ParserException(mark, ErrorMsg::UNKNOWN_ANCHOR);
+		
+		return it->second;
+	}
+}
+#include "stream.h"
+#include <iostream>
+#include "exp.h"
+
+#ifndef YAML_PREFETCH_SIZE
+#define YAML_PREFETCH_SIZE 2048
+#endif
+
+#define S_ARRAY_SIZE( A ) (sizeof(A)/sizeof(*(A)))
+#define S_ARRAY_END( A ) ((A) + S_ARRAY_SIZE(A))
+
+#define CP_REPLACEMENT_CHARACTER (0xFFFD)
+
+namespace YAML
+{
+	enum UtfIntroState {
+		uis_start,
+		uis_utfbe_b1,
+		uis_utf32be_b2,
+		uis_utf32be_bom3,
+		uis_utf32be,
+		uis_utf16be,
+		uis_utf16be_bom1,
+		uis_utfle_bom1,
+		uis_utf16le_bom2,
+		uis_utf32le_bom3,
+		uis_utf16le,
+		uis_utf32le,
+		uis_utf8_imp,
+		uis_utf16le_imp,
+		uis_utf32le_imp3,
+		uis_utf8_bom1,
+		uis_utf8_bom2,
+		uis_utf8,
+		uis_error
+	};
+
+	enum UtfIntroCharType {
+		uict00,
+		uictBB,
+		uictBF,
+		uictEF,
+		uictFE,
+		uictFF,
+		uictAscii,
+		uictOther,
+		uictMax
+	};
+
+	static bool s_introFinalState[] = {
+		false, //uis_start
+		false, //uis_utfbe_b1
+		false, //uis_utf32be_b2
+		false, //uis_utf32be_bom3
+		true,  //uis_utf32be
+		true,  //uis_utf16be
+		false, //uis_utf16be_bom1
+		false, //uis_utfle_bom1
+		false, //uis_utf16le_bom2
+		false, //uis_utf32le_bom3
+		true,  //uis_utf16le
+		true,  //uis_utf32le
+		false, //uis_utf8_imp
+		false, //uis_utf16le_imp
+		false, //uis_utf32le_imp3
+		false, //uis_utf8_bom1
+		false, //uis_utf8_bom2
+		true,  //uis_utf8
+		true,  //uis_error
+	};
+
+	static UtfIntroState s_introTransitions[][uictMax] = {
+		// uict00,           uictBB,           uictBF,           uictEF,           uictFE,           uictFF,           uictAscii,        uictOther
+		  {uis_utfbe_b1,     uis_utf8,         uis_utf8,         uis_utf8_bom1,    uis_utf16be_bom1, uis_utfle_bom1,   uis_utf8_imp,     uis_utf8},
+		  {uis_utf32be_b2,   uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf16be,      uis_utf8},
+		  {uis_utf32be,      uis_utf8,         uis_utf8,         uis_utf8,         uis_utf32be_bom3, uis_utf8,         uis_utf8,         uis_utf8},
+		  {uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf32be,      uis_utf8,         uis_utf8},
+		  {uis_utf32be,      uis_utf32be,      uis_utf32be,      uis_utf32be,      uis_utf32be,      uis_utf32be,      uis_utf32be,      uis_utf32be},
+		  {uis_utf16be,      uis_utf16be,      uis_utf16be,      uis_utf16be,      uis_utf16be,      uis_utf16be,      uis_utf16be,      uis_utf16be},
+		  {uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf16be,      uis_utf8,         uis_utf8},
+		  {uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf16le_bom2, uis_utf8,         uis_utf8,         uis_utf8},
+		  {uis_utf32le_bom3, uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le},
+		  {uis_utf32le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le},
+		  {uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le},
+		  {uis_utf32le,      uis_utf32le,      uis_utf32le,      uis_utf32le,      uis_utf32le,      uis_utf32le,      uis_utf32le,      uis_utf32le},
+		  {uis_utf16le_imp,  uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8},
+		  {uis_utf32le_imp3, uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le},
+		  {uis_utf32le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le,      uis_utf16le},
+		  {uis_utf8,         uis_utf8_bom2,    uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8},
+		  {uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8},
+		  {uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8,         uis_utf8},
+	};
+
+	static char s_introUngetCount[][uictMax] = {
+		// uict00, uictBB, uictBF, uictEF, uictFE, uictFF, uictAscii, uictOther
+		  {0,      1,      1,      0,      0,      0,      0,         1},
+		  {0,      2,      2,      2,      2,      2,      2,         2},
+		  {3,      3,      3,      3,      0,      3,      3,         3},
+		  {4,      4,      4,      4,      4,      0,      4,         4},
+		  {1,      1,      1,      1,      1,      1,      1,         1},
+		  {1,      1,      1,      1,      1,      1,      1,         1},
+		  {2,      2,      2,      2,      2,      0,      2,         2},
+		  {2,      2,      2,      2,      0,      2,      2,         2},
+		  {0,      1,      1,      1,      1,      1,      1,         1},
+		  {0,      2,      2,      2,      2,      2,      2,         2},
+		  {1,      1,      1,      1,      1,      1,      1,         1},
+		  {1,      1,      1,      1,      1,      1,      1,         1},
+		  {0,      2,      2,      2,      2,      2,      2,         2},
+		  {0,      3,      3,      3,      3,      3,      3,         3},
+		  {4,      4,      4,      4,      4,      4,      4,         4},
+		  {2,      0,      2,      2,      2,      2,      2,         2},
+		  {3,      3,      0,      3,      3,      3,      3,         3},
+		  {1,      1,      1,      1,      1,      1,      1,         1},
+	};
+
+	inline UtfIntroCharType IntroCharTypeOf(std::istream::int_type ch)
+	{
+		if (std::istream::traits_type::eof() == ch) {
+			return uictOther;
+		}
+
+		switch (ch) {
+		case 0: return uict00;
+		case 0xBB: return uictBB;
+		case 0xBF: return uictBF;
+		case 0xEF: return uictEF;
+		case 0xFE: return uictFE;
+		case 0xFF: return uictFF;
+		}
+
+		if ((ch > 0) && (ch < 0xFF)) {
+			return uictAscii;
+		}
+
+		return uictOther;
+	}
+
+	inline char Utf8Adjust(unsigned long ch, unsigned char lead_bits, unsigned char rshift)
+	{
+		const unsigned char header = ((1 << lead_bits) - 1) << (8 - lead_bits);
+		const unsigned char mask = (0xFF >> (lead_bits + 1));
+		return static_cast<char>(static_cast<unsigned char>(
+			header | ((ch >> rshift) & mask)
+			));
+	}
+
+	inline void QueueUnicodeCodepoint(std::deque<char>& q, unsigned long ch)
+	{
+		// We are not allowed to queue the Stream::eof() codepoint, so
+		// replace it with CP_REPLACEMENT_CHARACTER
+		if (static_cast<unsigned long>(Stream::eof()) == ch)
+		{
+			ch = CP_REPLACEMENT_CHARACTER;
+		}
+
+		if (ch < 0x80)
+		{
+			q.push_back(Utf8Adjust(ch, 0, 0));
+		}
+		else if (ch < 0x800)
+		{
+			q.push_back(Utf8Adjust(ch, 2, 6));
+			q.push_back(Utf8Adjust(ch, 1, 0));
+		}
+		else if (ch < 0x10000)
+		{
+			q.push_back(Utf8Adjust(ch, 3, 12));
+			q.push_back(Utf8Adjust(ch, 1, 6));
+			q.push_back(Utf8Adjust(ch, 1, 0));
+		}
+		else
+		{
+			q.push_back(Utf8Adjust(ch, 4, 18));
+			q.push_back(Utf8Adjust(ch, 1, 12));
+			q.push_back(Utf8Adjust(ch, 1, 6));
+			q.push_back(Utf8Adjust(ch, 1, 0));
+		}
+	}
+
+	Stream::Stream(std::istream& input)
+		: m_input(input),
+		m_pPrefetched(new unsigned char[YAML_PREFETCH_SIZE]), 
+		m_nPrefetchedAvailable(0), m_nPrefetchedUsed(0)
+	{
+		typedef std::istream::traits_type char_traits;
+
+		if(!input)
+			return;
+
+		// Determine (or guess) the character-set by reading the BOM, if any.  See
+		// the YAML specification for the determination algorithm.
+		char_traits::int_type intro[4];
+		int nIntroUsed = 0;
+		UtfIntroState state = uis_start;
+		for(; !s_introFinalState[state]; ) {
+			std::istream::int_type ch = input.get();
+			intro[nIntroUsed++] = ch;
+			UtfIntroCharType charType = IntroCharTypeOf(ch);
+			UtfIntroState newState = s_introTransitions[state][charType];
+			int nUngets = s_introUngetCount[state][charType];
+			if(nUngets > 0) {
+				input.clear();
+				for(; nUngets > 0; --nUngets) {
+					if(char_traits::eof() != intro[--nIntroUsed])
+						input.putback(char_traits::to_char_type(intro[nIntroUsed]));
+				}
+			}
+			state = newState;
+		}
+
+		switch (state) {
+		case uis_utf8: m_charSet = utf8; break;
+		case uis_utf16le: m_charSet = utf16le; break;
+		case uis_utf16be: m_charSet = utf16be; break;
+		case uis_utf32le: m_charSet = utf32le; break;
+		case uis_utf32be: m_charSet = utf32be; break;
+		default: m_charSet = utf8; break;
+		}
+
+		ReadAheadTo(0);
+	}
+
+	Stream::~Stream()
+	{
+		delete[] m_pPrefetched;
+	}
+
+	char Stream::peek() const
+	{
+		if (m_readahead.empty())
+		{
+			return Stream::eof();
+		}
+
+		return m_readahead[0];
+	}
+	
+	Stream::operator bool() const
+	{
+		return m_input.good() || (!m_readahead.empty() && m_readahead[0] != Stream::eof());
+	}
+
+	// get
+	// . Extracts a character from the stream and updates our position
+	char Stream::get()
+	{
+		char ch = peek();
+		AdvanceCurrent();
+		m_mark.column++;
+		
+		if(ch == '\n') {
+			m_mark.column = 0;
+			m_mark.line++;
+		}
+		
+		return ch;
+	}
+
+	// get
+	// . Extracts 'n' characters from the stream and updates our position
+	std::string Stream::get(int n)
+	{
+		std::string ret;
+		ret.reserve(n);
+		for(int i=0;i<n;i++)
+			ret += get();
+		return ret;
+	}
+
+	// eat
+	// . Eats 'n' characters and updates our position.
+	void Stream::eat(int n)
+	{
+		for(int i=0;i<n;i++)
+			get();
+	}
+
+	void Stream::AdvanceCurrent()
+	{
+		if (!m_readahead.empty())
+		{
+			m_readahead.pop_front();
+			m_mark.pos++;
+		}
+
+		ReadAheadTo(0);
+	}
+
+	bool Stream::_ReadAheadTo(size_t i) const
+	{
+		while (m_input.good() && (m_readahead.size() <= i))
+		{
+			switch (m_charSet)
+			{
+			case utf8: StreamInUtf8(); break;
+			case utf16le: StreamInUtf16(); break;
+			case utf16be: StreamInUtf16(); break;
+			case utf32le: StreamInUtf32(); break;
+			case utf32be: StreamInUtf32(); break;
+			}
+		}
+		
+		// signal end of stream
+		if(!m_input.good())
+			m_readahead.push_back(Stream::eof());
+
+		return m_readahead.size() > i;
+	}
+
+	void Stream::StreamInUtf8() const
+	{
+		unsigned char b = GetNextByte();
+		if (m_input.good())
+		{
+			m_readahead.push_back(b);
+		}
+	}
+
+	void Stream::StreamInUtf16() const
+	{
+		unsigned long ch = 0;
+		unsigned char bytes[2];
+		int nBigEnd = (m_charSet == utf16be) ? 0 : 1;
+
+		bytes[0] = GetNextByte();
+		bytes[1] = GetNextByte();
+		if (!m_input.good())
+		{
+			return;
+		}
+		ch = (static_cast<unsigned long>(bytes[nBigEnd]) << 8) |
+			static_cast<unsigned long>(bytes[1 ^ nBigEnd]);
+
+		if (ch >= 0xDC00 && ch < 0xE000)
+		{
+			// Trailing (low) surrogate...ugh, wrong order
+			QueueUnicodeCodepoint(m_readahead, CP_REPLACEMENT_CHARACTER);
+			return;
+		}
+		else if (ch >= 0xD800 && ch < 0xDC00)
+		{
+			// ch is a leading (high) surrogate
+
+			// Four byte UTF-8 code point
+
+			// Read the trailing (low) surrogate
+			for (;;)
+			{
+				bytes[0] = GetNextByte();
+				bytes[1] = GetNextByte();
+				if (!m_input.good())
+				{
+					QueueUnicodeCodepoint(m_readahead, CP_REPLACEMENT_CHARACTER);
+					return;
+				}
+				unsigned long chLow = (static_cast<unsigned long>(bytes[nBigEnd]) << 8) |
+					static_cast<unsigned long>(bytes[1 ^ nBigEnd]);
+				if (chLow < 0xDC00 || ch >= 0xE000)
+				{
+					// Trouble...not a low surrogate.  Dump a REPLACEMENT CHARACTER into the stream.
+					QueueUnicodeCodepoint(m_readahead, CP_REPLACEMENT_CHARACTER);
+
+					// Deal with the next UTF-16 unit
+					if (chLow < 0xD800 || ch >= 0xE000)
+					{
+						// Easiest case: queue the codepoint and return
+						QueueUnicodeCodepoint(m_readahead, ch);
+						return;
+					}
+					else
+					{
+						// Start the loop over with the new high surrogate
+						ch = chLow;
+						continue;
+					}
+				}
+
+				// Select the payload bits from the high surrogate
+				ch &= 0x3FF;
+				ch <<= 10;
+
+				// Include bits from low surrogate
+				ch |= (chLow & 0x3FF);
+
+				// Add the surrogacy offset
+				ch += 0x10000;
+			}
+		}
+
+		QueueUnicodeCodepoint(m_readahead, ch);
+	}
+
+	inline char* ReadBuffer(unsigned char* pBuffer)
+	{
+		return reinterpret_cast<char*>(pBuffer);
+	}
+
+	unsigned char Stream::GetNextByte() const
+	{
+		if (m_nPrefetchedUsed >= m_nPrefetchedAvailable)
+		{
+			std::streambuf *pBuf = m_input.rdbuf();
+			m_nPrefetchedAvailable = static_cast<std::size_t>(pBuf->sgetn(ReadBuffer(m_pPrefetched), YAML_PREFETCH_SIZE));
+			m_nPrefetchedUsed = 0;
+			if (!m_nPrefetchedAvailable)
+			{
+				m_input.setstate(std::ios_base::eofbit);
+			}
+
+			if (0 == m_nPrefetchedAvailable)
+			{
+				return 0;
+			}
+		}
+
+		return m_pPrefetched[m_nPrefetchedUsed++];
+	}
+
+	void Stream::StreamInUtf32() const
+	{
+		static int indexes[2][4] = {
+			{3, 2, 1, 0},
+			{0, 1, 2, 3}
+		};
+
+		unsigned long ch = 0;
+		unsigned char bytes[4];
+		int* pIndexes = (m_charSet == utf32be) ? indexes[1] : indexes[0];
+
+		bytes[0] = GetNextByte();
+		bytes[1] = GetNextByte();
+		bytes[2] = GetNextByte();
+		bytes[3] = GetNextByte();
+		if (!m_input.good())
+		{
+			return;
+		}
+
+		for (int i = 0; i < 4; ++i)
+		{
+			ch <<= 8;
+			ch |= bytes[pIndexes[i]];
+		}
+
+		QueueUnicodeCodepoint(m_readahead, ch);
+	}
+}
+#include "tag.h"
+#include "directives.h"
+#include "token.h"
+#include <cassert>
+#include <stdexcept>
+
+namespace YAML
+{
+	Tag::Tag(const Token& token): type(static_cast<TYPE>(token.data))
+	{
+		switch(type) {
+			case VERBATIM:
+				value = token.value;
+				break;
+			case PRIMARY_HANDLE:
+				value = token.value;
+				break;
+			case SECONDARY_HANDLE:
+				value = token.value;
+				break;
+			case NAMED_HANDLE:
+				handle = token.value;
+				value = token.params[0];
+				break;
+			case NON_SPECIFIC:
+				break;
+			default:
+				assert(false);
+		}
+	}
+
+	const std::string Tag::Translate(const Directives& directives)
+	{
+		switch(type) {
+			case VERBATIM:
+				return value;
+			case PRIMARY_HANDLE:
+				return directives.TranslateTagHandle("!") + value;
+			case SECONDARY_HANDLE:
+				return directives.TranslateTagHandle("!!") + value;
+			case NAMED_HANDLE:
+				return directives.TranslateTagHandle("!" + handle + "!") + value;
+			case NON_SPECIFIC:
+				// TODO:
+				return "!";
+			default:
+				assert(false);
+		}
+		throw std::runtime_error("yaml-cpp: internal error, bad tag type");
+	}
+}
+

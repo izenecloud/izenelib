@@ -19,7 +19,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class BitVector;
+class Bitset;
 class SkipListReader;
 class OutputDescriptor;
 
@@ -64,7 +64,7 @@ public:
 
     count_t getPPostingLen();
 
-    void setFilter(BitVector* pFilter)
+    void setFilter(Bitset* pFilter)
     {
         pDocFilter_ = pFilter;
     }
@@ -152,7 +152,7 @@ protected:
     TermInfo termInfo_;
     DecodeState* pDS_;			///decoding state
     SkipListReader* pSkipListReader_; ///skiplist reader
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
     friend class PostingMerger;
 };
 
@@ -317,7 +317,7 @@ public:
         return postingDesc_.plength;
     }
 
-    void setFilter(BitVector* pFilter)
+    void setFilter(Bitset* pFilter)
     {
         pDocFilter_ = pFilter;
     }
@@ -340,7 +340,7 @@ protected:
     boost::scoped_ptr<InputDescriptor> inputDescriptorPtr_;
     RTDiskPostingReader::DecodeState ds_;
     boost::scoped_ptr<SkipListReader> skipListReaderPtr_; ///skiplist reader
-    BitVector* pDocFilter_;
+    Bitset* pDocFilter_;
 
     friend class PostingMerger;
 };

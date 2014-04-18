@@ -29,7 +29,7 @@ public:
     /** Check document length. */
     void checkDocLength() {
         VLOG(2) << "=> IndexReaderTestFixture::checkDocLength()";
-        
+
         IndexReader* pIndexReader = indexer_->getIndexReader();
        if(!indexer_->isRealTime())
        {
@@ -49,12 +49,12 @@ public:
         VLOG(2) << "<= IndexReaderTestFixture::checkDocLength()";
     }
 
-    /** Check @c BitVector, it is used to record which doc is removed. */
+    /** Check @c Bitset, it is used to record which doc is removed. */
     void checkDocFilter() {
         VLOG(2) << "=> IndexReaderTestFixture::checkDocFilter()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
-        BitVector* pDocFilter = pIndexReader->getDocFilter();
+        Bitset* pDocFilter = pIndexReader->getDocFilter();
         Directory* pDirectory = indexer_->getDirectory();
 
         // no doc is deleted
@@ -62,16 +62,16 @@ public:
         {
             // file "docs.del" should not exist
             BOOST_CHECK(! pDirectory->fileExists(DELETED_DOCS));
-            // BitVector instance should not be created
+            // Bitset instance should not be created
             BOOST_CHECK(pDocFilter == NULL);
         }
         else
         {
             // file "docs.del" should exist
             BOOST_CHECK(pDirectory->fileExists(DELETED_DOCS));
-            // BitVector instance should be created
+            // Bitset instance should be created
             BOOST_CHECK(pDocFilter != NULL);
-            // BitVector size should be <= (maxDocID + 4), in case of BitVector::grow()
+            // Bitset size should be <= (maxDocID + 4), in case of Bitset::grow()
             BOOST_CHECK_GT(pDocFilter->size(), 0U);
             BOOST_CHECK_LE(pDocFilter->size(), getMaxDocID() + 4);
         }

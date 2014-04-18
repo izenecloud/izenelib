@@ -6,6 +6,8 @@
 *.swp
 *.swo
 .svn
+.hg
+.hgignore
 tags
 TAGS
 dump
@@ -18,7 +20,8 @@ dump.*
 *.out
 cscope.files
 /cmake
-/testbin/*
+/testbin
+/bin
 !/testbin/r_IndexStats.config
 help
 *.save
@@ -29,6 +32,7 @@ help
 /cmake.yml
 /build
 /pkg
+/lib
 /include/izenelib-version.h
 /nbproject
 *.diff

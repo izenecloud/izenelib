@@ -38,26 +38,26 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
   ADD_DEFINITIONS("-fopenmp -Wunused-variable")
   ADD_EXECUTABLE(t_am ${t_am_SRC})
   TARGET_LINK_LIBRARIES(t_am
-   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-   ${Boost_SYSTEM_LIBRARY}
-   ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}
-   ${Boost_IOSTREAMS_LIBRARY}
-   am
-   izene_util
-   bz2
-   ${Glog_LIBRARIES}
-   febird
-   procmeminfo
-   luxio
-   izene_log
-   ${TokyoCabinet_LIBRARIES}
-   ${Toku_LIBS}
-   compressor
-   leveldb
-   snappy
-   jemalloc
-   gomp
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_IOSTREAMS_LIBRARY}
+    am
+    febird
+    izene_util
+    bz2
+    ${Glog_LIBRARIES}
+    procmeminfo
+    luxio
+    izene_log
+    ${TokyoCabinet_LIBRARIES}
+    ${Toku_LIBS}
+    compressor
+    leveldb
+    jemalloc
+    gomp
+    pthread
     )
 
   FILE(GLOB_RECURSE
@@ -69,17 +69,17 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 
   ADD_EXECUTABLE(t_succinct ${t_succinct_SRC})
   TARGET_LINK_LIBRARIES(t_succinct
-   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-   ${Boost_SYSTEM_LIBRARY}
-   ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}
-   ${Boost_IOSTREAMS_LIBRARY}
-   am
-   febird
-   izene_util
-   bz2
-   jemalloc
-   ${Glog_LIBRARIES}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_IOSTREAMS_LIBRARY}
+    am
+    febird
+    izene_util
+    bz2
+    jemalloc
+    ${Glog_LIBRARIES}
     )
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
@@ -87,7 +87,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${CMAKE_THREAD_LIBS_INIT}
     am
     compressor
-    snappy
     febird
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
@@ -96,12 +95,13 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Glog_LIBRARIES}
     )
 
- ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
+  ADD_EXECUTABLE(t_app approximate_matching/t_app.cpp)
   TARGET_LINK_LIBRARIES(t_app
-   ${Boost_LIBRARIES}
-   am
-   izene_util
-   ${Glog_LIBRARIES}
+    ${Boost_LIBRARIES}
+    am
+    febird
+    izene_util
+    ${Glog_LIBRARIES}
     )
 
 ENDIF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
@@ -113,11 +113,32 @@ ADD_EXECUTABLE(t_izenesort
 
 TARGET_LINK_LIBRARIES(t_izenesort
   am
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Glog_LIBRARIES}
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Glog_LIBRARIES}
+  febird
+  )
+
+ADD_EXECUTABLE(t_line_reader
+  Runner.cpp
+  util/t_line_reader.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_line_reader
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  )
+
+ADD_EXECUTABLE(t_khashtable
+  Runner.cpp
+  hashtable/t_khashtable.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_khashtable
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   )
 
 ADD_EXECUTABLE(t_hashtable
@@ -127,11 +148,11 @@ ADD_EXECUTABLE(t_hashtable
 
 TARGET_LINK_LIBRARIES(t_hashtable
   am
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Glog_LIBRARIES}
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Glog_LIBRARIES}
   )
 
 ADD_EXECUTABLE(t_matrix
@@ -140,21 +161,21 @@ ADD_EXECUTABLE(t_matrix
   )
 
 TARGET_LINK_LIBRARIES(t_matrix
-    am
-   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-   ${Boost_SYSTEM_LIBRARY}
-   ${Boost_FILESYSTEM_LIBRARY}
-   ${Boost_THREAD_LIBRARY}
-   ${Boost_IOSTREAMS_LIBRARY}
-   ${TokyoCabinet_LIBRARIES}
-   ${Boost_LIBRARIES}
-   ${Glog_LIBRARIES}
-   febird
-   procmeminfo
-   izene_log
-   leveldb
-   snappy
-   izene_util
+  am
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_IOSTREAMS_LIBRARY}
+  ${TokyoCabinet_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
+  febird
+  procmeminfo
+  izene_log
+  leveldb
+  compressor
+  izene_util
   )
 
 ADD_EXECUTABLE(t_matrix_cache
@@ -175,17 +196,18 @@ ADD_EXECUTABLE(t_bitmap
 
 TARGET_LINK_LIBRARIES(t_bitmap
   am
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${TokyoCabinet_LIBRARIES}
-    ${Glog_LIBRARIES}
-   febird
-   procmeminfo
-   izene_log
-   leveldb
-   snappy
-   izene_util
-   luxio
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${TokyoCabinet_LIBRARIES}
+  ${Glog_LIBRARIES}
+  febird
+  procmeminfo
+  izene_log
+  leveldb
+  compressor
+  izene_util
+  luxio
+  index_manager
   )

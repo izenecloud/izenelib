@@ -22,6 +22,7 @@
 
 #include <am/succinct/constants.hpp>
 
+#include <boost/shared_array.hpp>
 #include <vector>
 #include <iostream>
 
@@ -32,8 +33,6 @@ namespace succinct
 {
 namespace rsdic
 {
-
-typedef uint64_t rsdic_uint; // use uint64_t for bitvec >= 4GB
 
 class RSDic
 {
@@ -64,17 +63,17 @@ public:
         return support_select_;
     }
 
-    rsdic_uint num() const
+    size_t num() const
     {
         return num_;
     }
 
-    rsdic_uint one_num() const
+    size_t one_num() const
     {
         return one_num_;
     }
 
-    rsdic_uint zero_num() const
+    size_t zero_num() const
     {
         return num_ - one_num_;
     }
@@ -82,24 +81,24 @@ public:
 private:
     struct RankBlock
     {
-        rsdic_uint large_block_;
-        uint8_t small_blocks_[kBlockPerLargeBlock];
+        uint64_t pointer_;
+        uint64_t rank_;
+        uint8_t subrank_[kBlockPerLargeBlock];
 
-        RankBlock() : large_block_(), small_blocks_() {}
+        RankBlock() : pointer_(), rank_(), subrank_() {}
     };
 
-    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_small_block, size_t& global_offset);
+    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset);
 
     bool support_select_;
-    rsdic_uint num_;
-    rsdic_uint one_num_;
+    size_t num_;
+    size_t one_num_;
 
     std::vector<uint64_t> bits_;
-    std::vector<rsdic_uint> pointer_blocks_;
-    std::vector<RankBlock> rank_blocks_;
+    boost::shared_array<RankBlock> rank_blocks_;
 
-    std::vector<rsdic_uint> select_one_inds_;
-    std::vector<rsdic_uint> select_zero_inds_;
+    std::vector<size_t> select_one_inds_;
+    std::vector<size_t> select_zero_inds_;
 };
 
 }

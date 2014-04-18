@@ -3,8 +3,10 @@
 
 #include <am/succinct/constants.hpp>
 
+#include <boost/shared_array.hpp>
 #include <vector>
 #include <iostream>
+
 
 NS_IZENELIB_AM_BEGIN
 
@@ -29,12 +31,17 @@ public:
     size_t rank1(size_t pos) const;
     size_t rank(size_t pos, bool bit) const;
 
-    size_t select0(size_t rank) const;
-    size_t select1(size_t rank) const;
-    size_t select(size_t rank, bool bit) const;
+    size_t select0(size_t ind) const;
+    size_t select1(size_t ind) const;
+    size_t select(size_t ind, bool bit) const;
 
     void save(std::ostream &os) const;
     void load(std::istream &is);
+
+    inline size_t length() const
+    {
+        return len_;
+    }
 
     inline size_t one_count() const
     {
@@ -46,29 +53,25 @@ public:
         return len_ - one_count_;
     }
 
-    inline size_t length() const
-    {
-        return len_;
-    }
-
     size_t allocSize() const;
 
 private:
     struct SuperBlock
     {
         uint64_t rank_;
+        uint64_t subrank_;
         uint64_t bits_[kBlockPerSuperBlock];
 
-        SuperBlock() : rank_(), bits_() {}
+        SuperBlock() : rank_(), subrank_(), bits_() {}
     };
 
-    void buildBlock_(uint64_t block, size_t offset);
+    void buildBlock_(uint64_t block, size_t bits, size_t sb_ind, size_t sb_off, size_t& rank_sb);
 
     bool support_select_;
     size_t len_;
     size_t one_count_;
 
-    std::vector<SuperBlock> super_blocks_;
+    boost::shared_array<SuperBlock> super_blocks_;
 
     std::vector<size_t> select_one_inds_;
     std::vector<size_t> select_zero_inds_;

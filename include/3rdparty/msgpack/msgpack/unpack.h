@@ -33,13 +33,13 @@ extern "C" {
  * @{
  */
 
-typedef struct msgpack_unpacked {
-	msgpack_zone* zone;
-	msgpack_object data;
-} msgpack_unpacked;
+//typedef struct msgpack_unpacked {
+//	msgpack_zone* zone;
+//	msgpack_object data;
+//} msgpack_unpacked;
 
-bool msgpack_unpack_next(msgpack_unpacked* result,
-		const char* data, size_t len, size_t* off);
+//bool msgpack_unpack_next(msgpack_unpacked* result,
+//		const char* data, size_t len, size_t* off);
 
 /** @} */
 
@@ -82,12 +82,12 @@ void msgpack_unpacker_destroy(msgpack_unpacker* mpac);
  * Creates a streaming deserializer.
  * The created deserializer must be destroyed by msgpack_unpacker_free(msgpack_unpacker*).
  */
-msgpack_unpacker* msgpack_unpacker_new(size_t initial_buffer_size);
+//msgpack_unpacker* msgpack_unpacker_new(size_t initial_buffer_size);
 
 /**
  * Frees a streaming deserializer created by msgpack_unpacker_new(size_t).
  */
-void msgpack_unpacker_free(msgpack_unpacker* mpac);
+//void msgpack_unpacker_free(msgpack_unpacker* mpac);
 
 
 #ifndef MSGPACK_UNPACKER_RESERVE_SIZE
@@ -136,7 +136,7 @@ static inline void   msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, si
  * Returns true if it successes. Otherwise false is returned.
  * @param pac  pointer to an initialized msgpack_unpacked object.
  */
-bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* pac);
+//bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* pac);
 
 /**
  * Initializes a msgpack_unpacked object.
@@ -144,18 +144,18 @@ bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* pac);
  * Use the object with msgpack_unpacker_next(msgpack_unpacker*, msgpack_unpacked*) or
  * msgpack_unpack_next(msgpack_unpacked*, const char*, size_t, size_t*).
  */
-static inline void msgpack_unpacked_init(msgpack_unpacked* result);
+//static inline void msgpack_unpacked_init(msgpack_unpacked* result);
 
 /**
  * Destroys a streaming deserializer initialized by msgpack_unpacked().
  */
-static inline void msgpack_unpacked_destroy(msgpack_unpacked* result);
+//static inline void msgpack_unpacked_destroy(msgpack_unpacked* result);
 
 /**
  * Releases the memory zone from msgpack_unpacked object.
  * The released zone must be freed by msgpack_zone_free(msgpack_zone*).
  */
-static inline msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result);
+//static inline msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result);
 
 
 int msgpack_unpacker_execute(msgpack_unpacker* mpac);
@@ -227,29 +227,29 @@ size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac)
 }
 
 
-void msgpack_unpacked_init(msgpack_unpacked* result)
-{
-	memset(result, 0, sizeof(msgpack_unpacked));
-}
+//void msgpack_unpacked_init(msgpack_unpacked* result)
+//{
+//	memset(result, 0, sizeof(msgpack_unpacked));
+//}
+//
+//void msgpack_unpacked_destroy(msgpack_unpacked* result)
+//{
+//	if(result->zone != NULL) {
+//		msgpack_zone_free(result->zone);
+//		result->zone = NULL;
+//		memset(&result->data, 0, sizeof(msgpack_object));
+//	}
+//}
 
-void msgpack_unpacked_destroy(msgpack_unpacked* result)
-{
-	if(result->zone != NULL) {
-		msgpack_zone_free(result->zone);
-		result->zone = NULL;
-		memset(&result->data, 0, sizeof(msgpack_object));
-	}
-}
-
-msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result)
-{
-	if(result->zone != NULL) {
-		msgpack_zone* z = result->zone;
-		result->zone = NULL;
-		return z;
-	}
-	return NULL;
-}
+//msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result)
+//{
+//	if(result->zone != NULL) {
+//		msgpack_zone* z = result->zone;
+//		result->zone = NULL;
+//		return z;
+//	}
+//	return NULL;
+//}
 
 
 #ifdef __cplusplus

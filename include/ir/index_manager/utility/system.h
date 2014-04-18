@@ -37,7 +37,8 @@
 #include <ir/index_manager/utility/Exception.h>
 
 #include <util/ustring/UString.h>
-typedef izenelib::util::UString String;
+//typedef izenelib::util::UString IndexPropString;
+typedef std::string IndexPropString;
 
 NS_IZENELIB_IR_BEGIN
 

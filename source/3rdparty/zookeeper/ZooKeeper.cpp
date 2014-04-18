@@ -72,7 +72,7 @@ void ZooKeeper::registerEventHandler(ZooKeeperEventHandler* evtHandler)
 bool ZooKeeper::isConnected()
 {
     //cout << "isConnected " << ZooKeeperEvent::state2String(zk_->state) <<end;
-
+    boost::lock_guard<boost::mutex> g(mutex_);
     if (zk_ && zk_->state == ZOO_CONNECTED_STATE)
     {
         return true;
@@ -127,6 +127,7 @@ std::string ZooKeeper::error2String(ZKErrorType zkerror)
 
 int ZooKeeper::getState()
 {
+    boost::lock_guard<boost::mutex> g(mutex_);
     return (zk_ ? zk_->state : 0);
 }
 
@@ -137,8 +138,11 @@ std::string ZooKeeper::getStateString()
 
 void ZooKeeper::connect(bool isAutoReconnect)
 {
-    disconnect(); // close last connection
+    //disconnect(); // close last connection
 
+    boost::unique_lock<boost::mutex> g(mutex_);
+    if (zk_ != NULL)
+        return;
     zk_ = zookeeper_init(
                 hosts_.c_str(),
                 &watcher_callback,
@@ -165,29 +169,27 @@ void ZooKeeper::connect(bool isAutoReconnect)
     int32_t timeout = 4000000;
     int32_t step = 500000;
     int32_t wait = 0;
-    while(1)
+    while(zk_->state != ZOO_CONNECTED_STATE)
     {
-        if (zk_->state == ZOO_CONNECTED_STATE)
-            return;
-
-        if (wait >= timeout)
+        if ( wait > timeout )
             break;
-
-        usleep(step);
+        cond_.timed_wait(g, boost::posix_time::microseconds(step));
         wait += step;
     }
-
-    // Timeout !!
-    //std::cout<<"Timeout when connecting to ZooKeeper."<<std::endl;
     return;
 }
 
 void ZooKeeper::disconnect()
 {
-    if (NULL != zk_)
+    zhandle_t* tmp = NULL;
     {
-        zookeeper_close(zk_);
+        boost::lock_guard<boost::mutex> g(mutex_);
+        tmp = zk_;
         zk_ = NULL;
+    }
+    if (NULL != tmp)
+    {
+        zookeeper_close(tmp);
     }
 }
 
@@ -195,6 +197,7 @@ void ZooKeeper::disconnect()
 
 bool ZooKeeper::createZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
 {
+    boost::lock_guard<boost::mutex> g(mutex_);
     memset( realNodePath_, 0, MAX_PATH_LENGTH );
 
     if (zk_ == NULL)
@@ -250,7 +253,7 @@ std::string ZooKeeper::getLastCreatedNodePath()
     return std::string(realNodePath_);
 }
 
-bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
+bool ZooKeeper::deleteZNodeNoLock(const string &path, bool recursive, int version)
 {
     if (zk_ == NULL)
         return false;
@@ -277,13 +280,13 @@ bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
         if (recursive)
         {
             std::vector<std::string> children;
-            getZNodeChildren(path, children);
+            getZNodeChildrenNoLock(path, children);
             for (size_t i = 0; i < children.size(); i++)
             {
-                deleteZNode(children[i], true);
+                deleteZNodeNoLock(children[i], true);
             }
 
-            return deleteZNode(path);
+            return deleteZNodeNoLock(path);
         }
         break;
     case ZBADARGUMENTS:
@@ -302,8 +305,15 @@ bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
     return false;
 }
 
+bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
+{
+    boost::lock_guard<boost::mutex> g(mutex_);
+    return deleteZNodeNoLock(path, recursive, version);
+}
+
 bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
 {
+    boost::lock_guard<boost::mutex> g(mutex_);
     struct Stat stat;
     memset(&stat, 0, sizeof(Stat));
 
@@ -323,6 +333,7 @@ bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
 
 bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWatchType watch)
 {
+    boost::lock_guard<boost::mutex> g(mutex_);
     memset( buffer_, 0, MAX_DATA_LENGTH );
     struct Stat stat; // xxx, return to caller
     memset( &stat, 0, sizeof(Stat) );
@@ -353,6 +364,7 @@ bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWa
 
 bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, int version)
 {
+    boost::lock_guard<boost::mutex> g(mutex_);
     if (zk_ == NULL)
         return false;
     int rc = zoo_set( zk_,
@@ -371,7 +383,7 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+bool ZooKeeper::getZNodeChildrenNoLock(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
     childrenList.clear();
 
@@ -415,32 +427,42 @@ bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
         deallocate_String_vector(&children);
     }
     return true;
+
+}
+
+bool ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
+{
+    boost::lock_guard<boost::mutex> g(mutex_);
+    return getZNodeChildrenNoLock(path, childrenList, watch, inAbsPath);
 }
 
 /// Asynchronous API
 
-bool ZooKeeper::acreateZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
-{
-    memset( realNodePath_, 0, MAX_PATH_LENGTH );
-
-    int rc = zoo_acreate(
-                 zk_,
-                 path.c_str(),
-                 data.c_str(),
-                 data.length(),
-                 &ZOO_OPEN_ACL_UNSAFE,
-                 flags,
-                 NULL,
-                 NULL);
-
-    zkError_ = ZooKeeper::ZKErrorType(rc);
-
-    if (rc == ZOK)
-        return true;
-
-    return false;
-}
-
+//bool ZooKeeper::acreateZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
+//{
+//    boost::lock_guard<boost::mutex> g(mutex_);
+//    memset( realNodePath_, 0, MAX_PATH_LENGTH );
+//    if (zk_ == NULL)
+//        return false;
+//
+//    int rc = zoo_acreate(
+//                 zk_,
+//                 path.c_str(),
+//                 data.c_str(),
+//                 data.length(),
+//                 &ZOO_OPEN_ACL_UNSAFE,
+//                 flags,
+//                 NULL,
+//                 NULL);
+//
+//    zkError_ = ZooKeeper::ZKErrorType(rc);
+//
+//    if (rc == ZOK)
+//        return true;
+//
+//    return false;
+//}
+//
 /// Other
 
 void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream& out)

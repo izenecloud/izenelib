@@ -51,13 +51,26 @@ void IndexWriter::tryResumeExistingBarrels()
     // in order to resume merging previous barrels,
     // add them into pIndexMergeManager_
     BarrelInfo* pBarrelInfo = NULL;
+    BarrelInfo* pBinlogInfo = NULL;
     boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
     pBarrelsInfo_->startIterator();
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
+        if (pBarrelInfo->isRealTime())
+        {
+            pBinlogInfo = pBarrelInfo;
+            continue;
+        }
         assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
         pIndexMergeManager_->addToMerge(pBarrelInfo);
+    }
+
+    if (pBinlogInfo)
+    {
+        pCurBarrelInfo_ = pBinlogInfo;
+        pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
+        pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     }
 }
 
@@ -77,7 +90,7 @@ void IndexWriter::close()
     /*for realtime index need not flush when stop normally*/
     //pIndexBarrelWriter_->flush();
     //pBarrelsInfo_->write(pIndexer_->getDirectory());
-    
+
     pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::close()";
@@ -85,7 +98,7 @@ void IndexWriter::close()
 }
 
 void IndexWriter::flush()
-{   
+{
     DVLOG(2) << "=> IndexWriter::flush()...";
     if (!pCurBarrelInfo_)
     {
@@ -112,6 +125,13 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
+/* change for distribute sf1. */
+void IndexWriter::flushBarrelsInfo()
+{
+    if (pBarrelsInfo_->getBarrelCount() > 0)
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
+}
+
 void IndexWriter::flushDocLen()
 {
     if (pIndexBarrelWriter_) pIndexBarrelWriter_->flushDocLen();
@@ -119,10 +139,11 @@ void IndexWriter::flushDocLen()
 
 void IndexWriter::createBarrelInfo()
 {
-   DVLOG(2)<< "=> IndexWriter::createBarrelInfo()...";
+    DVLOG(2)<< "=> IndexWriter::createBarrelInfo()...";
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+    pCurBarrelInfo_->setRealTime(pIndexer_->isRealTime());
 
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
@@ -131,9 +152,9 @@ void IndexWriter::createBarrelInfo()
     DVLOG(2)<< "<= IndexWriter::createBarrelInfo()";
 }
 
-void IndexWriter::checkbinlog() 
-{ 
-    pIndexBarrelWriter_->checkbinlog(); 
+void IndexWriter::checkbinlog()
+{
+    pIndexBarrelWriter_->checkbinlog();
 }
 
 void IndexWriter::deletebinlog()
@@ -156,7 +177,8 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
             pIndexer_->setDirty();
         if (pIndexBarrelWriter_->cacheFull())
         {
-            DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
+            LOG(INFO) << "IndexWriter::indexDocument() => realtime cache full...";
+            pCurBarrelInfo_->setRealTime(false);
             flush();//
             deletebinlog();
             createBarrelInfo();
@@ -166,7 +188,8 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if (pCurBarrelInfo_->getBaseDocID() == BAD_DOCID)
+    if (pCurBarrelInfo_->getBaseDocID() == BAD_DOCID ||
+        pCurBarrelInfo_->getBaseDocID() > uniqueID.docId )
         pCurBarrelInfo_->addBaseDocID(uniqueID.colId,uniqueID.docId);
 
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
@@ -178,11 +201,13 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     ///avoid of delete counting error
-    BitVector* del_filter = pIndexer_->getIndexReader()->getDocFilter();
-    if(del_filter && del_filter->test(docId)) return;
+    Bitset* del_filter = pIndexer_->getIndexReader()->getDocFilter();
+    if(del_filter && del_filter->test(docId))
+        return;
     ///Perform deletion
     pIndexer_->getIndexReader()->delDocument(colID, docId);
-    pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
+    if (pIndexer_->pBTreeIndexer_)
+        pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
     if (!pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
@@ -254,7 +279,13 @@ void IndexWriter::optimizeIndex()
     flush();
     if(pIndexer_->isRealTime())
         deletebinlog();
+    LOG(INFO)<<"Prepare optimize";
+    pBarrelsInfo_->printBarrelsInfo(pIndexer_->pDirectory_);
     pIndexMergeManager_->optimizeIndex();
+    while (pBarrelsInfo_->getBarrelCount() > 1)
+        sleep(0);
+    LOG(INFO)<<"Finish optimize";
+    pBarrelsInfo_->printBarrelsInfo(pIndexer_->pDirectory_);
 }
 
 //void IndexWriter::lazyOptimizeIndex(int calltype)
@@ -301,7 +332,6 @@ void IndexWriter::setIndexMode(bool realtime)
         pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
         pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     }
-
     pIndexBarrelWriter_->setIndexMode(realtime);
 }
 

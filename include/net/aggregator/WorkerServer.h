@@ -10,11 +10,24 @@
 
 #include "Typedef.h"
 #include <3rdparty/msgpack/rpc/server.h>
+#include <boost/threadpool.hpp>
 
 namespace net{
 namespace aggregator{
 
 class WorkerRouter;
+
+class WorkerServerThreadPool
+{
+public:
+    typedef boost::shared_ptr<boost::threadpool::pool> threadpool_ptr;
+    void init(size_t poolsize);
+    void schedule_task(const boost::threadpool::pool::task_type& task);
+    void stop();
+
+private:
+    threadpool_ptr pool_;
+};
 
 class WorkerServer : public msgpack::rpc::server::base
 {
@@ -23,7 +36,7 @@ public:
         const WorkerRouter& router,
         const std::string& host,
         uint16_t port,
-        unsigned int threadNum = 4);
+        unsigned int threadNum = 30);
 
     ~WorkerServer();
 
@@ -40,6 +53,7 @@ protected:
 
     ServerInfo srvInfo_;
     unsigned int threadNum_;
+    WorkerServerThreadPool  worker_pool_;
 };
 
 }} // end - namespace

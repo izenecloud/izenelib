@@ -28,10 +28,26 @@ string port = "18181";
 size_t timeout = 60;
 }
 
+void test_delete_pool(ConnectionPool* pool)
+{
+    std::cout << "deleting in thread : " << pthread_self() << std::endl;
+    if (pool)
+        delete pool;
+}
 
 BOOST_AUTO_TEST_CASE(connection_fail) {
-    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", timeout, 3), NetworkError);
-    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", timeout, 3), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "somewhere", "8888", timeout, 3).acquire(), NetworkError);
+    BOOST_CHECK_THROW(ConnectionPool(service, "localhost", "12345", timeout, 3).acquire(), NetworkError);
+    try
+    {
+    std::cout << "creating in thread : " << pthread_self() << std::endl;
+    ConnectionPool *newpool = new ConnectionPool(service, "localhost", "18181", timeout, 3);
+    boost::thread t(boost::bind(&test_delete_pool, newpool));
+    t.join();
+    }
+    catch(const NetworkError& e)
+    {
+    }
 }
 
 

@@ -20,10 +20,7 @@ using namespace boost::asio;
 namespace izenelib {
 namespace driver {
 
-DriverThreadPool::threadpool_ptr DriverThreadPool::slow_pool_;
-std::vector<DriverThreadPool::threadpool_ptr> DriverThreadPool::normal_pools_;
-size_t DriverThreadPool::slow_size_ = 1;
-size_t DriverThreadPool::normal_size_ = 1;
+DriverThreadPool::threadpool_ptr DriverThreadPool::driver_pool_;
 
 DriverConnection::DriverConnection(
     io_service& ioService,
@@ -145,7 +142,7 @@ void DriverConnection::afterReadFormPayload(
 }
 
 void DriverConnection::handleRequestFunc(
-    const context_ptr& context)
+    context_ptr context)
 {
     driver::Router::handler_ptr handler = router_->find(
         context->request.controller(),
@@ -189,7 +186,7 @@ void DriverConnection::handleRequestFunc(
 }
 
 void DriverConnection::handleRequest(
-    const context_ptr& context,
+    context_ptr context,
     const boost::system::error_code& e)
 {
     if (!e)
@@ -211,16 +208,14 @@ void DriverConnection::handleRequest(
         }
         context->request.assignTmp(requestValue);
 
-        handleRequestFunc(context);
-        //DriverThreadPool::schedule_task(boost::bind(&DriverConnection::handleRequestFunc,
-        //        shared_from_this(), context),
-        //    asString(context->request[driver::Keys::collection]),
-        //    asBool(context->request[driver::Keys::may_slow]));
+        //handleRequestFunc(context);
+        DriverThreadPool::schedule_task(boost::bind(&DriverConnection::handleRequestFunc,
+                shared_from_this(), context));
     }
     // Error if send end is closed, just ignore it
 }
 
-void DriverConnection::asyncWriteResponse(const context_ptr& context)
+void DriverConnection::asyncWriteResponse(context_ptr context)
 {
     if (asBool(context->request.header()[driver::Keys::check_time]))
     {
@@ -251,7 +246,7 @@ void DriverConnection::asyncWriteError(
     asyncWriteResponse(context);
 }
 
-void DriverConnection::afterWriteResponse(const context_ptr&)
+void DriverConnection::afterWriteResponse(context_ptr)
 {}
 
 void DriverConnection::shutdownReceive()
@@ -286,38 +281,38 @@ void DriverConnectionFactory::setFirewall(firewall_type firewall)
     firewall_ = firewall;
 }
 
-void DriverThreadPool::init(size_t slow_size, size_t normal_size)
+void DriverThreadPool::init(size_t poolsize)
 {
-    if (slow_size == 0)
-        slow_size = 1;
-    if (normal_size == 0)
-        normal_size = 1;
-    slow_pool_.reset(new boost::threadpool::pool(slow_size));
-    for(size_t i = 0; i < 3; ++i)
+    if (driver_pool_)
+        return;
+
+    if (poolsize == 0)
+        poolsize = 1;
+    driver_pool_.reset(new boost::threadpool::pool(poolsize));
+}
+
+void DriverThreadPool::stop()
+{
+    if (driver_pool_)
     {
-        normal_pools_.push_back(threadpool_ptr(new boost::threadpool::pool(normal_size)));
+        driver_pool_->clear();
+        driver_pool_->wait();
     }
 }
 
-void DriverThreadPool::schedule_task(const boost::threadpool::pool::task_type& task,
-        const std::string& col, bool may_slow)
+void DriverThreadPool::schedule_task(const boost::threadpool::pool::task_type& task)
 {
-    if (may_slow)
-    {
-        std::cout << "a slow request : " << col << std::endl;
-        slow_pool_->schedule(task);
-    }
-    else
-    {
-        int chosen = 0;
-        if (!col.empty())
-        {
-            chosen = (int)col[col.size() - 1] % (int)normal_pools_.size();
-        }
-        normal_pools_[chosen]->schedule(task);
-    }
-}
+    //if (driver_pool_->active() == 0)
+    //{
+    //    std::cout << "currently no active in driver.========= " << std::endl;
+    //}
 
+    driver_pool_->schedule(task);
+    //if (driver_pool_->pending() > 1)
+    //{
+    //    std::cout << "===== some task pending in driver: " << driver_pool_->pending() << std::endl;
+    //}
+}
 
 }
 }

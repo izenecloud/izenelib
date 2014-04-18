@@ -9,7 +9,7 @@
 #define BITPACK_SIMDBINARYPACKING_H_
 
 #include "codecs.h"
-#include <util/compression/int/fastpfor/bitpacksimd.h>
+#include <util/compression/int/fastpfor/simdbitpacking.h>
 #include "util.h"
 
 

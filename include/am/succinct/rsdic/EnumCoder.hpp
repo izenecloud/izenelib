@@ -40,17 +40,17 @@ public:
     static size_t Rank(uint64_t code, size_t rank_sb, size_t pos);
     static size_t Select(uint64_t code, size_t rank_sb, size_t num, bool bit);
 
-    static uint8_t Len(size_t rank_sb)
+    static inline uint8_t Len(size_t rank_sb)
     {
         return kEnumCodeLength_[rank_sb];
     }
 
-    static size_t Select0(uint64_t code, size_t rank_sb, size_t num);
-    static size_t Select1(uint64_t code, size_t rank_sb, size_t num);
-
 private:
+    static size_t Select0Enum_(uint64_t code, size_t rank_sb, size_t num);
+    static size_t Select1Enum_(uint64_t code, size_t rank_sb, size_t num);
+
     static const uint8_t kEnumCodeLength_[65];
-    static const uint64_t kCombinationTable64_[64][65];
+    static const uint64_t kCombinationTable64_[33][64];
 };
 
 }

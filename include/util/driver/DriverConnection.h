@@ -66,12 +66,12 @@ private:
     void afterReadFormPayload(const boost::system::error_code& e);
 
     /// @brief Handle the request
-    void handleRequest(const context_ptr& context,
+    void handleRequest(context_ptr context,
                        const boost::system::error_code& e);
-    void handleRequestFunc(const context_ptr& context);
+    void handleRequestFunc(context_ptr context);
 
     /// @brief Write response asynchronously.
-    void asyncWriteResponse(const context_ptr& context);
+    void asyncWriteResponse(context_ptr context);
 
     void asyncWriteError(const context_ptr& context,
                          const std::string& message);
@@ -79,7 +79,7 @@ private:
     /// @brief Handler called after write.
     ///
     /// It keep a reference to this object and context.
-    void afterWriteResponse(const context_ptr&);
+    void afterWriteResponse(context_ptr);
 
     /// @brief Shutdown receive end.
     void shutdownReceive();
@@ -121,15 +121,12 @@ class DriverThreadPool
 {
 public:
     typedef boost::shared_ptr<boost::threadpool::pool> threadpool_ptr;
-    static void init(size_t slow_size, size_t normal_size);
-    static void schedule_task(const boost::threadpool::pool::task_type& task,
-        const std::string& col, bool may_slow = false);
+    static void init(size_t poolsize);
+    static void stop();
+    static void schedule_task(const boost::threadpool::pool::task_type& task);
 
 private:
-    static threadpool_ptr slow_pool_;
-    static std::vector<threadpool_ptr>  normal_pools_;
-    static size_t slow_size_;
-    static size_t normal_size_;
+    static threadpool_ptr driver_pool_;
 };
 
 class DriverConnectionFactory

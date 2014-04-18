@@ -100,15 +100,34 @@ void ZooKeeperRouter::reconnect()
 }
 
 ZooKeeperRouter::~ZooKeeperRouter() {
-    BOOST_FOREACH(PoolContainer::value_type& i, pools) {
-        delete i.second;
+
+    {
+        WriteLockT rwlock(shared_mutex);
+        std::vector<std::string> tmp_list;
+        BOOST_FOREACH(PoolContainer::value_type& i, pools) {
+            tmp_list.push_back(i.first);
+        }
+        
+        for (size_t i = 0; i < tmp_list.size(); ++i)
+        {
+            removeNodeFromPools(tmp_list[i], rwlock);
+        }
     }
-    
-    Scheduler::removeJob("UpdateNodeDataOnTimer");
+
+    Scheduler::removeJob("UpdateNodeDataOnTimer", true);
 
     LOG(INFO) << "ZooKeeperRouter closed";
 }
 
+void ZooKeeperRouter::reloadTopology()
+{
+    if(client && client->isConnected())
+    {
+        // clear old nodes.
+        clearSf1Nodes();
+        loadTopology();
+    }
+}
 
 void
 ZooKeeperRouter::loadTopology() {
@@ -254,8 +273,22 @@ ZooKeeperRouter::addSf1Node(const string& path) {
 
 void ZooKeeperRouter::updateNodeDataOnTimer(int calltype)
 {
+    bool need_rescan = false;
+    {
+        ReadLockT lock(shared_mutex);
+        if (topology->count() == 0) {
+            LOG(INFO) << "Empty topology, re-scan topology...";
+            need_rescan = true;
+        }
+    }
+    if (need_rescan)
+        loadTopology();
+
     WriteLockT lock(shared_mutex);
     LOG(INFO) << "updating SF1 node in timer callback, total nodes : " << topology->count();
+    if (policy)
+        policy->updateSlowCounterForAll();
+
     WaitingMapT::iterator it = waiting_update_path_.begin();
     while(it != waiting_update_path_.end())
     {
@@ -331,6 +364,8 @@ ZooKeeperRouter::updateNodeData(const string& path) {
     {
         cur_wait_info = 0;
         LOG(INFO) << "update node data is empty, remove it." << path;
+        // remove its pool
+        removeNodeFromPools(path, rwlock);
         // remove node from topology
         updating_topology->removeNode(path);
 
@@ -340,19 +375,6 @@ ZooKeeperRouter::updateNodeData(const string& path) {
             return;
         }
 #endif
-        // remove its pool
-        const PoolContainer::iterator& it = pools.find(path);
-        CHECK(pools.end() != it) << "pool not found";
-        ConnectionPool* pool = it->second;
-        CHECK_NOTNULL(pool);
-
-        while (pool->isBusy()) {
-            DLOG(INFO) << "pool is currently in use, waiting";
-            condition.wait(rwlock);
-        }
-        DLOG(INFO) << "removing pool";
-        CHECK_EQ(1, pools.erase(path));
-        delete pool;
     }
     else
     {
@@ -371,24 +393,28 @@ ZooKeeperRouter::updateNodeData(const string& path) {
 void ZooKeeperRouter::clearSf1Nodes() {
     WriteLockT rwlock(shared_mutex);
     LOG(INFO) << "clearing SF1 node";
-    topology->clearNodes();
-    backup_topology->clearNodes();
     waiting_update_path_.clear();
+    std::vector<std::string> tmp_list;
     PoolContainer::iterator it = pools.begin();
     while (it != pools.end())
     {
-        ConnectionPool* pool = it->second;
-        pools.erase(it);
-        if (pool)
-        {
-            while(pool->isBusy())
-            {
-                condition.wait(rwlock);
-            }
-            delete pool;
-        }
-        it = pools.begin();
+        tmp_list.push_back(it->first);
+        ++it;
     }
+    for (size_t i = 0; i < tmp_list.size(); ++i)
+        removeNodeFromPools(tmp_list[i], rwlock);
+
+    topology->clearNodes();
+    backup_topology->clearNodes();
+    LOG(INFO) << "clear nodes finished";
+}
+
+void ZooKeeperRouter::increSlowCounter(const std::string& path)
+{
+    LOG(INFO) << "increasing slow counter for SF1 node: [" << path << "]";
+    WriteLockT rwlock(shared_mutex);
+    if (policy)
+        policy->increSlowCounter(path);
 }
 
 void
@@ -408,8 +434,11 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     LOG(INFO) << "removing SF1 node: [" << path << "]";
     
     WriteLockT rwlock(shared_mutex);
+
+    removeNodeFromPools(path, rwlock);
     // remove node from topology
-    removing_topology->removeNode(path);
+    if (removing_topology->isPresent(path))
+        removing_topology->removeNode(path);
 
     waiting_update_path_.erase(path);
 
@@ -420,21 +449,30 @@ ZooKeeperRouter::removeSf1Node(const string& path) {
     }
 #endif
 
-    // remove its pool
-    const PoolContainer::iterator& it = pools.find(path);
-    CHECK(pools.end() != it) << "pool not found";
-    ConnectionPool* pool = it->second;
-    CHECK_NOTNULL(pool);
-    
-    while (pool->isBusy()) {
-        DLOG(INFO) << "pool is currently in use, waiting";
-        condition.wait(rwlock);
-    }
-    DLOG(INFO) << "removing pool";
-    CHECK_EQ(1, pools.erase(path));
-    delete pool;
 }
 
+void ZooKeeperRouter::removeNodeFromPools(const std::string& path, WriteLockT& rwlock)
+{
+    // remove its pool
+    ConnectionPool* pool = NULL;
+    while (true)
+    {
+        PoolContainer::iterator it = pools.find(path);
+        if (it == pools.end() || !(it->second))
+            return;
+        pool = it->second;
+        if (pool->isBusy()) {
+            LOG(INFO) << "pool is currently in use, waiting : " << path;
+            condition.wait(rwlock);
+        }
+        else
+        {
+            CHECK_EQ(1, pools.erase(path));
+            delete pool;
+            return;
+        }
+    }
+}
 
 void
 ZooKeeperRouter::watchChildren(const string& path) {
@@ -454,7 +492,7 @@ ZooKeeperRouter::watchChildren(const string& path) {
         path != ROOT_NODE )
     {
         client->isZNodeExists(path, ZooKeeper::NOT_WATCH);
-        LOG(INFO) << "Not Watching children of: " << path;
+        //LOG(INFO) << "Not Watching children of: " << path;
         return;
     }
 
@@ -531,33 +569,40 @@ ZooKeeperRouter::resolve(const string collection) const {
 
 RawClient&
 ZooKeeperRouter::getConnection(const string& collection) {
-    ReadLockT lock(shared_mutex);
-    
-    const Sf1Node& node = resolve(collection);
-    LOG(INFO) << "Resolved to node: " << node.getPath();
-    
-    // get a connection from the node
-    PoolContainer::const_iterator cit = pools.find(node.getPath());
-    if (cit == pools.end())
+    std::string errinfo;
+    std::string nodepath;
     {
-        LOG(INFO) << "no pools for the connection, add new node : " << node.getPath();
+        ReadLockT lock(shared_mutex);
+
+        const Sf1Node& node = resolve(collection);
+        nodepath = node.getPath();
+        LOG(INFO) << "Resolved to node: " << nodepath;
+
+        // get a connection from the node
+        PoolContainer::const_iterator cit = pools.find(nodepath);
+        if (cit == pools.end())
         {
-            LOG(ERROR) << "get connection failed for : " << node.getPath();
-            throw RoutingError("no ConnectionPool for " + collection);
+            LOG(INFO) << "no pools for the connection, add new node : " << nodepath;
+            {
+                LOG(ERROR) << "get connection failed for : " << nodepath;
+                throw RoutingError("no ConnectionPool for " + collection);
+            }
+        }
+        ConnectionPool* pool = cit->second;
+        CHECK(pool) << "NULL pool";
+        try{
+            return pool->acquire();
+        }catch(NetworkError& e)
+        {
+            errinfo = e.what();
         }
     }
-    ConnectionPool* pool = cit->second;
-    CHECK(pool) << "NULL pool";
-    try{
-        return pool->acquire();
-    }catch(NetworkError& e)
+    LOG(INFO) << "get connection failed for path : " << nodepath;
+    if (!client->isZNodeExists(nodepath, ZooKeeper::WATCH))
     {
-        if (!client->isZNodeExists(node.getPath(), ZooKeeper::WATCH))
-        {
-            removeSf1Node(node.getPath());
-        }
-        throw;
+        removeSf1Node(nodepath);
     }
+    throw NetworkError(errinfo);
 }
 
 
@@ -571,7 +616,7 @@ ZooKeeperRouter::releaseConnection(const RawClient& connection) {
     
     if (not pool->isBusy()) {
         DLOG(INFO) << "notifying for condition";
-        condition.notify_one();
+        condition.notify_all();
     }
 }
 

@@ -39,6 +39,7 @@ public:
             : nNumDocs(0)
             , pBarrelWriter(NULL)
             , isUpdate(false)
+            , inMemoryBarrel(false)
             , maxDocId(0)
             , searchable(true)
             , indexLevel_(indexLevel)
@@ -52,6 +53,7 @@ public:
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , isUpdate(false)
+            , inMemoryBarrel(false)
             , maxDocId(0)
             , searchable(true)
             , indexLevel_(indexLevel)
@@ -67,6 +69,7 @@ public:
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
             , isUpdate(pBarrelInfo->isUpdate)
+            , inMemoryBarrel(pBarrelInfo->inMemoryBarrel)
             , maxDocId(pBarrelInfo->maxDocId)
             , searchable(pBarrelInfo->searchable)
             , indexLevel_(pBarrelInfo->indexLevel_)
@@ -117,7 +120,7 @@ public:
 
     void addBaseDocID(collectionid_t colID, docid_t baseDocID)
     {
-        baseDocIDMap.insert(make_pair(colID,baseDocID));
+        baseDocIDMap[colID] = baseDocID;
     }
     /**
      * set base doc id map.
@@ -201,6 +204,12 @@ public:
 
     bool isSearchable() { return searchable; }
 
+    void setRealTime(bool realTime)
+    {
+        inMemoryBarrel = realTime;
+    }
+    bool isRealTime() { return inMemoryBarrel; }
+
     void registerIndexInput(IndexInput* pIndexInput);
 
     void unRegisterIndexInput(IndexInput* pIndexInput);
@@ -228,6 +237,8 @@ public:
     IndexBarrelWriter* pBarrelWriter;
     ///whether this barrel contains updated documents
     bool isUpdate;
+    ///whether this barrel is in-memory barrel 
+    bool inMemoryBarrel;
     ///max doc of this barrel
     docid_t maxDocId;
 
@@ -363,6 +374,8 @@ public:
      * @return true for success, false for fail (no barrel is found to include @p docId)
      */
     bool deleteDocument(collectionid_t colId, docid_t docId);
+
+    void printBarrelsInfo(Directory* pDirectory);
 
 private:
     string version;

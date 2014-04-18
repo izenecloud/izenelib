@@ -20,6 +20,8 @@
 #include <3rdparty/msgpack/rpc/transport/tcp.h>
 #include <3rdparty/msgpack/cclog/cclog.h>
 
+#define DEFAULT_TM 20
+
 namespace msgpack {
 namespace rpc {
 
@@ -49,19 +51,19 @@ bool MP_UTIL_IMPL(client)::step_timeout(weak_session ws)
 
 
 client::client(const std::string& host, uint16_t port, loop lo) :
-	session(session_impl::create(tcp_builder(), ip_address(host,port), lo))
+	session(session_impl::create(tcp_builder(), ip_address(host,port), lo, DEFAULT_TM))
 {
 	MP_UTIL.start_timeout();
 }
 
 client::client(const address& addr, loop lo) :
-	session(session_impl::create(tcp_builder(), addr, lo))
+	session(session_impl::create(tcp_builder(), addr, lo, DEFAULT_TM))
 {
 	MP_UTIL.start_timeout();
 }
 
 client::client(const builder& b, const address& addr, loop lo) :
-	session(session_impl::create(b, addr, lo))
+	session(session_impl::create(b, addr, lo, DEFAULT_TM))
 {
 	MP_UTIL.start_timeout();
 }

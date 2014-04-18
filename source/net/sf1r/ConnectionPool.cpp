@@ -37,14 +37,7 @@ ConnectionPool::ConnectionPool(ba::io_service& serv,
     DLOG(INFO) << "  resize     : " << (resize ? "true" : "false");
     DLOG(INFO) << "  maxSize    : " << maxSize;
     
-    try {
-        for (unsigned i = 0; i < size; ++i) {
-            available.push_back(new RawClient(service, host, port, timeout, path));
-        }
-    } catch (NetworkError e) {
-        LOG(ERROR) << e.what();
-        throw e;
-    }
+    size = 0;
     
 #ifdef ENABLE_SF1_TEST  
     invariant();
@@ -99,13 +92,17 @@ ConnectionPool::acquire() {
     }
     
     LOG(INFO) << "Growing pool ..." << GET_PATH(path) << ", " << host << ":" << port;
+    RawClient* tmp = NULL;
     try {
-        reserved.push_back(new RawClient(service, host, port, timeout, path));
+        tmp = new RawClient(service, path);
+        tmp->do_connect(host, port, timeout);
+        reserved.push_back(tmp) ;
         ++size;
         LOG(INFO) << "Growed pool size to: " << size << "/" << maxSize << GET_PATH(path) ;
-    } catch (NetworkError& e) {
+    } catch (const NetworkError& e) {
         LOG(ERROR) << e.what();
-        throw e;
+        delete tmp;
+        throw;
     }
     
     DLOG(INFO) << "Got connection ID: " << reserved.back().getId();
