@@ -31,6 +31,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     luxio/Db.cpp
     leveldb/Db.cpp
     tokukv/Db.cpp
+    lmdb/Db.cpp
 
     graphchi/t_basic_smoketest.cpp
     graphchi/t_pagerank.cpp
@@ -55,6 +56,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Toku_LIBS}
     compressor
     leveldb
+    lmdb
     jemalloc
     gomp
     pthread
