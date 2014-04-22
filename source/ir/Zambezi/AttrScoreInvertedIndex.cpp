@@ -327,6 +327,7 @@ void AttrScoreInvertedIndex::retrieve(
         queries.push_back(std::make_pair(std::make_pair(df, termid), term_list[i].second));
         minimumDf = std::min(df, minimumDf);
     }
+    if(queries.empty()) return;
 
     std::sort(queries.begin(), queries.end());
 
