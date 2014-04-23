@@ -314,6 +314,8 @@ void AttrScoreInvertedIndex::retrieve(
         std::vector<uint32_t>& docid_list,
         std::vector<float>& score_list) const
 {
+    if (term_list.empty()) return;
+
     std::vector<std::pair<std::pair<uint32_t, uint32_t>, int> > queries;
 
     uint32_t minimumDf = 0xFFFFFFFF;
@@ -327,7 +329,6 @@ void AttrScoreInvertedIndex::retrieve(
         queries.push_back(std::make_pair(std::make_pair(df, termid), term_list[i].second));
         minimumDf = std::min(df, minimumDf);
     }
-    if(queries.empty()) return;
 
     std::sort(queries.begin(), queries.end());
 
