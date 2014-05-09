@@ -194,7 +194,7 @@ public:
         size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
 
-        size_type crt = 1; // root node
+        size_type current = 1; // root node
         size_type child = 2;
 
         while (child <= last_pos)
@@ -203,15 +203,16 @@ public:
 
             if (!compare_(container_[child].first, elem)) break;
 
-            container_[crt].first = container_[child].first;
+            container_[current].first = container_[child].first;
             if (compare_(container_[child].second, elem))
                 std::swap(elem, container_[child].second);
 
-            crt = child;
+            current = child;
             child *= 2;
         }
 
-        container_[crt].first = (crt <= size_ / 2) ? elem : container_[crt].second;
+        container_[current].first = elem;
+        if (current > size_ / 2) container_[current].second = elem;
     }
 
     void replace_max(const value_type& value)
@@ -226,7 +227,7 @@ public:
         size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
 
-        size_type crt = 1; // root node
+        size_type current = 1; // root node
         size_type child = 2;
 
         while (child <= last_pos)
@@ -235,15 +236,16 @@ public:
 
             if (!compare_(elem, container_[child].second)) break;
 
-            container_[crt].second = container_[child].second;
+            container_[current].second = container_[child].second;
             if (compare_(elem, container_[child].first))
                 std::swap(elem, container_[child].first);
 
-            crt = child;
+            current = child;
             child *= 2;
         }
 
-        container_[crt].second = (crt <= size_ / 2) ? elem : container_[crt].first;
+        container_[current].second = elem;
+        if (current > size_ / 2) container_[current].first = elem;
     }
 
     void pop_min()
@@ -262,7 +264,7 @@ public:
         }
         if (--size_ < 2) return;
 
-        size_type crt = 1; // root node
+        size_type current = 1; // root node
         size_type child = 2;
 
         while (child <= last_pos)
@@ -271,15 +273,15 @@ public:
 
             if (!compare_(container_[child].first, elem)) break;
 
-            container_[crt].first = container_[child].first;
+            container_[current].first = container_[child].first;
             if (compare_(container_[child].second, elem))
                 std::swap(elem, container_[child].second);
 
-            crt = child;
+            current = child;
             child *= 2;
         }
 
-        container_[crt].first = elem;
+        container_[current].first = elem;
     }
 
     void pop_max()
@@ -298,7 +300,7 @@ public:
         }
         if (--size_ < 2) return;
 
-        size_type crt = 1; // root node
+        size_type current = 1; // root node
         size_type child = 2;
 
         while (child <= last_pos)
@@ -307,15 +309,15 @@ public:
 
             if (!compare_(elem, container_[child].second)) break;
 
-            container_[crt].second = container_[child].second;
+            container_[current].second = container_[child].second;
             if (compare_(elem, container_[child].first))
                 std::swap(elem, container_[child].first);
 
-            crt = child;
+            current = child;
             child *= 2;
         }
 
-        container_[crt].second = elem;
+        container_[current].second = elem;
     }
 
     value_type& get_min()
