@@ -194,6 +194,9 @@ public:
         size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
 
+        if (compare_(container_[1].second, elem))
+            std::swap(elem, container_[1].second);
+
         size_type current = 1; // root node
         size_type child = 2;
 
@@ -225,6 +228,9 @@ public:
 
         size_type last_pos = (size_ + 1) / 2;
         value_type elem = value;
+
+        if (compare_(elem, container_[1].first))
+            std::swap(elem, container_[1].first);
 
         size_type current = 1; // root node
         size_type child = 2;
