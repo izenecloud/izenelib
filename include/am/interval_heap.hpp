@@ -211,8 +211,7 @@ public:
             child *= 2;
         }
 
-        container_[current].first = elem;
-        if (current > size_ / 2) container_[current].second = elem;
+        container_[current].first = (current <= size_ / 2) ? elem : container_[current].second;
     }
 
     void replace_max(const value_type& value)
@@ -244,8 +243,7 @@ public:
             child *= 2;
         }
 
-        container_[current].second = elem;
-        if (current > size_ / 2) container_[current].first = elem;
+        container_[current].second = (current <= size_ / 2) ? elem : container_[current].first;
     }
 
     void pop_min()
