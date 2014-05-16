@@ -720,6 +720,15 @@ class KString
         return false;
     }
 
+    static bool is_korean(uint16_t ucs2char)
+    {   
+        if ((ucs2char>=0x1100 && ucs2char<=0x11FF)
+          ||(ucs2char>=0x3130 && ucs2char<=0x318F)
+          ||(ucs2char>=0xAC00 && ucs2char<=0xD7AF)
+          )return true;
+        return false;
+    }   
+
     static bool is_chinese(uint16_t ucs2char)
 	{
 		if (((ucs2char>=0x2E80 && ucs2char<=0x2EF3)
