@@ -32,6 +32,7 @@ ADD_EXECUTABLE(t_util
   t_timsort.cpp
   t_fileno.cpp
   t_bloomfilter.cpp
+  t_cuckoofilter.cpp
   t_cpuinfo.cpp
   t_levenshteinautomata.cpp
   t_kv2string.cpp
@@ -41,6 +42,7 @@ TARGET_LINK_LIBRARIES(t_util
   izene_util
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
   bz2 
   febird
   procmeminfo
