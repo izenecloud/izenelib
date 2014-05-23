@@ -10,6 +10,7 @@
 #include "../am/util/DbObj.h"
 //#include "../am/util/Wrapper.h"
 #include "izene_serialization.h"
+#include <openssl/evp.h>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -468,6 +469,33 @@ public:
         const unsigned int len = key.size();
 
         return calcHash (token, len, init_pattern_1);
+    }
+
+    std::string generateMD5(const char* inbuf, size_t in_length) {
+        EVP_MD_CTX mdctx;
+        unsigned char md_value[EVP_MAX_MD_SIZE];
+        unsigned int md_len;
+
+        EVP_DigestInit(&mdctx, EVP_md5());
+        EVP_DigestUpdate(&mdctx, (const void*) inbuf, in_length);
+        EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+        EVP_MD_CTX_cleanup(&mdctx);
+
+        return std::string((char*)md_value, (size_t)md_len);		
+    }
+
+    std::string generateSHA1(const char* inbuf, size_t in_length) {
+        EVP_MD_CTX mdctx;
+        std::string ret;
+        unsigned char md_value[EVP_MAX_MD_SIZE];
+        unsigned int md_len;
+
+        EVP_DigestInit(&mdctx, EVP_sha1());
+        EVP_DigestUpdate(&mdctx, (const void*) inbuf, in_length);
+        EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+        EVP_MD_CTX_cleanup(&mdctx);
+
+        return std::string((char*)md_value, (size_t)md_len);
     }
 
     static ub4 convert_key(const KeyType& key) {
