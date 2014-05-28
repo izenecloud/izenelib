@@ -88,6 +88,7 @@ private:
 
 	double m_connect_timeout;
 	unsigned int m_reconnect_limit;
+    size_t m_sock_pool_num;
 
 private:
 	void try_connect(sync_ref& lk_ref);
@@ -131,7 +132,9 @@ void client_socket::on_response(msgid_t msgid,
 client_transport::client_transport(session_impl* s, const address& addr, const tcp_builder& b) :
 	m_session(s),
 	m_connect_timeout(b.connect_timeout()),
-	m_reconnect_limit(b.reconnect_limit()) { }
+	m_reconnect_limit(b.reconnect_limit()),
+    m_sock_pool_num(b.sock_pool_num())
+{ }
 
 client_transport::~client_transport()
 {
@@ -249,7 +252,7 @@ void client_transport::send_data(sbuffer* sbuf)
 	}
 
 	sync_ref ref(m_sync);
-	if(ref->sockpool.empty()) {
+	if(ref->sockpool.size() < m_sock_pool_num) {
 		if(ref->connecting == 0) {
 			try_connect(ref);
 			ref->connecting = 1;
@@ -259,7 +262,7 @@ void client_transport::send_data(sbuffer* sbuf)
 		sbuf->release();
 	} else {
 		// FIXME pesudo connecting load balance
-		client_socket* sock = ref->sockpool[0];
+		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(sbuf);
 	}
 }
@@ -272,7 +275,7 @@ void client_transport::send_data(auto_vreflife vbuf)
 	}
 
 	sync_ref ref(m_sync);
-	if(ref->sockpool.empty()) {
+	if(ref->sockpool.size() < m_sock_pool_num) {
 		if(ref->connecting == 0) {
 			try_connect(ref);
 			ref->connecting = 1;
@@ -281,7 +284,7 @@ void client_transport::send_data(auto_vreflife vbuf)
 		ref->pending_xf.push_finalize(vbuf);
 	} else {
 		// FIXME pesudo connecting load balance
-		client_socket* sock = ref->sockpool[0];
+		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(vbuf);
 	}
 }
@@ -421,7 +424,8 @@ void server_transport::on_accept(int fd, int err, weak_server wsvr)
 
 tcp_builder::tcp_builder() :
 	m_connect_timeout(10.0),  // FIXME default connect timeout
-	m_reconnect_limit(3)      // FIXME default connect reconnect limit
+	m_reconnect_limit(3),      // FIXME default connect reconnect limit
+    m_sock_pool_num(8)
 { }
 
 tcp_builder::~tcp_builder() { }

@@ -106,9 +106,11 @@ void session_pool_impl::step_timeout()
 }
 
 
-session_pool::session_pool(loop lo) :
-	m_pimpl(new session_pool_impl(tcp_builder(), lo))
+session_pool::session_pool(unsigned int sock_pool_num, loop lo)
 {
+    tcp_builder b;
+    b.sock_pool_num(sock_pool_num);
+	m_pimpl.reset(new session_pool_impl(b, lo));
 	MP_UTIL.start_timeout();
 }
 

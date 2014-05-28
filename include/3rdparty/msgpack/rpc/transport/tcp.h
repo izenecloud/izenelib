@@ -46,9 +46,21 @@ public:
 	unsigned int reconnect_limit() const
 		{ return m_reconnect_limit; }
 
+    tcp_builder& sock_pool_num(unsigned int num)
+    {
+        m_sock_pool_num = num;
+        return *this;
+    }
+
+    unsigned int sock_pool_num() const
+    {
+        return m_sock_pool_num;
+    }
+
 public:
 	double m_connect_timeout;
 	unsigned int m_reconnect_limit;
+    unsigned int m_sock_pool_num;
 };
 
 
