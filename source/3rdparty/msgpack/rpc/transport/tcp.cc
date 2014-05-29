@@ -226,7 +226,7 @@ void client_transport::try_connect(sync_ref& lk_ref)
 	addr.get_addr((sockaddr*)addrbuf);
 
     int exist_size = lk_ref->sockpool.size();
-    for(int i = 0; i < m_sock_pool_num - exist_size; ++i)
+    for(int i = 0; i < (int)m_sock_pool_num - exist_size; ++i)
     {
 	m_session->get_loop_ref()->connect(
 			PF_INET, SOCK_STREAM, 0,
