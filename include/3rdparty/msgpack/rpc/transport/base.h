@@ -307,6 +307,7 @@ template <typename MixIn>
 void stream_handler<MixIn>::on_read(mp::wavy::event& e)
 try {
 	while(true) {
+        //std::cout << "on_read for fd: " << fd() << ", handled in thread:" << (long)pthread_self() << std::endl;
 		if(m_pac.execute()) {
 			object msg = m_pac.data();
 			LOG_TRACE("obj received: ",msg);
