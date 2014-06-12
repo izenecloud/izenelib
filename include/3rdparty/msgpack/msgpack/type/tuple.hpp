@@ -28,7 +28,7 @@ namespace type {
 // FIXME operator!=
 
 
-template <typename A0 = void, typename A1 = void, typename A2 = void, typename A3 = void, typename A4 = void, typename A5 = void, typename A6 = void, typename A7 = void, typename A8 = void, typename A9 = void, typename A10 = void, typename A11 = void, typename A12 = void, typename A13 = void, typename A14 = void, typename A15 = void, typename A16 = void, typename A17 = void, typename A18 = void, typename A19 = void, typename A20 = void, typename A21 = void, typename A22 = void, typename A23 = void, typename A24 = void, typename A25 = void, typename A26 = void, typename A27 = void, typename A28 = void, typename A29 = void, typename A30 = void, typename A31 = void, typename A32 = void, typename A33 = void, typename A34 = void, typename A35 = void, typename A36 = void, typename A37 = void, typename A38 = void, typename A39 = void, typename A40 = void>
+template <typename A0 = void, typename A1 = void, typename A2 = void, typename A3 = void, typename A4 = void, typename A5 = void, typename A6 = void, typename A7 = void, typename A8 = void, typename A9 = void, typename A10 = void, typename A11 = void, typename A12 = void, typename A13 = void, typename A14 = void, typename A15 = void, typename A16 = void, typename A17 = void, typename A18 = void, typename A19 = void, typename A20 = void, typename A21 = void, typename A22 = void, typename A23 = void, typename A24 = void, typename A25 = void, typename A26 = void, typename A27 = void, typename A28 = void, typename A29 = void, typename A30 = void, typename A31 = void, typename A32 = void, typename A33 = void, typename A34 = void, typename A35 = void, typename A36 = void, typename A37 = void, typename A38 = void, typename A39 = void, typename A40 = void, typename A41 = void, typename A42 = void, typename A43 = void, typename A44 = void, typename A45 = void, typename A46 = void>
 struct tuple;
 
 template <typename Tuple, int N>
@@ -7526,6 +7526,2367 @@ private:
 
 
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 41> : tuple_type<A41> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 >& x) : _x(x.a41) {}
+	typename tuple_type<A41>::reference get() { return _x; }
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 41> : tuple_type<A41> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a41) {}
+	typename tuple_type<A41>::reference get() { return _x; }
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 42> : tuple_type<A42> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 >& x) : _x(x.a42) {}
+	typename tuple_type<A42>::reference get() { return _x; }
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 41> : tuple_type<A41> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a41) {}
+	typename tuple_type<A41>::reference get() { return _x; }
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 42> : tuple_type<A42> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a42) {}
+	typename tuple_type<A42>::reference get() { return _x; }
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 43> : tuple_type<A43> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 >& x) : _x(x.a43) {}
+	typename tuple_type<A43>::reference get() { return _x; }
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 41> : tuple_type<A41> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a41) {}
+	typename tuple_type<A41>::reference get() { return _x; }
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 42> : tuple_type<A42> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a42) {}
+	typename tuple_type<A42>::reference get() { return _x; }
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 43> : tuple_type<A43> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a43) {}
+	typename tuple_type<A43>::reference get() { return _x; }
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 44> : tuple_type<A44> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 >& x) : _x(x.a44) {}
+	typename tuple_type<A44>::reference get() { return _x; }
+	typename tuple_type<A44>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A44>::reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 0> : tuple_type<A0> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a0) {}
+	typename tuple_type<A0>::reference get() { return _x; }
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 1> : tuple_type<A1> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a1) {}
+	typename tuple_type<A1>::reference get() { return _x; }
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 2> : tuple_type<A2> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a2) {}
+	typename tuple_type<A2>::reference get() { return _x; }
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 3> : tuple_type<A3> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a3) {}
+	typename tuple_type<A3>::reference get() { return _x; }
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 4> : tuple_type<A4> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a4) {}
+	typename tuple_type<A4>::reference get() { return _x; }
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 5> : tuple_type<A5> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a5) {}
+	typename tuple_type<A5>::reference get() { return _x; }
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 6> : tuple_type<A6> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a6) {}
+	typename tuple_type<A6>::reference get() { return _x; }
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 7> : tuple_type<A7> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a7) {}
+	typename tuple_type<A7>::reference get() { return _x; }
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 8> : tuple_type<A8> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a8) {}
+	typename tuple_type<A8>::reference get() { return _x; }
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 9> : tuple_type<A9> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a9) {}
+	typename tuple_type<A9>::reference get() { return _x; }
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 10> : tuple_type<A10> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a10) {}
+	typename tuple_type<A10>::reference get() { return _x; }
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 11> : tuple_type<A11> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a11) {}
+	typename tuple_type<A11>::reference get() { return _x; }
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 12> : tuple_type<A12> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a12) {}
+	typename tuple_type<A12>::reference get() { return _x; }
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 13> : tuple_type<A13> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a13) {}
+	typename tuple_type<A13>::reference get() { return _x; }
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 14> : tuple_type<A14> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a14) {}
+	typename tuple_type<A14>::reference get() { return _x; }
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 15> : tuple_type<A15> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a15) {}
+	typename tuple_type<A15>::reference get() { return _x; }
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 16> : tuple_type<A16> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a16) {}
+	typename tuple_type<A16>::reference get() { return _x; }
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 17> : tuple_type<A17> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a17) {}
+	typename tuple_type<A17>::reference get() { return _x; }
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 18> : tuple_type<A18> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a18) {}
+	typename tuple_type<A18>::reference get() { return _x; }
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 19> : tuple_type<A19> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a19) {}
+	typename tuple_type<A19>::reference get() { return _x; }
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 20> : tuple_type<A20> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a20) {}
+	typename tuple_type<A20>::reference get() { return _x; }
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 21> : tuple_type<A21> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a21) {}
+	typename tuple_type<A21>::reference get() { return _x; }
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 22> : tuple_type<A22> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a22) {}
+	typename tuple_type<A22>::reference get() { return _x; }
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 23> : tuple_type<A23> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a23) {}
+	typename tuple_type<A23>::reference get() { return _x; }
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 24> : tuple_type<A24> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a24) {}
+	typename tuple_type<A24>::reference get() { return _x; }
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 25> : tuple_type<A25> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a25) {}
+	typename tuple_type<A25>::reference get() { return _x; }
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 26> : tuple_type<A26> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a26) {}
+	typename tuple_type<A26>::reference get() { return _x; }
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 27> : tuple_type<A27> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a27) {}
+	typename tuple_type<A27>::reference get() { return _x; }
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 28> : tuple_type<A28> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a28) {}
+	typename tuple_type<A28>::reference get() { return _x; }
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 29> : tuple_type<A29> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a29) {}
+	typename tuple_type<A29>::reference get() { return _x; }
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 30> : tuple_type<A30> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a30) {}
+	typename tuple_type<A30>::reference get() { return _x; }
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 31> : tuple_type<A31> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a31) {}
+	typename tuple_type<A31>::reference get() { return _x; }
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 32> : tuple_type<A32> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a32) {}
+	typename tuple_type<A32>::reference get() { return _x; }
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 33> : tuple_type<A33> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a33) {}
+	typename tuple_type<A33>::reference get() { return _x; }
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 34> : tuple_type<A34> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a34) {}
+	typename tuple_type<A34>::reference get() { return _x; }
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 35> : tuple_type<A35> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a35) {}
+	typename tuple_type<A35>::reference get() { return _x; }
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 36> : tuple_type<A36> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a36) {}
+	typename tuple_type<A36>::reference get() { return _x; }
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 37> : tuple_type<A37> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a37) {}
+	typename tuple_type<A37>::reference get() { return _x; }
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 38> : tuple_type<A38> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a38) {}
+	typename tuple_type<A38>::reference get() { return _x; }
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 39> : tuple_type<A39> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a39) {}
+	typename tuple_type<A39>::reference get() { return _x; }
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 40> : tuple_type<A40> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a40) {}
+	typename tuple_type<A40>::reference get() { return _x; }
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 41> : tuple_type<A41> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a41) {}
+	typename tuple_type<A41>::reference get() { return _x; }
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 42> : tuple_type<A42> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a42) {}
+	typename tuple_type<A42>::reference get() { return _x; }
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 43> : tuple_type<A43> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a43) {}
+	typename tuple_type<A43>::reference get() { return _x; }
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 44> : tuple_type<A44> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a44) {}
+	typename tuple_type<A44>::reference get() { return _x; }
+	typename tuple_type<A44>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A44>::reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 45> : tuple_type<A45> {
+	tuple_element(tuple<A0, A1 , A2 , A3 , A4 , A5 , A6 , A7 , A8 , A9 , A10 , A11 , A12 , A13 , A14 , A15 , A16 , A17 , A18 , A19 , A20 , A21 , A22 , A23 , A24 , A25 , A26 , A27 , A28 , A29 , A30 , A31 , A32 , A33 , A34 , A35 , A36 , A37 , A38 , A39 , A40 , A41 , A42 , A43 , A44 , A45 >& x) : _x(x.a45) {}
+	typename tuple_type<A45>::reference get() { return _x; }
+	typename tuple_type<A45>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A45>::reference _x;
+};
+
+
+
 
 
 template <typename A0>
@@ -14168,6 +16529,2106 @@ private:
 
 
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>, 41> : tuple_type<A41> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& x) : _x(x.a41) {}
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::const_reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 41> : tuple_type<A41> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a41) {}
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>, 42> : tuple_type<A42> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& x) : _x(x.a42) {}
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::const_reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 41> : tuple_type<A41> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a41) {}
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 42> : tuple_type<A42> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a42) {}
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>, 43> : tuple_type<A43> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& x) : _x(x.a43) {}
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::const_reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 41> : tuple_type<A41> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a41) {}
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 42> : tuple_type<A42> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a42) {}
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 43> : tuple_type<A43> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a43) {}
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>, 44> : tuple_type<A44> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& x) : _x(x.a44) {}
+	typename tuple_type<A44>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A44>::const_reference _x;
+};
+
+
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 0> : tuple_type<A0> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a0) {}
+	typename tuple_type<A0>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A0>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 1> : tuple_type<A1> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a1) {}
+	typename tuple_type<A1>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A1>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 2> : tuple_type<A2> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a2) {}
+	typename tuple_type<A2>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A2>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 3> : tuple_type<A3> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a3) {}
+	typename tuple_type<A3>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A3>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 4> : tuple_type<A4> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a4) {}
+	typename tuple_type<A4>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A4>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 5> : tuple_type<A5> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a5) {}
+	typename tuple_type<A5>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A5>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 6> : tuple_type<A6> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a6) {}
+	typename tuple_type<A6>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A6>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 7> : tuple_type<A7> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a7) {}
+	typename tuple_type<A7>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A7>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 8> : tuple_type<A8> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a8) {}
+	typename tuple_type<A8>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A8>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 9> : tuple_type<A9> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a9) {}
+	typename tuple_type<A9>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A9>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 10> : tuple_type<A10> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a10) {}
+	typename tuple_type<A10>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A10>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 11> : tuple_type<A11> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a11) {}
+	typename tuple_type<A11>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A11>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 12> : tuple_type<A12> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a12) {}
+	typename tuple_type<A12>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A12>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 13> : tuple_type<A13> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a13) {}
+	typename tuple_type<A13>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A13>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 14> : tuple_type<A14> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a14) {}
+	typename tuple_type<A14>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A14>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 15> : tuple_type<A15> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a15) {}
+	typename tuple_type<A15>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A15>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 16> : tuple_type<A16> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a16) {}
+	typename tuple_type<A16>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A16>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 17> : tuple_type<A17> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a17) {}
+	typename tuple_type<A17>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A17>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 18> : tuple_type<A18> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a18) {}
+	typename tuple_type<A18>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A18>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 19> : tuple_type<A19> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a19) {}
+	typename tuple_type<A19>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A19>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 20> : tuple_type<A20> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a20) {}
+	typename tuple_type<A20>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A20>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 21> : tuple_type<A21> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a21) {}
+	typename tuple_type<A21>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A21>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 22> : tuple_type<A22> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a22) {}
+	typename tuple_type<A22>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A22>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 23> : tuple_type<A23> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a23) {}
+	typename tuple_type<A23>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A23>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 24> : tuple_type<A24> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a24) {}
+	typename tuple_type<A24>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A24>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 25> : tuple_type<A25> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a25) {}
+	typename tuple_type<A25>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A25>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 26> : tuple_type<A26> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a26) {}
+	typename tuple_type<A26>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A26>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 27> : tuple_type<A27> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a27) {}
+	typename tuple_type<A27>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A27>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 28> : tuple_type<A28> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a28) {}
+	typename tuple_type<A28>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A28>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 29> : tuple_type<A29> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a29) {}
+	typename tuple_type<A29>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A29>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 30> : tuple_type<A30> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a30) {}
+	typename tuple_type<A30>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A30>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 31> : tuple_type<A31> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a31) {}
+	typename tuple_type<A31>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A31>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 32> : tuple_type<A32> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a32) {}
+	typename tuple_type<A32>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A32>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 33> : tuple_type<A33> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a33) {}
+	typename tuple_type<A33>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A33>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 34> : tuple_type<A34> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a34) {}
+	typename tuple_type<A34>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A34>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 35> : tuple_type<A35> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a35) {}
+	typename tuple_type<A35>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A35>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 36> : tuple_type<A36> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a36) {}
+	typename tuple_type<A36>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A36>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 37> : tuple_type<A37> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a37) {}
+	typename tuple_type<A37>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A37>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 38> : tuple_type<A38> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a38) {}
+	typename tuple_type<A38>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A38>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 39> : tuple_type<A39> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a39) {}
+	typename tuple_type<A39>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A39>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 40> : tuple_type<A40> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a40) {}
+	typename tuple_type<A40>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A40>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 41> : tuple_type<A41> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a41) {}
+	typename tuple_type<A41>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A41>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 42> : tuple_type<A42> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a42) {}
+	typename tuple_type<A42>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A42>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 43> : tuple_type<A43> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a43) {}
+	typename tuple_type<A43>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A43>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 44> : tuple_type<A44> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a44) {}
+	typename tuple_type<A44>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A44>::const_reference _x;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct const_tuple_element<tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>, 45> : tuple_type<A45> {
+	const_tuple_element(const tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& x) : _x(x.a45) {}
+	typename tuple_type<A45>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A45>::const_reference _x;
+};
+
+
+
 template <>
 struct tuple<> {
 	tuple() {}
@@ -14186,7 +18647,7 @@ struct tuple<A0> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 };
 
@@ -14201,7 +18662,7 @@ struct tuple<A0, A1> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 };
@@ -14217,7 +18678,7 @@ struct tuple<A0, A1, A2> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14234,7 +18695,7 @@ struct tuple<A0, A1, A2, A3> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14252,7 +18713,7 @@ struct tuple<A0, A1, A2, A3, A4> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14271,7 +18732,7 @@ struct tuple<A0, A1, A2, A3, A4, A5> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14291,7 +18752,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14312,7 +18773,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14334,7 +18795,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14357,7 +18818,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14381,7 +18842,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14406,7 +18867,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14432,7 +18893,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14459,7 +18920,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14487,7 +18948,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14> {
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14516,7 +18977,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14546,7 +19007,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14577,7 +19038,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14609,7 +19070,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14642,7 +19103,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14676,7 +19137,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14711,7 +19172,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14747,7 +19208,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14784,7 +19245,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14822,7 +19283,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14861,7 +19322,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14901,7 +19362,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14942,7 +19403,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -14984,7 +19445,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15027,7 +19488,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15071,7 +19532,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15116,7 +19577,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15162,7 +19623,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15209,7 +19670,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15257,7 +19718,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15306,7 +19767,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15356,7 +19817,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15407,7 +19868,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15459,7 +19920,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15512,7 +19973,7 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 		{ return tuple_element<value_type, N>(*this).get(); }
 	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
 		{ return const_tuple_element<value_type, N>(*this).get(); }
-	
+
 	A0 a0;
 	A1 a1;
 	A2 a2;
@@ -15553,6 +20014,351 @@ struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A1
 	A37 a37;
 	A38 a38;
 	A39 a39;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40, typename tuple_type<A41>::transparent_reference _a41) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40), a41(_a41) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+	A41 a41;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40, typename tuple_type<A41>::transparent_reference _a41, typename tuple_type<A42>::transparent_reference _a42) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40), a41(_a41), a42(_a42) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+	A41 a41;
+	A42 a42;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40, typename tuple_type<A41>::transparent_reference _a41, typename tuple_type<A42>::transparent_reference _a42, typename tuple_type<A43>::transparent_reference _a43) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40), a41(_a41), a42(_a42), a43(_a43) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+	A41 a41;
+	A42 a42;
+	A43 a43;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40, typename tuple_type<A41>::transparent_reference _a41, typename tuple_type<A42>::transparent_reference _a42, typename tuple_type<A43>::transparent_reference _a43, typename tuple_type<A44>::transparent_reference _a44) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40), a41(_a41), a42(_a42), a43(_a43), a44(_a44) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+	A41 a41;
+	A42 a42;
+	A43 a43;
+	A44 a44;
+};
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+struct tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45> {
+	typedef tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45> value_type;
+	tuple() {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0, typename tuple_type<A1>::transparent_reference _a1, typename tuple_type<A2>::transparent_reference _a2, typename tuple_type<A3>::transparent_reference _a3, typename tuple_type<A4>::transparent_reference _a4, typename tuple_type<A5>::transparent_reference _a5, typename tuple_type<A6>::transparent_reference _a6, typename tuple_type<A7>::transparent_reference _a7, typename tuple_type<A8>::transparent_reference _a8, typename tuple_type<A9>::transparent_reference _a9, typename tuple_type<A10>::transparent_reference _a10, typename tuple_type<A11>::transparent_reference _a11, typename tuple_type<A12>::transparent_reference _a12, typename tuple_type<A13>::transparent_reference _a13, typename tuple_type<A14>::transparent_reference _a14, typename tuple_type<A15>::transparent_reference _a15, typename tuple_type<A16>::transparent_reference _a16, typename tuple_type<A17>::transparent_reference _a17, typename tuple_type<A18>::transparent_reference _a18, typename tuple_type<A19>::transparent_reference _a19, typename tuple_type<A20>::transparent_reference _a20, typename tuple_type<A21>::transparent_reference _a21, typename tuple_type<A22>::transparent_reference _a22, typename tuple_type<A23>::transparent_reference _a23, typename tuple_type<A24>::transparent_reference _a24, typename tuple_type<A25>::transparent_reference _a25, typename tuple_type<A26>::transparent_reference _a26, typename tuple_type<A27>::transparent_reference _a27, typename tuple_type<A28>::transparent_reference _a28, typename tuple_type<A29>::transparent_reference _a29, typename tuple_type<A30>::transparent_reference _a30, typename tuple_type<A31>::transparent_reference _a31, typename tuple_type<A32>::transparent_reference _a32, typename tuple_type<A33>::transparent_reference _a33, typename tuple_type<A34>::transparent_reference _a34, typename tuple_type<A35>::transparent_reference _a35, typename tuple_type<A36>::transparent_reference _a36, typename tuple_type<A37>::transparent_reference _a37, typename tuple_type<A38>::transparent_reference _a38, typename tuple_type<A39>::transparent_reference _a39, typename tuple_type<A40>::transparent_reference _a40, typename tuple_type<A41>::transparent_reference _a41, typename tuple_type<A42>::transparent_reference _a42, typename tuple_type<A43>::transparent_reference _a43, typename tuple_type<A44>::transparent_reference _a44, typename tuple_type<A45>::transparent_reference _a45) :
+		a0(_a0), a1(_a1), a2(_a2), a3(_a3), a4(_a4), a5(_a5), a6(_a6), a7(_a7), a8(_a8), a9(_a9), a10(_a10), a11(_a11), a12(_a12), a13(_a13), a14(_a14), a15(_a15), a16(_a16), a17(_a17), a18(_a18), a19(_a19), a20(_a20), a21(_a21), a22(_a22), a23(_a23), a24(_a24), a25(_a25), a26(_a26), a27(_a27), a28(_a28), a29(_a29), a30(_a30), a31(_a31), a32(_a32), a33(_a33), a34(_a34), a35(_a35), a36(_a36), a37(_a37), a38(_a38), a39(_a39), a40(_a40), a41(_a41), a42(_a42), a43(_a43), a44(_a44), a45(_a45) {}
+	tuple(object o) { o.convert(this); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
+
+	A0 a0;
+	A1 a1;
+	A2 a2;
+	A3 a3;
+	A4 a4;
+	A5 a5;
+	A6 a6;
+	A7 a7;
+	A8 a8;
+	A9 a9;
+	A10 a10;
+	A11 a11;
+	A12 a12;
+	A13 a13;
+	A14 a14;
+	A15 a15;
+	A16 a16;
+	A17 a17;
+	A18 a18;
+	A19 a19;
+	A20 a20;
+	A21 a21;
+	A22 a22;
+	A23 a23;
+	A24 a24;
+	A25 a25;
+	A26 a26;
+	A27 a27;
+	A28 a28;
+	A29 a29;
+	A30 a30;
+	A31 a31;
+	A32 a32;
+	A33 a33;
+	A34 a34;
+	A35 a35;
+	A36 a36;
+	A37 a37;
+	A38 a38;
+	A39 a39;
+	A40 a40;
+	A41 a41;
+	A42 a42;
+	A43 a43;
+	A44 a44;
+	A45 a45;
 };
 
 
@@ -15801,6 +20607,42 @@ tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16,
 	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39);
 }
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40, typename tuple_type<A41>::transparent_reference a41)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40, typename tuple_type<A41>::transparent_reference a41, typename tuple_type<A42>::transparent_reference a42)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40, typename tuple_type<A41>::transparent_reference a41, typename tuple_type<A42>::transparent_reference a42, typename tuple_type<A43>::transparent_reference a43)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40, typename tuple_type<A41>::transparent_reference a41, typename tuple_type<A42>::transparent_reference a42, typename tuple_type<A43>::transparent_reference a43, typename tuple_type<A44>::transparent_reference a44)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45> make_tuple(typename tuple_type<A0>::transparent_reference a0, typename tuple_type<A1>::transparent_reference a1, typename tuple_type<A2>::transparent_reference a2, typename tuple_type<A3>::transparent_reference a3, typename tuple_type<A4>::transparent_reference a4, typename tuple_type<A5>::transparent_reference a5, typename tuple_type<A6>::transparent_reference a6, typename tuple_type<A7>::transparent_reference a7, typename tuple_type<A8>::transparent_reference a8, typename tuple_type<A9>::transparent_reference a9, typename tuple_type<A10>::transparent_reference a10, typename tuple_type<A11>::transparent_reference a11, typename tuple_type<A12>::transparent_reference a12, typename tuple_type<A13>::transparent_reference a13, typename tuple_type<A14>::transparent_reference a14, typename tuple_type<A15>::transparent_reference a15, typename tuple_type<A16>::transparent_reference a16, typename tuple_type<A17>::transparent_reference a17, typename tuple_type<A18>::transparent_reference a18, typename tuple_type<A19>::transparent_reference a19, typename tuple_type<A20>::transparent_reference a20, typename tuple_type<A21>::transparent_reference a21, typename tuple_type<A22>::transparent_reference a22, typename tuple_type<A23>::transparent_reference a23, typename tuple_type<A24>::transparent_reference a24, typename tuple_type<A25>::transparent_reference a25, typename tuple_type<A26>::transparent_reference a26, typename tuple_type<A27>::transparent_reference a27, typename tuple_type<A28>::transparent_reference a28, typename tuple_type<A29>::transparent_reference a29, typename tuple_type<A30>::transparent_reference a30, typename tuple_type<A31>::transparent_reference a31, typename tuple_type<A32>::transparent_reference a32, typename tuple_type<A33>::transparent_reference a33, typename tuple_type<A34>::transparent_reference a34, typename tuple_type<A35>::transparent_reference a35, typename tuple_type<A36>::transparent_reference a36, typename tuple_type<A37>::transparent_reference a37, typename tuple_type<A38>::transparent_reference a38, typename tuple_type<A39>::transparent_reference a39, typename tuple_type<A40>::transparent_reference a40, typename tuple_type<A41>::transparent_reference a41, typename tuple_type<A42>::transparent_reference a42, typename tuple_type<A43>::transparent_reference a43, typename tuple_type<A44>::transparent_reference a44, typename tuple_type<A45>::transparent_reference a45)
+{
+	return tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45);
+}
+
 
 }  // namespace type
 
@@ -15818,7 +20660,7 @@ type::tuple<A0>& operator>> (
 		type::tuple<A0>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 1) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	return v;
 }
@@ -15829,7 +20671,7 @@ type::tuple<A0, A1>& operator>> (
 		type::tuple<A0, A1>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 2) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	return v;
@@ -15841,7 +20683,7 @@ type::tuple<A0, A1, A2>& operator>> (
 		type::tuple<A0, A1, A2>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 3) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15854,7 +20696,7 @@ type::tuple<A0, A1, A2, A3>& operator>> (
 		type::tuple<A0, A1, A2, A3>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 4) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15868,7 +20710,7 @@ type::tuple<A0, A1, A2, A3, A4>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 5) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15883,7 +20725,7 @@ type::tuple<A0, A1, A2, A3, A4, A5>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 6) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15899,7 +20741,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 7) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15916,7 +20758,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 8) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15934,7 +20776,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 9) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15953,7 +20795,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 10) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15973,7 +20815,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 11) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -15994,7 +20836,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 12) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16016,7 +20858,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>& operator>> (
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 13) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16039,7 +20881,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13>& operato
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 14) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16063,7 +20905,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14>& op
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 15) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16088,7 +20930,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 16) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16114,7 +20956,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 17) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16141,7 +20983,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 18) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16169,7 +21011,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 19) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16198,7 +21040,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 20) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16228,7 +21070,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 21) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16259,7 +21101,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 22) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16291,7 +21133,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 23) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16324,7 +21166,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 24) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16358,7 +21200,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 25) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16393,7 +21235,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 26) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16429,7 +21271,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 27) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16466,7 +21308,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 28) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16504,7 +21346,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 29) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16543,7 +21385,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 30) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16583,7 +21425,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 31) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16624,7 +21466,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 32) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16666,7 +21508,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 33) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16709,7 +21551,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 34) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16753,7 +21595,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 35) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16798,7 +21640,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 36) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16844,7 +21686,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 37) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16891,7 +21733,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 38) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16939,7 +21781,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 39) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -16988,7 +21830,7 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	if(o.via.array.size < 40) { throw type_error(); }
-	
+
 	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
 	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
 	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
@@ -17032,6 +21874,327 @@ type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 	return v;
 }
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 41) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	return v;
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 42) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	o.via.array.ptr[41].convert<typename type::tuple_type<A41>::type>(&v.template get<41>());
+	return v;
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 43) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	o.via.array.ptr[41].convert<typename type::tuple_type<A41>::type>(&v.template get<41>());
+	o.via.array.ptr[42].convert<typename type::tuple_type<A42>::type>(&v.template get<42>());
+	return v;
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 44) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	o.via.array.ptr[41].convert<typename type::tuple_type<A41>::type>(&v.template get<41>());
+	o.via.array.ptr[42].convert<typename type::tuple_type<A42>::type>(&v.template get<42>());
+	o.via.array.ptr[43].convert<typename type::tuple_type<A43>::type>(&v.template get<43>());
+	return v;
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 45) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	o.via.array.ptr[41].convert<typename type::tuple_type<A41>::type>(&v.template get<41>());
+	o.via.array.ptr[42].convert<typename type::tuple_type<A42>::type>(&v.template get<42>());
+	o.via.array.ptr[43].convert<typename type::tuple_type<A43>::type>(&v.template get<43>());
+	o.via.array.ptr[44].convert<typename type::tuple_type<A44>::type>(&v.template get<44>());
+	return v;
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& operator>> (
+		object o,
+		type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& v) {
+	if(o.type != type::ARRAY) { throw type_error(); }
+	if(o.via.array.size < 46) { throw type_error(); }
+
+	o.via.array.ptr[0].convert<typename type::tuple_type<A0>::type>(&v.template get<0>());
+	o.via.array.ptr[1].convert<typename type::tuple_type<A1>::type>(&v.template get<1>());
+	o.via.array.ptr[2].convert<typename type::tuple_type<A2>::type>(&v.template get<2>());
+	o.via.array.ptr[3].convert<typename type::tuple_type<A3>::type>(&v.template get<3>());
+	o.via.array.ptr[4].convert<typename type::tuple_type<A4>::type>(&v.template get<4>());
+	o.via.array.ptr[5].convert<typename type::tuple_type<A5>::type>(&v.template get<5>());
+	o.via.array.ptr[6].convert<typename type::tuple_type<A6>::type>(&v.template get<6>());
+	o.via.array.ptr[7].convert<typename type::tuple_type<A7>::type>(&v.template get<7>());
+	o.via.array.ptr[8].convert<typename type::tuple_type<A8>::type>(&v.template get<8>());
+	o.via.array.ptr[9].convert<typename type::tuple_type<A9>::type>(&v.template get<9>());
+	o.via.array.ptr[10].convert<typename type::tuple_type<A10>::type>(&v.template get<10>());
+	o.via.array.ptr[11].convert<typename type::tuple_type<A11>::type>(&v.template get<11>());
+	o.via.array.ptr[12].convert<typename type::tuple_type<A12>::type>(&v.template get<12>());
+	o.via.array.ptr[13].convert<typename type::tuple_type<A13>::type>(&v.template get<13>());
+	o.via.array.ptr[14].convert<typename type::tuple_type<A14>::type>(&v.template get<14>());
+	o.via.array.ptr[15].convert<typename type::tuple_type<A15>::type>(&v.template get<15>());
+	o.via.array.ptr[16].convert<typename type::tuple_type<A16>::type>(&v.template get<16>());
+	o.via.array.ptr[17].convert<typename type::tuple_type<A17>::type>(&v.template get<17>());
+	o.via.array.ptr[18].convert<typename type::tuple_type<A18>::type>(&v.template get<18>());
+	o.via.array.ptr[19].convert<typename type::tuple_type<A19>::type>(&v.template get<19>());
+	o.via.array.ptr[20].convert<typename type::tuple_type<A20>::type>(&v.template get<20>());
+	o.via.array.ptr[21].convert<typename type::tuple_type<A21>::type>(&v.template get<21>());
+	o.via.array.ptr[22].convert<typename type::tuple_type<A22>::type>(&v.template get<22>());
+	o.via.array.ptr[23].convert<typename type::tuple_type<A23>::type>(&v.template get<23>());
+	o.via.array.ptr[24].convert<typename type::tuple_type<A24>::type>(&v.template get<24>());
+	o.via.array.ptr[25].convert<typename type::tuple_type<A25>::type>(&v.template get<25>());
+	o.via.array.ptr[26].convert<typename type::tuple_type<A26>::type>(&v.template get<26>());
+	o.via.array.ptr[27].convert<typename type::tuple_type<A27>::type>(&v.template get<27>());
+	o.via.array.ptr[28].convert<typename type::tuple_type<A28>::type>(&v.template get<28>());
+	o.via.array.ptr[29].convert<typename type::tuple_type<A29>::type>(&v.template get<29>());
+	o.via.array.ptr[30].convert<typename type::tuple_type<A30>::type>(&v.template get<30>());
+	o.via.array.ptr[31].convert<typename type::tuple_type<A31>::type>(&v.template get<31>());
+	o.via.array.ptr[32].convert<typename type::tuple_type<A32>::type>(&v.template get<32>());
+	o.via.array.ptr[33].convert<typename type::tuple_type<A33>::type>(&v.template get<33>());
+	o.via.array.ptr[34].convert<typename type::tuple_type<A34>::type>(&v.template get<34>());
+	o.via.array.ptr[35].convert<typename type::tuple_type<A35>::type>(&v.template get<35>());
+	o.via.array.ptr[36].convert<typename type::tuple_type<A36>::type>(&v.template get<36>());
+	o.via.array.ptr[37].convert<typename type::tuple_type<A37>::type>(&v.template get<37>());
+	o.via.array.ptr[38].convert<typename type::tuple_type<A38>::type>(&v.template get<38>());
+	o.via.array.ptr[39].convert<typename type::tuple_type<A39>::type>(&v.template get<39>());
+	o.via.array.ptr[40].convert<typename type::tuple_type<A40>::type>(&v.template get<40>());
+	o.via.array.ptr[41].convert<typename type::tuple_type<A41>::type>(&v.template get<41>());
+	o.via.array.ptr[42].convert<typename type::tuple_type<A42>::type>(&v.template get<42>());
+	o.via.array.ptr[43].convert<typename type::tuple_type<A43>::type>(&v.template get<43>());
+	o.via.array.ptr[44].convert<typename type::tuple_type<A44>::type>(&v.template get<44>());
+	o.via.array.ptr[45].convert<typename type::tuple_type<A45>::type>(&v.template get<45>());
+	return v;
+}
+
 
 template <typename Stream>
 const packer<Stream>& operator<< (
@@ -17046,7 +22209,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0>& v) {
 	o.pack_array(1);
-	
+
 	o.pack(v.template get<0>());
 	return o;
 }
@@ -17056,7 +22219,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1>& v) {
 	o.pack_array(2);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	return o;
@@ -17067,7 +22230,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2>& v) {
 	o.pack_array(3);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17079,7 +22242,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3>& v) {
 	o.pack_array(4);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17092,7 +22255,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4>& v) {
 	o.pack_array(5);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17106,7 +22269,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5>& v) {
 	o.pack_array(6);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17121,7 +22284,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6>& v) {
 	o.pack_array(7);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17137,7 +22300,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7>& v) {
 	o.pack_array(8);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17154,7 +22317,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8>& v) {
 	o.pack_array(9);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17172,7 +22335,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>& v) {
 	o.pack_array(10);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17191,7 +22354,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>& v) {
 	o.pack_array(11);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17211,7 +22374,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11>& v) {
 	o.pack_array(12);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17232,7 +22395,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>& v) {
 	o.pack_array(13);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17254,7 +22417,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13>& v) {
 	o.pack_array(14);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17277,7 +22440,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14>& v) {
 	o.pack_array(15);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17301,7 +22464,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15>& v) {
 	o.pack_array(16);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17326,7 +22489,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16>& v) {
 	o.pack_array(17);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17352,7 +22515,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17>& v) {
 	o.pack_array(18);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17379,7 +22542,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18>& v) {
 	o.pack_array(19);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17407,7 +22570,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19>& v) {
 	o.pack_array(20);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17436,7 +22599,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20>& v) {
 	o.pack_array(21);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17466,7 +22629,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21>& v) {
 	o.pack_array(22);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17497,7 +22660,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22>& v) {
 	o.pack_array(23);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17529,7 +22692,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23>& v) {
 	o.pack_array(24);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17562,7 +22725,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24>& v) {
 	o.pack_array(25);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17596,7 +22759,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25>& v) {
 	o.pack_array(26);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17631,7 +22794,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26>& v) {
 	o.pack_array(27);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17667,7 +22830,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27>& v) {
 	o.pack_array(28);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17704,7 +22867,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28>& v) {
 	o.pack_array(29);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17742,7 +22905,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29>& v) {
 	o.pack_array(30);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17781,7 +22944,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30>& v) {
 	o.pack_array(31);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17821,7 +22984,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31>& v) {
 	o.pack_array(32);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17862,7 +23025,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32>& v) {
 	o.pack_array(33);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17904,7 +23067,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33>& v) {
 	o.pack_array(34);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17947,7 +23110,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34>& v) {
 	o.pack_array(35);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -17991,7 +23154,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35>& v) {
 	o.pack_array(36);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -18036,7 +23199,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36>& v) {
 	o.pack_array(37);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -18082,7 +23245,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37>& v) {
 	o.pack_array(38);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -18129,7 +23292,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38>& v) {
 	o.pack_array(39);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -18177,7 +23340,7 @@ const packer<Stream>& operator<< (
 		packer<Stream>& o,
 		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39>& v) {
 	o.pack_array(40);
-	
+
 	o.pack(v.template get<0>());
 	o.pack(v.template get<1>());
 	o.pack(v.template get<2>());
@@ -18221,6 +23384,321 @@ const packer<Stream>& operator<< (
 	return o;
 }
 
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& v) {
+	o.pack_array(41);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	return o;
+}
+
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& v) {
+	o.pack_array(42);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	o.pack(v.template get<41>());
+	return o;
+}
+
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& v) {
+	o.pack_array(43);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	o.pack(v.template get<41>());
+	o.pack(v.template get<42>());
+	return o;
+}
+
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& v) {
+	o.pack_array(44);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	o.pack(v.template get<41>());
+	o.pack(v.template get<42>());
+	o.pack(v.template get<43>());
+	return o;
+}
+
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& v) {
+	o.pack_array(45);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	o.pack(v.template get<41>());
+	o.pack(v.template get<42>());
+	o.pack(v.template get<43>());
+	o.pack(v.template get<44>());
+	return o;
+}
+
+template <typename Stream, typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+const packer<Stream>& operator<< (
+		packer<Stream>& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& v) {
+	o.pack_array(46);
+
+	o.pack(v.template get<0>());
+	o.pack(v.template get<1>());
+	o.pack(v.template get<2>());
+	o.pack(v.template get<3>());
+	o.pack(v.template get<4>());
+	o.pack(v.template get<5>());
+	o.pack(v.template get<6>());
+	o.pack(v.template get<7>());
+	o.pack(v.template get<8>());
+	o.pack(v.template get<9>());
+	o.pack(v.template get<10>());
+	o.pack(v.template get<11>());
+	o.pack(v.template get<12>());
+	o.pack(v.template get<13>());
+	o.pack(v.template get<14>());
+	o.pack(v.template get<15>());
+	o.pack(v.template get<16>());
+	o.pack(v.template get<17>());
+	o.pack(v.template get<18>());
+	o.pack(v.template get<19>());
+	o.pack(v.template get<20>());
+	o.pack(v.template get<21>());
+	o.pack(v.template get<22>());
+	o.pack(v.template get<23>());
+	o.pack(v.template get<24>());
+	o.pack(v.template get<25>());
+	o.pack(v.template get<26>());
+	o.pack(v.template get<27>());
+	o.pack(v.template get<28>());
+	o.pack(v.template get<29>());
+	o.pack(v.template get<30>());
+	o.pack(v.template get<31>());
+	o.pack(v.template get<32>());
+	o.pack(v.template get<33>());
+	o.pack(v.template get<34>());
+	o.pack(v.template get<35>());
+	o.pack(v.template get<36>());
+	o.pack(v.template get<37>());
+	o.pack(v.template get<38>());
+	o.pack(v.template get<39>());
+	o.pack(v.template get<40>());
+	o.pack(v.template get<41>());
+	o.pack(v.template get<42>());
+	o.pack(v.template get<43>());
+	o.pack(v.template get<44>());
+	o.pack(v.template get<45>());
+	return o;
+}
+
 
 inline void operator<< (
 		object::with_zone& o,
@@ -18237,7 +23715,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*1);
 	o.via.array.size = 1;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 }
 
@@ -18248,7 +23726,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*2);
 	o.via.array.size = 2;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 }
@@ -18260,7 +23738,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*3);
 	o.via.array.size = 3;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18273,7 +23751,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*4);
 	o.via.array.size = 4;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18287,7 +23765,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*5);
 	o.via.array.size = 5;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18302,7 +23780,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*6);
 	o.via.array.size = 6;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18318,7 +23796,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*7);
 	o.via.array.size = 7;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18335,7 +23813,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*8);
 	o.via.array.size = 8;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18353,7 +23831,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*9);
 	o.via.array.size = 9;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18372,7 +23850,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*10);
 	o.via.array.size = 10;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18392,7 +23870,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*11);
 	o.via.array.size = 11;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18413,7 +23891,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*12);
 	o.via.array.size = 12;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18435,7 +23913,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*13);
 	o.via.array.size = 13;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18458,7 +23936,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*14);
 	o.via.array.size = 14;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18482,7 +23960,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*15);
 	o.via.array.size = 15;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18507,7 +23985,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*16);
 	o.via.array.size = 16;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18533,7 +24011,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*17);
 	o.via.array.size = 17;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18560,7 +24038,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*18);
 	o.via.array.size = 18;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18588,7 +24066,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*19);
 	o.via.array.size = 19;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18617,7 +24095,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*20);
 	o.via.array.size = 20;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18647,7 +24125,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*21);
 	o.via.array.size = 21;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18678,7 +24156,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*22);
 	o.via.array.size = 22;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18710,7 +24188,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*23);
 	o.via.array.size = 23;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18743,7 +24221,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*24);
 	o.via.array.size = 24;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18777,7 +24255,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*25);
 	o.via.array.size = 25;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18812,7 +24290,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*26);
 	o.via.array.size = 26;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18848,7 +24326,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*27);
 	o.via.array.size = 27;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18885,7 +24363,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*28);
 	o.via.array.size = 28;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18923,7 +24401,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*29);
 	o.via.array.size = 29;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -18962,7 +24440,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*30);
 	o.via.array.size = 30;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19002,7 +24480,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*31);
 	o.via.array.size = 31;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19043,7 +24521,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*32);
 	o.via.array.size = 32;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19085,7 +24563,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*33);
 	o.via.array.size = 33;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19128,7 +24606,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*34);
 	o.via.array.size = 34;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19172,7 +24650,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*35);
 	o.via.array.size = 35;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19217,7 +24695,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*36);
 	o.via.array.size = 36;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19263,7 +24741,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*37);
 	o.via.array.size = 37;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19310,7 +24788,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*38);
 	o.via.array.size = 38;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19358,7 +24836,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*39);
 	o.via.array.size = 39;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19407,7 +24885,7 @@ inline void operator<< (
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*40);
 	o.via.array.size = 40;
-	
+
 	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
 	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
 	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
@@ -19450,6 +24928,327 @@ inline void operator<< (
 	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
 }
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*41);
+	o.via.array.size = 41;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*42);
+	o.via.array.size = 42;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+	o.via.array.ptr[41] = object(v.template get<41>(), o.zone);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*43);
+	o.via.array.size = 43;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+	o.via.array.ptr[41] = object(v.template get<41>(), o.zone);
+	o.via.array.ptr[42] = object(v.template get<42>(), o.zone);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*44);
+	o.via.array.size = 44;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+	o.via.array.ptr[41] = object(v.template get<41>(), o.zone);
+	o.via.array.ptr[42] = object(v.template get<42>(), o.zone);
+	o.via.array.ptr[43] = object(v.template get<43>(), o.zone);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*45);
+	o.via.array.size = 45;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+	o.via.array.ptr[41] = object(v.template get<41>(), o.zone);
+	o.via.array.ptr[42] = object(v.template get<42>(), o.zone);
+	o.via.array.ptr[43] = object(v.template get<43>(), o.zone);
+	o.via.array.ptr[44] = object(v.template get<44>(), o.zone);
+}
+
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+inline void operator<< (
+		object::with_zone& o,
+		const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*46);
+	o.via.array.size = 46;
+
+	o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+	o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+	o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+	o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+	o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+	o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+	o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+	o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+	o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+	o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+	o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+	o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+	o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+	o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+	o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+	o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+	o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+	o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+	o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+	o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+	o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+	o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+	o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+	o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+	o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+	o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+	o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+	o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+	o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+	o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+	o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+	o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+	o.via.array.ptr[33] = object(v.template get<33>(), o.zone);
+	o.via.array.ptr[34] = object(v.template get<34>(), o.zone);
+	o.via.array.ptr[35] = object(v.template get<35>(), o.zone);
+	o.via.array.ptr[36] = object(v.template get<36>(), o.zone);
+	o.via.array.ptr[37] = object(v.template get<37>(), o.zone);
+	o.via.array.ptr[38] = object(v.template get<38>(), o.zone);
+	o.via.array.ptr[39] = object(v.template get<39>(), o.zone);
+	o.via.array.ptr[40] = object(v.template get<40>(), o.zone);
+	o.via.array.ptr[41] = object(v.template get<41>(), o.zone);
+	o.via.array.ptr[42] = object(v.template get<42>(), o.zone);
+	o.via.array.ptr[43] = object(v.template get<43>(), o.zone);
+	o.via.array.ptr[44] = object(v.template get<44>(), o.zone);
+	o.via.array.ptr[45] = object(v.template get<45>(), o.zone);
+}
+
 
 }  // namespace msgpack
 
@@ -19462,7 +25261,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< "]";
 //}
@@ -19471,7 +25270,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< "]";
@@ -19481,7 +25280,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19492,7 +25291,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19504,7 +25303,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19517,7 +25316,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19531,7 +25330,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19546,7 +25345,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19562,7 +25361,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19579,7 +25378,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19597,7 +25396,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19616,7 +25415,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19636,7 +25435,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19657,7 +25456,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19679,7 +25478,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19702,7 +25501,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19726,7 +25525,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19751,7 +25550,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19777,7 +25576,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19804,7 +25603,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19832,7 +25631,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19861,7 +25660,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19891,7 +25690,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19922,7 +25721,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19954,7 +25753,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -19987,7 +25786,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20021,7 +25820,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20056,7 +25855,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20092,7 +25891,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20129,7 +25928,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20167,7 +25966,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20206,7 +26005,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20246,7 +26045,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20287,7 +26086,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20329,7 +26128,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20372,7 +26171,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20416,7 +26215,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20461,7 +26260,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20507,7 +26306,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20554,7 +26353,7 @@ inline void operator<< (
 //inline std::ostream& operator<< (std::ostream& o,
 //		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39>& v) {
 //	return o << "["
-//	
+//
 //	<< v.template get<0>()
 //	<< ", " << v.template get<1>()
 //	<< ", " << v.template get<2>()
@@ -20598,6 +26397,314 @@ inline void operator<< (
 //	<< "]";
 //}
 //
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< "]";
+//}
+//
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< ", " << v.template get<41>()
+//	<< "]";
+//}
+//
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< ", " << v.template get<41>()
+//	<< ", " << v.template get<42>()
+//	<< "]";
+//}
+//
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< ", " << v.template get<41>()
+//	<< ", " << v.template get<42>()
+//	<< ", " << v.template get<43>()
+//	<< "]";
+//}
+//
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< ", " << v.template get<41>()
+//	<< ", " << v.template get<42>()
+//	<< ", " << v.template get<43>()
+//	<< ", " << v.template get<44>()
+//	<< "]";
+//}
+//
+//template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32, typename A33, typename A34, typename A35, typename A36, typename A37, typename A38, typename A39, typename A40, typename A41, typename A42, typename A43, typename A44, typename A45>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45>& v) {
+//	return o << "["
+//
+//	<< v.template get<0>()
+//	<< ", " << v.template get<1>()
+//	<< ", " << v.template get<2>()
+//	<< ", " << v.template get<3>()
+//	<< ", " << v.template get<4>()
+//	<< ", " << v.template get<5>()
+//	<< ", " << v.template get<6>()
+//	<< ", " << v.template get<7>()
+//	<< ", " << v.template get<8>()
+//	<< ", " << v.template get<9>()
+//	<< ", " << v.template get<10>()
+//	<< ", " << v.template get<11>()
+//	<< ", " << v.template get<12>()
+//	<< ", " << v.template get<13>()
+//	<< ", " << v.template get<14>()
+//	<< ", " << v.template get<15>()
+//	<< ", " << v.template get<16>()
+//	<< ", " << v.template get<17>()
+//	<< ", " << v.template get<18>()
+//	<< ", " << v.template get<19>()
+//	<< ", " << v.template get<20>()
+//	<< ", " << v.template get<21>()
+//	<< ", " << v.template get<22>()
+//	<< ", " << v.template get<23>()
+//	<< ", " << v.template get<24>()
+//	<< ", " << v.template get<25>()
+//	<< ", " << v.template get<26>()
+//	<< ", " << v.template get<27>()
+//	<< ", " << v.template get<28>()
+//	<< ", " << v.template get<29>()
+//	<< ", " << v.template get<30>()
+//	<< ", " << v.template get<31>()
+//	<< ", " << v.template get<32>()
+//	<< ", " << v.template get<33>()
+//	<< ", " << v.template get<34>()
+//	<< ", " << v.template get<35>()
+//	<< ", " << v.template get<36>()
+//	<< ", " << v.template get<37>()
+//	<< ", " << v.template get<38>()
+//	<< ", " << v.template get<39>()
+//	<< ", " << v.template get<40>()
+//	<< ", " << v.template get<41>()
+//	<< ", " << v.template get<42>()
+//	<< ", " << v.template get<43>()
+//	<< ", " << v.template get<44>()
+//	<< ", " << v.template get<45>()
+//	<< "]";
+//}
+//
 
 #endif /* msgpack/type/tuple.hpp */
-
