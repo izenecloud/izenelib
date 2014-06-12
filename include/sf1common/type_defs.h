@@ -44,7 +44,8 @@ enum PropertyDataType
     //customized type
     CUSTOM_RANKING_PROPERTY_TYPE,
     //subdocument type
-    SUBDOC_PROPERTY_TYPE
+    SUBDOC_PROPERTY_TYPE,
+    GEOLOCATION_PROPERTY_TYPE
 };
 
 typedef std::map<unsigned int, float> ID_FREQ_ORDERED_MAP_T;
