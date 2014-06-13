@@ -156,8 +156,6 @@ inline void client_transport::on_connect_success(int fd, sync_ref& ref)
 {
 	LOG_DEBUG("connect success to ",m_session->get_address()," fd=",fd);
 
-    std::cout << "connect success to : " << m_session->get_address() << ", fd=" << fd << std::endl;
-
 	mp::shared_ptr<client_socket> cs =
 		m_session->get_loop_ref()->add_handler<client_socket>(fd, this, m_session);
 
@@ -266,7 +264,6 @@ void client_transport::send_data(sbuffer* sbuf)
 		// FIXME pesudo connecting load balance
 		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(sbuf);
-        std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
 	}
 }
 
@@ -289,7 +286,6 @@ void client_transport::send_data(auto_vreflife vbuf)
 		// FIXME pesudo connecting load balance
 		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(vbuf);
-        std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
 	}
 }
 
