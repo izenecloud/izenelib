@@ -225,9 +225,6 @@ void client_transport::try_connect(sync_ref& lk_ref)
 	char addrbuf[addr.get_addrlen()];
 	addr.get_addr((sockaddr*)addrbuf);
 
-    int exist_size = lk_ref->sockpool.size();
-    for(int i = 0; i < m_sock_pool_num - exist_size; ++i)
-    {
 	m_session->get_loop_ref()->connect(
 			PF_INET, SOCK_STREAM, 0,
 			(sockaddr*)addrbuf, sizeof(addrbuf),
@@ -237,7 +234,6 @@ void client_transport::try_connect(sync_ref& lk_ref)
 				_1, _2,
 				weak_session(m_session->shared_from_this()), this
 				));
-    }
 }
 
 void client_transport::on_close(client_socket* sock)
@@ -270,7 +266,7 @@ void client_transport::send_data(sbuffer* sbuf)
 		// FIXME pesudo connecting load balance
 		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(sbuf);
-        //std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
+        std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
 	}
 }
 
@@ -293,7 +289,7 @@ void client_transport::send_data(auto_vreflife vbuf)
 		// FIXME pesudo connecting load balance
 		client_socket* sock = ref->sockpool[++ref->sockpool_rr % ref->sockpool.size()];
 		sock->send_data(vbuf);
-        //std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
+        std::cout << "send data use : " << ref->sockpool_rr << ", total :" << ref->sockpool.size() << std::endl;
 	}
 }
 
@@ -433,7 +429,7 @@ void server_transport::on_accept(int fd, int err, weak_server wsvr)
 tcp_builder::tcp_builder() :
 	m_connect_timeout(10.0),  // FIXME default connect timeout
 	m_reconnect_limit(3),      // FIXME default connect reconnect limit
-    m_sock_pool_num(2)
+    m_sock_pool_num(8)
 { }
 
 tcp_builder::~tcp_builder() { }

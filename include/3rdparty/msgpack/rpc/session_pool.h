@@ -33,7 +33,7 @@ namespace rpc {
 
 class session_pool : public loop_util<session_pool> {
 public:
-	session_pool(unsigned int sock_pool_num = 2, loop lo = loop());
+	session_pool(unsigned int sock_pool_num = 8, loop lo = loop());
 	session_pool(const builder& b, loop lo = loop());
 
 	~session_pool();
