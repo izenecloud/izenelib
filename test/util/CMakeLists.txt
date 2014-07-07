@@ -43,6 +43,7 @@ TARGET_LINK_LIBRARIES(t_util
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${OpenSSL_LIBRARIES}
+  crypto
   bz2 
   febird
   procmeminfo
