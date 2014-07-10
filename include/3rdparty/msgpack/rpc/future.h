@@ -51,6 +51,8 @@ public:
 
 	template <typename T>
 	T error_as() const;
+    
+    bool finish();
 
 	auto_zone& zone();
 	const auto_zone& zone() const;

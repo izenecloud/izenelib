@@ -37,6 +37,12 @@ void future_impl::recv()
 		m_loop->run_once();
 	}
 }
+    
+bool future_impl::finish()
+{
+	mp::pthread_scoped_lock lk(m_mutex);
+    return !m_session;
+}
 
 void future_impl::join()
 {
@@ -66,6 +72,10 @@ object future::get_impl()
 	return m_pimpl->get_impl();
 }
 
+bool future::finish()
+{
+	return m_pimpl->finish();
+}
 
 static void callback_real(
 		callback_t callback, future f)

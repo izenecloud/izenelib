@@ -42,6 +42,7 @@ public:
 	void join();
 	void wait();
 	void recv();
+    bool finish();
 
 	object result() const
 	{
