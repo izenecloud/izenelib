@@ -26,4 +26,5 @@ TARGET_LINK_LIBRARIES(t_cache
   febird
   procmeminfo
   izene_log
+  rt
   )

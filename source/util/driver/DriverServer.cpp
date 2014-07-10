@@ -33,6 +33,7 @@ DriverServer::DriverServer(
 void DriverServer::run()
 {
     normal_stop_ = false;
+    parent_type::init();
     boost::thread_group threads;
     for (std::size_t i = 0; i < threadPoolSize_/2; ++i)
     {
@@ -62,12 +63,10 @@ void DriverServer::worker()
             else
             {
                 LOG(ERROR) << "driver stopped by accident.";
-                parent_type::reset();
             }
         }
         catch (std::exception& e)
         {
-            parent_type::reset();
             LOG(ERROR) << "[DriverServer] "
                 << e.what() << std::endl;
         }

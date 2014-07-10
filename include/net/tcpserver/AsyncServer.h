@@ -35,6 +35,9 @@ public:
         const boost::shared_ptr<ConnectionFactory>& connectionFactory
     );
 
+    ~AsyncServer(){}
+
+    void init();
     /// @brief Run main loop.
     /// To handle connection in threads pool, please run this method in all
     /// threads.
@@ -72,6 +75,7 @@ private:
 
     /// @brief The io_service used to perform asynchronous operations.
     boost::asio::io_service ioService_;
+    boost::asio::ip::tcp::endpoint bindPort_;
 
     /// @brief Acceptor used to listen for incoming connections.
     boost::asio::ip::tcp::acceptor acceptor_;
@@ -91,12 +95,19 @@ AsyncServer<ConnectionFactory>::AsyncServer(
     const boost::shared_ptr<ConnectionFactory>& connectionFactory
 )
 : ioService_()
+, bindPort_(bindPort)
 , acceptor_(ioService_)
 , connectionFactory_(connectionFactory)
 , newConnection_()
 , errorHandler_()
 {
-    listen(bindPort);
+}
+
+template<typename ConnectionFactory>
+void AsyncServer<ConnectionFactory>::init(
+    )
+{
+    listen(bindPort_);
     asyncAccept();
 }
 
