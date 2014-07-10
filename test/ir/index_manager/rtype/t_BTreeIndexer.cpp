@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(bitvector)
 //     compressed.add(4);
 
     compressed.set(31);
-    compressed.add(0);
+    compressed.addWord(0);
     std::vector<uint32_t> out;
     compressed.appendRowIDs(out);
     for(uint32_t i=0;i<out.size();i++)
