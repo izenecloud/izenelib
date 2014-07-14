@@ -545,6 +545,7 @@ private:
 #endif
         if (cache_.is_full())
         {
+            LOG(INFO) << "Cache is full ... cacheClear_";
             cacheClear_();
         }
     }

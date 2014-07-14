@@ -60,11 +60,11 @@ public:
                     preload = false;
                 }
 
-                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload, usePerformance);
+                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload, 2000000, usePerformance);
                 result->open();
                 instance_map_.insert(std::make_pair( property_name, (void*)result) );
 
-                if (property_name == "Price")
+                if (use_per_props_.find(property_name) != use_per_props_.end())
                     usePreLoadRang(property_name);
                 
                 if(type_map_.find(property_name) == type_map_.end())
