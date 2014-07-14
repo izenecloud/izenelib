@@ -9,14 +9,16 @@ namespace indexmanager
 
 BTreeIndexerManager::BTreeIndexerManager(const std::string& dir, Directory* pDirectory,
     const std::map<std::string, PropertyType>& type_map,
+    const std::set<std::string>& usePerformanceProperty,
     const std::set<std::string>& no_preload_props)
-:dir_(dir), pDirectory_(pDirectory), no_preload_props_(no_preload_props)
+:dir_(dir), pDirectory_(pDirectory), use_per_props_(usePerformanceProperty), no_preload_props_(no_preload_props)
 {
   for (std::map<std::string, PropertyType>::const_iterator it = type_map.begin(); it!=type_map.end(); ++it)
   {
 //       LOG(INFO)<<"add map "<<it->first<<" , "<<it->second.which()<<std::endl;
       type_map_.insert(*it);
   }
+  LOG(INFO) << "usePerformanceProperty SIZE:" <<usePerformanceProperty.size();
 }
 
 BTreeIndexerManager::~BTreeIndexerManager()
@@ -65,16 +67,43 @@ bool BTreeIndexerManager::checkType_(const std::string& propertyName, const Prop
     return true;
 }
 
+void BTreeIndexerManager::usePreLoadRang(const std::string& property_name)
+{
+    std::cout <<"usePreLoadRang ...." << std::endl;
+    BTreeIndexer<float>* pindexer = this->getIndexer<float>(property_name);
+    pindexer->setPreLoadGreatEqual();
+}
+
 void BTreeIndexerManager::add(const std::string& property_name, const PropertyType& key, docid_t docid)
 {
     if (!checkType_(property_name, key)) return;
-    izenelib::util::boost_variant_visit(boost::bind(madd_visitor(), this, property_name, _1, docid), key);
+
+    if (use_per_props_.find(property_name) != use_per_props_.end())
+    //if (property_name == "Price")
+    {
+        float value = boost::get<float>(key);
+        int32_t value_convert = (int32_t)value;
+        PropertyType convert_key = (float)value_convert;
+        izenelib::util::boost_variant_visit(boost::bind(madd_visitor(), this, property_name, _1, docid), convert_key);
+    }
+    else
+        izenelib::util::boost_variant_visit(boost::bind(madd_visitor(), this, property_name, _1, docid), key);
 }
 
 void BTreeIndexerManager::remove(const std::string& property_name, const PropertyType& key, docid_t docid)
 {
     if (!checkType_(property_name, key)) return;
-    izenelib::util::boost_variant_visit(boost::bind(mremove_visitor(), this, property_name, _1, docid), key);
+
+    if (use_per_props_.find(property_name) != use_per_props_.end())
+    //if (property_name == "Price")
+    {
+        float value =  boost::get<float>(key);
+        int32_t value_convert = (int32_t)value;
+        PropertyType convert_key = (float)value_convert;
+        izenelib::util::boost_variant_visit(boost::bind(mremove_visitor(), this, property_name, _1, docid), convert_key);
+    }
+    else
+        izenelib::util::boost_variant_visit(boost::bind(mremove_visitor(), this, property_name, _1, docid), key);
 }
 
 

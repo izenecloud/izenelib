@@ -33,6 +33,7 @@ public:
         , filter_(false)
         , multiValue_(false)
         , storeDocLen_(false)
+        , usePerFilter_(false)
     {}
 
     IndexerPropertyConfig(const IndexerPropertyConfig& other)
@@ -44,9 +45,10 @@ public:
         , type_(other.type_)
         , multiValue_(other.multiValue_)
         , storeDocLen_(other.storeDocLen_)
+        , usePerFilter_(other.usePerFilter_)
     {}
 
-    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool filter = false)
+    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool usePerFilter = false, bool filter = false)
         : propertyId_(propertyid)
         , propertyName_(propertyname)
         , index_(index)
@@ -54,6 +56,7 @@ public:
         , filter_(filter)
         , multiValue_(false)
         , storeDocLen_(false)
+        , usePerFilter_(usePerFilter)
     {}
 
 public:
@@ -105,6 +108,16 @@ public:
     bool isFilter() const
     {
         return filter_;
+    }
+
+    void setusePerFilter( const bool v)
+    {
+        usePerFilter_ = v;
+    }
+
+    bool getusePerFilter() const
+    {
+        return usePerFilter_;
     }
 
     void setType(const PropertyType& type)
@@ -182,6 +195,7 @@ public:
         swap(type_,rhs.type_);
         swap(multiValue_,rhs.multiValue_);
         swap(storeDocLen_,rhs.storeDocLen_);
+        swap(usePerFilter_,rhs.usePerFilter_);
     }
 
     IndexerPropertyConfig& operator=(const IndexerPropertyConfig& rhs)
@@ -194,6 +208,7 @@ public:
         type_ = rhs.type_;
         multiValue_ = rhs.multiValue_;
         storeDocLen_ = rhs.storeDocLen_;
+        usePerFilter_ = rhs.usePerFilter_;
         return *this;
     }
 
@@ -217,6 +232,8 @@ protected:
     bool multiValue_;
     /// whether store doclen;
     bool storeDocLen_;
+    /// whether use performance
+    bool usePerFilter_;
 };
 
 struct IndexerPropertyConfigComp

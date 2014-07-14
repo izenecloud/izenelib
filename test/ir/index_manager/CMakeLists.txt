@@ -136,6 +136,14 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin/rtypeindex)
 ADD_EXECUTABLE(t_BTreeIndexer ${t_btreeindexer_SRC})
 TARGET_LINK_LIBRARIES(t_BTreeIndexer ${libs})
 
+SET(t_BitSet_SRC
+  rtype/t_BitSet.cpp
+  t_master_suite.cpp
+  )
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin/rtypeindex)
+ADD_EXECUTABLE(t_BitSet ${t_BitSet_SRC})
+TARGET_LINK_LIBRARIES(t_BitSet ${libs})
+
 SET(btreeindexercmd_SRC
   rtype/BTreeIndexerCmd.cpp
   )

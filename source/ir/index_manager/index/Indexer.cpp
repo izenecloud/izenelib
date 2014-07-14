@@ -80,9 +80,10 @@ void Indexer::setIndexManagerConfig(
 
     collectionid_t colID;
     std::map<std::string, PropertyType> type_map;//used for Btreeindexer
+    std::set<std::string> usePerProperty;
 
     std::set<std::string> no_preload_props;
-
+    //collectionMeta.indexBundleConfig_->indexSchema_;
     for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionList.begin(); iter != collectionList.end(); ++iter)
     {
         colID = iter->second.getColId();
@@ -102,6 +103,8 @@ void Indexer::setIndexManagerConfig(
                 {
 //                     LOG(INFO)<<"Get Type "<<it->getName()<<" , "<<type.which()<<std::endl;
                     type_map.insert(std::make_pair(it->getName(), type) );
+                    if (it->getusePerFilter())
+                        usePerProperty.insert(it->getName());
                 }
             }
         }
@@ -120,7 +123,7 @@ void Indexer::setIndexManagerConfig(
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
       {
           pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_,
-              pDirectory_, type_map, no_preload_props);
+              pDirectory_, type_map, usePerProperty, no_preload_props);
 //           pBTreeIndexer_ = new BTreeIndexer(pDirectory_, pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
           if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
           {

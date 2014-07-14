@@ -35,6 +35,7 @@ class BTreeIndexerManager
 public:
     BTreeIndexerManager(const std::string& dir, Directory* pDirectory,
         const std::map<std::string, PropertyType>& type_map,
+        const std::set<std::string>& usePerProperty,
         const std::set<std::string>& no_preload_props);
 
     ~BTreeIndexerManager();
@@ -53,13 +54,19 @@ public:
             if(!instance_map_.contains(property_name))
             {
                 bool preload = (no_preload_props_.find(property_name) == no_preload_props_.end());
+                bool usePerformance = (use_per_props_.find(property_name) != use_per_props_.end());
                 if (property_name == "uuid")
                 {
                     preload = false;
                 }
-                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload);
+
+                result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name, preload, usePerformance);
                 result->open();
                 instance_map_.insert(std::make_pair( property_name, (void*)result) );
+
+                if (property_name == "Price")
+                    usePreLoadRang(property_name);
+                
                 if(type_map_.find(property_name) == type_map_.end())
                 {
                     PropertyType type = T();
@@ -76,6 +83,8 @@ public:
         }
         return result;
     }
+
+    void usePreLoadRang(const std::string& property_name);
 
     void add(const std::string& property_name, const PropertyType& key, docid_t docid);
 
@@ -219,6 +228,7 @@ private:
     Directory* pDirectory_;
     ::concurrent::hashmap<std::string, void*> instance_map_;
     boost::unordered_map<std::string, PropertyType> type_map_;
+    std::set<std::string> use_per_props_;
     std::set<std::string> no_preload_props_;
     boost::shared_ptr<Bitset> pFilter_;
     boost::shared_mutex mutex_;
@@ -231,7 +241,6 @@ private:
     static const std::size_t kDocIdNumSortLimit = 1 << 18;
 };
 
-/// all modifer visitor below
 class madd_visitor : public boost::static_visitor<void>
 {
 public:

@@ -1,6 +1,7 @@
 #ifndef IZENELIB_IR_BTREEINDEXER_H_
 #define IZENELIB_IR_BTREEINDEXER_H_
 
+#include <typeinfo>
 #include <util/BoostVariantUtil.h>
 #include <am/luxio/BTree.h>
 #include <am/tc/BTree.h>
@@ -32,6 +33,7 @@
 #include <algorithm>
 #include <string>
 #include <map>
+#include <set>
 
 //#define CACHE_DEBUG
 //#define BT_DEBUG
@@ -73,11 +75,13 @@ public:
     typedef TermEnum<KeyType, ValueType> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef izenelib::am::AMIterator<DbType> iterator;
-    static const size_t MAX_VALUE_LEN = 1024*1024;
+    static const size_t MAX_VALUE_LEN = 256*1024;
+    
+    std::vector<KeyType> preLoadKey_;
 
     BTreeIndexer(const std::string& path, const std::string& property_name,
-        bool pre_load = false, std::size_t cacheSize = 2000000)//an experienced value
-        : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false)
+        bool pre_load = false, std::size_t cacheSize = 2000000, bool usePerformance = false)//an experienced value
+        : path_(path), property_name_(property_name), mutex_(), cache_(mutex_), count_has_modify_(false), usePerformance_(usePerformance)
     {
         cache_.set_max_capacity(cacheSize);
         func_ = &combineValue_;
@@ -97,15 +101,36 @@ public:
             std::cerr << "begin preload btree filter for property: " << property_name_ << std::endl;
 
             pre_loaded_data_.clear();
+            pre_loaded_data_swap_.clear();
+            pre_loaded_GreatEqual_data_.clear();
             std::auto_ptr<BaseEnumType> term_enum(getAMEnum_());
+            
             std::pair<KeyType, ValueType> kvp;
             while (term_enum->next(kvp))
-            {
+            {   
                 pre_loaded_data_[kvp.first] = kvp.second;
+                pre_loaded_data_swap_[kvp.first] = kvp.second;
             }
             std::cerr << "total preloaded : " << pre_loaded_data_.size();
         }
         return true;
+    }
+
+    void setPreLoadGreatEqual()
+    {
+        KeyType preKey[] = {1200, 1000, 900, 800, 700, 600, 500, 400, 300, 250, 200, 180, 160, 140, 120, 100, 90, 80, 70, 60, 50, 40};
+        size_t count = sizeof(preKey)/sizeof(KeyType);
+
+        for (int i = 0; i < count; ++i)
+        {
+            preLoadKey_.push_back(preKey[i]);   
+        }
+
+        if (!usePerformance_)
+        {
+            updatePreLoadRange();
+        }
+        LOG(INFO) << "setPreLoadGreatEqual ..."; 
     }
 
     void close()
@@ -247,7 +272,7 @@ public:
     {
         if (compare_(key1, key2) > 0) return;
         boost::shared_lock<MutexType> lock(mutex_);
-
+        izenelib::util::ClockTimer timer;
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
@@ -255,6 +280,8 @@ public:
             if (compare_(kvp.first, key2) > 0) break;
             decompress_(kvp.second, docs);
         }
+        LOG(INFO) << "do filter getValueBetween time cost: " << timer.elapsed() << " seconds";
+
     }
 
     void getValueLess(const KeyType& key, Bitset& docs)
@@ -277,6 +304,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
+        izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
@@ -285,6 +313,7 @@ public:
             if (compare_(kvp.first, key) > 0) break;
             decompress_(kvp.second, docs);
         }
+        LOG(INFO) << "do filter getValueLessEqual time cost: " << timer.elapsed() << " seconds";
     }
 
     void getValueGreat(const KeyType& key, Bitset& docs)
@@ -292,6 +321,7 @@ public:
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
+        izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
@@ -300,20 +330,52 @@ public:
             if (compare_(kvp.first, key) == 0) continue;
             decompress_(kvp.second, docs);
         }
+        LOG(INFO) << "do filter getValueGreat time cost: " << timer.elapsed() << " seconds";
     }
 
-    void getValueGreatEqual(const KeyType& key, Bitset& docs)
+    void getValueGreatEqual(const KeyType& key, Bitset& docs, bool proLoadinit = false)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
 #endif
+        izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
+        bool usePreLoadRange = false;
         while (term_enum->next(kvp))
         {
+            if (!proLoadinit && std::find(preLoadKey_.begin( ), preLoadKey_.end( ), kvp.first) != preLoadKey_.end()) // use pro_load_range_data;
+            {
+                LOG(INFO) << "use preloaded GreatEqual Value ";
+                decompress_(pre_loaded_GreatEqual_data_[kvp.first], docs);
+                usePreLoadRange = true;
+                break;
+            }
             decompress_(kvp.second, docs);
         }
+
+        // For Cache Data
+        if (usePreLoadRange && !cacheEmpty_())
+        {
+            LOG(INFO) << "use preloaded GreatEqual Value and Cache is not empty..";
+            std::pair<KeyType, CacheValueType> kvp;
+            std::auto_ptr<MemEnumType> term_enum_cache(getMemEnum_(key));
+            std::vector<docid_t> docList;
+            while(term_enum_cache->next(kvp))
+            {
+                for (unsigned int i = 0; i < kvp.second.item.size(); ++i)
+                {
+                    docList.push_back(kvp.second.item[i].first);
+                    std::cout << kvp.second.item[i].first << " , ";
+                }
+                std::cout << std::endl;
+                //decompress_(kvp.second, docs);
+            }
+            ///ValueType value = docList;
+            decompress_(docList, docs);
+        }   
+        LOG(INFO) << "do filter getValueGreatEqual time cost: " << timer.elapsed() << " seconds";
     }
 
 
@@ -495,10 +557,30 @@ private:
 #endif
         boost::unique_lock<WriteOnlyMutex> lock2(mutex2_);
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
-        boost::unique_lock<MutexType> lock(mutex_);
-        cache_.clear();
+        
         db_.flush();
+        boost::unique_lock<MutexType> lock(mutex_);
+        pre_loaded_data_ = pre_loaded_data_swap_;
+        cache_.clear();
+        if (usePerformance_)
+            updatePreLoadRange();
+
         count_has_modify_ = true;//force use db_.size() in count as cache will be empty
+    }
+
+    void updatePreLoadRange()
+    {
+        std::vector<KeyType> preLoadKeyTmp_(preLoadKey_);
+        preLoadKey_.clear();
+
+        for (unsigned int i = 0; i < preLoadKeyTmp_.size(); ++i)
+        {
+            KeyType key = preLoadKeyTmp_[i];
+            Bitset bitset;
+            getValueGreatEqual(key, bitset, true);
+            pre_loaded_GreatEqual_data_[key] = bitset;
+            preLoadKey_.push_back(key);
+        }
     }
 
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
@@ -573,20 +655,26 @@ private:
             }
         }
 
-        boost::unique_lock<MutexType> lock(mutex_);
+        //boost::unique_lock<MutexType> lock(mutex_);
         if ((common_value.which() == 1) || value_size > 0)
         {
             db_.update(kvp.first, common_value);
             if (pre_load_)
-                pre_loaded_data_[kvp.first] = common_value;
+                pre_loaded_data_swap_[kvp.first] = common_value;
         }
         else
         {
             db_.del(kvp.first);
             if (pre_load_)
-                pre_loaded_data_.erase(kvp.first);
+                pre_loaded_data_swap_.erase(kvp.first);
         }
-        cache_.clear_key(kvp.first);
+
+        if (!pre_load_)
+        {
+            boost::unique_lock<MutexType> lock(mutex_);
+            cache_.clear_key(kvp.first);
+        }
+        //cache_.clear_key(kvp.first);
 
 #ifdef CACHE_TIME_INFO
         t3 += timer.elapsed();
@@ -748,10 +836,12 @@ private:
             {
                 value.set(tmp[i]);
             }
+            //std::cout << "use DocListType" << std::endl;
         }
         else
         {
             value |= boost::get<Bitset>(compressed);
+            std::cout << "use bitset" << std::endl;
         }
     }
 
@@ -874,9 +964,14 @@ private:
 #endif
     std::size_t cache_num_;
     bool pre_load_;
+    bool usePerformance_;
     PreLoadCacheType pre_loaded_data_;
-};
+    PreLoadCacheType pre_loaded_data_swap_;
 
+    // if Key is 400; The Value is the BitSet for GreatEqual 400;
+    // THere support 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 1200, 2500,
+    PreLoadCacheType pre_loaded_GreatEqual_data_; // this is used for Rule Manager GreatEqual;
+};
 }
 
 NS_IZENELIB_IR_END
