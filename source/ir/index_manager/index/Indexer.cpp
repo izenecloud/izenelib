@@ -110,6 +110,7 @@ void Indexer::setIndexManagerConfig(
         }
         property_name_id_map_.insert(make_pair(colID, propertyMap));
     }
+    cout << "usePerProperty size: " << usePerProperty.size() << endl;
 
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 

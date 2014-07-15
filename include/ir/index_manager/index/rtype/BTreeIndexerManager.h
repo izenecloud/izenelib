@@ -72,7 +72,6 @@ public:
                     PropertyType type = T();
                     type_map_[property_name] = type;
                 }
-
             }
         }
         if(result == NULL) // has been initialized

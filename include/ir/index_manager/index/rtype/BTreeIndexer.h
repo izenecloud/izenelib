@@ -75,7 +75,7 @@ public:
     typedef TermEnum<KeyType, ValueType> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, ValueType&) > EnumCombineFunc;
     typedef izenelib::am::AMIterator<DbType> iterator;
-    static const size_t MAX_VALUE_LEN = 256*1024;
+    static const size_t MAX_VALUE_LEN = 512*1024;
     
     std::vector<KeyType> preLoadKey_;
 
@@ -118,7 +118,7 @@ public:
 
     void setPreLoadGreatEqual()
     {
-        KeyType preKey[] = {1200, 1000, 900, 800, 700, 600, 500, 400, 300, 250, 200, 180, 160, 140, 120, 100, 90, 80, 70, 60, 50, 40};
+        KeyType preKey[] = {1500, 1200, 1000, 900, 800, 700, 600, 500, 400, 300, 250, 200, 180, 160, 140, 120, 100, 90, 80, 70, 60, 50, 40, 30, 20};
         size_t count = sizeof(preKey)/sizeof(KeyType);
 
         for (int i = 0; i < count; ++i)
@@ -126,7 +126,7 @@ public:
             preLoadKey_.push_back(preKey[i]);   
         }
 
-        if (!usePerformance_)
+        if (usePerformance_)
         {
             updatePreLoadRange();
         }
@@ -345,7 +345,7 @@ public:
         bool usePreLoadRange = false;
         while (term_enum->next(kvp))
         {
-            if (!proLoadinit && std::find(preLoadKey_.begin( ), preLoadKey_.end( ), kvp.first) != preLoadKey_.end()) // use pro_load_range_data;
+            if (proLoadinit && std::find(preLoadKey_.begin( ), preLoadKey_.end( ), kvp.first) != preLoadKey_.end()) // use pro_load_range_data;
             {
                 LOG(INFO) << "use preloaded GreatEqual Value ";
                 decompress_(pre_loaded_GreatEqual_data_[kvp.first], docs);
@@ -560,9 +560,11 @@ private:
         cache_.iterate(boost::bind(&ThisType::cacheIterator_, this, _1));
         
         db_.flush();
-        boost::unique_lock<MutexType> lock(mutex_);
-        pre_loaded_data_ = pre_loaded_data_swap_;
-        cache_.clear();
+        {
+            boost::unique_lock<MutexType> lock(mutex_);
+            pre_loaded_data_ = pre_loaded_data_swap_;
+            cache_.clear();
+        }
         if (usePerformance_)
             updatePreLoadRange();
 
