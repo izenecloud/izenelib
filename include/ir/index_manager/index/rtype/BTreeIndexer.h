@@ -333,7 +333,7 @@ public:
         LOG(INFO) << "do filter getValueGreat time cost: " << timer.elapsed() << " seconds";
     }
 
-    void getValueGreatEqual(const KeyType& key, Bitset& docs, bool proLoadinit = false)
+    void getValueGreatEqual(const KeyType& key, Bitset& docs)
     {
 #ifdef DOCS_INFO
         std::cout << "[start] " << docs << std::endl;
@@ -345,7 +345,7 @@ public:
         bool usePreLoadRange = false;
         while (term_enum->next(kvp))
         {
-            if (proLoadinit && std::find(preLoadKey_.begin( ), preLoadKey_.end( ), kvp.first) != preLoadKey_.end()) // use pro_load_range_data;
+            if (std::find(preLoadKey_.begin( ), preLoadKey_.end( ), kvp.first) != preLoadKey_.end()) // use pro_load_range_data;
             {
                 LOG(INFO) << "use preloaded GreatEqual Value ";
                 decompress_(pre_loaded_GreatEqual_data_[kvp.first], docs);
@@ -365,12 +365,7 @@ public:
             while(term_enum_cache->next(kvp))
             {
                 for (unsigned int i = 0; i < kvp.second.item.size(); ++i)
-                {
-                    docList.push_back(kvp.second.item[i].first);
-                    std::cout << kvp.second.item[i].first << " , ";
-                }
-                std::cout << std::endl;
-                //decompress_(kvp.second, docs);
+                   docList.push_back(kvp.second.item[i].first); 
             }
             ///ValueType value = docList;
             decompress_(docList, docs);
@@ -426,6 +421,7 @@ public:
 
     void flush()
     {
+
         cacheClear_();
     }
 
@@ -580,7 +576,7 @@ private:
         {
             KeyType key = preLoadKeyTmp_[i];
             Bitset bitset;
-            getValueGreatEqual(key, bitset, true);
+            getValueGreatEqual(key, bitset);
             pre_loaded_GreatEqual_data_[key] = bitset;
             preLoadKey_.push_back(key);
         }
