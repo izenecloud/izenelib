@@ -240,8 +240,8 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, Matc
     char_type c = pattern[--len];
     size_t occ;
 
-    size_t sp = bwt_tree_->getOcc(c);
-    size_t ep = bwt_tree_->getOcc(c + 1);
+    size_t sp = bwt_tree_->beginOcc(c);
+    size_t ep = bwt_tree_->endOcc(c);
     if (sp == ep) return 0;
 
     match_range.first = sp;
@@ -250,7 +250,7 @@ size_t FMIndex<CharT>::backwardSearch(const char_type *pattern, size_t len, Matc
     for (; len > 0; --len)
     {
         c = pattern[len - 1];
-        occ = bwt_tree_->getOcc(c);
+        occ = bwt_tree_->beginOcc(c);
 
         sp = occ + bwt_tree_->rank(c, sp);
         ep = occ + bwt_tree_->rank(c, ep);
@@ -280,8 +280,8 @@ size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, 
     {
         c = pattern[i - 1];
 
-        sp = bwt_tree_->getOcc(c);
-        ep = bwt_tree_->getOcc(c + 1);
+        sp = bwt_tree_->beginOcc(c);
+        ep = bwt_tree_->endOcc(c);
 
         if (ep - sp <= prune_bounds[i - 1].second - prune_bounds[i - 1].first)
             goto PRUNED;
@@ -293,7 +293,7 @@ size_t FMIndex<CharT>::longestSuffixMatch(const char_type *pattern, size_t len, 
         for (j = i - 1; j > 0; --j)
         {
             c = pattern[j - 1];
-            occ = bwt_tree_->getOcc(c);
+            occ = bwt_tree_->beginOcc(c);
 
             sp = occ + bwt_tree_->rank(c, sp);
             ep = occ + bwt_tree_->rank(c, ep);

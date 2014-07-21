@@ -31,54 +31,21 @@ public:
         return 64 - __builtin_clzl(n);
     }
 
-    static uint64_t GetSlice(const std::vector<uint64_t>& bits,
-                             size_t pos, size_t len)
-    {
-        if (len == 0) return 0;
-        size_t block = pos / kBlockSize;
-        size_t offset = pos % kBlockSize;
-        uint64_t ret = bits[block] >> offset;
-        if (offset + len > kBlockSize)
-        {
-            ret |= bits[block + 1] << (kBlockSize - offset);
-        }
-        if (len == 64) return ret;
-        return ret & ((1LLU << len) - 1);
-    }
-
-    static void SetSlice(std::vector<uint64_t>& bits,
-                         size_t pos, size_t len, uint64_t val)
-    {
-        if (len == 0) return;
-        size_t block = pos / kBlockSize;
-        size_t offset = pos % kBlockSize;
-        bits[block] |= val << offset;
-        if (offset + len > kBlockSize)
-        {
-            bits[block + 1] |= val >> (kBlockSize - offset);
-        }
-    }
-
     static inline size_t Ceiling(size_t num, size_t div)
     {
         return (num + div - 1) / div;
     }
 
-    static size_t selectBlock(uint64_t blk, size_t r)
-    {
-        __assert(r < kBlockSize);
+    static uint64_t GetSlice(const std::vector<uint64_t>& bits,
+                             size_t pos, size_t len);
+    static void SetSlice(std::vector<uint64_t>& bits,
+                         size_t pos, size_t len, uint64_t val);
 
-        uint64_t s = blk - ((blk >> 1) & 0x5555555555555555LLU);
-        s = (s & 0x3333333333333333LLU) + ((s >> 2) & 0x3333333333333333LLU);
-        s = (s + (s >> 4)) & 0x0f0f0f0f0f0f0f0fLLU;
-        s *= 0x0101010101010101LLU;
+    static size_t selectBlock(uint64_t blk, size_t r);
 
-        __assert(r < s >> 56);
-
-        size_t nblock = __builtin_ctzl((s + (0x7fLLU - r) * 0x0101010101010101LLU) & 0x8080808080808080LLU) - 7;
-
-        return nblock + kSelectPos_[r - (s << 8 >> nblock & 0xffLLU)][blk >> nblock & 0xffLLU];
-    }
+    static uint64_t bitReverse(uint64_t v, size_t bit_num);
+    static uint32_t bitReverse(uint32_t v, size_t bit_num);
+    static uint16_t bitReverse(uint16_t v, size_t bit_num);
 
     template <class T>
     static void saveVec(std::ostream& os, const std::vector<T>& vs)
@@ -99,6 +66,7 @@ public:
 
 private:
     static const uint8_t kSelectPos_[8][256];
+    static const uint8_t kBitReverseTable_[256];
 };
 
 }

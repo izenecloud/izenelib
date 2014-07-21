@@ -62,7 +62,9 @@ public:
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
 
-    size_t getOcc(char_type c) const;
+    size_t beginOcc(char_type c) const;
+    size_t endOcc(char_type c) const;
+
     WaveletTreeNode *getRoot() const;
 
     size_t length() const;
@@ -1194,9 +1196,16 @@ void WaveletTreeHuffman<CharT>::topKUnionWithAuxFilters(
 }
 
 template <class CharT>
-size_t WaveletTreeHuffman<CharT>::getOcc(char_type c) const
+size_t WaveletTreeHuffman<CharT>::beginOcc(char_type c) const
 {
     if (c < occ_.size()) return occ_[c];
+    return occ_.back();
+}
+
+template <class CharT>
+size_t WaveletTreeHuffman<CharT>::endOcc(char_type c) const
+{
+    if (c < occ_.size() - 1) return occ_[c + 1];
     return occ_.back();
 }
 

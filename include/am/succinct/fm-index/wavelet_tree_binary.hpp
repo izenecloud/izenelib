@@ -80,7 +80,9 @@ public:
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
 
-    size_t getOcc(char_type c) const;
+    size_t beginOcc(char_type c) const;
+    size_t endOcc(char_type c) const;
+
     WaveletTreeNode *getRoot() const;
 
     size_t length() const;
@@ -1729,9 +1731,16 @@ void WaveletTreeBinary<CharT>::topKUnionWithAuxFilters(
 }
 
 template <class CharT>
-size_t WaveletTreeBinary<CharT>::getOcc(char_type c) const
+size_t WaveletTreeBinary<CharT>::beginOcc(char_type c) const
 {
     if (c <= occ_.size()) return occ_.prefixSum(c);
+    return occ_.getSum();
+}
+
+template <class CharT>
+size_t WaveletTreeBinary<CharT>::endOcc(char_type c) const
+{
+    if (c < occ_.size()) return occ_.prefixSum(c + 1);
     return occ_.getSum();
 }
 

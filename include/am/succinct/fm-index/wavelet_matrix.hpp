@@ -80,7 +80,9 @@ public:
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const;
 
-    size_t getOcc(char_type c) const;
+    size_t beginOcc(char_type c) const;
+    size_t endOcc(char_type c) const;
+
     WaveletTreeNode *getRoot() const;
 
     size_t length() const;
@@ -134,13 +136,14 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
     char_type *curr = const_cast<char_type *>(char_seq);
     char_type *next = temp_seq;
 
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
+
     for (size_t i = 0; i < this->alphabet_bit_num_; ++i)
     {
         nodes_[i] = new WaveletTreeNode(this->support_select_, this->dense_);
         nodes_[i]->resize(len);
 
         size_t zero_count = 0;
-        char_type bit_mask = (char_type)1 << i;
 
         for (size_t j = 0; j < len; ++j)
         {
@@ -166,30 +169,37 @@ void WaveletMatrix<CharT>::build(const char_type *char_seq, size_t len)
             }
         }
         std::swap(curr, next);
+
+        bit_mask >>= 1;
     }
 
     size_t curr_char = 0;
+    char_type tmp_char = 0;
     size_t curr_count = 0;
 
     for (size_t i = 0; i < len; ++i)
     {
-        if (curr[i] == curr_char)
+        if (curr[i] == tmp_char)
         {
             ++curr_count;
         }
         else
         {
             occ_.add(curr_count);
-            for (++curr_char; curr_char < curr[i]; ++curr_char)
+
+            tmp_char = SuccinctUtils::bitReverse(curr[i], this->alphabet_bit_num_);
+            for (++curr_char; curr_char < tmp_char; ++curr_char)
             {
                 occ_.add(0);
             }
+            tmp_char = curr[i];
+
             curr_count = 1;
         }
     }
 
     occ_.add(curr_count);
-    for (++curr_char; curr_char <= 1LLU << this->alphabet_bit_num_; ++curr_char)
+    for (++curr_char; curr_char <= 1ULL << this->alphabet_bit_num_; ++curr_char)
     {
         occ_.add(0);
     }
@@ -212,7 +222,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos) const
     if (pos >= length()) return -1;
 
     char_type c = 0;
-    char_type bit_mask = 1;
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -222,7 +232,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos) const
             pos += zero_counts_[i];
         }
 
-        bit_mask <<= 1;
+        bit_mask >>= 1;
     }
 
     return c;
@@ -234,7 +244,7 @@ CharT WaveletMatrix<CharT>::access(size_t pos, size_t &rank) const
     if (pos >= length()) return -1;
 
     char_type c = 0;
-    char_type bit_mask = 1;
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -244,10 +254,10 @@ CharT WaveletMatrix<CharT>::access(size_t pos, size_t &rank) const
             pos += zero_counts_[i];
         }
 
-        bit_mask <<= 1;
+        bit_mask >>= 1;
     }
 
-    rank = pos - occ_.prefixSum(c);
+    rank = pos - occ_.prefixSum(SuccinctUtils::bitReverse(c, this->alphabet_bit_num_));
 
     return c;
 }
@@ -257,7 +267,7 @@ size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
 {
     pos = std::min(pos, length());
 
-    char_type bit_mask = 1;
+    char_type bit_mask = (char_type)1 << (this->alphabet_bit_num_ - 1);
 
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
@@ -270,16 +280,16 @@ size_t WaveletMatrix<CharT>::rank(char_type c, size_t pos) const
             pos -= nodes_[i]->rank1(pos);
         }
 
-        bit_mask <<= 1;
+        bit_mask >>= 1;
     }
 
-    return pos - occ_.prefixSum(c);
+    return pos - occ_.prefixSum(SuccinctUtils::bitReverse(c, this->alphabet_bit_num_));
 }
 
 template <class CharT>
 size_t WaveletMatrix<CharT>::select(char_type c, size_t rank) const
 {
-    size_t pos = rank + occ_.prefixSum(c);
+    size_t pos = rank + occ_.prefixSum(SuccinctUtils::bitReverse(c, this->alphabet_bit_num_));
 
     for (size_t i = nodes_.size() - 1; i < nodes_.size(); --i)
     {
@@ -380,7 +390,7 @@ void WaveletMatrix<CharT>::doIntersect_(
 
     if (has_ones)
     {
-        doIntersect_(one_ranges, one_thres, max_count, level + 1, symbol | (char_type)1 << level, results);
+        doIntersect_(one_ranges, one_thres, max_count, level + 1, symbol | (char_type)1 << (this->alphabet_bit_num_ - level - 1), results);
     }
 }
 
@@ -456,12 +466,12 @@ void WaveletMatrix<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, PatternList)(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, PatternList)(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_, top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -565,13 +575,13 @@ void WaveletMatrix<CharT>::topKUnion(
                     recyc_queue.push_back(one_ranges);
                 }
             }
-            else if (top_queue.size() == max_queue_size)
-            {
-                recyc_queue.push_back(one_ranges);
-            }
             else if (top_queue.size() + ranges_heap.size() < max_queue_size)
             {
                 ranges_heap.insert(one_ranges);
+            }
+            else if (top_queue.size() == max_queue_size)
+            {
+                recyc_queue.push_back(one_ranges);
             }
             else if (*ranges_heap.get_min() < *one_ranges)
             {
@@ -683,12 +693,12 @@ void WaveletMatrix<CharT>::topKUnionWithFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, FilteredPatternList)(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, FilteredPatternList)(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_, top_ranges->filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -943,12 +953,12 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, AuxFilteredPatternList<self_type>)(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -1224,12 +1234,12 @@ void WaveletMatrix<CharT>::topKUnion(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, SynonymPatternList)(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, SynonymPatternList)(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_, top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -1454,12 +1464,12 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 
         if (recyc_queue.empty())
         {
-            one_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
+            one_ranges = BOOST_NEW(alloc, AuxFilteredSynonymPatternList<self_type>)(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_, top_ranges->aux_filters_.capacity(), top_ranges->patterns_.capacity(), top_ranges->synonyms_.capacity(), alloc);
         }
         else
         {
             one_ranges = recyc_queue.back();
-            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << level, node->right_);
+            one_ranges->reset(level + 1, top_ranges->sym_ | (char_type)1 << (this->alphabet_bit_num_ - level - 1), node->right_);
             recyc_queue.pop_back();
         }
 
@@ -1658,8 +1668,17 @@ void WaveletMatrix<CharT>::topKUnionWithAuxFilters(
 }
 
 template <class CharT>
-size_t WaveletMatrix<CharT>::getOcc(char_type c) const
+size_t WaveletMatrix<CharT>::beginOcc(char_type c) const
 {
+    c = SuccinctUtils::bitReverse(c, this->alphabet_bit_num_);
+    if (c <= occ_.size()) return occ_.prefixSum(c);
+    return occ_.getSum();
+}
+
+template <class CharT>
+size_t WaveletMatrix<CharT>::endOcc(char_type c) const
+{
+    c = SuccinctUtils::bitReverse(c, this->alphabet_bit_num_) + 1;
     if (c <= occ_.size()) return occ_.prefixSum(c);
     return occ_.getSum();
 }

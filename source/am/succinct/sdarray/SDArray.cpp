@@ -21,6 +21,16 @@
 #include <am/succinct/utils.hpp>
 
 
+namespace
+{
+
+inline size_t getBits(size_t x, size_t beg, size_t num)
+{
+    return (x >> beg) & ((1ULL << num) - 1);
+}
+
+}
+
 NS_IZENELIB_AM_BEGIN
 
 namespace succinct
@@ -29,11 +39,6 @@ namespace sdarray
 {
 
 const size_t SDArray::BLOCK_SIZE = 64;
-
-inline size_t getBits(size_t x, size_t beg, size_t num)
-{
-    return (x >> beg) & ((1LLU << num) - 1);
-}
 
 SDArray::SDArray() : size_(), sum_()
 {
@@ -72,17 +77,17 @@ void SDArray::build()
     // |-- allZero  ( 1) --|
     // |-- width    ( 7) --|
     // |-- firstSum ( 8) --|
-    assert(begPos < 1LLU << 48);
+    assert(begPos < 1ULL << 48);
     size_t header = begPos; // use first 48 bit only
 
     if (vals_.back() == 0)
     {
-        header |= (1LLU << 48);
+        header |= (1ULL << 48);
     }
     else
     {
         size_t width = SuccinctUtils::log2(vals_.back() / vals_.size());
-        assert(width < (1LLU << 7));
+        assert(width < (1ULL << 7));
 
         // All zero special case
         B_.resize(begPos + 2 + (vals_.size() * width + 63) / 64);
@@ -91,7 +96,7 @@ void SDArray::build()
 
         header |= (width << 49);
         size_t firstSum_ = SuccinctUtils::popcount(B_[begPos]);
-        assert(firstSum_ < (1LLU << 8));
+        assert(firstSum_ < (1ULL << 8));
 
         header |= firstSum_ << 56;
     }
@@ -113,34 +118,26 @@ size_t SDArray::prefixSum(size_t pos) const
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
 
-    if (offset == 0)
-    {
-        return Ltable_[bpos * 2];
-    }
-    else
-    {
-        return Ltable_[bpos * 2] + selectBlock_(offset - 1, Ltable_[bpos * 2 + 1]);
-    }
+    return offset ? Ltable_[bpos * 2] + selectBlock_(offset - 1, Ltable_[bpos * 2 + 1]) : Ltable_[bpos * 2];
 }
 
 size_t SDArray::prefixSumLookup(size_t pos, size_t& val) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
-    size_t prev   = 0;
+    size_t header = Ltable_[bpos * 2 + 1];
 
     if (offset == 0)
     {
-        prev = 0;
+        val = selectBlock_(offset, header);
+        return Ltable_[bpos * 2];
     }
     else
     {
-        prev = selectBlock_(offset - 1, Ltable_[bpos * 2 + 1]);
+        size_t prev = selectBlock_(offset - 1, header);
+        val = selectBlock_(offset, header) - prev;
+        return Ltable_[bpos * 2] + prev;
     }
-
-    val = selectBlock_(offset, Ltable_[bpos * 2 + 1]) - prev;
-
-    return Ltable_[bpos * 2] + prev;
 }
 
 size_t SDArray::getVal(size_t pos) const
@@ -247,7 +244,7 @@ void SDArray::packHighs_(size_t begPos, size_t width)
     for (size_t i = 0; i < vals_.size(); ++i)
     {
         pos = (vals_[i] >> width) + i;
-        B_[begPos + pos / BLOCK_SIZE] |= 1LLU << (pos % BLOCK_SIZE);
+        B_[begPos + pos / BLOCK_SIZE] |= 1ULL << (pos % BLOCK_SIZE);
     }
 }
 
@@ -256,7 +253,7 @@ void SDArray::packLows_(size_t begPos, size_t width)
     if (width == 0) return;
 
     begPos += 2;
-    size_t mask = (1LLU << width) - 1;
+    size_t mask = (1ULL << width) - 1;
     size_t val, pos, bpos, offset;
     for (size_t i = 0; i < vals_.size(); ++i)
     {
@@ -364,14 +361,14 @@ size_t SDArray::getLow_(size_t begPos, size_t num, size_t width) const
 
 bool SDArray::getBit_(size_t pos) const
 {
-    return (B_[pos / BLOCK_SIZE] >> (pos % BLOCK_SIZE)) & 1LLU;
+    return (B_[pos / BLOCK_SIZE] >> (pos % BLOCK_SIZE)) & 1ULL;
 }
 
 size_t SDArray::getBits_(size_t pos, size_t num) const
 {
     size_t bpos   = pos / BLOCK_SIZE;
     size_t offset = pos % BLOCK_SIZE;
-    size_t mask   = (1LLU << num) - 1;
+    size_t mask   = (1ULL << num) - 1;
 
     if (offset + num <= BLOCK_SIZE)
     {

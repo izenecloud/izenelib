@@ -60,7 +60,9 @@ public:
             std::vector<std::pair<double, char_type> > &results,
             boost::auto_alloc& alloc) const = 0;
 
-    virtual size_t getOcc(char_type c) const = 0;
+    virtual size_t beginOcc(char_type c) const = 0;
+    virtual size_t endOcc(char_type c) const = 0;
+
     virtual WaveletTreeNode *getRoot() const = 0;
 
     virtual size_t length() const = 0;
