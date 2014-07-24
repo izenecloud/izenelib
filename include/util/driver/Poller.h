@@ -45,6 +45,11 @@ public:
         return socket_;
     }
 
+    boost::asio::io_service& get_io_service()
+    {
+        return socket_->get_io_service();
+    }
+
 private:
     boost::asio::ip::tcp::socket* socket_;
 };

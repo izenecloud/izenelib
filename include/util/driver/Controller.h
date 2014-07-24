@@ -8,6 +8,7 @@
 #include "Request.h"
 #include "Response.h"
 #include "Poller.h"
+#include <boost/function.hpp>
 
 #include <boost/assert.hpp>
 
@@ -17,6 +18,7 @@ namespace driver {
 class Controller
 {
 public:
+    typedef boost::function<void()> callback_t;
     Controller()
     : request_(0),
       response_(0)
@@ -25,6 +27,11 @@ public:
     void setPoller(Poller poller)
     {
         poller_ = poller;
+    }
+
+    void set_callback(callback_t cb)
+    {
+        cb_ = cb;
     }
 
     void initializeRequestContext(Request& request,
@@ -45,6 +52,10 @@ public:
     void postprocess()
     {
         // empty
+        if (cb_)
+        {
+            cb_();
+        }
     }
 
 protected:
@@ -55,6 +66,15 @@ protected:
     const Poller& poller() const
     {
         return poller_;
+    }
+
+    callback_t& callback()
+    {
+        return cb_;
+    }
+    const callback_t& callback() const
+    {
+        return cb_;
     }
 
     Request& request()
@@ -83,6 +103,7 @@ private:
     Poller poller_;
     Request* request_;
     Response* response_;
+    callback_t cb_;
 };
 
 // helper macros
