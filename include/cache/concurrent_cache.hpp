@@ -528,7 +528,7 @@ private:
             }
             if (!is_need_scan)
             {
-                std::cout << "No need to wash out. " << get_useful_info() << std::endl;
+                //std::cout << "No need to wash out. " << get_useful_info() << std::endl;
                 continue;
             }
             struct timespec start_time;
