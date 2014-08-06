@@ -252,6 +252,12 @@ void BTreeIndexerManager::getValueSubString(const std::string& property_name, co
     doFilter_(docs);
 }
 
+void BTreeIndexerManager::getValuePGS(const std::string& property_name, const PropertyType& key, Bitset& docs)
+{
+    if (!checkType_(property_name, key)) return;
+    izenelib::util::boost_variant_visit(boost::bind(mpgs_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
+}
 
 }
 

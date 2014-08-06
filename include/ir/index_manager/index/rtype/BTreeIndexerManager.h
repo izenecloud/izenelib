@@ -123,6 +123,8 @@ public:
 
     void getValueSubString(const std::string& property_name, const PropertyType& key, Bitset& docs);
 
+    void getValuePGS(const std::string& property_name, const PropertyType& key, Bitset& docs);
+
     void flush();
 
     void setFilter(boost::shared_ptr<Bitset> pBitset)
@@ -476,6 +478,19 @@ public:
     }
 };
 
+class mpgs_visitor : public boost::static_visitor<void>
+{
+public:
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::string& v, Bitset& docs)
+    {
+        BTreeIndexer<std::string>* pindexer = manager->getIndexer<std::string>(property_name);
+        pindexer->getValuePGS(v, docs);
+    }
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, Bitset& docs)
+    {
+    }
+};
 ///all read only with list keys visitors below
 // class min_visitor : public boost::static_visitor<void>
 // {

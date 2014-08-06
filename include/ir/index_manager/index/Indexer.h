@@ -140,6 +140,7 @@ public:
     bool getDocsByPropertyValueEnd(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
     bool getDocsByPropertyValueSubString(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
+    bool getDocsByPropertyValuePGS(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList);
 
 public:
     ///API for configuration
