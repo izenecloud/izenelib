@@ -1,5 +1,5 @@
 /**
- * This is code is released under the
+ * This code is released under the
  * Apache License Version 2.0 http://www.apache.org/licenses/.
  *
  * (c) Daniel Lemire, http://lemire.me/en/
@@ -17,7 +17,7 @@ NS_IZENELIB_AM_BEGIN
  * a run length. It is defined by the Enhanced Word Aligned  Hybrid (EWAH)
  * format. You don't normally need to access this class.
  */
-template<class uword >
+template<class uword>
 class RunningLengthWord {
 public:
     RunningLengthWord(uword & data) :
@@ -37,35 +37,35 @@ public:
      * Which bit is being repeated?
      */
     bool getRunningBit() const {
-        return mydata & static_cast<uword> (1);
+        return mydata & static_cast<uword>(1);
     }
 
     /**
      * how many words should be filled by the running bit
      */
     static inline bool getRunningBit(uword data)  {
-        return data & static_cast<uword> (1);
+        return data & static_cast<uword>(1);
     }
 
     /**
      * how many words should be filled by the running bit
      */
     uword getRunningLength() const {
-        return (mydata >> 1) & largestrunninglengthcount;
+        return static_cast<uword>((mydata >> 1) & largestrunninglengthcount);
     }
 
     /**
      * followed by how many literal words?
      */
     static inline uword getRunningLength(uword data) {
-        return (data >> 1) & largestrunninglengthcount;
+        return static_cast<uword>((data >> 1) & largestrunninglengthcount);
     }
 
     /**
      * followed by how many literal words?
      */
     uword getNumberOfLiteralWords() const {
-        return static_cast<uword> (mydata >> (1 + runninglengthbits));
+        return static_cast<uword>(mydata >>(1 + runninglengthbits));
     }
 
     /**
@@ -88,7 +88,7 @@ public:
      * followed by how many literal words?
      */
     static inline uword getNumberOfLiteralWords(uword data) {
-        return static_cast<uword> (data >> (1 + runninglengthbits));
+        return static_cast<uword>(data >>(1 + runninglengthbits));
     }
 
     /**
@@ -96,9 +96,9 @@ public:
      */
     void setRunningBit(bool b) {
         if (b)
-            mydata |= static_cast<uword> (1);
+            mydata |= static_cast<uword>(1);
         else
-            mydata &= static_cast<uword> (~1);
+            mydata &= static_cast<uword>(~1);
     }
 
     /**
@@ -106,9 +106,9 @@ public:
      */
     static inline void setRunningBit(uword & data, bool b) {
         if (b)
-            data |= static_cast<uword> (1);
+            data |= static_cast<uword>(1);
         else
-            data &= static_cast<uword> (~1);
+            data &= static_cast<uword>(~1);
     }
 
     /**
@@ -128,47 +128,48 @@ public:
 
     void setRunningLength(uword l) {
         mydata |= shiftedlargestrunninglengthcount;
-        mydata &= static_cast<uword> (l << 1)
-                | notshiftedlargestrunninglengthcount;
+        mydata &= static_cast<uword>((l << 1)
+                | notshiftedlargestrunninglengthcount);
     }
 
     // static call for people who hate objects
     static inline void setRunningLength(uword & data, uword l) {
         data |= shiftedlargestrunninglengthcount;
-        data &= static_cast<uword> (l << 1)
-                | notshiftedlargestrunninglengthcount;
+        data &= static_cast<uword>((l << 1)
+                | notshiftedlargestrunninglengthcount);
     }
 
     void setNumberOfLiteralWords(uword l) {
         mydata |= notrunninglengthplusrunningbit;
-        mydata &= static_cast<uword> (l << (runninglengthbits + 1))
-                | runninglengthplusrunningbit;
+        mydata &= static_cast<uword>((l << (runninglengthbits + 1))
+                | runninglengthplusrunningbit);
     }
     // static call for people who hate objects
     static inline void setNumberOfLiteralWords(uword & data, uword l) {
         data |= notrunninglengthplusrunningbit;
-        data &= static_cast<uword> (l << (runninglengthbits + 1))
+        data &= static_cast<uword>(l << (runninglengthbits + 1))
                 | runninglengthplusrunningbit;
     }
-    static const uint32_t runninglengthbits = sizeof(uword) * 4;//16;
+
+
+    static const uint32_t runninglengthbits = sizeof(uword) * 4;
     static const uint32_t literalbits = sizeof(uword) * 8 - 1 - runninglengthbits;
-    static const uword largestliteralcount = (static_cast<uword> (1)
+    static const uword largestliteralcount = (static_cast<uword>(1)
             << literalbits) - 1;
-    static const uword largestrunninglengthcount = (static_cast<uword> (1)
+    static const uword largestrunninglengthcount = (static_cast<uword>(1)
             << runninglengthbits) - 1;
     static const uword shiftedlargestrunninglengthcount =
             largestrunninglengthcount << 1;
     static const uword notshiftedlargestrunninglengthcount =
-            static_cast<uword> (~shiftedlargestrunninglengthcount);
-    static const uword runninglengthplusrunningbit = (static_cast<uword> (1)
+            static_cast<uword>(~shiftedlargestrunninglengthcount);
+    static const uword runninglengthplusrunningbit = (static_cast<uword>(1)
             << (runninglengthbits + 1)) - 1;
     static const uword notrunninglengthplusrunningbit =
-            static_cast<uword> (~runninglengthplusrunningbit);
+            static_cast<uword>(~runninglengthplusrunningbit);
     static const uword notlargestrunninglengthcount =
-            static_cast<uword> (~largestrunninglengthcount);
+            static_cast<uword>(~largestrunninglengthcount);
 
     uword & mydata;
-private:
 };
 
 /**
@@ -194,22 +195,22 @@ public:
      * Which bit is being repeated?
      */
     bool getRunningBit() const {
-        return mydata & static_cast<uword> (1);
+        return mydata & static_cast<uword>(1);
     }
 
     /**
      * how many words should be filled by the running bit
      */
     uword getRunningLength() const {
-        return (mydata >> 1)
-                & RunningLengthWord<uword>::largestrunninglengthcount;
+        return static_cast<uword>((mydata >> 1)
+                & RunningLengthWord<uword>::largestrunninglengthcount);
     }
 
     /**
      * followed by how many literal words?
      */
     uword getNumberOfLiteralWords() const {
-        return static_cast<uword> (mydata >> (1
+        return static_cast<uword>(mydata >>(1
                 + RunningLengthWord<uword>::runninglengthbits));
     }
 
@@ -231,29 +232,29 @@ template<class uword = uint32_t>
 class BufferedRunningLengthWord {
 public:
     BufferedRunningLengthWord(const uword & data) :
-                RunningBit(data & static_cast<uword> (1)),
+                RunningBit(data & static_cast<uword>(1)),
                 RunningLength(
-                        (data >> 1)
-                                & RunningLengthWord<uword>::largestrunninglengthcount),
+                        static_cast<uword>((data >> 1)
+                                & RunningLengthWord<uword>::largestrunninglengthcount)),
                 NumberOfLiteralWords(
-                        static_cast<uword> (data >> (1 + RunningLengthWord<
+                        static_cast<uword>(data >>(1 + RunningLengthWord<
                                 uword>::runninglengthbits))) {
     }
     BufferedRunningLengthWord(const RunningLengthWord<uword> & p) :
-                RunningBit(p.mydata & static_cast<uword> (1)),
+                RunningBit(p.mydata & static_cast<uword>(1)),
                 RunningLength(
                         (p.mydata >> 1)
                                 & RunningLengthWord<uword>::largestrunninglengthcount),
                 NumberOfLiteralWords(
-                        p.mydata >> (1
+                        p.mydata >>(1
                                 + RunningLengthWord<uword>::runninglengthbits)) {
     }
 
     void read(const uword & data) {
-        RunningBit = data & static_cast<uword> (1);
-        RunningLength = (data >> 1)
-                & RunningLengthWord<uword>::largestrunninglengthcount;
-        NumberOfLiteralWords = static_cast<uword> (data >> (1
+        RunningBit = data & static_cast<uword>(1);
+        RunningLength = static_cast<uword>((data >> 1)
+                & RunningLengthWord<uword>::largestrunninglengthcount);
+        NumberOfLiteralWords = static_cast<uword>(data >>(1
                 + RunningLengthWord<uword>::runninglengthbits));
     }
 
@@ -267,12 +268,12 @@ public:
     void discardFirstWords(uword x) {
         assert(x <= size());
         if (RunningLength >= x) {
-            RunningLength = static_cast<uword> (RunningLength - x);
+            RunningLength = static_cast<uword>(RunningLength - x);
             return;
         }
-        x = static_cast<uword> (x - RunningLength);
+        x = static_cast<uword>(x - RunningLength);
         RunningLength = 0;
-        NumberOfLiteralWords = static_cast<uword> (NumberOfLiteralWords - x);
+        NumberOfLiteralWords = static_cast<uword>(NumberOfLiteralWords - x);
     }
 
     /**
@@ -293,7 +294,7 @@ public:
      * Total of getRunningLength() and getNumberOfLiteralWords()
      */
     uword size() const {
-        return static_cast<uword> (RunningLength + NumberOfLiteralWords);
+        return static_cast<uword>(RunningLength + NumberOfLiteralWords);
     }
     bool RunningBit;
     uword RunningLength;

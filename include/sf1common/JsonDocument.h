@@ -53,6 +53,12 @@ public:
         boost::algorithm::trim(str_value);
         text = izenelib::util::UString(str_value, izenelib::util::UString::UTF_8);
     }
+    static void JsonToString(const Json::Value& json, std::string& text)
+    {
+        Json::FastWriter writer;
+        text = writer.write(json);
+        boost::algorithm::trim(text);
+    }
     template <class Document>
     static void ToJson(const Document& doc, Json::Value& json)
     {

@@ -34,11 +34,37 @@
 		msgpack::type::make_define(__VA_ARGS__).msgpack_object(o, z); \
 	}
 
+// MSGPACK_ADD_ENUM must be used in the global namespace.
+#define MSGPACK_ADD_ENUM(enum) \
+  namespace msgpack { \
+    template <> \
+    inline enum& operator>> (object o, enum& v) \
+    { \
+      int tmp; \
+      o >> tmp; \
+      v = static_cast<enum>(tmp); \
+      return v; \
+    } \
+    template <> \
+    inline void operator<< (object::with_zone& o, const enum& v) \
+    { \
+      o << static_cast<int>(v); \
+    } \
+    namespace detail { \
+      template <typename Stream> \
+      struct packer_serializer<Stream, enum> { \
+        static packer<Stream>& pack(packer<Stream>& o, const enum& v) { \
+          return o << static_cast<int>(v); \
+        } \
+      }; \
+    } \
+  }
+
 namespace msgpack {
 namespace type {
 
 
-<% GENERATION_LIMIT = 39 %>
+<% GENERATION_LIMIT = 45 %>
 template <typename A0 = void<%1.upto(GENERATION_LIMIT+1) {|i|%>, typename A<%=i%> = void<%}%>>
 struct define;
 
@@ -50,7 +76,7 @@ struct define<> {
 	template <typename Packer>
 	void msgpack_pack(Packer& pk) const
 	{
-		pk.pack_array(1);
+		pk.pack_array(0);
 	}
 	void msgpack_unpack(msgpack::object o)
 	{
@@ -81,8 +107,13 @@ struct define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> {
 	{
 		if(o.type != type::ARRAY) { throw type_error(); }
 		const size_t size = o.via.array.size;
-		<%0.upto(i) {|j|%>
-		if(size <= <%=j%>) { return; } o.via.array.ptr[<%=j%>].convert(&a<%=j%>);<%}%>
+		if(size > 0) {
+			msgpack::object *ptr = o.via.array.ptr;
+			switch(size) {
+			default:<%(i).downto(0) {|j|%>
+			case <%=j+1%>: ptr[<%=j%>].convert(&a<%=j%>);<%}%>
+			}
+		}
 	}
 	void msgpack_object(msgpack::object* o, msgpack::zone* z) const
 	{
@@ -114,4 +145,3 @@ define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_define(A0& a0<%1.upto(i) {|j|%>,
 
 
 #endif /* msgpack/type/define.hpp */
-

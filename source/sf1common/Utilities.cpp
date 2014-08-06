@@ -239,6 +239,11 @@ bool Utilities::convertPropertyDataType(const std::string& property_name, const 
         type = float(0.0);
         return true;
     }
+    else if (sf1r_type == DOUBLE_PROPERTY_TYPE)
+    {
+        type = double(0.0);
+        return true;
+    }
     else if (sf1r_type == DATETIME_PROPERTY_TYPE)
     {
         type = int64_t(0);
@@ -332,7 +337,7 @@ std::string Utilities::generateMD5(const std::string& query)
     //{
         //md5_byte_t digest[MD5_DIGEST_LENGTH];
         //uint128_t md5_int_value;
-    //} digest_union;			
+    //} digest_union;
     //memset(digest_union.digest, 0, sizeof(digest_union.digest));
     //md5_finish(&st,digest_union.digest);
 }

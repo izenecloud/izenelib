@@ -100,5 +100,8 @@ FIND_PACKAGE(Toku)
 ##################################################
 # Other common libraries
 #####
+
+FIND_PACKAGE(OpenSSL)
+
 FIND_LIBRARY(DL_LIBRARIES NAMES dl)
 FIND_LIBRARY(M_LIBRARIES NAMES m)
