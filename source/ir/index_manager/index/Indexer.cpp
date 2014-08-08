@@ -674,6 +674,12 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, const std::s
     return true;
 }
 
+bool Indexer::getDocsByPropertyValuePGS(collectionid_t colID, const std::string& property, const PropertyType& value, Bitset& docList)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    pBTreeIndexer_->getValuePGS(property, value, docList);
+    return true;
+}
 void Indexer::pauseMerge()
 {
     IndexMergeManager* pMergeManager = pIndexWriter_->getMergeManager();
