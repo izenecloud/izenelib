@@ -17,9 +17,10 @@ IF(am_SHOULD_BUILD)
     "vsynonym/*.cpp"
     "trie/*.cpp"
     "succinct/*.cpp"
-    "succinct/*.cc"    
-    "succinct/*.c"  
+    "succinct/*.cc"
+    "succinct/*.c"
     "approximate_matching/*.cpp"
+    "bitmap/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(
