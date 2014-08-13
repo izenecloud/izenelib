@@ -15,6 +15,7 @@ class RoaringChunk
 {
 public:
     typedef RoaringChunk self_type;
+    typedef boost::shared_array<uint32_t> data_type;
 
     enum Type
     {
@@ -24,20 +25,23 @@ public:
         DEFAULT
     };
 
-    RoaringChunk();
-    RoaringChunk(uint32_t key, uint32_t value);
-    RoaringChunk(uint32_t key, Type type, uint32_t capacity);
+    RoaringChunk(uint32_t key = 0);
     virtual ~RoaringChunk();
 
-    RoaringChunk(const RoaringChunk& b, bool clone = false);
+    RoaringChunk(const self_type& b);
     self_type& operator=(const self_type& b);
 
     bool operator==(const self_type& b) const;
 
+    void init(uint32_t key, uint32_t value);
     void add(uint32_t x);
-//  void trim();
+    void trim();
 
-    boost::shared_array<uint32_t> getChunk() const;
+    void resetChunk(Type type, uint32_t capacity);
+    void cloneChunk(const data_type& chunk);
+    void copyOnDemand(const self_type& b);
+
+    data_type getChunk() const;
 
     self_type operator~() const;
     self_type operator&(const self_type& b) const;
@@ -52,33 +56,31 @@ public:
 
     uint32_t getCardinality() const
     {
-        return cardinality_;
-    }
-
-    void unsetUpdatable()
-    {
-        updatable_ = false;
+        return chunk_ ? chunk_[1] : 0;
     }
 
 private:
-    self_type and_BitmapBitmap(const self_type& b) const;
-    self_type and_BitmapArray(const self_type& b) const;
-    self_type and_ArrayArray(const self_type& b) const;
+    void not_Bitmap(const data_type& a);
+    void not_Array(const data_type& a);
 
-    self_type or_BitmapBitmap(const self_type& b) const;
-    self_type or_BitmapArray(const self_type& b) const;
-    self_type or_ArrayArray(const self_type& b) const;
+    void and_BitmapBitmap(const data_type& a, const data_type& b);
+    void and_BitmapArray(const data_type& a, const data_type& b);
+    void and_ArrayArray(const data_type& a, const data_type& b);
 
-    self_type xor_BitmapBitmap(const self_type& b) const;
-    self_type xor_BitmapArray(const self_type& b) const;
-    self_type xor_ArrayArray(const self_type& b) const;
+    void or_BitmapBitmap(const data_type& a, const data_type& b);
+    void or_BitmapArray(const data_type& a, const data_type& b);
+    void or_ArrayArray(const data_type& a, const data_type& b);
 
-    self_type andNot_BitmapBitmap(const self_type& b) const;
-    self_type andNot_BitmapArray(const self_type& b) const;
-    self_type andNot_ArrayBitmap(const self_type& b) const;
-    self_type andNot_ArrayArray(const self_type& b) const;
+    void xor_BitmapBitmap(const data_type& a, const data_type& b);
+    void xor_BitmapArray(const data_type& a, const data_type& b);
+    void xor_ArrayArray(const data_type& a, const data_type& b);
 
-    void convertFromBitmapToArray();
+    void andNot_BitmapBitmap(const data_type& a, const data_type& b);
+    void andNot_BitmapArray(const data_type& a, const data_type& b);
+    void andNot_ArrayBitmap(const data_type& a, const data_type& b);
+    void andNot_ArrayArray(const data_type& a, const data_type& b);
+
+    void bitmap2Array();
 
     friend class boost::serialization::access;
     template<class Archive>
@@ -96,12 +98,11 @@ private:
 
 private:
     uint32_t key_;
-    uint32_t cardinality_;
 
     bool updatable_;
     mutable boost::atomic_flag flag_;
 
-    boost::shared_array<uint32_t> chunk_;
+    data_type chunk_;
 };
 
 NS_IZENELIB_AM_END

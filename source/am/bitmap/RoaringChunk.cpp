@@ -4,60 +4,10 @@
 
 NS_IZENELIB_AM_BEGIN
 
-RoaringChunk::RoaringChunk()
-    : key_(0)
-    , cardinality_(0)
+RoaringChunk::RoaringChunk(uint32_t key)
+    : key_(key)
     , updatable_(false)
 {
-}
-
-RoaringChunk::RoaringChunk(uint32_t key, uint32_t value)
-    : key_(key)
-    , cardinality_(1)
-    , updatable_(true)
-{
-    chunk_.reset(cachealign_alloc<uint32_t>(INIT_ARRAY_SIZE / 2 + 4), cachealign_deleter());
-    //memset(&chunk_[4], 0, 16);
-    chunk_[0] = ARRAY;
-    chunk_[1] = INIT_ARRAY_SIZE;
-    chunk_[2] = INIT_ARRAY_SIZE / 2 + 4;
-    chunk_[4] = value;
-}
-
-RoaringChunk::RoaringChunk(uint32_t key, Type type, uint32_t capacity)
-    : key_(key)
-    , cardinality_(0)
-    , updatable_(false)
-{
-    switch (type)
-    {
-    case ARRAY:
-        capacity = (capacity + 1) / 2;
-        chunk_.reset(cachealign_alloc<uint32_t>(capacity + 4), cachealign_deleter());
-        //memset(&chunk_[4], 0, capacity * 4);
-        chunk_[0] = ARRAY;
-        chunk_[1] = capacity * 2;
-        chunk_[2] = capacity + 4;
-        break;
-
-    case BITMAP:
-        chunk_.reset(cachealign_alloc<uint32_t>(BITMAP_SIZE + 4), cachealign_deleter());
-        memset(&chunk_[4], 0, BITMAP_SIZE * 4);
-        chunk_[0] = BITMAP;
-        chunk_[1] = MAX_CHUNK_CAPACITY;
-        chunk_[2] = BITMAP_SIZE + 4;
-        break;
-
-    case FULL:
-        chunk_.reset(new uint32_t[4]());
-        chunk_[0] = FULL;
-        chunk_[1] = MAX_CHUNK_CAPACITY;
-        chunk_[2] = 4;
-        cardinality_ = MAX_CHUNK_CAPACITY;
-        break;
-
-    default: break;
-    }
 }
 
 RoaringChunk::~RoaringChunk()
@@ -69,45 +19,80 @@ boost::shared_array<uint32_t> RoaringChunk::getChunk() const
     if (!updatable_) return chunk_;
 
     while (flag_.test_and_set());
-    boost::shared_array<uint32_t> tmp_chunk(chunk_);
+    data_type tmp_chunk(chunk_);
     flag_.clear();
 
     return tmp_chunk;
 }
 
-RoaringChunk::RoaringChunk(const RoaringChunk& b, bool clone)
+RoaringChunk::RoaringChunk(const self_type& b)
     : key_(b.key_)
-    , cardinality_(b.cardinality_)
-    , updatable_(false)
+    , updatable_(b.updatable_)
+    , chunk_(b.chunk_)
 {
-    const boost::shared_array<uint32_t>& old_chunk = b.getChunk();
-    if (clone)
-    {
-        chunk_.reset(cachealign_alloc<uint32_t>(old_chunk[2]), cachealign_deleter());
-        memcpy(&chunk_[0], &old_chunk[0], old_chunk[2] * 4);
-    }
-    else
-    {
-        chunk_ = old_chunk;
-    }
 }
 
-RoaringChunk& RoaringChunk::operator=(const RoaringChunk& b)
+RoaringChunk& RoaringChunk::operator=(const self_type& b)
 {
     key_ = b.key_;
-    cardinality_ = b.cardinality_;
-    updatable_ = false;
-    chunk_ = b.getChunk();
+    updatable_ = b.updatable_;
+    chunk_ = b.chunk_;
 
     return *this;
 }
 
-bool RoaringChunk::operator==(const RoaringChunk& b) const
+bool RoaringChunk::operator==(const self_type& b) const
 {
     return key_ == b.key_
-        && cardinality_ == b.cardinality_
         && updatable_ == b.updatable_
         && chunk_ == b.chunk_;
+}
+
+void RoaringChunk::resetChunk(Type type, uint32_t capacity)
+{
+    switch (type)
+    {
+    case ARRAY:
+        capacity = (capacity + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+        chunk_.reset(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
+        chunk_[0] = ARRAY;
+        chunk_[1] = 0;
+        chunk_[2] = capacity;
+        chunk_[3] = capacity / 2 + 4;
+        break;
+
+    case BITMAP:
+        chunk_.reset(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4), cachealign_deleter());
+        chunk_[0] = BITMAP;
+        chunk_[1] = 0;
+        chunk_[2] = MAX_CHUNK_CAPACITY;
+        chunk_[3] = MAX_CHUNK_CAPACITY / 32 + 4;
+        memset(&chunk_[4], 0, MAX_CHUNK_CAPACITY / 8);
+        break;
+
+    case FULL:
+        chunk_.reset(cachealign_alloc<uint32_t>(4), cachealign_deleter());
+        chunk_[0] = FULL;
+        chunk_[1] = MAX_CHUNK_CAPACITY;
+        chunk_[2] = MAX_CHUNK_CAPACITY;
+        chunk_[3] = 4;
+        break;
+
+    default: break;
+    }
+}
+
+void RoaringChunk::init(uint32_t key, uint32_t value)
+{
+    key_ = key;
+    updatable_ = true;
+
+    chunk_.reset(cachealign_alloc<uint32_t>(INIT_ARRAY_SIZE / 2 + 4), cachealign_deleter());
+    chunk_[0] = ARRAY;
+    chunk_[1] = 1;
+    chunk_[2] = INIT_ARRAY_SIZE;
+    chunk_[3] = INIT_ARRAY_SIZE / 2 + 4;
+    chunk_[4] = value;
 }
 
 void RoaringChunk::add(uint32_t x)
@@ -115,66 +100,76 @@ void RoaringChunk::add(uint32_t x)
     switch (chunk_[0])
     {
     case BITMAP:
-        assert(x >= cardinality_);
-        if (++cardinality_ < MAX_CHUNK_CAPACITY)
+        assert(x >= chunk_[1]);
+        if (chunk_[1] < MAX_CHUNK_CAPACITY - 1)
         {
-            chunk_[x / 64] |= 1ULL << x;
+            ++chunk_[1];
+            uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+            data[x / 64] |= 1ULL << x;
         }
         else
         {
-            boost::shared_array<uint32_t> new_chunk(new uint32_t[4]());
+            data_type new_chunk(cachealign_alloc<uint32_t>(4), cachealign_deleter());
             new_chunk[0] = FULL;
             new_chunk[1] = MAX_CHUNK_CAPACITY;
-            new_chunk[2] = 4;
+            new_chunk[2] = MAX_CHUNK_CAPACITY;
+            new_chunk[3] = 4;
 
+            while (flag_.test_and_set());
             chunk_.swap(new_chunk);
+            flag_.clear();
         }
         break;
 
     case ARRAY:
-        if (cardinality_ < chunk_[1])
+        if (chunk_[1] < chunk_[2])
         {
             uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
-            data[cardinality_++] = x;
+            data[chunk_[1]++] = x;
         }
         else
         {
-            uint32_t new_capacity = chunk_[1] < 64 ? chunk_[1]
-                : chunk_[1] < 1024 ? (chunk_[1] * 3 + 2) / 4
-                : (chunk_[1] * 5 + 4) / 8;
+            uint32_t capacity = chunk_[2] < 64 ? chunk_[2] * 2 : chunk_[2] < 1024 ? chunk_[2] * 3 / 2 : chunk_[2] * 5 / 4;
+            capacity = (capacity + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
 
-            if (new_capacity < BITMAP_SIZE)
+            if (capacity < MAX_ARRAY_SIZE)
             {
-                boost::shared_array<uint32_t> new_chunk(cachealign_alloc<uint32_t>(new_capacity + 4), cachealign_deleter());
-                //memset(&new_chunk[4], 0, new_capacity * 4);
+                data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
                 new_chunk[0] = ARRAY;
-                new_chunk[1] = new_capacity * 2;
-                new_chunk[2] = new_capacity + 4;
+                new_chunk[1] = chunk_[1] + 1;
+                new_chunk[2] = capacity;
+                new_chunk[3] = capacity / 2 + 4;
+                memcpy(&new_chunk[4], &chunk_[4], chunk_[1] * 2);
 
-                memcpy(&new_chunk[4], &chunk_[4], cardinality_ * 2);
                 uint16_t* data = reinterpret_cast<uint16_t*>(&new_chunk[4]);
-                data[cardinality_++] = x;
+                data[chunk_[1]] = x;
 
+                while (flag_.test_and_set());
                 chunk_.swap(new_chunk);
+                flag_.clear();
             }
             else
             {
-                boost::shared_array<uint32_t> new_chunk(cachealign_alloc<uint32_t>(BITMAP_SIZE + 4), cachealign_deleter());
-                memset(&new_chunk[4], 0, BITMAP_SIZE * 4);
+                data_type new_chunk(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4), cachealign_deleter());
                 new_chunk[0] = BITMAP;
-                new_chunk[1] = MAX_CHUNK_CAPACITY;
-                new_chunk[2] = BITMAP_SIZE + 4;
+                new_chunk[1] = chunk_[1] + 1;
+                new_chunk[2] = MAX_CHUNK_CAPACITY;
+                new_chunk[3] = MAX_CHUNK_CAPACITY / 32 + 4;
+                memset(&new_chunk[4], 0, MAX_CHUNK_CAPACITY / 8);
 
                 uint64_t* data = reinterpret_cast<uint64_t*>(&new_chunk[4]);
                 const uint16_t* old_data = reinterpret_cast<uint16_t*>(&chunk_[4]);
-                for (uint32_t i = 0; i < chunk_[1]; ++i)
+
+                uint16_t size = chunk_[1];
+                for (uint32_t i = 0; i < size; ++i)
                 {
                     data[old_data[i] / 64] |= 1ULL << old_data[i];
                 }
-                new_chunk[x / 64] |= 1ULL << x;
-                ++cardinality_;
+                data[x / 64] |= 1ULL << x;
 
+                while (flag_.test_and_set());
                 chunk_.swap(new_chunk);
+                flag_.clear();
             }
         }
         break;
@@ -183,217 +178,253 @@ void RoaringChunk::add(uint32_t x)
     }
 }
 
+void RoaringChunk::trim()
+{
+    if (!chunk_) return;
+
+    if (chunk_[0] == ARRAY)
+    {
+        uint32_t capacity = (chunk_[1] + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+
+        if (capacity < chunk_[2])
+        {
+            data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
+            new_chunk[0] = ARRAY;
+            new_chunk[1] = chunk_[1];
+            new_chunk[2] = capacity;
+            new_chunk[3] = capacity / 2 + 4;
+            memcpy(&new_chunk[4], &chunk_[4], chunk_[1] * 2);
+
+            while (flag_.test_and_set());
+            chunk_.swap(new_chunk);
+            flag_.clear();
+        }
+    }
+
+    updatable_ = false;
+}
+
+void RoaringChunk::cloneChunk(const data_type& chunk)
+{
+    chunk_.reset(cachealign_alloc<uint32_t>(chunk[3]), cachealign_deleter());
+    memcpy(&chunk_[0], &chunk[0], chunk[3] * 4);
+}
+
+void RoaringChunk::copyOnDemand(const self_type& b)
+{
+    key_ = b.key_;
+
+    if (b.updatable_) cloneChunk(b.getChunk());
+    else chunk_ = b.chunk_;
+}
+
 RoaringChunk RoaringChunk::operator~() const
 {
-    uint32_t new_cardinality = MAX_CHUNK_CAPACITY - cardinality_;
-    if (new_cardinality == 0)
+    self_type answer(key_);
+
+    data_type chunk = getChunk();
+
+    switch (chunk[0])
     {
-        return RoaringChunk();
+    case 0: answer.not_Array(chunk);
+    case 1: answer.not_Bitmap(chunk);
+    default: break;
     }
-    else if (new_cardinality < MAX_ARRAY_SIZE)
-    {
-        RoaringChunk answer(key_, ARRAY, new_cardinality);
-
-        uint16_t* new_data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-        const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-        for (uint32_t k = 0, pos = 0; k < 1024 && pos < new_cardinality; ++k)
-        {
-            uint64_t block = ~old_data[k];
-            while (block)
-            {
-                new_data[pos++] = uint16_t(k * 64 + __builtin_ctzll(block));
-                block &= ~-block;
-            }
-        }
-
-        answer.cardinality_ = new_cardinality;
-
-        return answer;
-    }
-    else if (cardinality_ > 0)
-    {
-        RoaringChunk answer(key_, BITMAP, new_cardinality);
-
-        if (cardinality_ < 4096)
-        {
-            uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-            const uint16_t* old_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-
-            memset(data, 0xff, BITMAP_SIZE * 4);
-            for (uint32_t i = 0; i < cardinality_; ++i)
-            {
-                data[old_data[i] / 64] ^= 1ULL << old_data[i];
-            }
-        }
-        else
-        {
-            uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-            const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-
-            for (uint32_t i = 0; i < 1024; ++i)
-            {
-                data[i] = ~old_data[i];
-            }
-        }
-
-        answer.cardinality_ = new_cardinality;
-
-        return answer;
-    }
-    else
-    {
-        return RoaringChunk(key_, FULL, 0);
-    }
-}
-
-RoaringChunk RoaringChunk::operator&(const RoaringChunk& b) const
-{
-    if (!cardinality_ | !b.cardinality_) return RoaringChunk();
-
-    uint32_t type = chunk_[0] * 3 + b.chunk_[0];
-    switch (type)
-    {
-    case 0: return and_ArrayArray(b);
-    case 1: return b.and_BitmapArray(*this);
-    case 2: return *this;
-    case 3: return and_BitmapArray(b);
-    case 4: return and_BitmapBitmap(b);
-    case 5: return *this;
-    case 6:
-    case 7:
-    case 8: return b;
-    }
-
-    assert(false);
-    return *this;
-}
-
-RoaringChunk RoaringChunk::operator|(const RoaringChunk& b) const
-{
-    if (!cardinality_) return b;
-    if (!b.cardinality_) return *this;
-
-    uint32_t type = chunk_[0] * 3 + b.chunk_[0];
-    switch (type)
-    {
-    case 0: return or_ArrayArray(b);
-    case 1: return b.or_BitmapArray(*this);
-    case 2: return b;
-    case 3: return or_BitmapArray(b);
-    case 4: return or_BitmapBitmap(b);
-    case 5: return b;
-    case 6:
-    case 7:
-    case 8: return *this;
-    }
-
-    assert(false);
-    return *this;
-}
-
-RoaringChunk RoaringChunk::operator^(const RoaringChunk& b) const
-{
-    if (!cardinality_) return b;
-    if (!b.cardinality_) return *this;
-
-    uint32_t type = chunk_[0] * 3 + b.chunk_[0];
-    switch (type)
-    {
-    case 0: return xor_ArrayArray(b);
-    case 1: return b.xor_BitmapArray(*this);
-    case 2: return ~*this;
-    case 3: return xor_BitmapArray(b);
-    case 4: return xor_BitmapBitmap(b);
-    case 5: return ~*this;
-    case 6:
-    case 7:
-    case 8: return ~b;
-    }
-
-    assert(false);
-    return *this;
-}
-
-RoaringChunk RoaringChunk::operator-(const RoaringChunk& b) const
-{
-    if (!cardinality_) return RoaringChunk();
-    if (!b.cardinality_) return *this;
-
-    uint32_t type = chunk_[0] * 3 + b.chunk_[0];
-    switch (type)
-    {
-    case 0: return andNot_ArrayArray(b);
-    case 1: return andNot_ArrayBitmap(b);
-    case 2: return RoaringChunk();
-    case 3: return andNot_BitmapArray(b);
-    case 4: return andNot_BitmapBitmap(b);
-    case 5: return RoaringChunk();
-    case 6:
-    case 7:
-    case 8: return ~b;
-    }
-
-    assert(false);
-    return *this;
-}
-
-void RoaringChunk::convertFromBitmapToArray()
-{
-    uint32_t new_capacity = (cardinality_ + 1) / 2;
-    boost::shared_array<uint32_t> new_chunk(cachealign_alloc<uint32_t>(new_capacity + 4), cachealign_deleter());
-    //memset(&new_chunk[4], 0, new_capacity * 4);
-    new_chunk[0] = ARRAY;
-    new_chunk[1] = new_capacity * 2;
-    new_chunk[2] = new_capacity + 4;
-
-    uint16_t* new_data = reinterpret_cast<uint16_t*>(&new_chunk[4]);
-    const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    for (uint32_t k = 0, pos = 0; k < 1024 && pos < cardinality_; ++k)
-    {
-        uint64_t block = old_data[k];
-        while (block)
-        {
-            new_data[pos++] = uint16_t(k * 64 + __builtin_ctzll(block));
-            block &= ~-block;
-        }
-    }
-
-    chunk_.swap(new_chunk);
-}
-
-RoaringChunk RoaringChunk::and_BitmapBitmap(const RoaringChunk& b) const
-{
-    RoaringChunk answer(key_, BITMAP, 0);
-
-    uint32_t cardinality = 0;
-
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < 1024; ++i)
-    {
-        data[i] = a_data[i] & b_data[i];
-        cardinality += _mm_popcnt_u64(data[i]);
-    }
-
-    answer.cardinality_ = cardinality;
-    if (cardinality < 4096) answer.convertFromBitmapToArray();
 
     return answer;
 }
 
-RoaringChunk RoaringChunk::and_BitmapArray(const RoaringChunk& b) const
+RoaringChunk RoaringChunk::operator&(const self_type& b) const
 {
-    uint32_t b_size = b.cardinality_;
+    self_type answer(key_);
 
-    RoaringChunk answer(key_, ARRAY, b_size);
+    data_type a_chunk = getChunk();
+    data_type b_chunk = b.getChunk();
 
-    uint32_t pos = 0;
+    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    switch (type)
+    {
+    case 0: answer.and_ArrayArray(a_chunk, b_chunk); break;
+    case 1: answer.and_BitmapArray(b_chunk, a_chunk); break;
+    case 3: answer.and_BitmapArray(a_chunk, b_chunk); break;
+    case 4: answer.and_BitmapBitmap(a_chunk, b_chunk); break;
+    case 2:
+    case 5: answer.copyOnDemand(*this); break;
+    default: answer.copyOnDemand(b); break;
+    }
 
-    uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+    return answer;
+}
+
+RoaringChunk RoaringChunk::operator|(const self_type& b) const
+{
+    self_type answer(key_);
+
+    data_type a_chunk = getChunk();
+    data_type b_chunk = b.getChunk();
+
+    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    switch (type)
+    {
+    case 0: answer.or_ArrayArray(a_chunk, b_chunk); break;
+    case 1: answer.or_BitmapArray(b_chunk, a_chunk); break;
+    case 3: answer.or_BitmapArray(a_chunk, b_chunk); break;
+    case 4: answer.or_BitmapBitmap(a_chunk, b_chunk); break;
+    default: answer.resetChunk(FULL, 0); break;
+    }
+
+    return answer;
+}
+
+RoaringChunk RoaringChunk::operator^(const self_type& b) const
+{
+    self_type answer(key_);
+
+    data_type a_chunk = getChunk();
+    data_type b_chunk = b.getChunk();
+
+    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    switch (type)
+    {
+    case 0: answer.xor_ArrayArray(a_chunk, b_chunk); break;
+    case 1: answer.xor_BitmapArray(b_chunk, a_chunk); break;
+    case 2: answer.not_Array(a_chunk); break;
+    case 3: answer.xor_BitmapArray(a_chunk, b_chunk); break;
+    case 4: answer.xor_BitmapBitmap(a_chunk, b_chunk); break;
+    case 5: answer.not_Bitmap(a_chunk); break;
+    case 6: answer.not_Array(b_chunk); break;
+    case 7: answer.not_Bitmap(b_chunk); break;
+    }
+
+    return answer;
+}
+
+RoaringChunk RoaringChunk::operator-(const self_type& b) const
+{
+    self_type answer(key_);
+
+    data_type a_chunk = getChunk();
+    data_type b_chunk = b.getChunk();
+
+    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    switch (type)
+    {
+    case 0: answer.andNot_ArrayArray(a_chunk, b_chunk); break;
+    case 1: answer.andNot_ArrayBitmap(a_chunk, b_chunk); break;
+    case 3: answer.andNot_BitmapArray(a_chunk, b_chunk); break;
+    case 4: answer.andNot_BitmapBitmap(a_chunk, b_chunk); break;
+    case 6: answer.not_Array(b_chunk); break;
+    case 7: answer.not_Bitmap(b_chunk); break;
+    }
+
+    return answer;
+}
+
+void RoaringChunk::bitmap2Array()
+{
+    uint32_t size = chunk_[1];
+
+    data_type old_chunk = chunk_;
+    resetChunk(ARRAY, size);
+
+    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+    const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&old_chunk[4]);
+
+    for (uint32_t i = 0, pos = 0; i < BITMAP_SIZE && pos < size; ++i)
+    {
+        uint64_t block = old_data[i];
+        while (block)
+        {
+            data[pos++] = uint16_t(i * 64 + __builtin_ctzll(block));
+            block &= block - 1;
+        }
+    }
+}
+
+void RoaringChunk::not_Bitmap(const data_type& a)
+{
+    uint32_t size = MAX_CHUNK_CAPACITY - a[1];
+
+    if (size < MAX_ARRAY_SIZE)
+    {
+        resetChunk(ARRAY, size);
+
+        uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+        const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+
+        for (uint32_t i = 0, pos = 0; i < BITMAP_SIZE && pos < size; ++i)
+        {
+            uint64_t block = ~a_data[i];
+            while (block)
+            {
+                data[pos++] = uint16_t(i * 64 + __builtin_ctzll(block));
+                block &= block - 1;
+            }
+        }
+    }
+    else
+    {
+        resetChunk(BITMAP, 0);
+
+        uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+        const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+
+        for (uint32_t i = 0; i < MAX_CHUNK_CAPACITY / 64; ++i)
+        {
+            data[i] = ~a_data[i];
+        }
+    }
+
+    chunk_[1] = size;
+}
+
+void RoaringChunk::not_Array(const data_type& a)
+{
+    resetChunk(BITMAP, 0);
+
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+
+    memset(data, 0xff, MAX_CHUNK_CAPACITY / 8);
+
+    uint32_t size = a[1];
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        data[a_data[i] / 64] ^= 1ULL << a_data[i];
+    }
+
+    chunk_[1] = MAX_CHUNK_CAPACITY - size;
+}
+
+void RoaringChunk::and_BitmapBitmap(const data_type& a, const data_type& b)
+{
+    resetChunk(BITMAP, 0);
+
+    uint32_t size = 0;
+
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
+
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
+    {
+        data[i] = a_data[i] & b_data[i];
+        size += _mm_popcnt_u64(data[i]);
+    }
+
+    chunk_[1] = size;
+    if (size < MAX_ARRAY_SIZE) bitmap2Array();
+}
+
+void RoaringChunk::and_BitmapArray(const data_type& a, const data_type& b)
+{
+    uint32_t pos = 0, b_size = b[1];
+
+    resetChunk(ARRAY, b_size);
+
+    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
     for (uint32_t i = 0; i < b_size; ++i)
     {
@@ -402,22 +433,20 @@ RoaringChunk RoaringChunk::and_BitmapArray(const RoaringChunk& b) const
             data[pos++] = val;
     }
 
-    answer.cardinality_ = pos;
-
-    return answer;
+    chunk_[1] = pos;
 }
 
-RoaringChunk RoaringChunk::and_ArrayArray(const RoaringChunk& b) const
+void RoaringChunk::and_ArrayArray(const data_type& a, const data_type& b)
 {
-    uint32_t a_size = cardinality_, b_size = b.cardinality_;
+    uint32_t a_size = a[1], b_size = b[1];
 
-    RoaringChunk answer(key_, ARRAY, std::min(a_size, b_size));
+    resetChunk(ARRAY, std::min(a_size, b_size));
 
     uint32_t pos = 0, a_pos = 0, b_pos = 0;
 
-    uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
     if (a_pos < a_size && b_pos < b_size)
     {
@@ -440,75 +469,66 @@ RoaringChunk RoaringChunk::and_ArrayArray(const RoaringChunk& b) const
         }
     }
 
-    answer.cardinality_ = pos;
-
-    return answer;
+    chunk_[1] = pos;
 }
 
-RoaringChunk RoaringChunk::or_BitmapBitmap(const RoaringChunk& b) const
+void RoaringChunk::or_BitmapBitmap(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(key_, BITMAP, 0);
+    resetChunk(BITMAP, 0);
 
-    uint32_t cardinality = 0;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < 1024; ++i)
+    uint32_t size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
         data[i] = a_data[i] | b_data[i];
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    if (cardinality == 65536) return RoaringChunk(key_, FULL, 0);
-
-    answer.cardinality_ = cardinality;
-
-    return answer;
+    chunk_[1] = size;
+    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
 }
 
-RoaringChunk RoaringChunk::or_BitmapArray(const RoaringChunk& b) const
+void RoaringChunk::or_BitmapArray(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(*this, true);
+    cloneChunk(a);
 
-    uint32_t cardinality = b.cardinality_;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < cardinality; ++i)
+    uint32_t size = b[1];
+    for (uint32_t i = 0; i < size; ++i)
     {
         uint16_t val = b_data[i];
         data[val / 64] |= 1ULL << val;
     }
 
-    for (uint32_t i = 0; i < 1024; ++i)
+    size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    if (cardinality == 65536) return RoaringChunk(key_, FULL, 0);
-
-    answer.cardinality_ = cardinality;
-
-    return answer;
+    chunk_[1] = size;
+    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
 }
 
-RoaringChunk RoaringChunk::or_ArrayArray(const RoaringChunk& b) const
+void RoaringChunk::or_ArrayArray(const data_type& a, const data_type& b)
 {
-    uint32_t a_size = cardinality_, b_size = b.cardinality_;
+    uint32_t a_size = a[1], b_size = b[1];
     uint32_t size = a_size + b_size;
 
-    if (size < 4096)
+    if (size < MAX_ARRAY_SIZE)
     {
-        RoaringChunk answer(key_, ARRAY, size);
+        resetChunk(ARRAY, size);
 
         uint32_t pos = 0, a_pos = 0, b_pos = 0;
 
-        uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+        uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
         if (a_pos < a_size && b_pos < b_size)
         {
@@ -541,17 +561,15 @@ RoaringChunk RoaringChunk::or_ArrayArray(const RoaringChunk& b) const
             }
         }
 
-        answer.cardinality_ = pos;
-
-        return answer;
+        chunk_[1] = pos;
     }
     else
     {
-        RoaringChunk answer(key_, BITMAP, 0);
+        resetChunk(BITMAP, 0);
 
-        uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+        uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
         for (uint32_t i = 0; i < a_size; ++i)
         {
@@ -565,83 +583,76 @@ RoaringChunk RoaringChunk::or_ArrayArray(const RoaringChunk& b) const
             data[val / 64] |= 1ULL << val;
         }
 
-        uint32_t cardinality = 0;
-        for (uint32_t i = 0; i < 1024; ++i)
+        size = 0;
+        for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
         {
-            cardinality += _mm_popcnt_u64(data[i]);
+            size += _mm_popcnt_u64(data[i]);
         }
 
-        answer.cardinality_ = cardinality;
-        if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-        return answer;
+        chunk_[1] = size;
+        if (size < MAX_ARRAY_SIZE) bitmap2Array();
     }
 }
 
-RoaringChunk RoaringChunk::xor_BitmapBitmap(const RoaringChunk& b) const
+void RoaringChunk::xor_BitmapBitmap(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(key_, BITMAP, 0);
+    resetChunk(BITMAP, 0);
 
-    uint32_t cardinality = 0;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < 1024; ++i)
+    uint32_t size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
         data[i] = a_data[i] & b_data[i];
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    if (cardinality == 65536) return RoaringChunk(key_, FULL, 0);
-
-    answer.cardinality_ = cardinality;
-    if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-    return answer;
+    chunk_[1] = size;
+    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
+    else if (size < MAX_ARRAY_SIZE) bitmap2Array();
 }
 
-RoaringChunk RoaringChunk::xor_BitmapArray(const RoaringChunk& b) const
+void RoaringChunk::xor_BitmapArray(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(*this, true);
+    cloneChunk(a);
 
-    uint32_t cardinality = b.cardinality_;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < cardinality; ++i)
+    uint32_t size = b[1];
+    for (uint32_t i = 0; i < size; ++i)
     {
         uint16_t val = b_data[i];
         data[val / 64] ^= 1ULL << val;
     }
 
-    for (uint32_t i = 0; i < 1024; ++i)
+    size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    answer.cardinality_ = cardinality;
-    if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-    return answer;
+    chunk_[1] = size;
+    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
+    else if (size < MAX_ARRAY_SIZE) bitmap2Array();
 }
 
-RoaringChunk RoaringChunk::xor_ArrayArray(const RoaringChunk& b) const
+void RoaringChunk::xor_ArrayArray(const data_type& a, const data_type& b)
 {
-    uint32_t a_size = cardinality_, b_size = b.cardinality_;
+    uint32_t a_size = a[1], b_size = b[1];
     uint32_t size = a_size + b_size;
 
-    if (size < 4096)
+    if (size < MAX_ARRAY_SIZE)
     {
-        RoaringChunk answer(key_, ARRAY, size);
+        resetChunk(ARRAY, size);
 
         uint32_t pos = 0, a_pos = 0, b_pos = 0;
 
-        uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+        uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
         if (a_pos < a_size && b_pos < b_size)
         {
@@ -672,17 +683,15 @@ RoaringChunk RoaringChunk::xor_ArrayArray(const RoaringChunk& b) const
             }
         }
 
-        answer.cardinality_ = pos;
-
-        return answer;
+        chunk_[1] = pos;
     }
     else
     {
-        RoaringChunk answer(key_, BITMAP, 0);
+        resetChunk(BITMAP, 0);
 
-        uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+        uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+        const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+        const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
         for (uint32_t i = 0; i < a_size; ++i)
         {
@@ -696,99 +705,92 @@ RoaringChunk RoaringChunk::xor_ArrayArray(const RoaringChunk& b) const
             data[val / 64] ^= 1ULL << val;
         }
 
-        uint32_t cardinality = 0;
-        for (uint32_t i = 0; i < 1024; ++i)
+        size = 0;
+        for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
         {
-            cardinality += _mm_popcnt_u64(data[i]);
+            size += _mm_popcnt_u64(data[i]);
         }
 
-        answer.cardinality_ = cardinality;
-        if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-        return answer;
+        chunk_[1] = size;
+        if (size < MAX_ARRAY_SIZE) bitmap2Array();
     }
 }
 
-RoaringChunk RoaringChunk::andNot_BitmapBitmap(const RoaringChunk& b) const
+void RoaringChunk::andNot_BitmapBitmap(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(key_, BITMAP, 0);
+    resetChunk(BITMAP, 0);
 
-    uint32_t cardinality = 0;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
+    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
-    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < 1024; ++i)
+    uint32_t size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
         data[i] = a_data[i] & ~b_data[i];
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    answer.cardinality_ = cardinality;
-    if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-    return answer;
+    chunk_[1] = size;
+    if (size < MAX_ARRAY_SIZE) bitmap2Array();
 }
 
-RoaringChunk RoaringChunk::andNot_BitmapArray(const RoaringChunk& b) const
+void RoaringChunk::andNot_BitmapArray(const data_type& a, const data_type& b)
 {
-    RoaringChunk answer(*this, true);
+    cloneChunk(a);
 
-    uint32_t cardinality = b.cardinality_;
+    uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
-    uint64_t* data = reinterpret_cast<uint64_t*>(&answer.chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
-
-    for (uint32_t i = 0; i < cardinality; ++i)
+    uint32_t size = b[1];
+    for (uint32_t i = 0; i < size; ++i)
     {
         uint16_t val = b_data[i];
         data[val / 64] &= ~(1ULL << val);
     }
 
-    for (uint32_t i = 0; i < 1024; ++i)
+    size = 0;
+    for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
-        cardinality += _mm_popcnt_u64(data[i]);
+        size += _mm_popcnt_u64(data[i]);
     }
 
-    answer.cardinality_ = cardinality;
-    if (cardinality < 4096) answer.convertFromBitmapToArray();
-
-    return answer;
+    chunk_[1] = size;
+    if (size < MAX_ARRAY_SIZE) bitmap2Array();
 }
 
-RoaringChunk RoaringChunk::andNot_ArrayBitmap(const RoaringChunk& b) const
+void RoaringChunk::andNot_ArrayBitmap(const data_type& a, const data_type& b)
 {
-    uint32_t cardinality = cardinality_;
+    uint32_t size = a[1];
 
-    RoaringChunk answer(key_, ARRAY, cardinality);
+    resetChunk(ARRAY, size);
 
-    uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b.chunk_[4]);
+    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+    const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
 
     uint32_t pos = 0;
-    for (uint32_t i = 0; i < cardinality; ++i)
+    for (uint32_t i = 0; i < size; ++i)
     {
         uint16_t val = a_data[i];
         if ((b_data[val / 64] & 1ULL << val) == 0)
             data[pos++] = val;
     }
 
-    return answer;
+    chunk_[1] = pos;
 }
 
-RoaringChunk RoaringChunk::andNot_ArrayArray(const RoaringChunk& b) const
+void RoaringChunk::andNot_ArrayArray(const data_type& a, const data_type& b)
 {
-    uint32_t a_size = cardinality_, b_size = b.cardinality_;
+    uint32_t a_size = a[1], b_size = b[1];
 
-    RoaringChunk answer(key_, ARRAY, a_size);
+    resetChunk(ARRAY, a_size);
 
     uint32_t pos = 0, a_pos = 0, b_pos = 0;
 
-    uint16_t* data = reinterpret_cast<uint16_t*>(&answer.chunk_[4]);
-    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
-    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b.chunk_[4]);
+    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+    const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
+    const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
     if (a_pos < a_size && b_pos < b_size)
     {
@@ -818,9 +820,7 @@ RoaringChunk RoaringChunk::andNot_ArrayArray(const RoaringChunk& b) const
         }
     }
 
-    answer.cardinality_ = pos;
-
-    return answer;
+    chunk_[1] = pos;
 }
 
 NS_IZENELIB_AM_END

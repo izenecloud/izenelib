@@ -63,29 +63,37 @@ void RoaringBitmap::extendArray(uint32_t k)
         array_type newContainer(new chunk_type[newCapacity]);
         std::copy(&array_[0], &array_[capacity_], &newContainer[0]);
 
+        while (flag_.test_and_set());
         array_.swap(newContainer);
+        flag_.clear();
         capacity_ = newCapacity;
     }
 }
 
 void RoaringBitmap::append(const RoaringChunk& value)
 {
-    if (value.getCardinality() == 0) return;
+    uint32_t inc = value.getCardinality();
+    if (inc == 0) return;
     extendArray(1);
     array_[size_++] = value;
+    cardinality_ += inc;
 }
 
 void RoaringBitmap::appendCopy(const RoaringBitmap::array_type& sa, uint32_t index)
 {
     extendArray(1);
-    array_[size_++] = sa[index];
+    array_[size_].copyOnDemand(sa[index]);
+    cardinality_ += array_[size_++].getCardinality();
 }
 
 void RoaringBitmap::appendCopy(const RoaringBitmap::array_type& sa, uint32_t begin, uint32_t end)
 {
     extendArray(end - begin);
-    std::copy(&sa[begin], &sa[end], &array_[size_]);
-    size_ += end - begin;
+    for (uint32_t i = begin; i < end; ++i)
+    {
+        array_[size_].copyOnDemand(sa[i]);
+        cardinality_ += array_[size_++].getCardinality();
+    }
 }
 
 uint32_t RoaringBitmap::getIndex(uint32_t x)
@@ -120,8 +128,11 @@ void RoaringBitmap::add(uint32_t x)
     }
     else
     {
-        if (size_) array_[size_].unsetUpdatable();
-        append(RoaringChunk(hb, lb));
+        if (size_) array_[size_].trim();
+
+        extendArray(1);
+        array_[size_++].init(hb, lb);
+        ++cardinality_;
     }
 }
 
@@ -136,7 +147,7 @@ RoaringBitmap RoaringBitmap::operator&(const RoaringBitmap& b) const
 
     if (pos1 < length1 && pos2 < length2)
     {
-        uint32_t s1 = array_[pos1].getKey();
+        uint32_t s1 = array1[pos1].getKey();
         uint32_t s2 = array2[pos2].getKey();
 
         while (true)
@@ -153,9 +164,7 @@ RoaringBitmap RoaringBitmap::operator&(const RoaringBitmap& b) const
             }
             else
             {
-                chunk_type c = array1[pos1] & array2[pos2];
-                if (c.getCardinality() > 0)
-                    answer.append(c);
+                answer.append(array1[pos1] & array2[pos2]);
 
                 if (++pos1 == length1 || ++pos2 == length2) break;
 
@@ -337,9 +346,7 @@ RoaringBitmap RoaringBitmap::operator-(const RoaringBitmap& b) const
             }
             else
             {
-                chunk_type c = array1[pos1] - array2[pos2];
-                if (c.getCardinality() > 0)
-                    answer.append(c);
+                answer.append(array1[pos1] - array2[pos2]);
 
                 if (++pos1 == length1 || ++pos2 == length2) break;
 
