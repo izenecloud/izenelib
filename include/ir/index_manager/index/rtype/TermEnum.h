@@ -4,6 +4,7 @@
 #include <ir/index_manager/index/rtype/Compare.h>
 #include <types.h>
 #include <boost/function.hpp>
+#include <boost/optional.hpp>
 #include <3rdparty/am/stx/btree_map.h>
 #include "InMemoryBTreeCache.h"
 #include <util/ClockTimer.h>
