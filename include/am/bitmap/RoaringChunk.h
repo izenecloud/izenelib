@@ -34,8 +34,9 @@ public:
     bool operator==(const self_type& b) const;
 
     void init(uint32_t key, uint32_t value);
-    void add(uint32_t x);
     void trim();
+    void add(uint32_t x);
+    bool contains(uint32_t x) const;
 
     void resetChunk(Type type, uint32_t capacity);
     void cloneChunk(const data_type& chunk);

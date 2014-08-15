@@ -28,6 +28,7 @@ public:
     bool operator==(const self_type& b) const;
 
     void add(uint32_t x);
+    bool contains(uint32_t x) const;
 
     array_type getArray() const;
 
@@ -49,8 +50,6 @@ private:
     void append(const chunk_type& value);
     void appendCopy(const array_type& sa, uint32_t index);
     void appendCopy(const array_type& sa, uint32_t begin, uint32_t end);
-
-    uint32_t getIndex(uint32_t x);
 
     friend class boost::serialization::access;
     template<class Archive>

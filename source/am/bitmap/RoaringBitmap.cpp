@@ -96,32 +96,11 @@ void RoaringBitmap::appendCopy(const RoaringBitmap::array_type& sa, uint32_t beg
     }
 }
 
-uint32_t RoaringBitmap::getIndex(uint32_t x)
-{
-    if (size_ == 0 || array_[size_ - 1].getKey() == x)
-        return size_ - 1;
-
-    uint32_t begin = 0;
-    uint32_t end = size_ - 1;
-    uint32_t key = -1;
-
-    while (begin < end && key != x)
-    {
-        uint32_t middle = (begin + end) / 2;
-        key = array_[middle].getKey();
-
-        asm("cmpl %3, %2\n\tcmovg %4, %0\n\tcmovle %5, %1"
-                : "+r" (begin), "+r" (end)
-                : "r" (x), "g" (key), "g" (middle + 1), "g" (middle));
-    }
-
-    return key == x ? end : (uint32_t)-1;
-}
-
 void RoaringBitmap::add(uint32_t x)
 {
     uint32_t hb = x >> 16;
     uint32_t lb = x & 0xffff;
+
     if (array_[size_].getKey() == hb)
     {
         array_[size_].add(lb);
@@ -134,6 +113,36 @@ void RoaringBitmap::add(uint32_t x)
         array_[size_++].init(hb, lb);
         ++cardinality_;
     }
+}
+
+bool RoaringBitmap::contains(uint32_t x) const
+{
+    uint32_t hb = x >> 16;
+    uint32_t lb = x & 0xffff;
+
+    uint32_t tmp_size = size_;
+    if (tmp_size == 0) return false;
+
+    array_type tmp_array = getArray();
+
+    if (tmp_array[tmp_size - 1].getKey() == hb)
+        return tmp_array[tmp_size - 1].contains(lb);
+
+    uint32_t begin = 0;
+    uint32_t end = tmp_size - 1;
+    uint32_t key = -1;
+
+    while (begin < end && key != x)
+    {
+        uint32_t middle = (begin + end) / 2;
+        key = tmp_array[middle].getKey();
+
+        asm("cmpl %3, %2\n\tcmovg %4, %0\n\tcmovle %5, %1"
+                : "+r" (begin), "+r" (end)
+                : "r" (x), "g" (key), "g" (middle + 1), "g" (middle));
+    }
+
+    return key == x && tmp_array[end].contains(x & 0xffff);
 }
 
 RoaringBitmap RoaringBitmap::operator&(const RoaringBitmap& b) const

@@ -54,7 +54,7 @@ void RoaringChunk::resetChunk(Type type, uint32_t capacity)
     {
     case ARRAY:
         capacity = (capacity + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
-        chunk_.reset(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
+        chunk_.reset(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
         chunk_[0] = ARRAY;
         chunk_[1] = 0;
         chunk_[2] = capacity;
@@ -62,16 +62,16 @@ void RoaringChunk::resetChunk(Type type, uint32_t capacity)
         break;
 
     case BITMAP:
-        chunk_.reset(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4), cachealign_deleter());
+        chunk_.reset(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4, 16), cachealign_deleter());
         chunk_[0] = BITMAP;
         chunk_[1] = 0;
         chunk_[2] = MAX_CHUNK_CAPACITY;
         chunk_[3] = MAX_CHUNK_CAPACITY / 32 + 4;
-        memset(&chunk_[4], 0, MAX_CHUNK_CAPACITY / 8);
+        memset(&chunk_[4], capacity, MAX_CHUNK_CAPACITY / 8);
         break;
 
     case FULL:
-        chunk_.reset(cachealign_alloc<uint32_t>(4), cachealign_deleter());
+        chunk_.reset(cachealign_alloc<uint32_t>(4, 16), cachealign_deleter());
         chunk_[0] = FULL;
         chunk_[1] = MAX_CHUNK_CAPACITY;
         chunk_[2] = MAX_CHUNK_CAPACITY;
@@ -87,12 +87,38 @@ void RoaringChunk::init(uint32_t key, uint32_t value)
     key_ = key;
     updatable_ = true;
 
-    chunk_.reset(cachealign_alloc<uint32_t>(INIT_ARRAY_SIZE / 2 + 4), cachealign_deleter());
+    chunk_.reset(cachealign_alloc<uint32_t>(INIT_ARRAY_SIZE / 2 + 4, 16), cachealign_deleter());
     chunk_[0] = ARRAY;
     chunk_[1] = 1;
     chunk_[2] = INIT_ARRAY_SIZE;
     chunk_[3] = INIT_ARRAY_SIZE / 2 + 4;
     chunk_[4] = value;
+}
+
+void RoaringChunk::trim()
+{
+    if (!chunk_) return;
+
+    if (chunk_[0] == ARRAY)
+    {
+        uint32_t capacity = (chunk_[1] + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+
+        if (capacity < chunk_[2])
+        {
+            data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
+            new_chunk[0] = ARRAY;
+            new_chunk[1] = chunk_[1];
+            new_chunk[2] = capacity;
+            new_chunk[3] = capacity / 2 + 4;
+            memcpy(&new_chunk[4], &chunk_[4], chunk_[1] * 2);
+
+            while (flag_.test_and_set());
+            chunk_.swap(new_chunk);
+            flag_.clear();
+        }
+    }
+
+    updatable_ = false;
 }
 
 void RoaringChunk::add(uint32_t x)
@@ -109,7 +135,7 @@ void RoaringChunk::add(uint32_t x)
         }
         else
         {
-            data_type new_chunk(cachealign_alloc<uint32_t>(4), cachealign_deleter());
+            data_type new_chunk(cachealign_alloc<uint32_t>(4, 16), cachealign_deleter());
             new_chunk[0] = FULL;
             new_chunk[1] = MAX_CHUNK_CAPACITY;
             new_chunk[2] = MAX_CHUNK_CAPACITY;
@@ -134,7 +160,7 @@ void RoaringChunk::add(uint32_t x)
 
             if (capacity < MAX_ARRAY_SIZE)
             {
-                data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
+                data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
                 new_chunk[0] = ARRAY;
                 new_chunk[1] = chunk_[1] + 1;
                 new_chunk[2] = capacity;
@@ -150,7 +176,7 @@ void RoaringChunk::add(uint32_t x)
             }
             else
             {
-                data_type new_chunk(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4), cachealign_deleter());
+                data_type new_chunk(cachealign_alloc<uint32_t>(MAX_CHUNK_CAPACITY / 32 + 4, 16), cachealign_deleter());
                 new_chunk[0] = BITMAP;
                 new_chunk[1] = chunk_[1] + 1;
                 new_chunk[2] = MAX_CHUNK_CAPACITY;
@@ -158,7 +184,7 @@ void RoaringChunk::add(uint32_t x)
                 memset(&new_chunk[4], 0, MAX_CHUNK_CAPACITY / 8);
 
                 uint64_t* data = reinterpret_cast<uint64_t*>(&new_chunk[4]);
-                const uint16_t* old_data = reinterpret_cast<uint16_t*>(&chunk_[4]);
+                const uint16_t* old_data = reinterpret_cast<const uint16_t*>(&chunk_[4]);
 
                 uint16_t size = chunk_[1];
                 for (uint32_t i = 0; i < size; ++i)
@@ -178,35 +204,56 @@ void RoaringChunk::add(uint32_t x)
     }
 }
 
-void RoaringChunk::trim()
+bool RoaringChunk::contains(uint32_t x) const
 {
-    if (!chunk_) return;
+    data_type tmp_chunk = getChunk();
 
-    if (chunk_[0] == ARRAY)
+    if (!tmp_chunk) return false;
+
+    switch (tmp_chunk[0])
     {
-        uint32_t capacity = (chunk_[1] + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+    case ARRAY:
+    {
+        const uint16_t* data = reinterpret_cast<const uint16_t*>(&tmp_chunk[4]);
 
-        if (capacity < chunk_[2])
+        if (data[tmp_chunk[1]] < x) return false;
+
+        __m128i pivot = _mm_set1_epi16((uint16_t)x);
+        const uint16_t* tmp = data;
+
+        for (;; tmp += INIT_ARRAY_SIZE)
         {
-            data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4), cachealign_deleter());
-            new_chunk[0] = ARRAY;
-            new_chunk[1] = chunk_[1];
-            new_chunk[2] = capacity;
-            new_chunk[3] = capacity / 2 + 4;
-            memcpy(&new_chunk[4], &chunk_[4], chunk_[1] * 2);
+            int res = _mm_movemask_epi8(_mm_packs_epi16(
+                        _mm_cmplt_epi16(_mm_load_si128(
+                                reinterpret_cast<const __m128i*>(tmp)), pivot),
+                        _mm_cmplt_epi16(_mm_load_si128(
+                                reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
 
-            while (flag_.test_and_set());
-            chunk_.swap(new_chunk);
-            flag_.clear();
+            if (res != 0xffff)
+            {
+                return tmp[__builtin_ctz(~res)] == x;
+            }
         }
+
+        assert(false);
+        return false;
     }
 
-    updatable_ = false;
+    case BITMAP:
+    {
+        const uint64_t* data = reinterpret_cast<const uint64_t*>(&tmp_chunk[4]);
+        return data[x / 64] & 1ULL << x;
+    }
+
+    case FULL: return true;
+    }
+
+    return false;
 }
 
 void RoaringChunk::cloneChunk(const data_type& chunk)
 {
-    chunk_.reset(cachealign_alloc<uint32_t>(chunk[3]), cachealign_deleter());
+    chunk_.reset(cachealign_alloc<uint32_t>(chunk[3], 16), cachealign_deleter());
     memcpy(&chunk_[0], &chunk[0], chunk[3] * 4);
 }
 
@@ -380,12 +427,10 @@ void RoaringChunk::not_Bitmap(const data_type& a)
 
 void RoaringChunk::not_Array(const data_type& a)
 {
-    resetChunk(BITMAP, 0);
+    resetChunk(BITMAP, 0xff);
 
     uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
     const uint16_t* a_data = reinterpret_cast<const uint16_t*>(&a[4]);
-
-    memset(data, 0xff, MAX_CHUNK_CAPACITY / 8);
 
     uint32_t size = a[1];
     for (uint32_t i = 0; i < size; ++i)
@@ -450,21 +495,67 @@ void RoaringChunk::and_ArrayArray(const data_type& a, const data_type& b)
 
     if (a_pos < a_size && b_pos < b_size)
     {
+        uint16_t a_tail = a_data[a_size - 1], b_tail = b_data[b_size - 1];
+        uint16_t a_current = a_data[0], b_current = b_data[0];
+
         while (true)
         {
-            if (a_data[a_pos] < b_data[b_pos])
+            if (a_current < b_current)
             {
-                if (++a_pos == a_size) break;
+                if (a_tail < b_current) break;
+
+                const uint16_t* tmp = a_data + (a_pos & -INIT_ARRAY_SIZE);
+                __m128i pivot = _mm_set1_epi16(b_current);
+
+                for (;; tmp += INIT_ARRAY_SIZE)
+                {
+                    int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                    if (res != 0xffff)
+                    {
+                        a_pos = tmp - a_data + __builtin_ctz(~res);
+                        a_current = a_data[a_pos];
+                        break;
+                    }
+                }
             }
-            else if (a_data[a_pos] > b_data[b_pos])
+
+            if (a_current > b_current)
             {
-                if (++b_pos == b_size) break;
+                if (a_current > b_tail) break;
+
+                const uint16_t* tmp = b_data + (b_pos & -INIT_ARRAY_SIZE);
+                __m128i pivot = _mm_set1_epi16(a_current);
+
+                for (;; tmp += INIT_ARRAY_SIZE)
+                {
+                    int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                    if (res != 0xffff)
+                    {
+                        b_pos = tmp - b_data + __builtin_ctz(~res);
+                        b_current = b_data[b_pos];
+                        break;
+                    }
+                }
             }
-            else
+
+            if (a_current == b_current)
             {
-                data[pos++] = a_data[a_pos];
+                data[pos++] = a_current;
 
                 if (++a_pos == a_size || ++b_pos == b_size) break;
+
+                a_current = a_data[a_pos];
+                b_current = b_data[b_pos];
             }
         }
     }
@@ -532,33 +623,96 @@ void RoaringChunk::or_ArrayArray(const data_type& a, const data_type& b)
 
         if (a_pos < a_size && b_pos < b_size)
         {
+            uint16_t a_tail = a_data[a_size - 1], b_tail = b_data[b_size - 1];
+            uint16_t a_current = a_data[0], b_current = b_data[0];
+
             while (true)
             {
-                if (a_data[a_pos] < b_data[b_pos])
+                if (a_current < b_current)
                 {
-                    do
+                    if (a_tail < b_current)
                     {
-                        data[pos++] = a_data[a_pos];
-                        if (++a_pos == a_size) break;
-                    } while (a_data[a_pos] < b_data[b_pos]);
-                    if (++a_pos == a_size) break;
-                }
-                else if (a_data[a_pos] > b_data[b_pos])
-                {
-                    do
+                        memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+                        pos += a_size - a_pos;
+                        break;
+                    }
+
+                    const uint16_t* tmp = a_data + (a_pos & -INIT_ARRAY_SIZE);
+                    __m128i pivot = _mm_set1_epi16(b_current);
+
+                    for (;; tmp += INIT_ARRAY_SIZE)
                     {
-                        data[pos++] = b_data[b_pos];
-                        if (++b_pos == b_size) break;
-                    } while (a_data[a_pos] > b_data[b_pos]);
-                    if (++b_pos == b_size) break;
+                        int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                        if (res != 0xffff)
+                        {
+                            uint32_t new_pos = tmp - a_data + __builtin_ctz(~res);
+                            memcpy(&data[pos], &a_data[a_pos], (new_pos - a_pos) * 2);
+                            pos += new_pos - a_pos;
+                            a_pos = new_pos;
+                            a_current = a_data[a_pos];
+                            break;
+                        }
+                    }
                 }
-                else
+
+                if (a_current > b_current)
                 {
-                    data[pos++] = a_data[a_pos];
+                    if (a_current > b_tail)
+                    {
+                        memcpy(&data[pos], &b_data[b_pos], (b_size - b_pos) * 2);
+                        pos += b_size - b_pos;
+                        break;
+                    }
+
+                    const uint16_t* tmp = b_data + (b_pos & -INIT_ARRAY_SIZE);
+                    __m128i pivot = _mm_set1_epi16(a_current);
+
+                    for (;; tmp += INIT_ARRAY_SIZE)
+                    {
+                        int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                        if (res != 0xffff)
+                        {
+                            uint32_t new_pos = tmp - b_data + __builtin_ctz(~res);
+                            memcpy(&data[pos], &b_data[b_pos], (new_pos - b_pos) * 2);
+                            pos += new_pos - b_pos;
+                            b_pos = new_pos;
+                            b_current = b_data[b_pos];
+                            break;
+                        }
+                    }
+                }
+
+                if (a_current == b_current)
+                {
+                    data[pos++] = a_current;
 
                     if (++a_pos == a_size || ++b_pos == b_size) break;
+
+                    a_current = a_data[a_pos];
+                    b_current = b_data[b_pos];
                 }
             }
+        }
+
+        if (a_pos == a_size)
+        {
+            memcpy(&data[pos], &b_data[b_pos], (b_size - b_pos) * 2);
+            pos += b_size - b_pos;
+        }
+        else if (b_pos == b_size)
+        {
+            memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+            pos += a_size - a_pos;
         }
 
         chunk_[1] = pos;
@@ -656,31 +810,94 @@ void RoaringChunk::xor_ArrayArray(const data_type& a, const data_type& b)
 
         if (a_pos < a_size && b_pos < b_size)
         {
+            uint16_t a_tail = a_data[a_size - 1], b_tail = b_data[b_size - 1];
+            uint16_t a_current = a_data[0], b_current = b_data[0];
+
             while (true)
             {
-                if (a_data[a_pos] < b_data[b_pos])
+                if (a_current < b_current)
                 {
-                    do
+                    if (a_tail < b_current)
                     {
-                        data[pos++] = a_data[a_pos];
-                        if (++a_pos == a_size) break;
-                    } while (a_data[a_pos] < b_data[b_pos]);
-                    if (++a_pos == a_size) break;
+                        memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+                        pos += a_size - a_pos;
+                        break;
+                    }
+
+                    const uint16_t* tmp = a_data + (a_pos & -INIT_ARRAY_SIZE);
+                    __m128i pivot = _mm_set1_epi16(b_current);
+
+                    for (;; tmp += INIT_ARRAY_SIZE)
+                    {
+                        int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                        if (res != 0xffff)
+                        {
+                            uint32_t new_pos = tmp - a_data + __builtin_ctz(~res);
+                            memcpy(&data[pos], &a_data[a_pos], (new_pos - a_pos) * 2);
+                            pos += new_pos - a_pos;
+                            a_pos = new_pos;
+                            a_current = a_data[a_pos];
+                            break;
+                        }
+                    }
                 }
-                else if (a_data[a_pos] > b_data[b_pos])
+
+                if (a_current > b_current)
                 {
-                    do
+                    if (a_current > b_tail)
                     {
-                        data[pos++] = b_data[b_pos];
-                        if (++b_pos == b_size) break;
-                    } while (a_data[a_pos] > b_data[b_pos]);
-                    if (++b_pos == b_size) break;
+                        memcpy(&data[pos], &b_data[b_pos], (b_size - b_pos) * 2);
+                        pos += b_size - b_pos;
+                        break;
+                    }
+
+                    const uint16_t* tmp = b_data + (b_pos & -INIT_ARRAY_SIZE);
+                    __m128i pivot = _mm_set1_epi16(a_current);
+
+                    for (;; tmp += INIT_ARRAY_SIZE)
+                    {
+                        int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                    _mm_cmplt_epi16(_mm_load_si128(
+                                            reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                        if (res != 0xffff)
+                        {
+                            uint32_t new_pos = tmp - b_data + __builtin_ctz(~res);
+                            memcpy(&data[pos], &b_data[b_pos], (new_pos - b_pos) * 2);
+                            pos += new_pos - b_pos;
+                            b_pos = new_pos;
+                            b_current = b_data[b_pos];
+                            break;
+                        }
+                    }
                 }
-                else
+
+                if (a_current == b_current)
                 {
                     if (++a_pos == a_size || ++b_pos == b_size) break;
+
+                    a_current = a_data[a_pos];
+                    b_current = b_data[b_pos];
                 }
             }
+        }
+
+        if (a_pos == a_size)
+        {
+            memcpy(&data[pos], &b_data[b_pos], (b_size - b_pos) * 2);
+            pos += b_size - b_pos;
+        }
+        else if (b_pos == b_size)
+        {
+            memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+            pos += a_size - a_pos;
         }
 
         chunk_[1] = pos;
@@ -794,30 +1011,81 @@ void RoaringChunk::andNot_ArrayArray(const data_type& a, const data_type& b)
 
     if (a_pos < a_size && b_pos < b_size)
     {
+        uint16_t a_tail = a_data[a_size - 1], b_tail = b_data[b_size - 1];
+        uint16_t a_current = a_data[0], b_current = b_data[0];
+
         while (true)
         {
-            if (a_data[a_pos] < b_data[b_pos])
+            if (a_current < b_current)
             {
-                do
+                if (a_tail < b_current)
                 {
-                    data[pos++] = a_data[a_pos];
-                    if (++a_pos == a_size) break;
-                } while (a_data[a_pos] < b_data[b_pos]);
-                if (++a_pos == a_size) break;
+                    memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+                    pos += a_size - a_pos;
+                    break;
+                }
+
+                const uint16_t* tmp = a_data + (a_pos & -INIT_ARRAY_SIZE);
+                __m128i pivot = _mm_set1_epi16(b_current);
+
+                for (;; tmp += INIT_ARRAY_SIZE)
+                {
+                    int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                    if (res != 0xffff)
+                    {
+                        uint32_t new_pos = tmp - a_data + __builtin_ctz(~res);
+                        memcpy(&data[pos], &a_data[a_pos], (new_pos - a_pos) * 2);
+                        pos += new_pos - a_pos;
+                        a_pos = new_pos;
+                        a_current = a_data[a_pos];
+                        break;
+                    }
+                }
             }
-            else if (a_data[a_pos] > b_data[b_pos])
+
+            if (a_current > b_current)
             {
-                do
+                if (a_current > b_tail) break;
+
+                const uint16_t* tmp = b_data + (b_pos & -INIT_ARRAY_SIZE);
+                __m128i pivot = _mm_set1_epi16(a_current);
+
+                for (;; tmp += INIT_ARRAY_SIZE)
                 {
-                    if (++b_pos == b_size) break;
-                } while (a_data[a_pos] > b_data[b_pos]);
-                if (++b_pos == b_size) break;
+                    int res = _mm_movemask_epi8(_mm_packs_epi16(
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp)), pivot),
+                                _mm_cmplt_epi16(_mm_load_si128(
+                                        reinterpret_cast<const __m128i*>(tmp) + 1), pivot)));
+
+                    if (res != 0xffff)
+                    {
+                        b_pos = tmp - b_data + __builtin_ctz(~res);
+                        b_current = b_data[b_pos];
+                        break;
+                    }
+                }
             }
-            else
+
+            if (a_current == b_current)
             {
                 if (++a_pos == a_size || ++b_pos == b_size) break;
+
+                a_current = a_data[a_pos];
+                b_current = b_data[b_pos];
             }
         }
+    }
+
+    if (b_pos == b_size)
+    {
+        memcpy(&data[pos], &a_data[a_pos], (a_size - a_pos) * 2);
+        pos += a_size - a_pos;
     }
 
     chunk_[1] = pos;
