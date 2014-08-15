@@ -7,6 +7,7 @@ NS_IZENELIB_AM_BEGIN
 RoaringChunk::RoaringChunk(uint32_t key)
     : key_(key)
     , updatable_(false)
+    , full_(false)
 {
 }
 
@@ -28,6 +29,7 @@ boost::shared_array<uint32_t> RoaringChunk::getChunk() const
 RoaringChunk::RoaringChunk(const self_type& b)
     : key_(b.key_)
     , updatable_(b.updatable_)
+    , full_(b.full_)
     , chunk_(b.chunk_)
 {
 }
@@ -36,6 +38,7 @@ RoaringChunk& RoaringChunk::operator=(const self_type& b)
 {
     key_ = b.key_;
     updatable_ = b.updatable_;
+    full_ = b.full_;
     chunk_ = b.chunk_;
 
     return *this;
@@ -45,6 +48,7 @@ bool RoaringChunk::operator==(const self_type& b) const
 {
     return key_ == b.key_
         && updatable_ == b.updatable_
+        && full_ == b.full_
         && chunk_ == b.chunk_;
 }
 
@@ -71,14 +75,14 @@ void RoaringChunk::resetChunk(Type type, uint32_t capacity)
         break;
 
     case FULL:
-        chunk_.reset(cachealign_alloc<uint32_t>(4, 16), cachealign_deleter());
-        chunk_[0] = FULL;
-        chunk_[1] = MAX_CHUNK_CAPACITY;
-        chunk_[2] = MAX_CHUNK_CAPACITY;
-        chunk_[3] = 4;
+        full_ = true;
+        chunk_.reset();
         break;
 
-    default: break;
+    default:
+        full_ = false;
+        chunk_.reset();
+        break;
     }
 }
 
@@ -99,12 +103,18 @@ void RoaringChunk::trim()
 {
     if (!chunk_) return;
 
-    if (chunk_[0] == ARRAY)
+    if (!chunk_[1])
     {
-        uint32_t capacity = (chunk_[1] + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
-
-        if (capacity < chunk_[2])
+        while (flag_.test_and_set());
+        chunk_.reset();
+        flag_.clear();
+    }
+    else if (chunk_[0] == ARRAY)
+    {
+        if (chunk_[1] <= chunk_[2] - INIT_ARRAY_SIZE)
         {
+            uint32_t capacity = (chunk_[1] + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+
             data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
             new_chunk[0] = ARRAY;
             new_chunk[1] = chunk_[1];
@@ -117,37 +127,68 @@ void RoaringChunk::trim()
             flag_.clear();
         }
     }
+    else
+    {
+        if (chunk_[1] < MAX_ARRAY_SIZE)
+        {
+            uint32_t size = chunk_[1];
+            uint32_t capacity = (size + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+
+            data_type new_chunk(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
+            new_chunk[0] = ARRAY;
+            new_chunk[1] = size;
+            new_chunk[2] = capacity;
+            new_chunk[3] = capacity / 2 + 4;
+
+            uint16_t* data = reinterpret_cast<uint16_t*>(&new_chunk[4]);
+            const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&chunk_[4]);
+
+            for (uint32_t i = 0, pos = 0; i < BITMAP_SIZE && pos < size; ++i)
+            {
+                uint64_t block = old_data[i];
+                while (block)
+                {
+                    data[pos++] = uint16_t(i * 64 + __builtin_ctzll(block));
+                    block &= block - 1;
+                }
+            }
+
+            while (flag_.test_and_set());
+            chunk_.swap(new_chunk);
+            flag_.clear();
+        }
+        else if (chunk_[1] == MAX_CHUNK_CAPACITY)
+        {
+            full_ = true;
+
+            while (flag_.test_and_set());
+            chunk_.reset();
+            flag_.clear();
+        }
+    }
 
     updatable_ = false;
 }
 
 void RoaringChunk::add(uint32_t x)
 {
-    switch (chunk_[0])
+    if (!chunk_)
     {
-    case BITMAP:
-        assert(x >= chunk_[1]);
-        if (chunk_[1] < MAX_CHUNK_CAPACITY - 1)
-        {
-            ++chunk_[1];
-            uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
-            data[x / 64] |= 1ULL << x;
-        }
-        else
-        {
-            data_type new_chunk(cachealign_alloc<uint32_t>(4, 16), cachealign_deleter());
-            new_chunk[0] = FULL;
-            new_chunk[1] = MAX_CHUNK_CAPACITY;
-            new_chunk[2] = MAX_CHUNK_CAPACITY;
-            new_chunk[3] = 4;
+        updatable_ = true;
 
-            while (flag_.test_and_set());
-            chunk_.swap(new_chunk);
-            flag_.clear();
-        }
-        break;
+        data_type new_chunk(cachealign_alloc<uint32_t>(INIT_ARRAY_SIZE / 2 + 4, 16), cachealign_deleter());
+        new_chunk[0] = ARRAY;
+        new_chunk[1] = 1;
+        new_chunk[2] = INIT_ARRAY_SIZE;
+        new_chunk[3] = INIT_ARRAY_SIZE / 2 + 4;
+        new_chunk[4] = x;
 
-    case ARRAY:
+        while (flag_.test_and_set());
+        chunk_.swap(new_chunk);
+        flag_.clear();
+    }
+    else if (chunk_[0] == ARRAY)
+    {
         if (chunk_[1] < chunk_[2])
         {
             uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
@@ -198,9 +239,23 @@ void RoaringChunk::add(uint32_t x)
                 flag_.clear();
             }
         }
-        break;
+    }
+    else
+    {
+        if (chunk_[1] < MAX_CHUNK_CAPACITY - 1)
+        {
+            uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
+            data[x / 64] |= 1ULL << x;
+            ++chunk_[1];
+        }
+        else
+        {
+            full_ = true;
 
-    default: break;
+            while (flag_.test_and_set());
+            chunk_.reset();
+            flag_.clear();
+        }
     }
 }
 
@@ -208,11 +263,9 @@ bool RoaringChunk::contains(uint32_t x) const
 {
     data_type tmp_chunk = getChunk();
 
-    if (!tmp_chunk) return false;
+    if (!tmp_chunk) return full_;
 
-    switch (tmp_chunk[0])
-    {
-    case ARRAY:
+    if (tmp_chunk[0] == ARRAY)
     {
         const uint16_t* data = reinterpret_cast<const uint16_t*>(&tmp_chunk[4]);
 
@@ -235,34 +288,44 @@ bool RoaringChunk::contains(uint32_t x) const
             }
         }
 
-        assert(false);
         return false;
     }
-
-    case BITMAP:
+    else
     {
         const uint64_t* data = reinterpret_cast<const uint64_t*>(&tmp_chunk[4]);
+
         return data[x / 64] & 1ULL << x;
     }
-
-    case FULL: return true;
-    }
-
-    return false;
 }
 
 void RoaringChunk::cloneChunk(const data_type& chunk)
 {
-    chunk_.reset(cachealign_alloc<uint32_t>(chunk[3], 16), cachealign_deleter());
-    memcpy(&chunk_[0], &chunk[0], chunk[3] * 4);
+    if (!chunk) return;
+
+    if (chunk[0] == ARRAY)
+    {
+        uint32_t size = chunk[1];
+        uint32_t capacity = (size + INIT_ARRAY_SIZE - 1) & -INIT_ARRAY_SIZE;
+        chunk_.reset(cachealign_alloc<uint32_t>(capacity / 2 + 4, 16), cachealign_deleter());
+        chunk_[0] = ARRAY;
+        chunk_[1] = size;
+        chunk_[2] = capacity;
+        chunk_[3] = capacity / 2 + 4;
+        memcpy(&chunk_[4], &chunk[4], size * 2);
+    }
+    else
+    {
+        chunk_.reset(cachealign_alloc<uint32_t>(chunk[3], 16), cachealign_deleter());
+        memcpy(&chunk_[0], &chunk[0], chunk[3] * 4);
+    }
 }
 
-void RoaringChunk::copyOnDemand(const self_type& b)
+void RoaringChunk::atomicCopy(const self_type& b)
 {
     key_ = b.key_;
-
-    if (b.updatable_) cloneChunk(b.getChunk());
-    else chunk_ = b.chunk_;
+    chunk_ = b.getChunk();
+    full_ = b.full_;
+    if (full_) chunk_.reset();
 }
 
 RoaringChunk RoaringChunk::operator~() const
@@ -271,12 +334,9 @@ RoaringChunk RoaringChunk::operator~() const
 
     data_type chunk = getChunk();
 
-    switch (chunk[0])
-    {
-    case 0: answer.not_Array(chunk);
-    case 1: answer.not_Bitmap(chunk);
-    default: break;
-    }
+    if (!chunk) answer.full_ = !full_;
+    else if (chunk[0] == ARRAY) answer.not_Array(chunk);
+    else answer.not_Bitmap(chunk);
 
     return answer;
 }
@@ -288,16 +348,20 @@ RoaringChunk RoaringChunk::operator&(const self_type& b) const
     data_type a_chunk = getChunk();
     data_type b_chunk = b.getChunk();
 
-    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    uint32_t type = (!a_chunk ? 2 + full_ : a_chunk[0]) * 4
+        + (!b_chunk ? 2 + b.full_ : b_chunk[0]);
+
     switch (type)
     {
     case 0: answer.and_ArrayArray(a_chunk, b_chunk); break;
     case 1: answer.and_BitmapArray(b_chunk, a_chunk); break;
-    case 3: answer.and_BitmapArray(a_chunk, b_chunk); break;
-    case 4: answer.and_BitmapBitmap(a_chunk, b_chunk); break;
-    case 2:
-    case 5: answer.copyOnDemand(*this); break;
-    default: answer.copyOnDemand(b); break;
+    case 4: answer.and_BitmapArray(a_chunk, b_chunk); break;
+    case 5: answer.and_BitmapBitmap(a_chunk, b_chunk); break;
+    case 3:
+    case 7: answer.chunk_ = a_chunk; break;
+    case 12:
+    case 13: answer.chunk_ = b_chunk; break;
+    case 15: answer.full_ = true; break;
     }
 
     return answer;
@@ -310,14 +374,21 @@ RoaringChunk RoaringChunk::operator|(const self_type& b) const
     data_type a_chunk = getChunk();
     data_type b_chunk = b.getChunk();
 
-    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    uint32_t type = (!a_chunk ? 2 + full_ : a_chunk[0]) * 4
+        + (!b_chunk ? 2 + b.full_ : b_chunk[0]);
+
     switch (type)
     {
     case 0: answer.or_ArrayArray(a_chunk, b_chunk); break;
     case 1: answer.or_BitmapArray(b_chunk, a_chunk); break;
-    case 3: answer.or_BitmapArray(a_chunk, b_chunk); break;
-    case 4: answer.or_BitmapBitmap(a_chunk, b_chunk); break;
-    default: answer.resetChunk(FULL, 0); break;
+    case 4: answer.or_BitmapArray(a_chunk, b_chunk); break;
+    case 5: answer.or_BitmapBitmap(a_chunk, b_chunk); break;
+    case 2:
+    case 6: answer.chunk_ = a_chunk; break;
+    case 8:
+    case 9: answer.chunk_ = b_chunk; break;
+    case 10: break;
+    default: answer.full_ = true; break;
     }
 
     return answer;
@@ -330,17 +401,25 @@ RoaringChunk RoaringChunk::operator^(const self_type& b) const
     data_type a_chunk = getChunk();
     data_type b_chunk = b.getChunk();
 
-    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    uint32_t type = (!a_chunk ? 2 + full_ : a_chunk[0]) * 4
+        + (!b_chunk ? 2 + b.full_ : b_chunk[0]);
+
     switch (type)
     {
     case 0: answer.xor_ArrayArray(a_chunk, b_chunk); break;
     case 1: answer.xor_BitmapArray(b_chunk, a_chunk); break;
-    case 2: answer.not_Array(a_chunk); break;
-    case 3: answer.xor_BitmapArray(a_chunk, b_chunk); break;
-    case 4: answer.xor_BitmapBitmap(a_chunk, b_chunk); break;
-    case 5: answer.not_Bitmap(a_chunk); break;
-    case 6: answer.not_Array(b_chunk); break;
-    case 7: answer.not_Bitmap(b_chunk); break;
+    case 3: answer.not_Array(a_chunk); break;
+    case 4: answer.xor_BitmapArray(a_chunk, b_chunk); break;
+    case 5: answer.xor_BitmapBitmap(a_chunk, b_chunk); break;
+    case 2:
+    case 6: answer.chunk_ = a_chunk; break;
+    case 7: answer.not_Bitmap(a_chunk); break;
+    case 8:
+    case 9: answer.chunk_ = b_chunk; break;
+    case 12: answer.not_Array(b_chunk); break;
+    case 13: answer.not_Bitmap(b_chunk); break;
+    case 11:
+    case 14: answer.full_ = true; break;
     }
 
     return answer;
@@ -353,39 +432,23 @@ RoaringChunk RoaringChunk::operator-(const self_type& b) const
     data_type a_chunk = getChunk();
     data_type b_chunk = b.getChunk();
 
-    uint32_t type = a_chunk[0] * 3 + b_chunk[0];
+    uint32_t type = (!a_chunk ? 2 + full_ : a_chunk[0]) * 4
+        + (!b_chunk ? 2 + b.full_ : b_chunk[0]);
+
     switch (type)
     {
     case 0: answer.andNot_ArrayArray(a_chunk, b_chunk); break;
     case 1: answer.andNot_ArrayBitmap(a_chunk, b_chunk); break;
-    case 3: answer.andNot_BitmapArray(a_chunk, b_chunk); break;
-    case 4: answer.andNot_BitmapBitmap(a_chunk, b_chunk); break;
-    case 6: answer.not_Array(b_chunk); break;
-    case 7: answer.not_Bitmap(b_chunk); break;
+    case 4: answer.andNot_BitmapArray(a_chunk, b_chunk); break;
+    case 5: answer.andNot_BitmapBitmap(a_chunk, b_chunk); break;
+    case 2:
+    case 6: answer.chunk_ = a_chunk; break;
+    case 12: answer.full_ = true; break;
+    case 13: answer.not_Array(b_chunk); break;
+    case 14: answer.not_Bitmap(b_chunk); break;
     }
 
     return answer;
-}
-
-void RoaringChunk::bitmap2Array()
-{
-    uint32_t size = chunk_[1];
-
-    data_type old_chunk = chunk_;
-    resetChunk(ARRAY, size);
-
-    uint16_t* data = reinterpret_cast<uint16_t*>(&chunk_[4]);
-    const uint64_t* old_data = reinterpret_cast<const uint64_t*>(&old_chunk[4]);
-
-    for (uint32_t i = 0, pos = 0; i < BITMAP_SIZE && pos < size; ++i)
-    {
-        uint64_t block = old_data[i];
-        while (block)
-        {
-            data[pos++] = uint16_t(i * 64 + __builtin_ctzll(block));
-            block &= block - 1;
-        }
-    }
 }
 
 void RoaringChunk::not_Bitmap(const data_type& a)
@@ -445,12 +508,11 @@ void RoaringChunk::and_BitmapBitmap(const data_type& a, const data_type& b)
 {
     resetChunk(BITMAP, 0);
 
-    uint32_t size = 0;
-
     uint64_t* data = reinterpret_cast<uint64_t*>(&chunk_[4]);
     const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
     const uint64_t* b_data = reinterpret_cast<const uint64_t*>(&b[4]);
 
+    uint32_t size = 0;
     for (uint32_t i = 0; i < BITMAP_SIZE; ++i)
     {
         data[i] = a_data[i] & b_data[i];
@@ -458,12 +520,12 @@ void RoaringChunk::and_BitmapBitmap(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size < MAX_ARRAY_SIZE) bitmap2Array();
+    trim();
 }
 
 void RoaringChunk::and_BitmapArray(const data_type& a, const data_type& b)
 {
-    uint32_t pos = 0, b_size = b[1];
+    uint32_t b_size = b[1];
 
     resetChunk(ARRAY, b_size);
 
@@ -471,14 +533,16 @@ void RoaringChunk::and_BitmapArray(const data_type& a, const data_type& b)
     const uint64_t* a_data = reinterpret_cast<const uint64_t*>(&a[4]);
     const uint16_t* b_data = reinterpret_cast<const uint16_t*>(&b[4]);
 
+    uint32_t size = 0;
     for (uint32_t i = 0; i < b_size; ++i)
     {
         uint16_t val = b_data[i];
         if (a_data[val / 64] & 1ULL << val)
-            data[pos++] = val;
-    }
+            data[size++] = val;
+    }    chunk_[1] = size;
 
-    chunk_[1] = pos;
+    chunk_[1] = size;
+    trim();
 }
 
 void RoaringChunk::and_ArrayArray(const data_type& a, const data_type& b)
@@ -561,6 +625,7 @@ void RoaringChunk::and_ArrayArray(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = pos;
+    trim();
 }
 
 void RoaringChunk::or_BitmapBitmap(const data_type& a, const data_type& b)
@@ -579,7 +644,7 @@ void RoaringChunk::or_BitmapBitmap(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
+    trim();
 }
 
 void RoaringChunk::or_BitmapArray(const data_type& a, const data_type& b)
@@ -603,7 +668,7 @@ void RoaringChunk::or_BitmapArray(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
+    trim();
 }
 
 void RoaringChunk::or_ArrayArray(const data_type& a, const data_type& b)
@@ -744,8 +809,9 @@ void RoaringChunk::or_ArrayArray(const data_type& a, const data_type& b)
         }
 
         chunk_[1] = size;
-        if (size < MAX_ARRAY_SIZE) bitmap2Array();
     }
+
+    trim();
 }
 
 void RoaringChunk::xor_BitmapBitmap(const data_type& a, const data_type& b)
@@ -764,8 +830,7 @@ void RoaringChunk::xor_BitmapBitmap(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
-    else if (size < MAX_ARRAY_SIZE) bitmap2Array();
+    trim();
 }
 
 void RoaringChunk::xor_BitmapArray(const data_type& a, const data_type& b)
@@ -789,8 +854,7 @@ void RoaringChunk::xor_BitmapArray(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size == MAX_CHUNK_CAPACITY) resetChunk(FULL, 0);
-    else if (size < MAX_ARRAY_SIZE) bitmap2Array();
+    trim();
 }
 
 void RoaringChunk::xor_ArrayArray(const data_type& a, const data_type& b)
@@ -929,8 +993,9 @@ void RoaringChunk::xor_ArrayArray(const data_type& a, const data_type& b)
         }
 
         chunk_[1] = size;
-        if (size < MAX_ARRAY_SIZE) bitmap2Array();
     }
+
+    trim();
 }
 
 void RoaringChunk::andNot_BitmapBitmap(const data_type& a, const data_type& b)
@@ -949,7 +1014,7 @@ void RoaringChunk::andNot_BitmapBitmap(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size < MAX_ARRAY_SIZE) bitmap2Array();
+    trim();
 }
 
 void RoaringChunk::andNot_BitmapArray(const data_type& a, const data_type& b)
@@ -973,7 +1038,7 @@ void RoaringChunk::andNot_BitmapArray(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = size;
-    if (size < MAX_ARRAY_SIZE) bitmap2Array();
+    trim();
 }
 
 void RoaringChunk::andNot_ArrayBitmap(const data_type& a, const data_type& b)
@@ -995,6 +1060,7 @@ void RoaringChunk::andNot_ArrayBitmap(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = pos;
+    trim();
 }
 
 void RoaringChunk::andNot_ArrayArray(const data_type& a, const data_type& b)
@@ -1089,6 +1155,7 @@ void RoaringChunk::andNot_ArrayArray(const data_type& a, const data_type& b)
     }
 
     chunk_[1] = pos;
+    trim();
 }
 
 NS_IZENELIB_AM_END

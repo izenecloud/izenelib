@@ -82,7 +82,7 @@ void RoaringBitmap::append(const RoaringChunk& value)
 void RoaringBitmap::appendCopy(const RoaringBitmap::array_type& sa, uint32_t index)
 {
     extendArray(1);
-    array_[size_].copyOnDemand(sa[index]);
+    array_[size_].atomicCopy(sa[index]);
     cardinality_ += array_[size_++].getCardinality();
 }
 
@@ -91,7 +91,7 @@ void RoaringBitmap::appendCopy(const RoaringBitmap::array_type& sa, uint32_t beg
     extendArray(end - begin);
     for (uint32_t i = begin; i < end; ++i)
     {
-        array_[size_].copyOnDemand(sa[i]);
+        array_[size_].atomicCopy(sa[i]);
         cardinality_ += array_[size_++].getCardinality();
     }
 }

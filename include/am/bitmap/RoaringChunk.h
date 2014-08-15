@@ -21,8 +21,9 @@ public:
     {
         ARRAY,
         BITMAP,
+        EMPTY,
         FULL,
-        DEFAULT
+        TYPE_END
     };
 
     RoaringChunk(uint32_t key = 0);
@@ -40,7 +41,7 @@ public:
 
     void resetChunk(Type type, uint32_t capacity);
     void cloneChunk(const data_type& chunk);
-    void copyOnDemand(const self_type& b);
+    void atomicCopy(const self_type& b);
 
     data_type getChunk() const;
 
@@ -57,7 +58,7 @@ public:
 
     uint32_t getCardinality() const
     {
-        return chunk_ ? chunk_[1] : 0;
+        return chunk_ ? chunk_[1] : full_ ? 65536 : 0;
     }
 
 private:
@@ -81,8 +82,6 @@ private:
     void andNot_ArrayBitmap(const data_type& a, const data_type& b);
     void andNot_ArrayArray(const data_type& a, const data_type& b);
 
-    void bitmap2Array();
-
     friend class boost::serialization::access;
     template<class Archive>
     void save(Archive & ar, const unsigned int version) const
@@ -101,6 +100,7 @@ private:
     uint32_t key_;
 
     bool updatable_;
+    bool full_;
     mutable boost::atomic_flag flag_;
 
     data_type chunk_;
