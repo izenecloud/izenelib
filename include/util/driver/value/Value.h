@@ -256,6 +256,7 @@ public:
 
     inline void clear();
 
+    void resize(std::size_t cnt);
 public:
     /// @brief Gets underlying variant.
     variant_type& variant()

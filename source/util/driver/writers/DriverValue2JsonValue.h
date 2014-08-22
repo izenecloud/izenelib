@@ -7,11 +7,14 @@
  */
 #include <util/driver/Value.h>
 #include <json/json.h>
+#include <3rdparty/rapidjson/writer.h>
+#include <3rdparty/rapidjson/document.h>
 
 namespace izenelib {
 namespace driver {
 
 void driverValue2JsonValue(const Value& value, Json::Value& json);
+void driverValue2JsonValue(const Value& value, rapidjson::Value& json, rapidjson::Document::AllocatorType& alloc);
 
 }}
 
