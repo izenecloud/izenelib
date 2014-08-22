@@ -418,6 +418,55 @@ public:
             decompress_(kvp.second, docs);
         }
     }
+    void getValuePGS(const KeyType& key, Bitset& docs)
+    {
+        static const std::size_t kLEN = 32;
+        static const std::size_t kTAIL = 8;
+        static const std::size_t kSTART = kLEN-kTAIL;
+        static const char kPREFIX = '0';
+        static const std::size_t kPREFIXCOUNT = 16;
+
+        if(key.length()!=kLEN) return;
+        for(std::size_t i=0;i<kPREFIXCOUNT;i++)
+        {
+            if(key[i]!=kPREFIX)
+            {
+                return getValue(key, docs);
+            }
+        }
+        std::string kstart(key);
+        std::string kend(key);
+        for(std::size_t i=kSTART;i<kLEN;i++)
+        {
+            kstart[i] = '0';
+            kend[i] = 'f';
+        }
+        //izenelib::util::ClockTimer timer;
+        boost::shared_lock<MutexType> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(kstart));
+        std::pair<KeyType, ValueType> kvp;
+        while (term_enum->next(kvp))
+        {
+            const std::string& id = kvp.first;
+            if (compare_(id, kend) > 0) break;
+            bool valid = true;
+            for(std::size_t i=kSTART;i<kLEN;i++)
+            {
+                if(key[i]=='0') continue;
+                else
+                {
+                    if(key[i]!=id[i])
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+            if(!valid) continue;
+            decompress_(kvp.second, docs);
+        }
+        //LOG(INFO) << "do filter getValueGreat time cost: " << timer.elapsed() << " seconds";
+    }
 
     void flush()
     {
