@@ -96,10 +96,5 @@ Value& Value::operator()()
     return arr.back();
 }
 
-void Value::resize(std::size_t cnt)
-{
-    ArrayType& arr = getOrReset<ArrayType>();
-    arr.resize(cnt);
-}
 }} // namespace izenelib::driver
 
