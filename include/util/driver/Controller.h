@@ -21,7 +21,9 @@ public:
     typedef boost::function<void()> callback_t;
     Controller()
     : request_(0),
-      response_(0)
+      response_(0),
+      raw_req_(NULL),
+      raw_rsp_(NULL)
     {}
 
     void setPoller(Poller poller)
@@ -34,6 +36,11 @@ public:
         cb_ = cb;
     }
 
+    void set_additional_data(const std::string& data)
+    {
+        additional_data_ = data;
+    }
+
     void initializeRequestContext(Request& request,
                                   Response& response)
     {
@@ -41,6 +48,11 @@ public:
         response_ = &response;
     }
 
+    void initializeRawContext(std::string& req, std::string& rsp)
+    {
+        raw_req_ = &req;
+        raw_rsp_ = &rsp;
+    }
     /// @brief hook for steps should be performed before the handler.
     /// @return \c true if the request process should continue, \c false to
     ///         return immediately.
@@ -59,6 +71,11 @@ public:
     }
 
 protected:
+    const std::string& additional_data() const
+    {
+        return additional_data_;
+    }
+
     Poller& poller()
     {
         return poller_;
@@ -76,6 +93,32 @@ protected:
     {
         return cb_;
     }
+
+    std::string& raw_req()
+    {
+        if (raw_req_)
+            return *raw_req_;
+        return empty_str_;
+    }
+    std::string& raw_rsp()
+    {
+        if (raw_rsp_)
+            return *raw_rsp_;
+        return empty_str_;
+    }
+    const std::string& raw_req() const
+    {
+        if (raw_req_)
+            return *raw_req_;
+        return empty_str_;
+    }
+    const std::string& raw_rsp() const
+    {
+        if (raw_rsp_)
+            return *raw_rsp_;
+        return empty_str_;
+    }
+
 
     Request& request()
     {
@@ -104,6 +147,10 @@ private:
     Request* request_;
     Response* response_;
     callback_t cb_;
+    std::string additional_data_;
+    std::string* raw_req_;
+    std::string* raw_rsp_;
+    std::string empty_str_;
 };
 
 // helper macros
