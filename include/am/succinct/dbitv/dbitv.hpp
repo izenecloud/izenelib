@@ -24,8 +24,8 @@ public:
     void build(const std::vector<uint64_t> &bv, size_t len);
     void clear();
 
-    bool lookup(size_t pos) const;
-    bool lookup(size_t pos, size_t &r) const;
+    bool access(size_t pos) const;
+    bool access(size_t pos, size_t &r) const;
 
     size_t rank0(size_t pos) const;
     size_t rank1(size_t pos) const;

@@ -47,19 +47,6 @@ static double getSynonymPatternScore(const range_list_type &patterns, const head
     return score;
 }
 
-/*static double getFilterScore(const range_list_type &filters)
-{
-    double score = 0.0;
-
-    for (range_list_type::const_iterator it = filters.begin();
-            it != filters.end(); ++it)
-    {
-        score = std::max(score, it->get<2>());
-    }
-
-    return score;
-}*/
-
 static bool range_compare(const range_type &p1, const range_type &p2)
 {
     return p1.get<2>() > p2.get<2>();
@@ -71,25 +58,21 @@ class PatternList
 {
 public:
     PatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
             const range_list_type &patterns)
-        : level_(level)
-        , sym_(sym)
+        : sym_(sym)
         , node_(node)
         , patterns_(patterns)
     {
-        score_ = detail::getPatternScore(patterns);
     }
 
     PatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
             size_t pattern_count,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
         , patterns_(alloc)
     {
@@ -98,11 +81,9 @@ public:
 
     ~PatternList() {}
 
-    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    void reset(uint64_t sym, const WaveletTreeNode<dense::DBitV> *node)
     {
-        level_ = level;
         sym_ = sym;
-        score_ = 0.0;
         node_ = node;
         patterns_.clear();
     }
@@ -117,151 +98,54 @@ public:
         return false;
     }
 
-    void calcScore()
+    double score() const
     {
-        score_ = detail::getPatternScore(patterns_);
-    }
-
-    bool operator<(const PatternList &rhs) const
-    {
-        return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
+        return detail::getPatternScore(patterns_);
     }
 
 public:
-    size_t level_;
     uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
-    range_list_type patterns_;
-} __attribute__((aligned(CACHELINE_SIZE)));
-
-class FilteredPatternList
-{
-public:
-    FilteredPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            const range_list_type &filters,
-            const range_list_type &patterns)
-        : level_(level)
-        , sym_(sym)
-        , score_()
-        , node_(node)
-        , filters_(filters)
-        , patterns_(patterns)
-    {
-        if (!filters_.empty())
-        {
-            score_ = detail::getPatternScore(patterns_)/* * detail::getFilterScore(filters_)*/;
-        }
-    }
-
-    FilteredPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            size_t filter_count, size_t pattern_count,
-            boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
-        , node_(node)
-        , filters_(alloc)
-        , patterns_(alloc)
-    {
-        filters_.reserve(filter_count);
-        patterns_.reserve(pattern_count);
-    }
-
-    ~FilteredPatternList() {}
-
-    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
-    {
-        level_ = level;
-        sym_ = sym;
-        score_ = 0.0;
-        node_ = node;
-        filters_.clear();
-        patterns_.clear();
-    }
-
-    bool addFilter(const range_type &filter)
-    {
-        if (filter.get<0>() < filter.get<1>())
-        {
-            filters_.push_back(filter);
-            return true;
-        }
-        return false;
-    }
-
-    bool addPattern(const range_type &pattern)
-    {
-        if (pattern.get<0>() < pattern.get<1>())
-        {
-            patterns_.push_back(pattern);
-            return true;
-        }
-        return false;
-    }
-
-    void calcScore()
-    {
-        score_ = detail::getPatternScore(patterns_)/* * detail::getFilterScore(filters_)*/;
-    }
-
-    bool operator<(const FilteredPatternList &rhs) const
-    {
-        return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
-    }
-
-public:
-    size_t level_;
-    uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
-    range_list_type filters_;
+    const WaveletTreeNode<dense::DBitV> *node_;
     range_list_type patterns_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
-class FilterList
+class FilterItem
 {
 public:
-    FilterList(
-            const WaveletTreeType *tree, const WaveletTreeNode *node,
-            const range_list_type &filters,
+    FilterItem(
+            const WaveletTreeType *tree, const WaveletTreeNode<dense::DBitV> *node,
+            const range_list_type &segments,
             boost::auto_alloc& alloc)
         : tree_(tree) , node_(node)
-        , filters_(alloc)
+        , segments_(alloc)
     {
-        filters_.resize(filters.size());
-        for(unsigned i = 0; i < filters.size(); ++i)
-            filters_[i] = filters[i];
+        segments_.assign(segments.begin(), segments.end());
     }
 
-    FilterList(
-            const WaveletTreeType *tree, const WaveletTreeNode *node,
+    FilterItem(
+            const WaveletTreeType *tree, const WaveletTreeNode<dense::DBitV> *node,
             size_t filter_count,
             boost::auto_alloc& alloc)
-        : tree_(tree) , node_(node), filters_(alloc)
+        : tree_(tree) , node_(node), segments_(alloc)
     {
-        filters_.reserve(filter_count);
+        segments_.reserve(filter_count);
     }
 
-    ~FilterList() {}
+    ~FilterItem() {}
 
-    void reset(const WaveletTreeType *tree, const WaveletTreeNode *node)
+    void reset(const WaveletTreeType *tree, const WaveletTreeNode<dense::DBitV> *node)
     {
         tree_ = tree;
         node_ = node;
-        filters_.clear();
+        segments_.clear();
     }
 
-    bool addFilter(const range_type &filter)
+    bool addSegment(const range_type &segment)
     {
-        if (filter.get<0>() < filter.get<1>())
+        if (segment.get<0>() < segment.get<1>())
         {
-            filters_.push_back(filter);
+            segments_.push_back(segment);
             return true;
         }
         return false;
@@ -269,99 +153,88 @@ public:
 
 public:
     const WaveletTreeType *tree_;
-    const WaveletTreeNode *node_;
-    range_list_type filters_;
+    const WaveletTreeNode<dense::DBitV> *node_;
+    range_list_type segments_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
-class AuxFilteredPatternList
+class FilteredPatternList
 {
 public:
-    typedef std::vector<FilterList<WaveletTreeType> *, boost::stl_allocator<FilterList<WaveletTreeType> *> > auxfilter_list_type;
+    typedef std::vector<FilterItem<WaveletTreeType> *, boost::stl_allocator<FilterItem<WaveletTreeType> *> > filter_list_type;
 
-    AuxFilteredPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            const auxfilter_list_type &aux_filters,
+    FilteredPatternList(
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
+            const filter_list_type &filters,
             const range_list_type &patterns,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
-        , aux_filters_(aux_filters)
+        , filters_(filters)
         , patterns_(patterns)
-        , recyc_aux_filters_(alloc)
+        , recyc_filters_(alloc)
         , alloc_(alloc)
     {
-        if (!aux_filters_.empty())
+        if (!filters_.empty())
         {
-            score_ = detail::getPatternScore(patterns_);
-//          for (size_t i = 0; i < aux_filters_.size(); ++i)
-//              score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
-            recyc_aux_filters_.reserve(aux_filters_.size());
+            recyc_filters_.reserve(filters_.size());
         }
     }
 
-    AuxFilteredPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            size_t aux_filter_count, size_t pattern_count,
+    FilteredPatternList(
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
+            size_t filter_count, size_t pattern_count,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
-        , aux_filters_(alloc)
+        , filters_(alloc)
         , patterns_(alloc)
-        , recyc_aux_filters_(alloc)
+        , recyc_filters_(alloc)
         , alloc_(alloc)
     {
-        aux_filters_.reserve(aux_filter_count);
+        filters_.reserve(filter_count);
         patterns_.reserve(pattern_count);
 
-        recyc_aux_filters_.reserve(aux_filter_count);
+        recyc_filters_.reserve(filter_count);
     }
 
-    ~AuxFilteredPatternList()
+    ~FilteredPatternList()
     {
         /*
-        for (size_t i = 0; i < aux_filters_.size(); ++i)
+        for (size_t i = 0; i < filters_.size(); ++i)
         {
-            delete aux_filters_[i];
+            delete filters_[i];
         }
 
-        for (size_t i = 0; i < recyc_aux_filters_.size(); ++i)
+        for (size_t i = 0; i < recyc_filters_.size(); ++i)
         {
-            delete recyc_aux_filters_[i];
+            delete recyc_filters_[i];
         }*/
     }
 
-    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    void reset(uint64_t sym, const WaveletTreeNode<dense::DBitV> *node)
     {
-        level_ = level;
         sym_ = sym;
-        score_ = 0.0;
         node_ = node;
-        recyc_aux_filters_.insert(recyc_aux_filters_.end(), aux_filters_.begin(), aux_filters_.end());
-        aux_filters_.clear();
+        recyc_filters_.insert(recyc_filters_.end(), filters_.begin(), filters_.end());
+        filters_.clear();
         patterns_.clear();
     }
 
-    bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
+    bool addFilter(FilterItem<WaveletTreeType> *filter)
     {
-        if (!aux_filter)
+        assert(filter != NULL);
+
+        if (filter->segments_.empty())
         {
-            return false;
-        }
-        else if (aux_filter->filters_.empty())
-        {
-            recyc_aux_filters_.push_back(aux_filter);
+            recyc_filters_.push_back(filter);
             return false;
         }
         else
         {
-            aux_filters_.push_back(aux_filter);
+            filters_.push_back(filter);
             return true;
         }
     }
@@ -376,44 +249,35 @@ public:
         return false;
     }
 
-    FilterList<WaveletTreeType> *getAuxFilter(
-            const WaveletTreeType *tree, const WaveletTreeNode *node,
+    FilterItem<WaveletTreeType> *getFilter(
+            const WaveletTreeType *tree, const WaveletTreeNode<dense::DBitV> *node,
             size_t filter_count)
     {
-        if (recyc_aux_filters_.empty())
+        if (recyc_filters_.empty())
         {
-            return BOOST_NEW(alloc_,FilterList<WaveletTreeType>)(tree, node, filter_count, alloc_);
+            return BOOST_NEW(alloc_,FilterItem<WaveletTreeType>)(tree, node, filter_count, alloc_);
         }
         else
         {
-            FilterList<WaveletTreeType> *filter = recyc_aux_filters_.back();
+            FilterItem<WaveletTreeType> *filter = recyc_filters_.back();
             filter->reset(tree, node);
-            recyc_aux_filters_.pop_back();
+            recyc_filters_.pop_back();
             return filter;
         }
     }
 
-    void calcScore()
+    double score() const
     {
-        score_ = detail::getPatternScore(patterns_);
-//      for (size_t i = 0; i < aux_filters_.size(); ++i)
-//          score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
+        return detail::getPatternScore(patterns_);
     }
 
-
-    bool operator<(const AuxFilteredPatternList &rhs) const
-    {
-        return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
-    }
 
 public:
-    size_t level_;
     uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
-    auxfilter_list_type aux_filters_;
+    const WaveletTreeNode<dense::DBitV> *node_;
+    filter_list_type filters_;
     range_list_type patterns_;
-    auxfilter_list_type recyc_aux_filters_;
+    filter_list_type recyc_filters_;
     boost::auto_alloc& alloc_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
@@ -421,12 +285,11 @@ class SynonymPatternList
 {
 public:
     SynonymPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
             const range_list_type &patterns,
             const head_list_type &synonyms)
-        : level_(level)
-        , sym_(sym)
+        : sym_(sym)
         , node_(node)
         , patterns_(patterns)
         , synonyms_(synonyms)
@@ -435,18 +298,15 @@ public:
         {
             std::sort(patterns_.begin() + synonyms_[i], patterns_.begin() + synonyms_[i + 1], detail::range_compare);
         }
-        score_ = detail::getSynonymPatternScore(patterns, synonyms);
     }
 
     SynonymPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
             size_t pattern_count,
             size_t synonym_count,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
         , patterns_(alloc)
         , synonyms_(alloc)
@@ -458,11 +318,9 @@ public:
 
     ~SynonymPatternList() {}
 
-    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    void reset(uint64_t sym, const WaveletTreeNode<dense::DBitV> *node)
     {
-        level_ = level;
         sym_ = sym;
-        score_ = 0.0;
         node_ = node;
         patterns_.clear();
         synonyms_.resize(1);
@@ -488,126 +346,108 @@ public:
         return false;
     }
 
-    void calcScore()
+    double score() const
     {
-        score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
-    }
-
-    bool operator<(const SynonymPatternList &rhs) const
-    {
-        return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
+        return detail::getSynonymPatternScore(patterns_, synonyms_);
     }
 
 public:
-    size_t level_;
     uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
+    const WaveletTreeNode<dense::DBitV> *node_;
     range_list_type patterns_;
     head_list_type synonyms_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
 template <class WaveletTreeType>
-class AuxFilteredSynonymPatternList
+class FilteredSynonymPatternList
 {
 public:
-    typedef std::vector<FilterList<WaveletTreeType> *, boost::stl_allocator<FilterList<WaveletTreeType> *> > auxfilter_list_type;
+    typedef std::vector<FilterItem<WaveletTreeType> *, boost::stl_allocator<FilterItem<WaveletTreeType> *> > filter_list_type;
 
-    AuxFilteredSynonymPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            const auxfilter_list_type &aux_filters,
+    FilteredSynonymPatternList(
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
+            const filter_list_type &filters,
             const range_list_type &patterns,
             const head_list_type &synonyms,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
-        , aux_filters_(aux_filters)
+        , filters_(filters)
         , patterns_(patterns)
         , synonyms_(synonyms)
-        , recyc_aux_filters_(alloc)
+        , recyc_filters_(alloc)
         , alloc_(alloc)
     {
-        if (!aux_filters_.empty())
+        if (!filters_.empty())
         {
             for (size_t i = 0; i < synonyms_.size() - 1; ++i)
             {
                 std::sort(patterns_.begin() + synonyms_[i], patterns_.begin() + synonyms_[i + 1], detail::range_compare);
             }
-            score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
-//          for (size_t i = 0; i < aux_filters_.size(); ++i)
-//              score_ *= detail::getFilterScore(aux_filters_[i]->filters_);
-            recyc_aux_filters_.reserve(aux_filters_.size());
+            recyc_filters_.reserve(filters_.size());
         }
     }
 
-    AuxFilteredSynonymPatternList(
-            size_t level, uint64_t sym,
-            const WaveletTreeNode *node,
-            size_t aux_filter_count,
+    FilteredSynonymPatternList(
+            uint64_t sym,
+            const WaveletTreeNode<dense::DBitV> *node,
+            size_t filter_count,
             size_t pattern_count,
             size_t synonym_count,
             boost::auto_alloc& alloc)
-        : level_(level)
-        , sym_(sym)
-        , score_()
+        : sym_(sym)
         , node_(node)
-        , aux_filters_(alloc)
+        , filters_(alloc)
         , patterns_(alloc)
         , synonyms_(alloc)
-        , recyc_aux_filters_(alloc)
+        , recyc_filters_(alloc)
         , alloc_(alloc)
     {
-        aux_filters_.reserve(aux_filter_count);
+        filters_.reserve(filter_count);
         patterns_.reserve(pattern_count);
         synonyms_.reserve(synonym_count);
         synonyms_.push_back(0);
 
-        recyc_aux_filters_.reserve(aux_filter_count);
+        recyc_filters_.reserve(filter_count);
     }
 
-    ~AuxFilteredSynonymPatternList()
+    ~FilteredSynonymPatternList()
     {
         /*
-        for (size_t i = 0; i < aux_filters_.size(); ++i)
+        for (size_t i = 0; i < filters_.size(); ++i)
         {
-            delete aux_filters_[i];
+            delete filters_[i];
         }
 
-        for (size_t i = 0; i < recyc_aux_filters_.size(); ++i)
+        for (size_t i = 0; i < recyc_filters_.size(); ++i)
         {
-            delete recyc_aux_filters_[i];
+            delete recyc_filters_[i];
         }*/
     }
 
-    void reset(size_t level, uint64_t sym, const WaveletTreeNode *node)
+    void reset(uint64_t sym, const WaveletTreeNode<dense::DBitV> *node)
     {
-        level_ = level;
         sym_ = sym;
-        score_ = 0.0;
         node_ = node;
-        recyc_aux_filters_.insert(recyc_aux_filters_.end(), aux_filters_.begin(), aux_filters_.end());
-        aux_filters_.clear();
+        recyc_filters_.insert(recyc_filters_.end(), filters_.begin(), filters_.end());
+        filters_.clear();
         patterns_.clear();
         synonyms_.resize(1);
     }
 
-    bool addAuxFilter(FilterList<WaveletTreeType> *aux_filter)
+    bool addFilter(FilterItem<WaveletTreeType> *filter)
     {
-        if (!aux_filter)
+        assert(filter != NULL);
+
+        if (filter->segments_.empty())
         {
-            return false;
-        }
-        else if (aux_filter->filters_.empty())
-        {
-            recyc_aux_filters_.push_back(aux_filter);
+            recyc_filters_.push_back(filter);
             return false;
         }
         else
         {
-            aux_filters_.push_back(aux_filter);
+            filters_.push_back(filter);
             return true;
         }
     }
@@ -632,42 +472,35 @@ public:
         return false;
     }
 
-    FilterList<WaveletTreeType> *getAuxFilter(
-            const WaveletTreeType *tree, const WaveletTreeNode *node,
+    FilterItem<WaveletTreeType> *getFilter(
+            const WaveletTreeType *tree, const WaveletTreeNode<dense::DBitV> *node,
             size_t filter_count)
     {
-        if (recyc_aux_filters_.empty())
+        if (recyc_filters_.empty())
         {
-            return BOOST_NEW(alloc_,FilterList<WaveletTreeType>)(tree, node, filter_count, alloc_);
+            return BOOST_NEW(alloc_,FilterItem<WaveletTreeType>)(tree, node, filter_count, alloc_);
         }
         else
         {
-            FilterList<WaveletTreeType> *filter = recyc_aux_filters_.back();
+            FilterItem<WaveletTreeType> *filter = recyc_filters_.back();
             filter->reset(tree, node);
-            recyc_aux_filters_.pop_back();
+            recyc_filters_.pop_back();
             return filter;
         }
     }
 
-    void calcScore()
+    double score() const
     {
-        score_ = detail::getSynonymPatternScore(patterns_, synonyms_);
-    }
-
-    bool operator<(const AuxFilteredSynonymPatternList &rhs) const
-    {
-        return score_ < rhs.score_ || (score_ == rhs.score_ && level_ < rhs.level_);
+        return detail::getSynonymPatternScore(patterns_, synonyms_);
     }
 
 public:
-    size_t level_;
     uint64_t sym_;
-    double score_;
-    const WaveletTreeNode *node_;
-    auxfilter_list_type aux_filters_;
+    const WaveletTreeNode<dense::DBitV> *node_;
+    filter_list_type filters_;
     range_list_type patterns_;
     head_list_type synonyms_;
-    auxfilter_list_type recyc_aux_filters_;
+    filter_list_type recyc_filters_;
     boost::auto_alloc& alloc_;
 } __attribute__((aligned(CACHELINE_SIZE)));
 
@@ -679,93 +512,12 @@ NS_IZENELIB_AM_END
 namespace std
 {
 
-template <>
-struct less<izenelib::am::succinct::fm_index::PatternList *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::PatternList * const &p1, izenelib::am::succinct::fm_index::PatternList * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
 template <class T>
-struct less<pair<izenelib::am::succinct::fm_index::PatternList *, T> >
+struct less<boost::tuple<float, uint32_t, T*> >
 {
-    bool operator()(pair<izenelib::am::succinct::fm_index::PatternList *, T> const &p1, pair<izenelib::am::succinct::fm_index::PatternList *, T> const &p2)
+    bool operator()(boost::tuple<float, uint32_t, T*> const &p1, boost::tuple<float, uint32_t, T*> const &p2)
     {
-        return *p1.first < *p2.first;
-    }
-};
-
-template <>
-struct less<izenelib::am::succinct::fm_index::FilteredPatternList *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::FilteredPatternList * const &p1, izenelib::am::succinct::fm_index::FilteredPatternList * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
-template <class T>
-struct less<pair<izenelib::am::succinct::fm_index::FilteredPatternList *, T> >
-{
-    bool operator()(pair<izenelib::am::succinct::fm_index::FilteredPatternList *, T> const &p1, pair<izenelib::am::succinct::fm_index::FilteredPatternList *, T> const &p2)
-    {
-        return *p1.first < *p2.first;
-    }
-};
-
-template <class W>
-struct less<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> * const &p1, izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
-template <class W, class T>
-struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> >
-{
-    bool operator()(pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> const &p1, pair<izenelib::am::succinct::fm_index::AuxFilteredPatternList<W> *, T> const &p2)
-    {
-        return *p1.first < *p2.first;
-    }
-};
-
-template <>
-struct less<izenelib::am::succinct::fm_index::SynonymPatternList *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::SynonymPatternList * const &p1, izenelib::am::succinct::fm_index::SynonymPatternList * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
-template <class T>
-struct less<pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> >
-{
-    bool operator()(pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> const &p1, pair<izenelib::am::succinct::fm_index::SynonymPatternList *, T> const &p2)
-    {
-        return *p1.first < *p2.first;
-    }
-};
-
-template <class W>
-struct less<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *>
-{
-    bool operator()(izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> * const &p1, izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> * const &p2)
-    {
-        return *p1 < *p2;
-    }
-};
-
-template <class W, class T>
-struct less<pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> >
-{
-    bool operator()(pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p1, pair<izenelib::am::succinct::fm_index::AuxFilteredSynonymPatternList<W> *, T> const &p2)
-    {
-        return *p1.first < *p2.first;
+        return boost::get<0>(p1) < boost::get<0>(p2) || (boost::get<0>(p1) == boost::get<0>(p2) && boost::get<1>(p1) < boost::get<1>(p2));
     }
 };
 

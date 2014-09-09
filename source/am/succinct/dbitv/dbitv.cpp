@@ -112,35 +112,35 @@ void DBitV::clear()
     }
 }
 
-bool DBitV::lookup(size_t pos) const
+bool DBitV::access(size_t pos) const
 {
     __assert(pos < len_);
 
     size_t index = pos / kSuperBlockSize;
     size_t offset = pos % kSuperBlockSize;
 
-    return super_blocks_[index].bits_[offset / kBlockSize] & (1ULL << (offset % kBlockSize));
+    return super_blocks_[index].bits_[offset / kBlockSize] & 1ULL << offset;
 }
 
-bool DBitV::lookup(size_t pos, size_t &r) const
+bool DBitV::access(size_t pos, size_t &r) const
 {
     __assert(pos < len_);
 
     size_t index = pos / kSuperBlockSize;
     size_t offset = pos % kSuperBlockSize;
     size_t sb_index = offset / kBlockSize;
-    size_t sb_offset = offset % kBlockSize;
+    size_t sb_mask = 1ULL << offset;
 
     const SuperBlock &sb = super_blocks_[index];
 
-    if (sb.bits_[sb_index] & (1ULL << sb_offset))
+    if (sb.bits_[sb_index] & sb_mask)
     {
-        r = sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << sb_offset) - 1));
+        r = sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511) + SuccinctUtils::popcount(sb.bits_[sb_index] & (sb_mask - 1));
         return true;
     }
     else
     {
-        r = pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << sb_offset) - 1));
+        r = pos - sb.rank_ - ((sb.subrank_ >> 9 * sb_index) & 511) - SuccinctUtils::popcount(sb.bits_[sb_index] & (sb_mask - 1));
         return false;
     }
 }
@@ -161,7 +161,7 @@ size_t DBitV::rank1(size_t pos) const
     const SuperBlock &sb = super_blocks_[index];
 
     return sb.rank_ + ((sb.subrank_ >> 9 * sb_index) & 511)
-        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << (pos % kBlockSize)) - 1));
+        + SuccinctUtils::popcount(sb.bits_[sb_index] & ((1ULL << pos) - 1));
 }
 
 size_t DBitV::rank(size_t pos, bool bit) const

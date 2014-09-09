@@ -40,40 +40,40 @@ public:
     RSDic(bool support_select);
     ~RSDic();
 
-    void Build(const std::vector<uint64_t>& bv, size_t len);
-    void Clear();
+    void build(const std::vector<uint64_t>& bv, size_t len);
+    void clear();
 
-    bool GetBit(size_t pos) const;
-    bool GetBit(size_t pos, size_t& rank) const;
+    bool access(size_t pos) const;
+    bool access(size_t pos, size_t& rank) const;
 
-    size_t Rank0(size_t pos) const;
-    size_t Rank1(size_t pos) const;
-    size_t Rank(size_t pos, bool bit) const;
+    size_t rank0(size_t pos) const;
+    size_t rank1(size_t pos) const;
+    size_t rank(size_t pos, bool bit) const;
 
-    size_t Select0(size_t ind) const;
-    size_t Select1(size_t ind) const;
-    size_t Select(size_t ind, bool bit) const;
+    size_t select0(size_t ind) const;
+    size_t select1(size_t ind) const;
+    size_t select(size_t ind, bool bit) const;
 
-    void Save(std::ostream& os) const;
-    void Load(std::istream& is);
-    size_t GetUsageBytes() const;
+    void save(std::ostream& os) const;
+    void load(std::istream& is);
+    size_t allocSize() const;
 
     bool support_select() const
     {
         return support_select_;
     }
 
-    size_t num() const
+    size_t length() const
     {
         return num_;
     }
 
-    size_t one_num() const
+    size_t one_count() const
     {
         return one_num_;
     }
 
-    size_t zero_num() const
+    size_t zero_count() const
     {
         return num_ - one_num_;
     }
@@ -88,7 +88,7 @@ private:
         RankBlock() : pointer_(), rank_(), subrank_() {}
     };
 
-    void BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset);
+    void buildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset);
 
     bool support_select_;
     size_t num_;

@@ -2,7 +2,6 @@
 #define _FM_INDEX_FM_DOCARRAYMANAGER_HPP
 
 #include "wavelet_tree_huffman.hpp"
-#include "wavelet_tree_binary.hpp"
 #include "wavelet_matrix.hpp"
 #include "custom_int.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
@@ -25,7 +24,7 @@ public:
     typedef std::pair<size_t, size_t> FilterRangeT;
     typedef std::vector<FilterRangeT> FilterRangeListT;
     typedef std::vector<uint32_t> FilterItemT;
-    typedef WaveletMatrix<uint32_t> DocArrayWaveletT;
+    typedef WaveletMatrix<uint32_t, dense::DBitV> DocArrayWaveletT;
 
     struct DocArrayItemT
     {
@@ -44,7 +43,7 @@ public:
         {
             doc_delim.load(istr);
             if (doc_delim.size() == 0) return;
-            doc_array_ptr.reset(new DocArrayWaveletT(doc_count, false, true));
+            doc_array_ptr.reset(new DocArrayWaveletT(doc_count, false));
             doc_array_ptr->load(istr);
         }
 
@@ -249,7 +248,7 @@ void FMDocArrayMgr<CharT>::buildFilter()
 
         std::cout << "filter " << i << " total doc_delim length: " << filter_docarray_list_[i].doc_delim.getSum() << std::endl;
         assert(doc_count_ > 0);
-        filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_, false, true));
+        filter_docarray_list_[i].doc_array_ptr.reset(new DocArrayWaveletT(doc_count_, false));
         filter_docarray_list_[i].doc_array_ptr->build(&temp_docid_list[0], temp_docid_list.size());
         std::vector<FilterItemT>().swap(temp_filter_list_[i]);
     }
@@ -521,32 +520,32 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     }
     else
     {
-        typename DocArrayWaveletT::aux_filter_list_type aux_filters(alloc);
+        typename DocArrayWaveletT::filter_list_type filters(alloc);
 
-        aux_filters.reserve(prop_id_list.size());
+        filters.reserve(prop_id_list.size());
         for (size_t i = 0; i < prop_id_list.size(); ++i)
         {
             if (!checkItemIndex(prop_id_list[i], true))
             {
                 std::cout << "filter index out of bound! " << std::endl;
-                //for (size_t j = 0; j < aux_filters.size(); ++j)
-                //    delete aux_filters[j];
+                //for (size_t j = 0; j < filters.size(); ++j)
+                //    delete filters[j];
                 return;
             }
             const DocArrayWaveletT *wlt = getDocArrayItem(prop_id_list[i], true).doc_array_ptr.get();
             if (!wlt)
                 continue;
-            FilterList<DocArrayWaveletT> *aux_filter =
-                BOOST_NEW(alloc, FilterList<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
+            FilterItem<DocArrayWaveletT> *filter =
+                BOOST_NEW(alloc, FilterItem<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
             for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
                     it != filter_ranges[i].end(); ++it)
             {
-                aux_filter->filters_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+                filter->segments_.push_back(boost::make_tuple(it->first, it->second, 1.0));
             }
-            aux_filters.push_back(aux_filter);
+            filters.push_back(filter);
         }
 
-        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, patterns, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnionWithFilters(filters, patterns, thres, max_docs, res_list, alloc);
     }
 
     for (size_t i = 0; i < res_list.size(); ++i)
@@ -592,32 +591,32 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     else
     {
 
-        typename DocArrayWaveletT::aux_filter_list_type aux_filters(alloc);
+        typename DocArrayWaveletT::filter_list_type filters(alloc);
 
-        aux_filters.reserve(prop_id_list.size());
+        filters.reserve(prop_id_list.size());
         for (size_t i = 0; i < prop_id_list.size(); ++i)
         {
             if (!checkItemIndex(prop_id_list[i], true))
             {
                 std::cout << "filter index out of bound! " << std::endl;
-                //for (size_t j = 0; j < aux_filters.size(); ++j)
-                //    delete aux_filters[j];
+                //for (size_t j = 0; j < filters.size(); ++j)
+                //    delete filters[j];
                 return;
             }
             const DocArrayWaveletT *wlt = getDocArrayItem(prop_id_list[i], true).doc_array_ptr.get();
             if (!wlt)
                 continue;
-            FilterList<DocArrayWaveletT> *aux_filter =
-                BOOST_NEW(alloc, FilterList<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
+            FilterItem<DocArrayWaveletT> *filter =
+                BOOST_NEW(alloc, FilterItem<DocArrayWaveletT>)(wlt, wlt->getRoot(), filter_ranges[i].size(), alloc);
             for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
                     it != filter_ranges[i].end(); ++it)
             {
-                aux_filter->filters_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+                filter->segments_.push_back(boost::make_tuple(it->first, it->second, 1.0));
             }
-            aux_filters.push_back(aux_filter);
+            filters.push_back(filter);
         }
 
-        doc_array_item.doc_array_ptr->topKUnionWithAuxFilters(aux_filters, patterns, synonyms, thres, max_docs, res_list, alloc);
+        doc_array_item.doc_array_ptr->topKUnionWithFilters(filters, patterns, synonyms, thres, max_docs, res_list, alloc);
     }
 
     for (size_t i = 0; i < res_list.size(); ++i)

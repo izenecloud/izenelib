@@ -2,7 +2,6 @@
 #define _FM_INDEX_WAVELET_TREE_HPP
 
 #include "const.hpp"
-#include "range_list.hpp"
 #include <am/succinct/utils.hpp>
 
 
@@ -19,11 +18,10 @@ class WaveletTree
 public:
     typedef CharT char_type;
 
-    WaveletTree(uint64_t alphabet_num, bool support_select, bool dense)
+    WaveletTree(uint64_t alphabet_num, bool support_select)
         : alphabet_num_(alphabet_num)
         , alphabet_bit_num_(SuccinctUtils::log2(alphabet_num_ - 1))
         , support_select_(support_select)
-        , dense_(dense)
     {
     }
 
@@ -45,25 +43,23 @@ public:
             size_t max_count,
             std::vector<char_type> &result) const = 0;
 
-    virtual void topKUnion(
-            const range_list_type &patterns,
-            size_t thres,
-            size_t topK,
-            std::vector<std::pair<double, char_type> > &results,
-            boost::auto_alloc& alloc) const = 0;
+//  virtual void topKUnion(
+//          const range_list_type &patterns,
+//          size_t thres,
+//          size_t topK,
+//          std::vector<std::pair<double, char_type> > &results,
+//          boost::auto_alloc& alloc) const = 0;
 
-    virtual void topKUnionWithFilters(
-            const range_list_type &filter,
-            const range_list_type &patterns,
-            size_t thres,
-            size_t topK,
-            std::vector<std::pair<double, char_type> > &results,
-            boost::auto_alloc& alloc) const = 0;
+//  virtual void topKUnionWithFilters(
+//          const range_list_type &filter,
+//          const range_list_type &patterns,
+//          size_t thres,
+//          size_t topK,
+//          std::vector<std::pair<double, char_type> > &results,
+//          boost::auto_alloc& alloc) const = 0;
 
     virtual size_t beginOcc(char_type c) const = 0;
     virtual size_t endOcc(char_type c) const = 0;
-
-    virtual WaveletTreeNode *getRoot() const = 0;
 
     virtual size_t length() const = 0;
     virtual size_t allocSize() const = 0;
@@ -83,23 +79,16 @@ public:
         return support_select_;
     }
 
-    inline bool isDense() const
-    {
-        return dense_;
-    }
-
     virtual void save(std::ostream &ostr) const
     {
         ostr.write((const char *)&alphabet_num_, sizeof(alphabet_num_));
         ostr.write((const char *)&support_select_, sizeof(support_select_));
-        ostr.write((const char *)&dense_, sizeof(dense_));
     }
 
     virtual void load(std::istream &istr)
     {
         istr.read((char *)&alphabet_num_, sizeof(alphabet_num_));
         istr.read((char *)&support_select_, sizeof(support_select_));
-        istr.read((char *)&dense_, sizeof(dense_));
         alphabet_bit_num_ = SuccinctUtils::log2(alphabet_num_ - 1);
     }
 
@@ -118,7 +107,6 @@ protected:
     uint64_t alphabet_num_;
     size_t alphabet_bit_num_;
     bool support_select_;
-    bool dense_;
 };
 
 }

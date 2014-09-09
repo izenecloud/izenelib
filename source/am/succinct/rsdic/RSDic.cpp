@@ -40,7 +40,7 @@ RSDic::~RSDic()
 {
 }
 
-void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
+void RSDic::build(const std::vector<uint64_t>& bv, size_t len)
 {
     size_t size = len / kLargeBlockSize + 1;
     rank_blocks_.reset(cachealign_alloc<RankBlock>(size), cachealign_deleter());
@@ -60,7 +60,7 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 
     for (size_t i = 0; i < index; ++i)
     {
-        BuildBlock_(bv[i], kBlockSize, rank_blocks_[rb_index].subrank_[rb_offset], global_offset);
+        buildBlock_(bv[i], kBlockSize, rank_blocks_[rb_index].subrank_[rb_offset], global_offset);
 
         if (++rb_offset == kBlockPerLargeBlock)
         {
@@ -73,7 +73,7 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
 
     if (offset)
     {
-        BuildBlock_(bv[index] & ((1ULL << offset) - 1), offset, rank_blocks_[rb_index].subrank_[rb_offset], global_offset);
+        buildBlock_(bv[index] & ((1ULL << offset) - 1), offset, rank_blocks_[rb_index].subrank_[rb_offset], global_offset);
     }
 
     if (bits_.capacity() > bits_.size())
@@ -97,7 +97,7 @@ void RSDic::Build(const std::vector<uint64_t>& bv, size_t len)
     }
 }
 
-void RSDic::BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset)
+void RSDic::buildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t& global_offset)
 {
     rank_sb = SuccinctUtils::popcount(block);
 
@@ -128,7 +128,7 @@ void RSDic::BuildBlock_(uint64_t block, size_t offset, uint8_t& rank_sb, size_t&
     global_offset += len;
 }
 
-void RSDic::Clear()
+void RSDic::clear()
 {
     num_ = 0;
     one_num_ = 0;
@@ -143,7 +143,7 @@ void RSDic::Clear()
     }
 }
 
-bool RSDic::GetBit(size_t pos) const
+bool RSDic::access(size_t pos) const
 {
     __assert(pos < num_);
 
@@ -161,7 +161,7 @@ bool RSDic::GetBit(size_t pos) const
     return EnumCoder::GetBit(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize);
 }
 
-bool RSDic::GetBit(size_t pos, size_t& rank) const
+bool RSDic::access(size_t pos, size_t& rank) const
 {
     __assert(pos < num_);
 
@@ -185,12 +185,12 @@ bool RSDic::GetBit(size_t pos, size_t& rank) const
     return bit;
 }
 
-size_t RSDic::Rank0(size_t pos) const
+size_t RSDic::rank0(size_t pos) const
 {
-    return pos - Rank1(pos);
+    return pos - rank1(pos);
 }
 
-size_t RSDic::Rank1(size_t pos) const
+size_t RSDic::rank1(size_t pos) const
 {
     __assert(pos <= num_);
 
@@ -212,12 +212,12 @@ size_t RSDic::Rank1(size_t pos) const
     return rank + EnumCoder::Rank(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, pos % kBlockSize);
 }
 
-size_t RSDic::Rank(size_t pos, bool bit) const
+size_t RSDic::rank(size_t pos, bool bit) const
 {
-    return bit ? Rank1(pos) : Rank0(pos);
+    return bit ? rank1(pos) : rank0(pos);
 }
 
-size_t RSDic::Select0(size_t ind) const
+size_t RSDic::select0(size_t ind) const
 {
     __assert(support_select_ && ind < num_ - one_num_);
 
@@ -253,7 +253,7 @@ size_t RSDic::Select0(size_t ind) const
     return low * kLargeBlockSize + sblock * kBlockSize + EnumCoder::Select(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, ind, false);
 }
 
-size_t RSDic::Select1(size_t ind) const
+size_t RSDic::select1(size_t ind) const
 {
     __assert(support_select_ && ind < one_num_);
 
@@ -289,12 +289,12 @@ size_t RSDic::Select1(size_t ind) const
     return low * kLargeBlockSize + sblock * kBlockSize + EnumCoder::Select(SuccinctUtils::GetSlice(bits_, pointer, EnumCoder::Len(rank_sb)), rank_sb, ind, true);
 }
 
-size_t RSDic::Select(size_t ind, bool bit) const
+size_t RSDic::select(size_t ind, bool bit) const
 {
-    return bit ? Select1(ind) : Select0(ind);
+    return bit ? select1(ind) : select0(ind);
 }
 
-void RSDic::Save(std::ostream& os) const
+void RSDic::save(std::ostream& os) const
 {
     os.write((const char*)&support_select_, sizeof(support_select_));
     os.write((const char*)&num_, sizeof(num_));
@@ -312,7 +312,7 @@ void RSDic::Save(std::ostream& os) const
     }
 }
 
-void RSDic::Load(std::istream& is)
+void RSDic::load(std::istream& is)
 {
     is.read((char*)&support_select_, sizeof(support_select_));
     is.read((char*)&num_, sizeof(num_));
@@ -332,7 +332,7 @@ void RSDic::Load(std::istream& is)
     }
 }
 
-size_t RSDic::GetUsageBytes() const
+size_t RSDic::allocSize() const
 {
     return sizeof(RSDic)
         + sizeof(bits_[0]) * bits_.size()

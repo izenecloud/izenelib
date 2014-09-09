@@ -2,7 +2,6 @@
 #define _FM_INDEX_FM_INDEX_HPP
 
 #include "wavelet_tree_huffman.hpp"
-#include "wavelet_tree_binary.hpp"
 #include "wavelet_matrix.hpp"
 #include "custom_int.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
@@ -28,6 +27,8 @@ public:
     typedef FMIndex<CharT> self_type;
     typedef std::pair<size_t, size_t> MatchRangeT;
     typedef std::vector<MatchRangeT> MatchRangeListT;
+    typedef WaveletMatrix<uint32_t, dense::DBitV> docarray_type;
+    typedef WaveletTreeHuffman<char_type, rsdic::RSDic> bwt_type;
 
     FMIndex();
     ~FMIndex();
@@ -72,7 +73,7 @@ public:
     {
         return doc_delim_;
     }
-    boost::shared_ptr<WaveletMatrix<uint32_t> >& getDocArray()
+    boost::shared_ptr<docarray_type>& getDocArray()
     {
         return doc_array_;
     }
@@ -82,8 +83,8 @@ private:
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
-    boost::shared_ptr<WaveletMatrix<uint32_t> > doc_array_;
-    boost::shared_ptr<WaveletTreeHuffman<char_type> > bwt_tree_;
+    boost::shared_ptr<docarray_type> doc_array_;
+    boost::shared_ptr<bwt_type> bwt_tree_;
 
     std::vector<char_type> temp_text_;
 };
@@ -181,12 +182,12 @@ void FMIndex<CharT>::build()
 
     std::vector<char_type>().swap(temp_text_);
 
-    bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
+    bwt_tree_.reset(new bwt_type(alphabet_num_, false));
     bwt_tree_->build(&bwt[0], length_);
 
     std::vector<char_type>().swap(bwt);
 
-    doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
+    doc_array_.reset(new docarray_type(docCount(), false));
     doc_array_->build(da, length_);
 
     std::vector<int40_t>().swap(sa);
@@ -375,14 +376,14 @@ void FMIndex<CharT>::load(std::istream &istr)
 
     if (length_ > 0 && alphabet_num_ > 0)
     {
-        bwt_tree_.reset(new WaveletTreeHuffman<char_type>(alphabet_num_, false, false));
+        bwt_tree_.reset(new bwt_type(alphabet_num_, false));
         bwt_tree_->load(istr);
     }
     doc_delim_.load(istr);
 
     if (docCount() > 0)
     {
-        doc_array_.reset(new WaveletMatrix<uint32_t>(docCount(), false, true));
+        doc_array_.reset(new docarray_type(docCount(), false));
         doc_array_->load(istr);
     }
 }
