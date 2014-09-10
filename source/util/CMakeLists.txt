@@ -62,7 +62,6 @@ IF(izene_util_SHOULD_BUILD)
   FILE(GLOB_RECURSE
     util_SRC
 
-    thread-pool/*.cpp
     compression/*.cpp
     compressed_vector/*.cpp
     sysinfo/*.cpp
@@ -76,7 +75,6 @@ IF(izene_util_SHOULD_BUILD)
     singleton.cpp
     streambuf.cpp
     stringprintf.cpp
-    scd_parser.cpp
     DynamicLibrary.cpp
     modp_numtoa.cpp
     timestamp.cpp
