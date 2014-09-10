@@ -1,7 +1,6 @@
 ADD_SUBDIRECTORY(am)
 ADD_SUBDIRECTORY(msgpack)
 ADD_SUBDIRECTORY(zookeeper)
-ADD_SUBDIRECTORY(memcachedclient)
 ADD_SUBDIRECTORY(rapidjson)
 ADD_SUBDIRECTORY(folly)
 if (Thrift_FOUND) 
