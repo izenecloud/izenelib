@@ -15,7 +15,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     #IntString.cpp
     #IntNull.cpp
     OpenClose.cpp
-    #am_perf.cpp
 
     raw/Buffer.cpp
     b-trie/t_btrie_en.cpp
