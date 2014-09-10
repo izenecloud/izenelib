@@ -14,10 +14,7 @@ namespace cache
 
 enum HASH_TYPE
 {
-    RDE_HASH,
-    STX_BTREE,
-    CCCR_HASH,
-    LINEAR_HASH
+    RDE_HASH
 };
 
 enum REPLACEMENT_TYPE
@@ -86,48 +83,6 @@ struct IzeneCacheContainerTrait
     CachedDataType;
 
     typedef CacheHash<KeyType, CachedDataType*, izenelib::am::rde_hash<KeyType, CachedDataType*> >
-    ContainerType;
-};
-
-template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
-struct IzeneCacheContainerTrait<KeyType, ValueType, policy, CCCR_HASH>
-{
-
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
-    CacheInfoListType;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
-    CachedDataType;
-
-    typedef CacheHash<KeyType, CachedDataType*, izenelib::am::cccr_hash<KeyType, CachedDataType*> >
-    ContainerType;
-};
-
-template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
-struct IzeneCacheContainerTrait<KeyType, ValueType, policy, LINEAR_HASH>
-{
-
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
-    CacheInfoListType;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
-    CachedDataType;
-
-    typedef CacheHash<KeyType, CachedDataType*, izenelib::am::LinearHashTable<KeyType, CachedDataType*> >
-    ContainerType;
-};
-
-template <class KeyType, class ValueType, REPLACEMENT_TYPE policy>
-struct IzeneCacheContainerTrait<KeyType, ValueType, policy, STX_BTREE>
-{
-
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CacheInfoListType
-    CacheInfoListType;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::LIT LIT;
-    typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, policy>::CachedDataType
-    CachedDataType;
-
-    typedef CacheHash<KeyType, CachedDataType*, izenelib::am::stx_btree<KeyType, CachedDataType*> >
     ContainerType;
 };
 
