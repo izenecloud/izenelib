@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_SUITE(Compressed_vector_test)
 
 BOOST_AUTO_TEST_CASE(ordered_vector1)
 {
-    MemPool memPool(128);
+    izenelib::util::mem_pool memPool("1.data");
     izenelib::util::compressed_vector::OrderedVIntVector v(&memPool);
 
     size_t count = 1000;
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(ordered_vector1)
 
 BOOST_AUTO_TEST_CASE(ordered_vector2)
 {
-    MemPool memPool(128);
+    izenelib::util::mem_pool memPool("1.data");
     izenelib::util::compressed_vector::OrderedVIntVector v(&memPool);
 
     unsigned data_size = 1024;
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(ordered_vector2)
 
 BOOST_AUTO_TEST_CASE(unordered_vector1)
 {
-    MemPool memPool(128);
+    izenelib::util::mem_pool memPool("1.data");
     izenelib::util::compressed_vector::UnOrderedVIntVector v(&memPool);
 
     size_t count = 1000;
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(unordered_vector1)
 
 BOOST_AUTO_TEST_CASE(unordered_vector2)
 {
-    MemPool memPool(128);
+    izenelib::util::mem_pool memPool("1.data");
     izenelib::util::compressed_vector::UnOrderedVIntVector v(&memPool);
 
     unsigned data_size = 1024;

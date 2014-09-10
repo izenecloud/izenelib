@@ -2,7 +2,7 @@
 #define IZENELIB_UTIL_COMPRESSED_VECTOR_ORDERED_H
 
 #include "detail/Compressor.h"
-#include <util/MemPool.h>
+#include <util/mem_pool.h>
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <limits> 
@@ -15,7 +15,7 @@ namespace compressed_vector{
 template<bool Ordered=true>
 class VIntVector
 {
-    MemPool* pMemPool_;
+    izenelib::util::mem_pool* pMemPool_;
     detail::DataChunk* pHeadChunk_;
     detail::DataChunk* pTailChunk_;
     uint32_t nTotalSize_;
@@ -59,7 +59,7 @@ class VIntVector
         size_t chunkSize = std::min(CHUNK_ALLOC_UPPER_LIMIT, 
                   std::max(CHUNK_ALLOC_LOWER_LIMIT,(int)(nTotalSize_*0.5 + 0.5)));
 
-        uint8_t* begin = (uint8_t *)pMemPool_->Allocate(chunkSize);
+        uint8_t* begin = (uint8_t *)pMemPool_->allocate<uint8_t>(chunkSize).get();
 
         detail::DataChunk* pChunk = (detail::DataChunk*)begin;
         pChunk->size = (int32_t)(chunkSize - sizeof(detail::DataChunk*) - sizeof(int32_t));
@@ -138,7 +138,7 @@ public:
         ,nCount_(0)
 	{}
 
-    VIntVector(MemPool* pMemPool)
+    VIntVector(izenelib::util::mem_pool* pMemPool)
         :pMemPool_(pMemPool)
         ,pHeadChunk_(NULL)
         ,pTailChunk_(NULL)
