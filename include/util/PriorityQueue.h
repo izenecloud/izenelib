@@ -68,7 +68,7 @@ public:
      */
     const Type& top()
     {
-        static const Type empty;
+        static const Type empty = Type();
         if (size_ > 0)
             return heap_[1];
         else
