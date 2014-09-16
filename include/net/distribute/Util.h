@@ -55,7 +55,7 @@ public:
                //printf("%s, %s\n", ifa->ifa_name, host);
                if (family == AF_INET)
                {
-                   if (strncmp(ifa->ifa_name, interface.c_str(), interface.length()))
+                   if (strncmp(ifa->ifa_name, interface.c_str(), interface.length()) == 0)
                    {
                        localHostIp = host;
                        ret = true;
