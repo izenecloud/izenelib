@@ -43,8 +43,8 @@ namespace succinct{ namespace fujimap{
 template <class ValueType>
 class FujimapBlock
 {
-    static const double C_R = 1.3; ///< Redundancy for bit array (>1.3)
-    static const uint64_t intercept = 10;
+    static constexpr double C_R = 1.3; ///< Redundancy for bit array (>1.3)
+    static constexpr uint64_t intercept = 10;
 
 public:
     FujimapBlock(); ///< Default Constructor
