@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(hash_operation)
         hashmap<int, int> hmp;
         for (int i=0; i < 256; ++i)
         {
-            hmp.insert(std::make_pair<int,int>(i,i*i));
+            hmp.insert(std::make_pair<int,int>(i+0,i*i));
         }
         for (int i=0; i < 256; ++i)
         {
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(hash_operation)
         hashmap<int, int> hmp;
         for (int i=0; i < 256; ++i)
         {
-            hmp.insert(std::make_pair<int,int>(i,i));
+            hmp.insert(std::make_pair(i,i));
         }
         for (int i=0; i < 256; ++i)
         {
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(hash_operation)
         hashmap<int, int> hmp;
         for (int i=0; i < 1024; ++i)
         {
-            hmp.insert(std::make_pair<int,int>(i,i*i));
+            hmp.insert(std::make_pair(i+0,i*i));
         }
         for (int i=0; i < 1024; i+=2)
         {

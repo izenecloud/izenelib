@@ -315,8 +315,8 @@ class newpfor_mix_s9_compressor
     };
 
 
-    static const double exceptionThresholdRate_ = 0.1;
-    static const double exceptionRate_ = 0.05;
+    static const double exceptionThresholdRate_ ;
+    static const double exceptionRate_ ;
     static const int blockSize_ = 128;
     static const int headerSize_ = 1;
     static const int MAX_EXPECTED_BLOCKSIZE = 1024;
@@ -726,6 +726,7 @@ private:
     }
 
 };
+
 
 }}}
 #endif

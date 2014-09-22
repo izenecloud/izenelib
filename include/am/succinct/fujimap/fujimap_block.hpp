@@ -34,7 +34,10 @@
 
 NS_IZENELIB_AM_BEGIN
 
-namespace succinct{ namespace fujimap{
+namespace succinct
+{
+namespace fujimap
+{
 
 /*
  * Minimum Perfect Associative Array
@@ -43,8 +46,8 @@ namespace succinct{ namespace fujimap{
 template <class ValueType>
 class FujimapBlock
 {
-    static constexpr double C_R = 1.3; ///< Redundancy for bit array (>1.3)
-    static constexpr uint64_t intercept = 10;
+    static const double C_R ; ///< Redundancy for bit array (>1.3)
+    static const uint64_t intercept = 10;
 
 public:
     FujimapBlock(); ///< Default Constructor
@@ -76,6 +79,9 @@ private:
     uint64_t bn_;
     EncodeType et_;
 };
+
+template <class ValueType>
+const double FujimapBlock<ValueType>::C_R = 1.3;
 
 template <class ValueType>
 FujimapBlock<ValueType>::FujimapBlock()
@@ -144,9 +150,9 @@ uint64_t FujimapBlock<ValueType>::getSeed() const
 
 template <class ValueType>
 int FujimapBlock<ValueType>::build(
-        std::vector<KeyEdge<ValueType> >& keyEdges,
-        const uint64_t seed, const uint64_t fpLen,
-        const EncodeType et)
+    std::vector<KeyEdge<ValueType> >& keyEdges,
+    const uint64_t seed, const uint64_t fpLen,
+    const EncodeType et)
 {
     keyNum_ = static_cast<uint64_t>(keyEdges.size());
     seed_   = seed;
@@ -333,7 +339,7 @@ int FujimapBlock<ValueType>::build(
     BitVec<uint64_t> visitedVerticies(assignNum * R);
     std::reverse(extractedEdges.begin(), extractedEdges.end());
     for (std::vector<std::pair<uint64_t, uint8_t> >::const_iterator it =
-            extractedEdges.begin(); it != extractedEdges.end(); ++it)
+                extractedEdges.begin(); it != extractedEdges.end(); ++it)
     {
         const uint64_t v = it->first;
 
@@ -438,7 +444,8 @@ void FujimapBlock<ValueType>::load(std::ifstream& ifs)
     B_.read(ifs);
 }
 
-}}
+}
+}
 
 NS_IZENELIB_AM_END
 

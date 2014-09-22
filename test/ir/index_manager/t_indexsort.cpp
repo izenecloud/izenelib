@@ -5,6 +5,7 @@
 #include <boost/ref.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/random/mersenne_twister.hpp>
 #include <boost/random.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -26,9 +27,10 @@ namespace bfs = boost::filesystem;
 std::map<std::string, unsigned int> propertyMap;
 boost::uniform_int<> termDistribution(0xFFFF, 0x7FFFFFFF) ;
 boost::mt19937 engine ;
-boost::variate_generator<mt19937, uniform_int<> > termrandom (engine, termDistribution);
+boost::variate_generator<boost::mt19937, boost::uniform_int<> > termrandom (engine, termDistribution);
 boost::uniform_int<> offsetDistribution(0, 2000);
-boost::variate_generator<mt19937, uniform_int<> > offsetrandom (engine, offsetDistribution);
+boost::variate_generator<boost::mt19937, boost::uniform_int<> > offsetrandom (engine, offsetDistribution);
+
 
 
 std::string file;

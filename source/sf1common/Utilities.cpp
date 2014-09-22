@@ -341,6 +341,15 @@ std::string Utilities::generateMD5(const std::string& query)
     //memset(digest_union.digest, 0, sizeof(digest_union.digest));
     //md5_finish(&st,digest_union.digest);
 }
+std::string Utilities::GetPidByUrl(const std::string& url)
+{
+    return generateMD5(url);
+}
+std::string Utilities::GetPidByIsbn(const std::string& isbn)
+{
+    std::string url = "http://www.b5m.com/spuid/isbn/"+isbn;
+    return generateMD5(url);
+}
 //void Utilities::uint128ToUuid(const uint128_t& val, std::string& str)
 //{
     //const boost::uuids::uuid& uuid = *reinterpret_cast<const boost::uuids::uuid *>(&val);

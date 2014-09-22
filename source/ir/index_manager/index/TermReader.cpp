@@ -371,7 +371,7 @@ void SparseTermReaderImpl::reopen()
 
 void SparseTermReaderImpl::close()
 {
-    DVLOG(4) << "=> SparseTermReaderImpl::close(), sparseTermTable_: " << sparseTermTable_;
+    //DVLOG(4) << "=> SparseTermReaderImpl::close(), sparseTermTable_: " << sparseTermTable_;
 
     if (pInputDescriptor_)
     {

@@ -16,7 +16,7 @@
 
 // @author: Xin Liu <xliux@fb.com>
 
-#include <boost/version.hpp>
+/*  #include <boost/version.hpp>
 #if BOOST_VERSION >= 105300 
 #include <memory>
 #include <set>
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(ConcurrentSkipListTestMovableData)
 
 }
 */
-
+/*  
 void testConcurrentAdd(int numThreads) {
   BOOST_AUTO(skipList,SkipListType::create(kHeadHeight));
 
@@ -430,4 +430,5 @@ BOOST_AUTO_TEST_SUITE_END()
 
 }
 #endif
+*/
 

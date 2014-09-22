@@ -174,7 +174,8 @@ bool IPRestrictor::addToList(int type, IP_LIST_TYPE& listGroup, IP_BYTES_TYPE& r
     } // end - if
 
     IP_BYTES_TYPE ipInfo;
-    memcpy(&ipInfo.elems, &result.elems, type);
+    //memcpy(&ipInfo.elems, &result.elems, type);
+	ipInfo = result;
     listGroup[type-1].push_back( ipInfo );
 
     return true;
@@ -189,8 +190,11 @@ int IPRestrictor::isThisIPInList( const IP_LIST_TYPE& listGroup, const IP_BYTES_
         std::vector<IP_BYTES_TYPE>::const_iterator ipListIter = listGroup[i].begin();
         for (; ipListIter != listGroup[i].end(); ipListIter++)
         {
-            if ( !memcmp(ipListIter->elems, ipByte.elems, i+1) )
-                return i+1;
+			for(size_t j = 0; j < i + 1; ++j)
+				if((*ipListIter)[j] != ipByte[j])
+					return i + 1;
+            //if ( !memcmp(ipListIter->elems, ipByte.elems, i+1) )
+            //    return i+1;
         } // end - ipListIter
     }
     while (i != 0);// end - listIter

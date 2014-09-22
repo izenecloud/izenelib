@@ -56,27 +56,27 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
   INCLUDE(MacroSetBuildTypes)
   MACRO_SET_BUILD_TYPES(
     RelWithDebInfo
-    "-march=native -mtune=native -O2 -g -DNDEBUG"
+    "-march=native -mtune=native -O2 -g -DNDEBUG -std=c++11"
     "Flags used by the compiler during Release with Debug Info builds."
 
     Release
-    "-march=native -mtune=native -O3 -DNDEBUG"
+    "-march=native -mtune=native -O3 -DNDEBUG -std=c++11"
     "Flags used by the compiler during release builds"
 
     MinSizeRel
-    "-march=native -mtune=native -Os -DNDEBUG"
+    "-march=native -mtune=native -Os -DNDEBUG -std=c++11"
     "Flags used by the compiler during release minsize builds."
 
     Debug
-    "-march=native -mtune=native -g -fno-reorder-blocks -fno-schedule-insns -fno-inline"
+    "-march=native -mtune=native -g -fno-reorder-blocks -fno-schedule-insns -fno-inline -std=c++11"
     "Flags used by the compiler during debug builds."
 
     DebugFull
-    "-march=native -mtune=native -g3 -fno-inline"
+    "-march=native -mtune=native -g3 -fno-inline -std=c++11"
     "Debugfull build type"
 
     Profile
-    "-march=native -mtune=native -g -O0 -fno-inline -ftest-coverage -fprofile-arcs"
+    "-march=native -mtune=native -g -O0 -fno-inline -ftest-coverage -fprofile-arcs -std=c++11"
     "Profile build type"
     )
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)

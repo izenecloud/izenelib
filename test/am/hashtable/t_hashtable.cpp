@@ -1,4 +1,4 @@
-#include <am/hashtable/cuckoo_hash_table.hpp>
+/*  #include <am/hashtable/cuckoo_hash_table.hpp>
 #include <am/hashtable/coalease_hash_table.hpp>
 
 #include <boost/test/unit_test.hpp>
@@ -84,4 +84,4 @@ BOOST_AUTO_TEST_CASE(coalease_test)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
- 
+*/ 

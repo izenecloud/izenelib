@@ -32,7 +32,7 @@ IndexerTestFixture::IndexerTestFixture()
     ,docLenRand_(randEngine_, uniform_int<>(1, 1))
     ,termIDRand_(randEngine_, uniform_int<>(1, 1))
     ,docNumRand_(randEngine_, uniform_int<>(1, 1))
-    ,isCheckRand_(randEngine_, bernoulli_distribution<>(1.0))
+    ,isCheckRand_(randEngine_, boost::random::bernoulli_distribution<>(1.0))
     ,maxDocID_(0)
     ,isRealIndex_(true)
 {
@@ -53,7 +53,7 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     BOOST_TEST_MESSAGE(testConfig_.str());
 
     // set random generators range
-    isCheckRand_.distribution() = bernoulli_distribution<>(testConfig_.checkPercent_);
+    isCheckRand_.distribution() = boost::random::bernoulli_distribution<>(testConfig_.checkPercent_);
     newDocNum_ = testConfig_.docNum_;
     // limit upper bound for large data size
     if(testConfig_.isDocNumLarge())

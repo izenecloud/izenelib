@@ -2,6 +2,12 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
+namespace compression
+{
+ const double newpfor_mix_s9_compressor::exceptionThresholdRate_ = 0.1;
+ const double newpfor_mix_s9_compressor::exceptionRate_ = 0.05;
+}
+
 namespace compressed_vector{
 
 template<>

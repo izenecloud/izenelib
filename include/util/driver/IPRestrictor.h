@@ -10,7 +10,7 @@
 
 #include <util/singleton.h>
 
-#include <boost/array.hpp>
+#include <boost/asio/detail/array.hpp>
 #include <iostream>
 #include <vector>
 
@@ -42,12 +42,12 @@ public:
     ///
     /// @brief One byte indicates one ip in IPV4.
     ///
-    typedef boost::array<unsigned char,4> IP_BYTES_TYPE;
+    typedef boost::asio::detail::array<unsigned char,4> IP_BYTES_TYPE;
 
     ///
     /// @brief List of IP_BYTES_TYPE to store class A[0] ~ D[3].
     ///
-    typedef boost::array<std::vector<IP_BYTES_TYPE> ,4> IP_LIST_TYPE;
+    typedef boost::asio::detail::array<std::vector<IP_BYTES_TYPE> ,4> IP_LIST_TYPE;
 
 private:
     static const int    UNKNOWN_IP_TYPE = 0; ///< Unknown IP type.

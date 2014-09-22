@@ -59,7 +59,8 @@ void CollectionIndexer::setFieldIndexers()
         if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
         {
             FieldIndexer* pFieldIndexer = new FieldIndexer(pFieldInfo->getName(), pIndexer_);
-            fieldIndexerMap_.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
+            //fieldIndexerMap_.insert(make_pair(std::string(pFieldInfo->getName()),boost::shared_ptr<FieldIndexer>(pFieldIndexer)));
+			fieldIndexerMap_.insert(make_pair(std::string(pFieldInfo->getName()), boost::shared_ptr<FieldIndexer>(pFieldIndexer)));
         }
     }
 }

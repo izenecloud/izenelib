@@ -60,6 +60,8 @@ public:
     static uint128_t md5ToUint128(const std::string& str);
     static uint128_t md5ToUint128(const izenelib::util::UString& ustr);
     static std::string generateMD5(const std::string& query);
+    static std::string GetPidByUrl(const std::string& url);
+    static std::string GetPidByIsbn(const std::string& isbn);
 
     template <typename AssocType, typename SeqType>
     static void getKeyList(SeqType& key_list, const AssocType& src_map);

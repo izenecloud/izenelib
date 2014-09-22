@@ -5,7 +5,7 @@
 * - Barrels.xml consistency
 * - Reload 
 */
-
+/*  
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/AbsTermReader.h>
@@ -66,7 +66,7 @@ namespace bfs = boost::filesystem;
 std::map<std::string, unsigned int> propertyMap;
 boost::uniform_int<> distribution(0xFFFF, 0x7FFFFFFF) ;
 boost::mt19937 engine ;
-boost::variate_generator<mt19937, uniform_int<> > myrandom (engine, distribution);
+boost::variate_generator<boost::random::mt19937, uniform_int<> > myrandom(engine, distribution);
 
 typedef struct
 {
@@ -453,3 +453,6 @@ BOOST_AUTO_TEST_CASE(reload)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+	*/
