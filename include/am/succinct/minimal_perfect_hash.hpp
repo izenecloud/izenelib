@@ -79,8 +79,8 @@ private:
     friend class MinimalPerfectHash<Key, SeedHash>;
     friend class boost::serialization::access;
 
-    static const int kNumTrial = 100;
-    static const double kScale = 1.3;
+    static constexpr int kNumTrial = 100;
+    static constexpr double kScale = 1.3;
 
     // Number of the vertices of each block in the hyper graph
     int num_v_;

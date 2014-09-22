@@ -214,8 +214,8 @@ public:
     }
 
 private:
-    static const uint64_t min_need_remap_size_ = 4096;
-    static const float shrink_rate_ = 0.7;
+    static constexpr uint64_t min_need_remap_size_ = 4096;
+    static constexpr float shrink_rate_ = 0.7;
 
     bool need_remap(std::vector<std::pair<uint64_t, uint64_t> >& counter)
     {

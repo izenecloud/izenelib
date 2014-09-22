@@ -1,10 +1,10 @@
 LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
 
-IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
+IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
 
   INCLUDE_DIRECTORIES(${TokyoCabinet_INCLUDE_DIRS})
   INCLUDE_DIRECTORIES(${Glog_INCLUDE_DIRS})
-  INCLUDE_DIRECTORIES(${Toku_INCLUDE_DIR})
+#  INCLUDE_DIRECTORIES(${Toku_INCLUDE_DIR})
   SET(t_am_SRC
     Runner.cpp
 
@@ -14,11 +14,9 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 
     #IntString.cpp
     #IntNull.cpp
-    OpenClose.cpp
+    #OpenClose.cpp
 
     raw/Buffer.cpp
-    b-trie/t_btrie_en.cpp
-    b-trie/t_btrie_cjk.cpp
 
     tc/tc_hash.cpp
     tc/String.cpp
@@ -29,7 +27,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
 
     luxio/Db.cpp
     leveldb/Db.cpp
-    tokukv/Db.cpp
+    #tokukv/Db.cpp
     lmdb/Db.cpp
 
     graphchi/t_basic_smoketest.cpp
@@ -43,18 +41,16 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND Toku_FOUND AND _febird GREATER -1)
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${Boost_IOSTREAMS_LIBRARY}
-    am
     febird
     izene_util
     bz2
     ${Glog_LIBRARIES}
-    procmeminfo
     luxio
-    izene_log
     ${TokyoCabinet_LIBRARIES}
-    ${Toku_LIBS}
-    compressor
+    #${Toku_LIBS}
+    am
     leveldb
+    compressor
     lmdb
     jemalloc
     gomp
@@ -196,19 +192,17 @@ ADD_EXECUTABLE(t_bitmap
   )
 
 TARGET_LINK_LIBRARIES(t_bitmap
-  am
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
   ${Boost_THREAD_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${TokyoCabinet_LIBRARIES}
-  ${Glog_LIBRARIES}
   febird
-  procmeminfo
-  izene_log
-  leveldb
-  compressor
   izene_util
-  luxio
   index_manager
+  luxio
+  leveldb
+  am
+  compressor
+  ${Glog_LIBRARIES}
   )

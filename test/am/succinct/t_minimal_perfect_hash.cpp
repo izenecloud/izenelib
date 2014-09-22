@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
@@ -127,7 +128,7 @@ public:
 
 template<typename T> class RandomElementGenerator<std::vector<T> >
 {
-    static const double kLastingProbability = 0.9;
+    static constexpr double kLastingProbability = 0.9;
 public:
     static std::vector<T> Generate()
     {
@@ -142,7 +143,7 @@ public:
 
 template<> class RandomElementGenerator<std::string>
 {
-    static const double kLastingProbability = 0.9;
+    static constexpr double kLastingProbability = 0.9;
 public:
     static std::string Generate()
     {

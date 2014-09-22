@@ -9,12 +9,12 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   )
 
 SET(libs
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
+  zambezi
   izene_util
   febird
   am
-  zambezi
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 IF(Boost_FOUND)

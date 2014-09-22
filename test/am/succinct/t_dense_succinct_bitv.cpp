@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(rank)
 
     for (int i = 0; i < BITV_SZ; i++)
     {
-        if (bv.lookup(i, rank))
+        if (bv.access(i, rank))
         {
             BOOST_CHECK_EQUAL(nrank1, rank);
             ++nrank1;
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(select)
 
     for (int i = 0; i < BITV_SZ; i++)
     {
-        if (bv.lookup(i))
+        if (bv.access(i))
         {
             BOOST_CHECK_EQUAL(i, bv.select1(nrank1));
             ++nrank1;

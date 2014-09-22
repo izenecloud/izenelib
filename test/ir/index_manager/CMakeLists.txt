@@ -12,10 +12,10 @@ LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
 SET(libs
   febird
   luxio
-  am
   index_manager
   izene_util
   procmeminfo
+  am
   leveldb
   compressor
   ${Glog_LIBRARIES}
