@@ -4,7 +4,7 @@
 #include <ir/index_manager/index/MultiTermPositions.h>
 #include <ir/index_manager/index/MultiTermIterator.h>
 
-#include <memory> // auto_ptr
+#include <memory> // unique_ptr 
 
 using namespace izenelib::ir::indexmanager;
 
@@ -81,8 +81,8 @@ bool MultiTermReader::seek(Term* term)
 
 TermDocFreqs* MultiTermReader::termDocFreqs()
 {
-    // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termDocFreqs()
-    std::auto_ptr<MultiTermDocs> termDocsPtr(new MultiTermDocs());
+    // use unique_ptr in case of memory leak when exception is thrown in below TermReader::termDocFreqs()
+    std::unique_ptr<MultiTermDocs> termDocsPtr(new MultiTermDocs());
     bool bAdd = false;
     try{
     vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
@@ -107,8 +107,8 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
 
 TermPositions* MultiTermReader::termPositions()
 {
-    // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termPositions()
-    std::auto_ptr<MultiTermPositions> termPositionsPtr(new MultiTermPositions());
+    // use unique_ptr in case of memory leak when exception is thrown in below TermReader::termPositions()
+    std::unique_ptr<MultiTermPositions> termPositionsPtr(new MultiTermPositions());
     bool bAdd = false;
     try{
     vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();

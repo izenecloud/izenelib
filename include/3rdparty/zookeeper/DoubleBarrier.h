@@ -26,7 +26,7 @@ public:
 
     std::string root_;
 
-    static std::auto_ptr<ZooKeeper> zk_;
+    static std::unique_ptr<ZooKeeper> zk_;
     static boost::mutex mutex_;
     static boost::condition_variable condition_;
 };

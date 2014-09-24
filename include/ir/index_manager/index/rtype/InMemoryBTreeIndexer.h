@@ -94,7 +94,7 @@ public:
 //         if( compare_(lowKey,highKey)>0 ) return 0;
 //         boost::shared_lock<boost::shared_mutex> lock(mutex_);
 //         std::size_t result = 0;
-//         std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+//         std::unique_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
 //         std::pair<KeyType, Bitset> kvp;
 //         while(term_enum->next(kvp))
 //         {

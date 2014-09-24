@@ -27,7 +27,7 @@ bool FEBIRD_LOAD_FUNCTION_NAME(Object& x FEBIRD_DATA_IO_LS_EX_PARAM,
 							   bool fileMustExist=true,
 							   bool printLog=true)
 {
-// 	std::auto_ptr<StatisticTime> pst;
+// 	std::unique_ptr<StatisticTime> pst;
 // 	if (printLog)
 // 	{
 // 		std::ostringstream oss;
@@ -68,7 +68,7 @@ void FEBIRD_LOAD_FUNCTION_NAME(Object& x FEBIRD_DATA_IO_LS_EX_PARAM,
 							   const std::string& szTitle,
 							   bool printLog=true)
 {
-// 	std::auto_ptr<StatisticTime> pst;
+// 	std::unique_ptr<StatisticTime> pst;
 // 	if (printLog)
 // 	{
 // 		std::ostringstream oss;
@@ -119,7 +119,7 @@ void FEBIRD_SAVE_FUNCTION_NAME(const Object& x FEBIRD_DATA_IO_LS_EX_PARAM,
 							   const std::string& szFile,
 							   bool printLog=true)
 {
-// 	std::auto_ptr<StatisticTime> pst;
+// 	std::unique_ptr<StatisticTime> pst;
 // 	if (printLog)
 // 	{
 // 		std::ostringstream oss;
@@ -152,7 +152,7 @@ void FEBIRD_SAVE_FUNCTION_NAME(const Object& x FEBIRD_DATA_IO_LS_EX_PARAM,
 							   const std::string& szTitle,
 							   bool printLog=true)
 {
-// 	std::auto_ptr<StatisticTime> pst;
+// 	std::unique_ptr<StatisticTime> pst;
 // 	if (printLog)
 // 	{
 // 		std::ostringstream oss;

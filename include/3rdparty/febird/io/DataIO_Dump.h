@@ -73,7 +73,7 @@ void DataIO_dump_save_object(DataIO& dio, const SmartPtrTemplate<T>& x)\
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DATA_IO_SMART_PTR_DUMP_LOAD_SAVE(std::auto_ptr)
+DATA_IO_SMART_PTR_DUMP_LOAD_SAVE(std::unique_ptr)
 DATA_IO_SMART_PTR_DUMP_LOAD_SAVE(boost::intrusive_ptr)
 DATA_IO_SMART_PTR_DUMP_LOAD_SAVE(boost::scoped_ptr)
 DATA_IO_SMART_PTR_DUMP_LOAD_SAVE(boost::shared_ptr)

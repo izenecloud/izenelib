@@ -194,7 +194,7 @@ protected:
 
     completion_handler on_complete;
     int ref_cnt;
-    std::auto_ptr<std::ios_base::failure> error;
+    std::unique_ptr<std::ios_base::failure> error;
 
     boost::mutex ref_cnt_mutex;
 

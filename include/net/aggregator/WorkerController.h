@@ -53,7 +53,7 @@ public:
 #define ADD_WORKER_HANDLER(Method)                                                  \
     {                                                                               \
         typedef net::aggregator::WorkerHandler<WorkerControllerType> handler_type;  \
-        std::auto_ptr<handler_type> ptr(new handler_type(                           \
+        std::unique_ptr<handler_type> ptr(new handler_type(                           \
             *this, &WorkerControllerType::Method));                                 \
         if (!_router.add(#Method, ptr.get()))                                       \
             return false;                                                           \

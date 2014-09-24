@@ -63,7 +63,7 @@ BaseT* LibraryCreator<BaseT>::createObjectFromLibrary( const std::string &path, 
 {
     typedef BaseT* (*LIBPROC) ( const char* );
 
-    std::auto_ptr<DynamicLibrary> pDynLib(new DynamicLibrary(false));
+    std::unique_ptr<DynamicLibrary> pDynLib(new DynamicLibrary(false));
 
     LIBPROC pFunc = NULL;
 

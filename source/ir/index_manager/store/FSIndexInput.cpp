@@ -2,7 +2,7 @@
 #include <ir/index_manager/utility/Utilities.h>
 #include <util/izene_log.h>
 
-#include <memory> // auto_ptr
+#include <memory> // unique_ptr
 
 using namespace izenelib::ir::indexmanager;
 
@@ -88,7 +88,7 @@ IndexInput* FSIndexInput::clone()
     if(isDirty())
         SF1V5_THROW(ERROR_FILEIO, "FSIndexInput dirty before open file." + filename_);
 
-    std::auto_ptr<FSIndexInput> clonePtr(new FSIndexInput(filename_.c_str(),bufferSize_));
+    std::unique_ptr<FSIndexInput> clonePtr(new FSIndexInput(filename_.c_str(),bufferSize_));
 
     // to ensure the previous opened file is not new merged barrel,
     // check again whether current instance is dirty

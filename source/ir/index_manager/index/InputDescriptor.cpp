@@ -2,7 +2,7 @@
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <util/izene_log.h>
 
-#include <memory> // auto_ptr
+#include <memory> // unique_ptr
 
 using namespace izenelib::ir::indexmanager;
 
@@ -45,8 +45,8 @@ InputDescriptor* InputDescriptor::clone(IndexLevel type)
 {
     DVLOG(4) << "=> InputDescriptor::clone(), type: " << type << ", pBarrelInfo_: " << pBarrelInfo_;
 
-    // use auto_ptr in case of memory leak when exception is thrown in IndexInput::clone()
-    std::auto_ptr<IndexInput> vocInputPtr, dPostingInputPtr, pPostingInputPtr;
+    // use unique_ptr in case of memory leak when exception is thrown in IndexInput::clone()
+    std::unique_ptr<IndexInput> vocInputPtr, dPostingInputPtr, pPostingInputPtr;
     if(pVocInput_)
         vocInputPtr.reset(pVocInput_->clone());
     if(pDPostingInput_)

@@ -103,7 +103,7 @@ public:
             pre_loaded_data_.clear();
             pre_loaded_data_swap_.clear();
             pre_loaded_GreatEqual_data_.clear();
-            std::auto_ptr<BaseEnumType> term_enum(getAMEnum_());
+            std::unique_ptr<BaseEnumType> term_enum(getAMEnum_());
             
             std::pair<KeyType, ValueType> kvp;
             while (term_enum->next(kvp))
@@ -250,7 +250,7 @@ public:
     //    boost::shared_lock<MutexType> lock(mutex_);
     //    std::size_t result = 0;
 
-    //    std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+    //    std::unique_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
     //    std::pair<KeyType, ValueType> kvp;
     //    docid_t docid = 0;
     //    while (term_enum->next(kvp))
@@ -273,7 +273,7 @@ public:
         if (compare_(key1, key2) > 0) return;
         boost::shared_lock<MutexType> lock(mutex_);
         izenelib::util::ClockTimer timer;
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_(key1));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -290,7 +290,7 @@ public:
         std::cout << "[start] "<< docs << std::endl;
 #endif
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -306,7 +306,7 @@ public:
 #endif
         izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -323,7 +323,7 @@ public:
 #endif
         izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -340,7 +340,7 @@ public:
 #endif
         izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         bool usePreLoadRange = false;
         while (term_enum->next(kvp))
@@ -360,7 +360,7 @@ public:
         {
             LOG(INFO) << "use preloaded GreatEqual Value and Cache is not empty..";
             std::pair<KeyType, CacheValueType> kvp;
-            std::auto_ptr<MemEnumType> term_enum_cache(getMemEnum_(key));
+            std::unique_ptr<MemEnumType> term_enum_cache(getMemEnum_(key));
             std::vector<docid_t> docList;
             while(term_enum_cache->next(kvp))
             {
@@ -380,7 +380,7 @@ public:
         std::cout << "[start] " << docs << std::endl;
 #endif
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -395,7 +395,7 @@ public:
         std::cout << "[start] " << docs << std::endl;
 #endif
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -410,7 +410,7 @@ public:
         std::cout << "[start] " << docs << std::endl;
 #endif
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -443,7 +443,7 @@ public:
         }
         //izenelib::util::ClockTimer timer;
         boost::shared_lock<MutexType> lock(mutex_);
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(kstart));
+        std::unique_ptr<BaseEnumType> term_enum(getEnum_(kstart));
         std::pair<KeyType, ValueType> kvp;
         while (term_enum->next(kvp))
         {
@@ -786,7 +786,7 @@ private:
         }
         else {
             std::size_t count = 0;
-            std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+            std::unique_ptr<BaseEnumType> term_enum(getEnum_());
             std::pair<KeyType, ValueType> kvp;
             while (term_enum->next(kvp))
             {

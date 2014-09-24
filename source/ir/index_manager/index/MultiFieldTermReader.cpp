@@ -2,7 +2,7 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/FieldInfo.h>
 
-#include <memory> // auto_ptr
+#include <memory> // unique_ptr
 
 NS_IZENELIB_IR_BEGIN
 
@@ -14,7 +14,7 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
         , pCurReader_(NULL)
 {
     FieldInfo* pInfo = NULL;
-    std::auto_ptr<TermReader> pTermReader;
+    std::unique_ptr<TermReader> pTermReader;
     try{
     pFieldsInfo->startIterator();
     while (pFieldsInfo->hasNext())
@@ -162,8 +162,8 @@ void MultiFieldTermReader::close()
 
 TermReader* MultiFieldTermReader::clone()
 {
-    // use auto_ptr in case of memory leak when exception is thrown in TermReader::clone()
-    std::auto_ptr<MultiFieldTermReader> readerPtr(new MultiFieldTermReader());
+    // use unique_ptr in case of memory leak when exception is thrown in TermReader::clone()
+    std::unique_ptr<MultiFieldTermReader> readerPtr(new MultiFieldTermReader());
 
     for(reader_map::iterator iter = fieldsTermReaders_.begin();
             iter != fieldsTermReaders_.end(); ++iter)

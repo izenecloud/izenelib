@@ -5,7 +5,7 @@
 using namespace izenelib::zookeeper;
 
 
-std::auto_ptr<ZooKeeper> SyncPrimitive::zk_;
+std::unique_ptr<ZooKeeper> SyncPrimitive::zk_;
 boost::mutex SyncPrimitive::mutex_;
 boost::condition_variable SyncPrimitive::condition_;
 

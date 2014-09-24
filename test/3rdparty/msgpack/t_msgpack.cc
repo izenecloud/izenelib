@@ -159,7 +159,7 @@ int main(void)
     // run server {
     msgpack::rpc::server svr;
 
-    std::auto_ptr<msgpack::rpc::dispatcher> dp(new myecho);
+    std::unique_ptr<msgpack::rpc::dispatcher> dp(new myecho);
     svr.serve(dp.get());
 
     svr.listen("0.0.0.0", 18811);

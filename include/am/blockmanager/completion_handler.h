@@ -56,7 +56,7 @@ public:
     completion_handler(const handler_type & handler__);
 
 private:
-    std::auto_ptr<completion_handler_impl> sp_impl_;
+    std::unique_ptr<completion_handler_impl> sp_impl_;
 };
 
 template <typename handler_type>
