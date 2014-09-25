@@ -138,7 +138,7 @@ namespace YAML
 		const int lastGroupIndent = (m_groups.empty() ? 0 : m_groups.top().indent);
 		m_curIndent += lastGroupIndent;
 		
-		std::auto_ptr<Group> pGroup(new Group(type));
+		std::unique_ptr<Group> pGroup(new Group(type));
 		
 		// transfer settings (which last until this group is done)
 		pGroup->modifiedSettings = m_modifiedSettings;
@@ -150,7 +150,7 @@ namespace YAML
             pGroup->flowType = FlowType::Flow;
 		pGroup->indent = GetIndent();
 
-		m_groups.push(pGroup);
+		m_groups.push(std::move(pGroup));
 	}
 	
 	void EmitterState::EndedGroup(GroupType::value type)
@@ -164,7 +164,7 @@ namespace YAML
 		
 		// get rid of the current group
 		{
-			std::auto_ptr<Group> pFinishedGroup = m_groups.pop();
+			std::unique_ptr<Group> pFinishedGroup = m_groups.pop();
 			if(pFinishedGroup->type != type)
 				return SetError(ErrorMsg::UNMATCHED_GROUP_TAG);
 		}

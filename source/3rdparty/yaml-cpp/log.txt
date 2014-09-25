@@ -1423,7 +1423,7 @@ namespace YAML
 		const int lastGroupIndent = (m_groups.empty() ? 0 : m_groups.top().indent);
 		m_curIndent += lastGroupIndent;
 		
-		std::auto_ptr<Group> pGroup(new Group(type));
+		std::unique_ptr<Group> pGroup(new Group(type));
 		
 		// transfer settings (which last until this group is done)
 		pGroup->modifiedSettings = m_modifiedSettings;
@@ -1449,7 +1449,7 @@ namespace YAML
 		
 		// get rid of the current group
 		{
-			std::auto_ptr<Group> pFinishedGroup = m_groups.pop();
+			std::unique_ptr<Group> pFinishedGroup = m_groups.pop();
 			if(pFinishedGroup->type != type)
 				return SetError(ErrorMsg::UNMATCHED_GROUP_TAG);
 		}
@@ -3353,7 +3353,7 @@ namespace YAML
 	{
 		m_startedStream = true;
 		m_simpleKeyAllowed = true;
-		std::auto_ptr<IndentMarker> pIndent(new IndentMarker(-1, IndentMarker::NONE));
+		std::unique_ptr<IndentMarker> pIndent(new IndentMarker(-1, IndentMarker::NONE));
 		m_indentRefs.push_back(pIndent);
 		m_indents.push(&m_indentRefs.back());
 	}
@@ -3400,7 +3400,7 @@ namespace YAML
 		if(InFlowContext())
 			return 0;
 		
-		std::auto_ptr<IndentMarker> pIndent(new IndentMarker(column, type));
+		std::unique_ptr<IndentMarker> pIndent(new IndentMarker(column, type));
 		IndentMarker& indent = *pIndent;
 		const IndentMarker& lastIndent = *m_indents.top();
 

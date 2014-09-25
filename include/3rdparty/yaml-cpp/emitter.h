@@ -115,7 +115,7 @@ namespace YAML
 		bool CanEmitNewline() const;
 		
 	private:
-		std::auto_ptr<EmitterState> m_pState;
+		std::unique_ptr<EmitterState> m_pState;
 		ostream_wrapper m_stream;
 	};
 	
