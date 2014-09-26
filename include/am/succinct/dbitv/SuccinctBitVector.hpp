@@ -147,8 +147,8 @@ private:
 class SuccinctRank;
 class SuccinctSelect;
 
-typedef boost::shared_ptr<SuccinctRank>   RankPtr;
-typedef boost::shared_ptr<SuccinctSelect> SelectPtr;
+typedef std::shared_ptr<SuccinctRank>   RankPtr;
+typedef std::shared_ptr<SuccinctSelect> SelectPtr;
 
 class SuccinctRank
 {

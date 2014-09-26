@@ -6,7 +6,7 @@
 #include "custom_int.hpp"
 #include <am/succinct/rsdic/RSDic.hpp>
 #include <am/succinct/sdarray/SDArray.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -54,7 +54,7 @@ public:
         }
 
         sdarray::SDArray doc_delim;
-        boost::shared_ptr<DocArrayWaveletT> doc_array_ptr;
+        std::shared_ptr<DocArrayWaveletT> doc_array_ptr;
     };
 
     FMDocArrayMgr();
@@ -145,7 +145,7 @@ public:
             const std::vector<FilterRangeListT> &filter_ranges,
             size_t match_index,
             bool match_in_filter,
-            const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
+            const std::vector<std::vector<std::tuple<size_t, size_t, double> > > &synonym_range_list,
             size_t thres,
             size_t max_docs,
             std::vector<std::pair<double, uint32_t> > &res_list) const;
@@ -466,9 +466,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdList(
     patterns.resize(raw_range_list.size());
     for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        patterns[i].get<0>() = raw_range_list[i].first;
-        patterns[i].get<1>() = raw_range_list[i].second;
-        patterns[i].get<2>() = score_list[i];
+        std::get<0>(patterns[i]) = raw_range_list[i].first;
+        std::get<1>(patterns[i]) = raw_range_list[i].second;
+        std::get<2>(patterns[i]) = score_list[i];
     }
 
     doc_array_item.doc_array_ptr->topKUnion(patterns, thres, max_docs, res_list, alloc);
@@ -510,9 +510,9 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
     patterns.resize(raw_range_list.size());
     for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        patterns[i].get<0>() = raw_range_list[i].first;
-        patterns[i].get<1>() = raw_range_list[i].second;
-        patterns[i].get<2>() = score_list[i];
+        std::get<0>(patterns[i]) = raw_range_list[i].first;
+        std::get<1>(patterns[i]) = raw_range_list[i].second;
+        std::get<2>(patterns[i]) = score_list[i];
     }
     if (prop_id_list.empty())
     {
@@ -540,7 +540,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
                     it != filter_ranges[i].end(); ++it)
             {
-                filter->segments_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+                filter->segments_.push_back(std::make_tuple(it->first, it->second, 1.0));
             }
             filters.push_back(filter);
         }
@@ -560,7 +560,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
         const std::vector<FilterRangeListT> &filter_ranges,
         size_t match_index,
         bool match_in_filter,
-        const std::vector<std::vector<boost::tuple<size_t, size_t, double> > > &synonym_range_list,
+        const std::vector<std::vector<std::tuple<size_t, size_t, double> > > &synonym_range_list,
         size_t thres,
         size_t max_docs,
         std::vector<std::pair<double, uint32_t> > &res_list) const
@@ -611,7 +611,7 @@ void FMDocArrayMgr<CharT>::getTopKDocIdListByFilter(
             for (FilterRangeListT::const_iterator it = filter_ranges[i].begin();
                     it != filter_ranges[i].end(); ++it)
             {
-                filter->segments_.push_back(boost::make_tuple(it->first, it->second, 1.0));
+                filter->segments_.push_back(std::make_tuple(it->first, it->second, 1.0));
             }
             filters.push_back(filter);
         }

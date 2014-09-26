@@ -9,7 +9,7 @@
 #include <am/succinct/sais/sais.hxx>
 
 #include <algorithm>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -73,7 +73,7 @@ public:
     {
         return doc_delim_;
     }
-    boost::shared_ptr<docarray_type>& getDocArray()
+    std::shared_ptr<docarray_type>& getDocArray()
     {
         return doc_array_;
     }
@@ -83,8 +83,8 @@ private:
     size_t alphabet_num_;
 
     sdarray::SDArray doc_delim_;
-    boost::shared_ptr<docarray_type> doc_array_;
-    boost::shared_ptr<bwt_type> bwt_tree_;
+    std::shared_ptr<docarray_type> doc_array_;
+    std::shared_ptr<bwt_type> bwt_tree_;
 
     std::vector<char_type> temp_text_;
 };
@@ -483,9 +483,9 @@ void FMIndex<CharT>::getTopKDocIdList(
 
     for (size_t i = 0; i < raw_range_list.size(); ++i)
     {
-        range_list[i].get<0>() = raw_range_list[i].first;
-        range_list[i].get<1>() = raw_range_list[i].second;
-        range_list[i].get<2>() = score_list[i];
+        std::get<0>(range_list[i]) = raw_range_list[i].first;
+        std::get<1>(range_list[i]) = raw_range_list[i].second;
+        std::get<2>(range_list[i]) = score_list[i];
     }
 
     doc_array_->topKUnion(range_list, thres, max_docs, res_list, alloc);

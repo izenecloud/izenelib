@@ -1366,7 +1366,7 @@ public:
     {
         StringT s;
         if (str.empty()) return s;
-        s.reserve(str.length());
+        s.reserve(str.length() * 2);
 
         if (IS_ALPHABET::value(str[0]) || IS_NUMERIC::value(str[0]))
             s.push_back(' ');
@@ -1382,13 +1382,13 @@ public:
             }
             else if (IS_ALPHABET::value(str[current]))
             {
-                if (str[current - 1] != ' ' && (!IS_ALPHABET::value(str[current - 1]) || IS_NUMERIC::value(str[current - 1]) ))
+                if (str[current - 1] != ' ' && !IS_ALPHABET::value(str[current - 1]))
                     s.push_back(' ');
                 s.push_back(str[current]);
             }
             else if (IS_NUMERIC::value(str[current]))
             {
-                if (str[current - 1] != ' ' && (!IS_NUMERIC::value(str[current - 1]) || IS_ALPHABET::value(str[current - 1]) ))
+                if (str[current - 1] != ' ' && !IS_NUMERIC::value(str[current - 1]))
                     s.push_back(' ');
                 s.push_back(str[current]);
             }

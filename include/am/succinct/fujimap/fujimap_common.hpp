@@ -34,12 +34,12 @@ NS_IZENELIB_AM_BEGIN
 
 namespace succinct{ namespace fujimap{
 
-static const uint32_t R        = 3;                 ///< Hash Num in fujimap_block
-static const uint32_t FPLEN    = 0;             ///< Default length of false positive check bits
-static const uint32_t TMPN     = 1000000;        ///< Default size of temporary associative array
-static const uint32_t KEYBLOCK = 128;        ///< # of minimum perfect hash function in fujimap_block
-static const uint32_t NOTFOUND = 0x7FFFFFFFU; ///< Indicate that key is not found
-static const uint64_t BITNUM   = 64;
+static constexpr uint32_t R        = 3;                 ///< Hash Num in fujimap_block
+static constexpr uint32_t FPLEN    = 0;             ///< Default length of false positive check bits
+static constexpr uint32_t TMPN     = 1000000;        ///< Default size of temporary associative array
+static constexpr uint32_t KEYBLOCK = 128;        ///< # of minimum perfect hash function in fujimap_block
+static constexpr uint32_t NOTFOUND = 0x7FFFFFFFU; ///< Indicate that key is not found
+static constexpr uint64_t BITNUM   = 64;
 
 enum EncodeType
 {

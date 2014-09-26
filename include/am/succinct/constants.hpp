@@ -16,18 +16,18 @@ namespace succinct
 typedef uint64_t block_t;
 
 /* Block size (64-bit environment) */
-static const size_t BSIZE = 64;
-static const size_t PRESUM_SZ = 128;
-static const size_t LEVEL1_NUM = 256;
-static const size_t LEVEL2_NUM = BSIZE;
+static constexpr size_t BSIZE = 64;
+static constexpr size_t PRESUM_SZ = 128;
+static constexpr size_t LEVEL1_NUM = 256;
+static constexpr size_t LEVEL2_NUM = BSIZE;
 
-static const size_t kBlockSize = 64;
-static const size_t kBlockPerLargeBlock = 16;
-static const size_t kLargeBlockSize = kBlockSize * kBlockPerLargeBlock;
-static const size_t kBlockPerSuperBlock = 6;
-static const size_t kSuperBlockSize = kBlockSize * kBlockPerSuperBlock;
-static const size_t kSelectBlockSize = 2048;
-static const size_t kSelectLinearFallback = 16;
+static constexpr size_t kBlockSize = 64;
+static constexpr size_t kBlockPerLargeBlock = 16;
+static constexpr size_t kLargeBlockSize = kBlockSize * kBlockPerLargeBlock;
+static constexpr size_t kBlockPerSuperBlock = 6;
+static constexpr size_t kSuperBlockSize = kBlockSize * kBlockPerSuperBlock;
+static constexpr size_t kSelectBlockSize = 2048;
+static constexpr size_t kSelectLinearFallback = 16;
 
 }
 

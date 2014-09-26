@@ -2,12 +2,6 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
-namespace compression
-{
- const double newpfor_mix_s9_compressor::exceptionThresholdRate_ = 0.1;
- const double newpfor_mix_s9_compressor::exceptionRate_ = 0.05;
-}
-
 namespace compressed_vector{
 
 template<>
@@ -22,7 +16,7 @@ void VIntVector<false>::push_back(uint32_t val)
 template<>
 template<>
 void VIntVector<false>::vector_iterator<uint32_t>::increment()
-{ 
+{
     if(vector_)
     {
         curr_val_ = read_vint32();
@@ -33,7 +27,7 @@ void VIntVector<false>::vector_iterator<uint32_t>::increment()
 template<>
 template<>
 void VIntVector<false>::vector_iterator<uint32_t const>::increment()
-{ 
+{
     if(vector_)
     {
         curr_val_ = read_vint32();
@@ -44,4 +38,3 @@ void VIntVector<false>::vector_iterator<uint32_t const>::increment()
 }
 
 NS_IZENELIB_UTIL_END
-

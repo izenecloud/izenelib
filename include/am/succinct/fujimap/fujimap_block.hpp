@@ -46,8 +46,8 @@ namespace fujimap
 template <class ValueType>
 class FujimapBlock
 {
-    static const double C_R ; ///< Redundancy for bit array (>1.3)
-    static const uint64_t intercept = 10;
+    static constexpr double C_R = 1.3; ///< Redundancy for bit array (>1.3)
+    static constexpr uint64_t intercept = 10;
 
 public:
     FujimapBlock(); ///< Default Constructor
@@ -79,9 +79,6 @@ private:
     uint64_t bn_;
     EncodeType et_;
 };
-
-template <class ValueType>
-const double FujimapBlock<ValueType>::C_R = 1.3;
 
 template <class ValueType>
 FujimapBlock<ValueType>::FujimapBlock()

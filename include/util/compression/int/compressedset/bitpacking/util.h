@@ -9,6 +9,7 @@
 #ifndef BITPACK_UTIL
 #define BITPACK_UTIL
 #include "common.h"
+#include <unistd.h>
 #include <iostream> // for std::cerr
 
 using namespace std;

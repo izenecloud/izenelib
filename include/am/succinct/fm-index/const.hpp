@@ -11,8 +11,8 @@ namespace succinct
 namespace fm_index
 {
 
-static const uint8_t DOC_DELIM = 003;
-static const size_t DEFAULT_TOP_K = 1024;
+static constexpr uint8_t DOC_DELIM = 003;
+static constexpr size_t DEFAULT_TOP_K = 1024;
 
 }
 }

@@ -32,6 +32,26 @@ struct int128_hash : std::unary_function<int128_t, std::size_t>
 // 128 hash usage:
 // typedef boost::unordered_map<uint128_t, bool, uint128_hash> Uint128Map;
 
+namespace std
+{
+    template <>
+    struct hash<uint128_t>
+    {
+        size_t operator()(const uint128_t& value) const
+        {
+            return (size_t)value;
+        }
+    };
+
+    template <>
+    struct hash<int128_t>
+    {
+        size_t operator()(const int128_t& value) const
+        {
+            return (size_t)value;
+        }
+    };
+}
 
 namespace boost
 {

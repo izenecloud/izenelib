@@ -409,7 +409,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         return;
     }
 
-    typedef boost::tuple<float, uint32_t, PatternList *> state_type;
+    typedef std::tuple<float, uint32_t, PatternList *> state_type;
     state_type top_state(score, 0U, top_ranges);
 
     interval_heap<state_type> state_heap(max_queue_size + 1);
@@ -440,16 +440,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
             break;
         }
 
-        top_ranges = top_state.get<2>();
+        top_ranges = std::get<2>(top_state);
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_state.get<0>(), top_ranges->sym_));
+            results.push_back(std::make_pair(std::get<0>(top_state), top_ranges->sym_));
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        size_t level = top_state.get<1>();
+        size_t level = std::get<1>(top_state);
         size_t zero_end = zero_counts_[level];
         const node_type *node = top_ranges->node_;
 
@@ -481,16 +481,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
 
         for (; pit != pitEnd; ++pit)
         {
-            size_t rank_start = node->rank1(pit->get<0>());
-            size_t rank_end = node->rank1(pit->get<1>());
+            size_t rank_start = node->rank1(std::get<0>(*pit));
+            size_t rank_end = node->rank1(std::get<1>(*pit));
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>())))
+            if (zero_ranges && !zero_ranges->addPattern(std::make_tuple(std::get<0>(*pit) - rank_start, std::get<1>(*pit) - rank_end, std::get<2>(*pit))))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*pit))))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -507,27 +507,27 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         pitEnd = patterns.end();
         for (; pit != pitEnd; ++pit)
         {
-            size_t rank_start = node->rank1(pit->get<0>());
-            size_t rank_end = node->rank1(pit->get<1>());
+            size_t rank_start = node->rank1(std::get<0>(*pit));
+            size_t rank_end = node->rank1(std::get<1>(*pit));
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>()));
+                zero_ranges->addPattern(std::make_tuple(std::get<0>(*pit) - rank_start, std::get<1>(*pit) - rank_end, std::get<2>(*pit)));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>()));
+                one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*pit)));
             }
         }
 
         if (zero_ranges)
         {
             state_type zero_state(zero_ranges->score(), level + 1, zero_ranges);
-            if (zero_state.get<0>() == 0.0)
+            if (std::get<0>(zero_state) == 0.0)
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_state.get<0>() == top_state.get<0>() || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
+            else if (std::get<0>(zero_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -535,7 +535,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_state.get<0>(), zero_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(zero_state), zero_ranges->sym_));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -548,11 +548,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         if (one_ranges)
         {
             state_type one_state(one_ranges->score(), level + 1, one_ranges);
-            if (one_state.get<0>() == 0.0)
+            if (std::get<0>(one_state) == 0.0)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_state.get<0>() == top_state.get<0>() || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
+            else if (std::get<0>(one_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -560,18 +560,18 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
 
                     if (top_queue.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(top_queue.front().get<2>());
+                        recyc_queue.push_back(std::get<2>(top_queue.front()));
                         top_queue.pop_front();
                     }
                     else if (top_queue.size() + state_heap.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(state_heap.get_min().get<2>());
+                        recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                         state_heap.pop_min();
                     }
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_state.get<0>(), one_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(one_state), one_ranges->sym_));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -585,7 +585,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
             }
             else if (state_heap.get_min() < one_state)
             {
-                recyc_queue.push_back(state_heap.get_min().get<2>());
+                recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                 state_heap.replace_min(one_state);
             }
             else
@@ -640,7 +640,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         return;
     }
 
-    typedef boost::tuple<float, uint32_t, FilteredPatternList<self_type> *> state_type;
+    typedef std::tuple<float, uint32_t, FilteredPatternList<self_type> *> state_type;
     state_type top_state(score, 0U, top_ranges);
 
     interval_heap<state_type> state_heap(max_queue_size + 1);
@@ -678,16 +678,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             break;
         }
 
-        top_ranges = boost::get<2>(top_state);
+        top_ranges = std::get<2>(top_state);
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(boost::get<0>(top_state), top_ranges->sym_));
+            results.push_back(std::make_pair(std::get<0>(top_state), top_ranges->sym_));
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        size_t level = boost::get<1>(top_state);
+        size_t level = std::get<1>(top_state);
         const node_type *node = top_ranges->node_;
 
         if (recyc_queue.empty())
@@ -730,16 +730,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             for (range_list_type::const_iterator fit = (*it)->segments_.begin();
                     fit != (*it)->segments_.end(); ++fit)
             {
-                size_t rank_start = node->rank1(fit->get<0>());
-                size_t rank_end = node->rank1(fit->get<1>());
+                size_t rank_start = node->rank1(std::get<0>(*fit));
+                size_t rank_end = node->rank1(std::get<1>(*fit));
 
                 if (zero_ranges)
                 {
-                    zero_filter->addSegment(boost::make_tuple(fit->get<0>() - rank_start, fit->get<1>() - rank_end, fit->get<2>()));
+                    zero_filter->addSegment(std::make_tuple(std::get<0>(*fit) - rank_start, std::get<1>(*fit) - rank_end, std::get<2>(*fit)));
                 }
                 if (one_ranges)
                 {
-                    one_filter->addSegment(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, fit->get<2>()));
+                    one_filter->addSegment(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*fit)));
                 }
             }
 
@@ -772,16 +772,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
 
         for (; pit != pitEnd; ++pit)
         {
-            size_t rank_start = node->rank1(pit->get<0>());
-            size_t rank_end = node->rank1(pit->get<1>());
+            size_t rank_start = node->rank1(std::get<0>(*pit));
+            size_t rank_end = node->rank1(std::get<1>(*pit));
 
-            if (zero_ranges && !zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>())))
+            if (zero_ranges && !zero_ranges->addPattern(std::make_tuple(std::get<0>(*pit) - rank_start, std::get<1>(*pit) - rank_end, std::get<2>(*pit))))
             {
                 recyc_queue.push_back(zero_ranges);
                 zero_ranges = NULL;
                 if (!one_ranges) break;
             }
-            if (one_ranges && !one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>())))
+            if (one_ranges && !one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*pit))))
             {
                 recyc_queue.push_back(one_ranges);
                 one_ranges = NULL;
@@ -798,27 +798,27 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         pitEnd = patterns.end();
         for (; pit != pitEnd; ++pit)
         {
-            size_t rank_start = node->rank1(pit->get<0>());
-            size_t rank_end = node->rank1(pit->get<1>());
+            size_t rank_start = node->rank1(std::get<0>(*pit));
+            size_t rank_end = node->rank1(std::get<1>(*pit));
 
             if (zero_ranges)
             {
-                zero_ranges->addPattern(boost::make_tuple(pit->get<0>() - rank_start, pit->get<1>() - rank_end, pit->get<2>()));
+                zero_ranges->addPattern(std::make_tuple(std::get<0>(*pit) - rank_start, std::get<1>(*pit) - rank_end, std::get<2>(*pit)));
             }
             if (one_ranges)
             {
-                one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, pit->get<2>()));
+                one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*pit)));
             }
         }
 
         if (zero_ranges)
         {
             state_type zero_state(zero_ranges->score(), level + 1, zero_ranges);
-            if (boost::get<0>(zero_state) == 0.0)
+            if (std::get<0>(zero_state) == 0.0)
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (boost::get<0>(zero_state) == boost::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
+            else if (std::get<0>(zero_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -826,7 +826,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(boost::get<0>(zero_state), zero_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(zero_state), zero_ranges->sym_));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -839,11 +839,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         if (one_ranges)
         {
             state_type one_state(one_ranges->score(), level + 1, one_ranges);
-            if (boost::get<0>(one_state) == 0.0)
+            if (std::get<0>(one_state) == 0.0)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (boost::get<0>(one_state) == boost::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
+            else if (std::get<0>(one_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -851,18 +851,18 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
 
                     if (top_queue.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(boost::get<2>(top_queue.front()));
+                        recyc_queue.push_back(std::get<2>(top_queue.front()));
                         top_queue.pop_front();
                     }
                     else if (top_queue.size() + state_heap.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(boost::get<2>(state_heap.get_min()));
+                        recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                         state_heap.pop_min();
                     }
                 }
                 else
                 {
-                    results.push_back(std::make_pair(boost::get<0>(one_state), one_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(one_state), one_ranges->sym_));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -876,7 +876,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             }
             else if (state_heap.get_min() < one_state)
             {
-                recyc_queue.push_back(boost::get<2>(state_heap.get_min()));
+                recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                 state_heap.replace_min(one_state);
             }
             else
@@ -931,7 +931,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         return;
     }
 
-    typedef boost::tuple<float, uint32_t, SynonymPatternList *> state_type;
+    typedef std::tuple<float, uint32_t, SynonymPatternList *> state_type;
     state_type top_state(score, 0U, top_ranges);
 
     interval_heap<state_type> state_heap(max_queue_size + 1);
@@ -962,16 +962,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
             break;
         }
 
-        top_ranges = top_state.get<2>();
+        top_ranges = std::get<2>(top_state);
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(top_state.get<0>(), top_ranges->sym_));
+            results.push_back(std::make_pair(std::get<0>(top_state), top_ranges->sym_));
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        size_t level = top_state.get<1>();
+        size_t level = std::get<1>(top_state);
         size_t zero_end = zero_counts_[level];
         const node_type *node = top_ranges->node_;
 
@@ -1005,16 +1005,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                size_t rank_start = node->rank1(patterns[j].get<0>());
-                size_t rank_end = node->rank1(patterns[j].get<1>());
+                size_t rank_start = node->rank1(std::get<0>(patterns[j]));
+                size_t rank_end = node->rank1(std::get<1>(patterns[j]));
 
                 if (zero_ranges)
                 {
-                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                    zero_ranges->addPattern(std::make_tuple(std::get<0>(patterns[j]) - rank_start, std::get<1>(patterns[j]) - rank_end, std::get<2>(patterns[j])));
                 }
                 if (one_ranges)
                 {
-                    one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[j].get<2>()));
+                    one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(patterns[j])));
                 }
             }
 
@@ -1042,16 +1042,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                size_t rank_start = node->rank1(patterns[j].get<0>());
-                size_t rank_end = node->rank1(patterns[j].get<1>());
+                size_t rank_start = node->rank1(std::get<0>(patterns[j]));
+                size_t rank_end = node->rank1(std::get<1>(patterns[j]));
 
                 if (zero_ranges)
                 {
-                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                    zero_ranges->addPattern(std::make_tuple(std::get<0>(patterns[j]) - rank_start, std::get<1>(patterns[j]) - rank_end, std::get<2>(patterns[j])));
                 }
                 if (one_ranges)
                 {
-                    one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[j].get<2>()));
+                    one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(patterns[j])));
                 }
             }
 
@@ -1062,11 +1062,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         if (zero_ranges)
         {
             state_type zero_state(zero_ranges->score(), level + 1, zero_ranges);
-            if (zero_state.get<0>() == 0.0)
+            if (std::get<0>(zero_state) == 0.0)
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (zero_state.get<0>() == top_state.get<0>() || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
+            else if (std::get<0>(zero_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -1074,7 +1074,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(zero_state.get<0>(), zero_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(zero_state), zero_ranges->sym_));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -1087,11 +1087,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
         if (one_ranges)
         {
             state_type one_state(one_ranges->score(), level + 1, one_ranges);
-            if (one_state.get<0>() == 0.0)
+            if (std::get<0>(one_state) == 0.0)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (one_state.get<0>() == top_state.get<0>() || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
+            else if (std::get<0>(one_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -1099,18 +1099,18 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
 
                     if (top_queue.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(top_queue.front().get<2>());
+                        recyc_queue.push_back(std::get<2>(top_queue.front()));
                         top_queue.pop_front();
                     }
                     else if (top_queue.size() + state_heap.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(state_heap.get_min().get<2>());
+                        recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                         state_heap.pop_min();
                     }
                 }
                 else
                 {
-                    results.push_back(std::make_pair(one_state.get<0>(), one_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(one_state), one_ranges->sym_));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -1124,7 +1124,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnion(
             }
             else if (state_heap.get_min() < one_state)
             {
-                recyc_queue.push_back(state_heap.get_min().get<2>());
+                recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                 state_heap.replace_min(one_state);
             }
             else
@@ -1159,7 +1159,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         return;
     }
 
-    typedef boost::tuple<float, uint32_t, FilteredSynonymPatternList<self_type> *> state_type;
+    typedef std::tuple<float, uint32_t, FilteredSynonymPatternList<self_type> *> state_type;
     state_type top_state(score, 0U, top_ranges);
 
     interval_heap<state_type> state_heap(max_queue_size + 1);
@@ -1197,16 +1197,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             break;
         }
 
-        top_ranges = boost::get<2>(top_state);
+        top_ranges = std::get<2>(top_state);
 
         if (!top_ranges->node_)
         {
-            results.push_back(std::make_pair(boost::get<0>(top_state), top_ranges->sym_));
+            results.push_back(std::make_pair(std::get<0>(top_state), top_ranges->sym_));
             recyc_queue.push_back(top_ranges);
             continue;
         }
 
-        size_t level = boost::get<1>(top_state);
+        size_t level = std::get<1>(top_state);
         const node_type *node = top_ranges->node_;
 
         if (recyc_queue.empty())
@@ -1249,16 +1249,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             for (range_list_type::const_iterator fit = (*it)->segments_.begin();
                     fit != (*it)->segments_.end(); ++fit)
             {
-                size_t rank_start = node->rank1(fit->get<0>());
-                size_t rank_end = node->rank1(fit->get<1>());
+                size_t rank_start = node->rank1(std::get<0>(*fit));
+                size_t rank_end = node->rank1(std::get<1>(*fit));
 
                 if (zero_ranges)
                 {
-                    zero_filter->addSegment(boost::make_tuple(fit->get<0>() - rank_start, fit->get<1>() - rank_end, fit->get<2>()));
+                    zero_filter->addSegment(std::make_tuple(std::get<0>(*fit) - rank_start, std::get<1>(*fit) - rank_end, std::get<2>(*fit)));
                 }
                 if (one_ranges)
                 {
-                    one_filter->addSegment(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, fit->get<2>()));
+                    one_filter->addSegment(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(*fit)));
                 }
             }
 
@@ -1292,16 +1292,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                size_t rank_start = node->rank1(patterns[j].get<0>());
-                size_t rank_end = node->rank1(patterns[j].get<1>());
+                size_t rank_start = node->rank1(std::get<0>(patterns[j]));
+                size_t rank_end = node->rank1(std::get<1>(patterns[j]));
 
                 if (zero_ranges)
                 {
-                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                    zero_ranges->addPattern(std::make_tuple(std::get<0>(patterns[j]) - rank_start, std::get<1>(patterns[j]) - rank_end, std::get<2>(patterns[j])));
                 }
                 if (one_ranges)
                 {
-                    one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[j].get<2>()));
+                    one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(patterns[j])));
                 }
             }
 
@@ -1329,16 +1329,16 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         {
             for (size_t j = synonyms[i]; j < synonyms[i + 1]; ++j)
             {
-                size_t rank_start = node->rank1(patterns[j].get<0>());
-                size_t rank_end = node->rank1(patterns[j].get<1>());
+                size_t rank_start = node->rank1(std::get<0>(patterns[j]));
+                size_t rank_end = node->rank1(std::get<1>(patterns[j]));
 
                 if (zero_ranges)
                 {
-                    zero_ranges->addPattern(boost::make_tuple(patterns[j].get<0>() - rank_start, patterns[j].get<1>() - rank_end, patterns[j].get<2>()));
+                    zero_ranges->addPattern(std::make_tuple(std::get<0>(patterns[j]) - rank_start, std::get<1>(patterns[j]) - rank_end, std::get<2>(patterns[j])));
                 }
                 if (one_ranges)
                 {
-                    one_ranges->addPattern(boost::make_tuple(rank_start + zero_end, rank_end + zero_end, patterns[j].get<2>()));
+                    one_ranges->addPattern(std::make_tuple(rank_start + zero_end, rank_end + zero_end, std::get<2>(patterns[j])));
                 }
             }
 
@@ -1349,11 +1349,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         if (zero_ranges)
         {
             state_type zero_state(zero_ranges->score(), level + 1, zero_ranges);
-            if (boost::get<0>(zero_state) == 0.0)
+            if (std::get<0>(zero_state) == 0.0)
             {
                 recyc_queue.push_back(zero_ranges);
             }
-            else if (boost::get<0>(zero_state) == boost::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
+            else if (std::get<0>(zero_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(zero_state < state_heap.get_max()))))
             {
                 if (zero_ranges->node_)
                 {
@@ -1361,7 +1361,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
                 }
                 else
                 {
-                    results.push_back(std::make_pair(boost::get<0>(zero_state), zero_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(zero_state), zero_ranges->sym_));
                     recyc_queue.push_back(zero_ranges);
                 }
             }
@@ -1374,11 +1374,11 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
         if (one_ranges)
         {
             state_type one_state(one_ranges->score(), level + 1, one_ranges);
-            if (boost::get<0>(one_state) == 0.0)
+            if (std::get<0>(one_state) == 0.0)
             {
                 recyc_queue.push_back(one_ranges);
             }
-            else if (boost::get<0>(one_state) == boost::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
+            else if (std::get<0>(one_state) == std::get<0>(top_state) || (top_queue.empty() && (state_heap.empty() || !(one_state < state_heap.get_max()))))
             {
                 if (one_ranges->node_)
                 {
@@ -1386,18 +1386,18 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
 
                     if (top_queue.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(boost::get<2>(top_queue.front()));
+                        recyc_queue.push_back(std::get<2>(top_queue.front()));
                         top_queue.pop_front();
                     }
                     else if (top_queue.size() + state_heap.size() > max_queue_size)
                     {
-                        recyc_queue.push_back(boost::get<2>(state_heap.get_min()));
+                        recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                         state_heap.pop_min();
                     }
                 }
                 else
                 {
-                    results.push_back(std::make_pair(boost::get<0>(one_state), one_ranges->sym_));
+                    results.push_back(std::make_pair(std::get<0>(one_state), one_ranges->sym_));
                     recyc_queue.push_back(one_ranges);
                 }
             }
@@ -1411,7 +1411,7 @@ void WaveletMatrix<CharT, BitmapT>::topKUnionWithFilters(
             }
             else if (state_heap.get_min() < one_state)
             {
-                recyc_queue.push_back(boost::get<2>(state_heap.get_min()));
+                recyc_queue.push_back(std::get<2>(state_heap.get_min()));
                 state_heap.replace_min(one_state);
             }
             else

@@ -8,8 +8,6 @@ namespace succinct
 namespace sdarray
 {
 
-const size_t RSDic::BLOCKSIZE = 64;
-
 RSDic::RSDic()
 {
 }

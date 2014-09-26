@@ -13,7 +13,7 @@ namespace sdarray
 
 class RSDic
 {
-    static const size_t BLOCKSIZE;
+    static constexpr size_t BLOCKSIZE = 64;
 
 public:
     RSDic();

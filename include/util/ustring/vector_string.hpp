@@ -2687,5 +2687,16 @@ inline void swap(izenelib::util::vector_string<C, COW, AR>& a,
     a.swap(b);
 }
 
+namespace std
+{
+    template <class C, int COW, uint8_t AR>
+    struct hash<izenelib::util::vector_string<C, COW, AR>>
+    {
+        size_t operator()(const izenelib::util::vector_string<C, COW, AR>& vstr) const
+        {
+            return izenelib::util::HashFunction<izenelib::util::vector_string<C, COW, AR>>::generateHash64(reinterpret_cast<const char *>(vstr.c_str()), vstr.size());
+        }
+    };
+}
 
 #endif

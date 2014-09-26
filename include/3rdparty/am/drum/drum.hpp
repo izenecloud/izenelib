@@ -259,16 +259,16 @@ private:
 
     //According to Effective C++ it's not necessary to provide definitions for such integral constant
     //variables as long as their addresses are not taken.
-    static const char CHECK = 0;
-    static const char UPDATE = 1;
-    static const char CHECK_UPDATE = 2;
-    static const char DELETE = 3;
-    static const char CHECK_DELETE = 4;
-    static const char APPEND = 5;
-    static const char EXPEL = 6;
+    static constexpr char CHECK = 0;
+    static constexpr char UPDATE = 1;
+    static constexpr char CHECK_UPDATE = 2;
+    static constexpr char DELETE = 3;
+    static constexpr char CHECK_DELETE = 4;
+    static constexpr char APPEND = 5;
+    static constexpr char EXPEL = 6;
 
-    static const char UNIQUE_KEY = 100;
-    static const char DUPLICATE_KEY = 101;
+    static constexpr char UNIQUE_KEY = 100;
+    static constexpr char DUPLICATE_KEY = 101;
 
     std::size_t const num_buckets_;
     std::size_t const bucket_buff_elem_size_;

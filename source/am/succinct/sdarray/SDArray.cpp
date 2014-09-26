@@ -38,8 +38,6 @@ namespace succinct
 namespace sdarray
 {
 
-const size_t SDArray::BLOCK_SIZE = 64;
-
 SDArray::SDArray() : size_(), sum_()
 {
 }

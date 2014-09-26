@@ -171,7 +171,7 @@ int KeyFile<KeyType, ValueType>::write(const uint64_t id, const KeyType& key, co
         ofs.write((const char*)vbuf, vlen);
 
         nextPointers_[id] = static_cast<uint64_t>(ofs.tellp());
-        static const uint64_t dummy = 0;
+        static constexpr uint64_t dummy = 0;
         ofs.write((const char*)(&dummy), sizeof(uint64_t));
         if (!ofs)
         {

@@ -68,7 +68,7 @@ class newpfor_mix_s9_compressor
             {
                 uint32_t val = encodedValue[i] ;
                 uint32_t header = ( val >> 28 ) + head;
-				
+
                 switch ( header )
                 {
                 case 0 :
@@ -315,14 +315,14 @@ class newpfor_mix_s9_compressor
     };
 
 
-    static const double exceptionThresholdRate_ ;
-    static const double exceptionRate_ ;
-    static const int blockSize_ = 128;
-    static const int headerSize_ = 1;
-    static const int MAX_EXPECTED_BLOCKSIZE = 1024;
+    static constexpr double exceptionThresholdRate_ = 0.1;
+    static constexpr double exceptionRate_ = 0.05;
+    static constexpr int blockSize_ = 128;
+    static constexpr int headerSize_ = 1;
+    static constexpr int MAX_EXPECTED_BLOCKSIZE = 1024;
     uint32_t exceptionList_[MAX_EXPECTED_BLOCKSIZE];
     uint32_t exceptionOffset_[MAX_EXPECTED_BLOCKSIZE];
-    uint32_t exceptionDatum_[MAX_EXPECTED_BLOCKSIZE*2];	
+    uint32_t exceptionDatum_[MAX_EXPECTED_BLOCKSIZE*2];
     uint32_t miss_[MAX_EXPECTED_BLOCKSIZE];
     uint32_t code_[MAX_EXPECTED_BLOCKSIZE];
 
@@ -351,10 +351,10 @@ public:
             b = 20;
             exceptionNum = 0;
             int compressed_len = compress_block(input, curr_len, output, b, exceptionNum);
-		
+
             output += compressed_len;
             input += curr_len;
-		
+
             total_comp_len += compressed_len;
         }
         return total_comp_len;
@@ -399,7 +399,7 @@ private:
             pre = cur;
         }
         int firstExceptionPos = miss_[0] + 1;
-	
+
         //make exception region
         for ( int i = 0 ; i < exceptionNum ; i++ )
             exceptionDatum_[ 2 * i ] = exceptionList_[i];
@@ -438,7 +438,7 @@ private:
         mask = ~( basicMask[b] << firstBit );
         uint32_t _val = val << firstBit;
         frame[ intPos + headerSize_ ] = (frame[ intPos + headerSize_ ] & mask) | _val;
-		
+
         // over bit-width of integer
         if ( 32 < endBit )
         {
@@ -605,7 +605,7 @@ private:
          * 1bit : has next frame or not
          *
          *****************************************************************/
-         
+
         uint32_t headerValue = encodedValue[0];
         int dataNum  = ( headerValue >> 25 ) + 1 ;
         int firstExceptionPos  = ( headerValue << 7 ) >> 24 ;  // miss[0] + 1 or 0
@@ -716,7 +716,7 @@ private:
         default :
             throw std::runtime_error("numFramBit is too high ! " + numFrameBit);
         }
-		
+
         //exception loop
         if ( firstExceptionPos != 0 )
             s9compressor_.decode( encodedValue+intOffsetForExceptionRange, exceptionIntRange, decode, firstExceptionPos - 1 );
@@ -730,4 +730,3 @@ private:
 
 }}}
 #endif
-

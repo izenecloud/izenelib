@@ -35,7 +35,7 @@ namespace sdarray
 
 class SDArray
 {
-    static const size_t BLOCK_SIZE;
+    static constexpr size_t BLOCK_SIZE = 64;
 
 public:
     enum

@@ -4,7 +4,6 @@
 #include "constants.hpp"
 
 #include <glog/logging.h>
-#include <boost/shared_ptr.hpp>
 
 #ifndef NDEBUG
   #define __assert(x) CHECK(x)

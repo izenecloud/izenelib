@@ -177,7 +177,7 @@ private:
 
     FastPFor codec_;
 
-    static const size_t BUFFER_SIZE = 4096;
+    static constexpr size_t BUFFER_SIZE = 4096;
     uint32_t segment_[BUFFER_SIZE];
 };
 

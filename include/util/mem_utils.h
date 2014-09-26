@@ -2,13 +2,14 @@
 #define IZENELIB_UTIL_MEM_UTILS_H
 
 #include <stdlib.h>
+//#include <assert.h>
 
 #define CACHELINE_SIZE 64
 
 template <class T>
 static T *cachealign_alloc(size_t size, size_t alignment = CACHELINE_SIZE)
 {
-    assert(size != 0);
+    //assert(size != 0);
     T *p;
     int ret = posix_memalign((void **)&p, alignment, size * sizeof(T));
     return ret == 0 ? p : NULL;

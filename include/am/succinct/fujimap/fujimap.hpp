@@ -32,7 +32,7 @@
 
 #include <util/hashFunction.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <map>
 #include <fstream>
 #include <sstream>
@@ -244,11 +244,11 @@ private:
 
     std::ostringstream what_; ///< Store a message
 
-    boost::unordered_map<std::string, uint32_t> val2code_; ///< Map from value to code
+    std::unordered_map<std::string, uint32_t> val2code_; ///< Map from value to code
     std::vector<std::string> code2val_; ///< Map from code to value
 
     KeyFile<KeyType, ValueType> kf_; ///< A set of non-searchable key/values
-    boost::unordered_map<KeyType, ValueType> tmpEdges_; ///< A set of searchable key/values to be indexed
+    std::unordered_map<KeyType, ValueType> tmpEdges_; ///< A set of searchable key/values to be indexed
 
     std::vector<std::vector<FujimapBlock<ValueType> > > fbs_; ///< BitArrays
     size_t fbs_count_;
@@ -363,7 +363,7 @@ void Fujimap<KeyType, ValueType>::setInteger(const KeyType& key, const ValueType
 template <class KeyType, class ValueType>
 ValueType Fujimap<KeyType, ValueType>::getCode(const std::string& value)
 {
-    typename boost::unordered_map<std::string, uint32_t>::const_iterator it = val2code_.find(value);
+    typename std::unordered_map<std::string, uint32_t>::const_iterator it = val2code_.find(value);
     if (it != val2code_.end())
     {
         return it->second;
@@ -398,7 +398,7 @@ int Fujimap<KeyType, ValueType>::build()
     if (tmpC_ == 0) return 0;
 
     changed_ = true;
-    for (typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
+    for (typename std::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
             it != tmpEdges_.end(); ++it)
     {
         uint64_t id = blockID_(it->first);
@@ -425,7 +425,7 @@ int Fujimap<KeyType, ValueType>::build()
     kf_.clear();
     tmpC_ = 0;
     ++fbs_count_;
-    boost::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
+    std::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
     return 0;
 }
 
@@ -542,7 +542,7 @@ const char* Fujimap<KeyType, ValueType>::getString(const KeyType& key, size_t& v
 template <class KeyType, class ValueType>
 ValueType Fujimap<KeyType, ValueType>::getInteger(const KeyType& key) const
 {
-    typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.find(key);
+    typename std::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.find(key);
     if (it != tmpEdges_.end())
     {
         return it->second;
@@ -667,7 +667,7 @@ int Fujimap<KeyType, ValueType>::save(const char* index)
     uint64_t tmpEdgeSize = static_cast<uint64_t>(tmpEdges_.size());
     ofs.write((const char*)(&tmpEdgeSize), sizeof(tmpEdgeSize));
     std::map<KeyType, ValueType> saved_tmp_map;
-    for (typename boost::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
+    for (typename std::unordered_map<KeyType, ValueType>::const_iterator it = tmpEdges_.begin();
             it != tmpEdges_.end(); ++it)
     {
         saved_tmp_map[it->first] = it->second;
@@ -709,10 +709,10 @@ template <class KeyType, class ValueType>
 void Fujimap<KeyType, ValueType>::clear(bool kf_clear)
 {
     changed_ = true;
-    boost::unordered_map<std::string, uint32_t>().swap(val2code_);
+    std::unordered_map<std::string, uint32_t>().swap(val2code_);
     std::vector<std::string>().swap(code2val_);
 
-    boost::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
+    std::unordered_map<KeyType, ValueType>().swap(tmpEdges_);
     std::vector<std::vector<FujimapBlock<ValueType> > >().swap(fbs_);
 
     if (kf_clear)

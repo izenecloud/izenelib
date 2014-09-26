@@ -5,7 +5,7 @@
 #include <util/mem_utils.h>
 
 #include <boost/memory.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 
 
 NS_IZENELIB_AM_BEGIN
@@ -15,7 +15,7 @@ namespace succinct
 namespace fm_index
 {
 
-typedef boost::tuple<size_t, size_t, double> range_type;
+typedef std::tuple<size_t, size_t, double> range_type;
 typedef std::vector<range_type, boost::stl_allocator<range_type> > range_list_type;
 typedef std::vector<size_t, boost::stl_allocator<size_t> > head_list_type;
 
@@ -29,7 +29,7 @@ static double getPatternScore(const range_list_type &patterns)
     for (range_list_type::const_iterator it = patterns.begin();
             it != patterns.end(); ++it)
     {
-        score += it->get<2>();
+        score += std::get<2>(*it);
     }
 
     return score;
@@ -41,7 +41,7 @@ static double getSynonymPatternScore(const range_list_type &patterns, const head
 
     for (size_t i = 0; i < synonyms.size() - 1; ++i)
     {
-        score += patterns[synonyms[i]].get<2>();
+        score += std::get<2>(patterns[synonyms[i]]);
     }
 
     return score;
@@ -49,7 +49,7 @@ static double getSynonymPatternScore(const range_list_type &patterns, const head
 
 static bool range_compare(const range_type &p1, const range_type &p2)
 {
-    return p1.get<2>() > p2.get<2>();
+    return std::get<2>(p1) > std::get<2>(p2);
 }
 
 }
@@ -90,7 +90,7 @@ public:
 
     bool addPattern(const range_type &pattern)
     {
-        if (pattern.get<0>() < pattern.get<1>())
+        if (std::get<0>(pattern) < std::get<1>(pattern))
         {
             patterns_.push_back(pattern);
             return true;
@@ -143,7 +143,7 @@ public:
 
     bool addSegment(const range_type &segment)
     {
-        if (segment.get<0>() < segment.get<1>())
+        if (std::get<0>(segment) < std::get<1>(segment))
         {
             segments_.push_back(segment);
             return true;
@@ -241,7 +241,7 @@ public:
 
     bool addPattern(const range_type &pattern)
     {
-        if (pattern.get<0>() < pattern.get<1>())
+        if (std::get<0>(pattern) < std::get<1>(pattern))
         {
             patterns_.push_back(pattern);
             return true;
@@ -328,7 +328,7 @@ public:
 
     bool addPattern(const range_type &pattern)
     {
-        if (pattern.get<0>() < pattern.get<1>())
+        if (std::get<0>(pattern) < std::get<1>(pattern))
         {
             patterns_.push_back(pattern);
             return true;
@@ -454,7 +454,7 @@ public:
 
     bool addPattern(const range_type &pattern)
     {
-        if (pattern.get<0>() < pattern.get<1>())
+        if (std::get<0>(pattern) < std::get<1>(pattern))
         {
             patterns_.push_back(pattern);
             return true;
@@ -513,11 +513,11 @@ namespace std
 {
 
 template <class T>
-struct less<boost::tuple<float, uint32_t, T*> >
+struct less<std::tuple<float, uint32_t, T*> >
 {
-    bool operator()(boost::tuple<float, uint32_t, T*> const &p1, boost::tuple<float, uint32_t, T*> const &p2)
+    bool operator()(std::tuple<float, uint32_t, T*> const &p1, std::tuple<float, uint32_t, T*> const &p2)
     {
-        return boost::get<0>(p1) < boost::get<0>(p2) || (boost::get<0>(p1) == boost::get<0>(p2) && boost::get<1>(p1) < boost::get<1>(p2));
+        return std::get<0>(p1) < std::get<0>(p2) || (std::get<0>(p1) == std::get<0>(p2) && std::get<1>(p1) < std::get<1>(p2));
     }
 };
 
