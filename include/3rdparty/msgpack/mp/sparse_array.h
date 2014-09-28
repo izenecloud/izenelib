@@ -33,39 +33,8 @@ public:
 	~sparse_array();
 
 	//! Set instance of T into index.
-	inline T& set(size_type index);
-	template <typename A1>
-	inline T& set(size_type index, A1 a1);
-	template <typename A1, typename A2>
-	inline T& set(size_type index, A1 a1, A2 a2);
-	template <typename A1, typename A2, typename A3>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3);
-	template <typename A1, typename A2, typename A3, typename A4>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15);
-	template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16>
-	inline T& set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15, A16 a16);
+	template <typename... Types>
+	inline T& set(size_type index, Types... args);
 
 	//! Reset index.
 	inline void reset(size_type index);
@@ -124,154 +93,10 @@ sparse_array<T>::~sparse_array()
 	}
 }
 
-template <typename T>
-T& sparse_array<T>::set(size_type index)
+template <typename T, typename... Types>
+T& sparse_array<T>::set(size_type index, Types... args)
 try {
-	return *(new (set_impl(index)) T());
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1>
-T& sparse_array<T>::set(size_type index, A1 a1)
-try {
-	return *(new (set_impl(index)) T(a1));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2)
-try {
-	return *(new (set_impl(index)) T(a1, a2));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15));
-} catch (...) {
-	revert(index);
-	throw;
-}
-template <typename T>
-template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16>
-T& sparse_array<T>::set(size_type index, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15, A16 a16)
-try {
-	return *(new (set_impl(index)) T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16));
+	return *(new (set_impl(index)) T(args...));
 } catch (...) {
 	revert(index);
 	throw;
@@ -379,4 +204,3 @@ const typename sparse_array<T>::item_t& sparse_array<T>::item_of(size_type index
 }  // namespace mp
 
 #endif /* mp/sparse_array.h */
-

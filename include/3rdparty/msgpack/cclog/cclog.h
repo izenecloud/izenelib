@@ -77,111 +77,30 @@ public:
 		std::cerr << prefix << " log error" << std::endl; \
 	}
 
-	template <typename A0>
-	void log(level lv, const char* prefix, A0 a0) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1>
-	void log(level lv, const char* prefix, A0 a0, A1 a1) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12 << a13;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12 << a13 << a14;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12 << a13 << a14 << a15;
-		CCLOG_IMPL_END;
-	}
-	template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16>
-	void log(level lv, const char* prefix, A0 a0, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, A12 a12, A13 a13, A14 a14, A15 a15, A16 a16) {
-		CCLOG_IMPL_BEGIN;
-		s << prefix << a0 << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12 << a13 << a14 << a15 << a16;
-		CCLOG_IMPL_END;
-	}
+        template <typename... Types>
+        void log(level lv, const char* prefix, Types... args)
+        {
+            CCLOG_IMPL_BEGIN;
+            s << prefix;
+            log_impl(s, args...);
+            CCLOG_IMPL_END;
+        }
+
 
 private:
 	virtual void log_impl(level lv, std::string& str) = 0;
+
+        template <typename... Types>
+        void log_impl(std::stringstream& s, Types... args);
+
+        void log_impl(std::stringstream& s) {}
+
+        template <typename First, typename... Rest>
+        void log_impl(std::stringstream& s, First first, Rest... rest)
+        {
+            s << first;
+            log_impl(s, rest...);
+        }
 
 private:
 	level m_runtime_level;
