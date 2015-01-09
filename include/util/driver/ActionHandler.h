@@ -26,10 +26,10 @@ public:
     virtual void invoke_async(Request& request, Response& response, Poller poller, callback_t cb) = 0;
     virtual void invoke_raw(Request& request, Response& response,
         std::string& raw_request, std::string& raw_response,
-        Poller poller, const std::string& data) = 0;
+        Poller poller, const std::string& path, int method) = 0;
     virtual void invoke_raw_async(Request& request, Response& response,
         std::string& raw_request, std::string& raw_response,
-        Poller poller, callback_t cb, const std::string& data) = 0;
+        Poller poller, callback_t cb, const std::string& path, int method) = 0;
     virtual bool is_async() const = 0;
 };
 
@@ -80,13 +80,14 @@ public:
 
     void invoke_raw(Request& request, Response& response,
         std::string& raw_request, std::string& raw_response,
-        Poller poller, const std::string& data)
+        Poller poller, const std::string& path, int method)
     {
         ControllerType controller(prototype_);
         controller.initializeRequestContext(request, response);
         controller.initializeRawContext(raw_request, raw_response);
         controller.setPoller(poller);
-        controller.set_additional_data(data);
+        controller.set_path(path);
+        controller.set_method(method);
         if (controller.preprocess())
         {
             (controller.*handler_)();
@@ -96,14 +97,15 @@ public:
 
     void invoke_raw_async(Request& request, Response& response,
         std::string& raw_request, std::string& raw_response,
-        Poller poller, callback_t cb, const std::string& data)
+        Poller poller, callback_t cb, const std::string& path, int method)
     {
         boost::shared_ptr<ControllerType> controller(new ControllerType(prototype_));
         controller->initializeRequestContext(request, response);
         controller->initializeRawContext(raw_request, raw_response);
         controller->setPoller(poller);
         controller->set_callback(cb);
-        controller->set_additional_data(data);
+        controller->set_path(path);
+        controller->set_method(method);
         if (controller->preprocess())
         {
             ((*controller).*handler_)();
