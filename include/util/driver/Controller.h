@@ -22,6 +22,7 @@ public:
     Controller()
     : request_(0),
       response_(0),
+      method_(0),
       raw_req_(NULL),
       raw_rsp_(NULL)
     {}
@@ -36,9 +37,13 @@ public:
         cb_ = cb;
     }
 
-    void set_additional_data(const std::string& data)
+    void set_method(int m)
     {
-        additional_data_ = data;
+        method_ = m;
+    }
+    void set_path(const std::string& p)
+    {
+        path_ = p;
     }
 
     void initializeRequestContext(Request& request,
@@ -71,9 +76,13 @@ public:
     }
 
 protected:
-    const std::string& additional_data() const
+    const std::string& path() const
     {
-        return additional_data_;
+        return path_;
+    }
+    int method() const
+    {
+        return method_;
     }
 
     Poller& poller()
@@ -147,7 +156,8 @@ private:
     Request* request_;
     Response* response_;
     callback_t cb_;
-    std::string additional_data_;
+    std::string path_;
+    int method_;
     std::string* raw_req_;
     std::string* raw_rsp_;
     std::string empty_str_;
